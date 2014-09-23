@@ -83,7 +83,6 @@ var url = document.URL;
 		multiOrganismCt: 10,
 		multiOrgModelLimit: 750,
 		phenotypeSort: [{type: "Alphabetic", order: 0},{type: "Frequency and Rarity", order:1} ,{type: "Frequency", order:2} ],	    
-		serverURL : "",
 		similarityCalculation: [{label: "Similarity", calc: 0}, {label: "Ratio (q)", calc: 1}, {label: "Ratio (t)", calc: 3} , {label: "Uniqueness", calc: 2}],
 		smallestModelWidth: 400,
 	        textLength: 34,
@@ -104,11 +103,10 @@ var url = document.URL;
     },
 
 
-	options:   {
+	internalOptions:   {
 	    /// good - legit options
 
-
-	    
+	    serverURL: "",
 	    selectedCalculation: 0,
 	    selectedSort: "Frequency",
 	    targetSpeciesName : "Overview",	    	
@@ -204,6 +202,11 @@ var url = document.URL;
 	 */
 	_create: function() {
 	    var self= this;
+
+	    console.log("in create...");
+	    console.log("server url is .."+this.options.serverURL);
+	   // console.log("this.configoptions is"+this.configoptions.serverURL);
+	    console.log("this config is "+this.config.serverURL);
 	    var confURL=this._getResourceUrl('phenogrid_conf','json');
 	    $.ajax( {dataType: "json",
 		     url: confURL,
@@ -220,7 +223,11 @@ var url = document.URL;
 		     },
             });
 	    /** check these */
-	    this.state = $.extend(this.options,this.configoptions,this.config);
+	    // important that config options (from the file) and this. options (from
+	    // the initializer) come last
+	    this.state = $.extend({},this.internalOptions,this.config,
+				  this.configoptions,this.options);
+	    console.log("state url is "+this.state.serverURL);
 	    this.state.data = {}
 	    // will this work?
 	    this.configoptions = undefined;
@@ -304,10 +311,12 @@ var url = document.URL;
 	   likely to have some content added as we proceed
 	 */
 	_setOption: function( key, value ) {
+	    console.log("setting option..."+key+", "+value);
             this._super( key, value );
 	},
 
 	_setOptions: function( options ) {
+	    console.log("setting options.."+JSON.stringify(options));
             this._super( options );
 	},
 
@@ -986,7 +995,8 @@ var url = document.URL;
 	    for (i in this.state.targetSpeciesList) {
 		var species = this.state.targetSpeciesList[i].name;
 		var specData = this.state.data[species];
-		if (specData != null && specData.b.length > 0) {
+		if (specData != null && typeof(specData.b) !== 'undefined' &&
+		    specData.b.length > 0) {
 		    var data = [];
 		    for (var idx= 0; idx <specData.b.length; idx++) {
 			var item = specData.b[idx];
@@ -1115,8 +1125,10 @@ var url = document.URL;
 		}
 
 		
-		//TO DO: Check on the source field, it doesn't seem to be contain any data in general
-		this._setComparisonType(retData.source.b_type);		
+	    //TO DO: Check on the source field, it doesn't seem to be contain any data in general
+	    if (typeof(retData.source) !== 'undefined') {
+		this._setComparisonType(retData.source.b_type);
+	    }
     },
     
     //for a given model, extract the sim search data including IC scores and the triple:
