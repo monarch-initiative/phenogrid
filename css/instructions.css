@@ -1,12 +1,12 @@
 /**These styles are specific to the widgets instruction page (templates/page/widgets.mustache)*/
 body{
 	margin-left:25px;
-	width:70%;
+	width:100%;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 14px;
 }
 
-.title, .sectiontitle, h1, .subsectiontitle, .header{
+ol.li, .title, .sectiontitle, h1, .subsectiontitle, .header{
 	font-weight:bold;
 	color:#44A293;
 } 
@@ -38,7 +38,7 @@ body{
 
 #viscontent .shortselects {
     left: 770px;
-    top: 520px;
+    top: 450px;
 }
 
 #phenogrid .shortselects {
@@ -46,13 +46,10 @@ body{
 }
 
 
-.subsectiontitle{
+subsectiontitle{
 	font-size:1.0em;
 }
 		
-.sectiontitle{
-	font-size:1.2em;
-}
 
 #title{
 	float:left;
@@ -103,7 +100,7 @@ div .title{
 }
 
 #viscontent { 
-    height: 525px;
+    height: 350px;
     width: 100%;
 }
 

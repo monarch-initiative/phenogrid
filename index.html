@@ -62,64 +62,43 @@
 			<div id="viscontent">
 			<div id="phen_vis"></div></div>
 				<div class="text">
-				<div class="title">Steps for Adding the Monarch Phenotype Grid to Your Webpage</div>
-                    This page describes how to include the phenogrid widget on any webpage.  Steps are provided for adding required javascript files<b>*</b>, adding parameters to the widget call, and adding the widget to the html file. <br /><br />
-					
-					<span style="font-weight:bold; font-size:1.1em;">*Required files are available at: <a href="https://github.com/monarch-initiative/monarch-app/tree/master/widgets/phenogrid">https://github.com/monarch-initiative/monarch-app/tree/master/widgets/phenogrid</a></span>
-                </div><br />
-            <div class="section">
-                <div class="sectiontitle">1. Create a directory</div>
-				  <div class="text"> As this directory will be used to hold all of the files, it should be visible to your HTML server.</div>		  
-                <div class="sectiontitle">2. Add the Required Files</div>
-                <div class="text">
-                    <ul>
-						<li>Go to your main directory and create a subdirectory named. &quot;js&quot; and add these files to it. The following .js code libraries are required:
-							<ul>
-								<li>jQuery (tested with 1.11.0)</li>
-								<li>jQuery UI (tested with 1.10.3)</li>
-								<li>d3 (tested with 3.2.4)</li>
-							</ul>
-						</li>
-						<li>The custom javascript file for the phenogrid widget is required.
-							<ul>
-								<li>phenogrid.js</li>
-							</ul>
-						</li>
-						<li>Create a new html file in your main directory and add all required javascript files within the html &lt;head&gt; tags
-							<ul>
-								<li>Example:<br />
-<pre>&lt;head&gt;
-     &lt;script src="js/jquery-1.11.0.min.js"&gt;&lt;/script&gt;
-     &lt;script src="js/jquery-ui-1.10.3.custom.min.js"&gt;&lt;/script&gt;
-     &lt;script src="js/d3.min.js"&gt;&lt;/script&gt;
-     &lt;script src="js/phenogrid.js"&gt;&lt;/script&gt;
-&lt;/head&gt;</pre>				</li>
-							</ul>
-						</li>
-						<li>Create an image subdirectory  and place all of the files in the image subdirectory of the installation into that directory.
-						
-						</li>
-						</li>
-						<li>Create a css subdirectory and copy instructions.css and phenogrid.css from the css subdirectory of the installation into your directory.
-						
-					    </ul>
-                </div><br />			   
-				<div class="sectiontitle">3. Add a List of Phenotyopes and a jQuery Function Call</div>
-                <div class="text">
-                    <ul>
-						<li>Create a list of phenotypes as an array of Javascript objects with the following attributes:
-							<ul><li><pre>[{ id:"HP:0000006", observed:"positive"}, id:"HP:0000726", observed:"positive"},...];</pre>
-							</li>
-							<li>Note that the phenotypes may also be passed in as a JSON list and that the "observed" tag may be omitted.  <pre>Example: { "HP:0000006" , "HP0000726",...}</pre>
-							<li>Note that if there are no phenotype matches in the models, you may see a "No Models found" message.</li>
-						</ul>
-						</li>
-						<li>Add a jQuery .ready function that will add the widget to an empty div tag (see Step 4) as follows  (The following example assumes you are adding the widget to a div with an id="phen_vis"): 
-							<ul><li><pre>jQuery(document).ready(function(){$("#phen_vis").phenogrid(
+				<h2 class="title">Steps for Adding the Monarch Phenotype Grid to Your Webpage</h2>
+
+<span>The phenogrid code
+  can be found
+  at <A HREF="https://github.com/monarch-initiative/phenogrid">
+ https://github.com/monarch-initiative/phenogrid.</a>
+</span>
+
+
+                </div><br/>
+<div class="section">
+A quick guide to installing and configuring the widget on your site:
+<OL>
+<LI>Get the code: Clone
+  the <A HREF="https://github.com/monarch-initiative/phenogrid">repository</a>
+  using git, or download the zip file.</LI>		   
+
+<LI>Add the required Files to your web server: Move the phenogrid
+    directory and its subdirectories to the desired location within
+    your web server content directories. 
+  </LI>
+<LI>Add a List of Phenotyopes and a jQuery Function Call:
+         <div class="text">
+                 <ul>
+		<li>Create a list of phenotypes as an array of Javascript objects with the following attributes:
+			<ul><li><pre>[{ id:"HP:0000006", observed:"positive"}, id:"HP:0000726", observed:"positive"},...];</pre>
+			</li>
+			<li>Note that the phenotypes may also be passed in as a JSON list and that the "observed" tag may be omitted.  <pre>Example: { "HP:0000006" , "HP0000726",...}</pre>
+			<li>Note that if there are no phenotype matches in the models, you may see a "No Models found" message.</li>
+					</ul>
+					</li>
+			<li>Add a jQuery .ready function that will add the widget to an empty div tag (see Step 4) as follows  (The following example assumes you are adding the widget to a div with an id="phen_vis"): 
+		<ul><li><pre>jQuery(document).ready(function(){$("#phen_vis").phenogrid(
 	{serverURL: "http://tartini.crbs.ucsd.edu", phenotypeData: phenotypes, target_species: "10090" });
 });</pre>	
-							</li>
-							<li>
+				</li>
+			<li>
 							<div class="subsectiontitle">Widget Parameters</div>
 							<div class="text">To add the widget, you must set some parameters. The following are the most common parameters:
 								<ul>
@@ -155,9 +134,8 @@
 &lt;/script&gt;</pre>
 							</ul></li>	
 					</ul></li>
-                </div>
-				<div class="sectiontitle">4. Add the Widget &lt;div&gt;:</div>
-                <div class="text">
+                </LI>
+<LI>Add the widget &lt;div&gt;:
                     <ul>
 						<li>Add an empty &lt;div&gt; tag in the body of the html file. The id of this &lt;div&gt; must match the id that you used in the Javascript fragment given above.</li>
 						<li>Example:<br />
@@ -165,12 +143,18 @@
 	&lt;div id="phen_vis"&gt;&lt;/div&gt;
 &lt;body&gt;</pre>						
 						</li>
-					</ul>										
-				</div>
-				<div class="sectiontitle">5.Load your HTML File into a browser.
-                </div><br />				
- </div>  
-			<div class="sectiontitle">Please contact us at <a href="mailto:info@monarchinitiative.org">info@monarchinitiative.org</a> if you have any problems or questions.</div>
+		    </ul>										
+				</LI>
+				<LI>Load your HTML file into a browser.</LI>
+</OL>
+</div>
+
+<div class="sectiontitle">
+Additional configuration instructions can be found in the README.md
+file from the phenogrid repository.</div>
+			<div class="sectiontitle">Please contact us
+			at <a href="mailto:info@monarchinitiative.org">info@monarchinitiative.org</a>
+			if you have any problems or questions.</div>
 			
   </body>
 </html>
