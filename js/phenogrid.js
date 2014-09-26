@@ -249,12 +249,12 @@ var url = document.URL;
 		prefix = this.config.scriptpath;
 	    }
 	    else {
-		prefix ='/widgets/phenogrid/';
+		prefix ='/widgets/phenogrid/js/';
 	    }
 	    console.log("prefix is "+prefix);
-	    var res = prefix+'js/res/'+name+'.'+type;
+	    var res = prefix+'res/'+name+'.'+type;
 	    console.log("res is "+res);
-	    return prefix+'js/res/'+name+'.'+type;
+	    return prefix+'res/'+name+'.'+type;
 	},
 
 	
