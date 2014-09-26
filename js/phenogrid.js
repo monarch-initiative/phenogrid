@@ -1305,6 +1305,9 @@ var url = document.URL;
     _initCanvas : function() {
 
     	var self= this;
+
+	       var svgContainer = $('<div id="svg_container"></div>');
+	       this.element.append(svgContainer);
 		
 		var species = '',
 			optionhtml = '';
@@ -1329,7 +1332,8 @@ var url = document.URL;
 		}
 		
 		optionhtml = optionhtml + "</select></span>";			
-	    this.element.append(optionhtml);
+	//	    this.element.append(optionhtml);
+	        svgContainer.append(optionhtml);
 		
 		var faqs = d3.selectAll("#faq")
 			.on("click", function(d) {self._showDialog("faq");
@@ -1347,7 +1351,8 @@ var url = document.URL;
 	    self._resetSelections();
         });
 			
-		this.element.append("<svg id='svg_area'></svg>");		
+//		this.element.append("<svg id='svg_area'></svg>");		
+	        svgContainer.append("<svg id='svg_area'></svg>");		
 		this.state.svg = d3.select("#svg_area");
 			
     },
@@ -2430,7 +2435,10 @@ var url = document.URL;
 		optionhtml = optionhtml+"<span id=\'calc_sel\'><select id=\"calculation\">";
 
 	    optionhtml = optionhtml+disthtml;
-		this.element.append(optionhtml);			
+	    var phenogrid_controls = $('<div id="phenogrid_controls"></div>');
+	    this.element.append(phenogrid_controls);
+	    //		this.element.append(optionhtml);			
+	    phenogrid_controls.append(optionhtml);
 		
 		
 		var calcs = d3.selectAll("#calcs")
