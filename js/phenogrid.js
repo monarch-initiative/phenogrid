@@ -242,7 +242,6 @@ var url = document.URL;
 	// thus, a workaround is included below to set the path correctly if it come up as '/'.
 	// this should not impact any standalone uses of phenogrid, and will be removed once monarch-app is cleaned up.
 	_getResourceUrl: function(name,type) {
-	    console.log("resource script path is ..."+this.config.scriptpath);
 	    var prefix;
 	    if (typeof(this.config.scriptpath) !== 'undefined' && this.config.scriptpath !== null && this.config.scrippath != ''
 	         && this.config.scriptpath !='/') {
@@ -251,9 +250,7 @@ var url = document.URL;
 	    else {
 		prefix ='/widgets/phenogrid/js/';
 	    }
-	    console.log("prefix is "+prefix);
 	    var res = prefix+'res/'+name+'.'+type;
-	    console.log("res is "+res);
 	    return prefix+'res/'+name+'.'+type;
 	},
 
