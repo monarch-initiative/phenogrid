@@ -234,8 +234,24 @@ var url = document.URL;
 	    this._reset();
 	},
 
+
+	// HACK WARNING - 20140926, harryh@pitt.edu
+	// phenogrid assumes a path of /js/res relative to the scriptpath directory. This will contain configuration files
+	// that will be loaded via urls constructed in this function.
+	// As of 9/26/2014, the puptent application used in monarch-app breaks this.
+	// thus, a workaround is included below to set the path correctly if it come up as '/'.
+	// this should not impact any standalone uses of phenogrid, and will be removed once monarch-app is cleaned up.
 	_getResourceUrl: function(name,type) {
-	    return this.config.scriptpath+'res/'+name+'.'+type;
+	    var prefix;
+	    if (typeof(this.config.scriptpath) !== 'undefined' && this.config.scriptpath !== null && this.config.scrippath != ''
+	         && this.config.scriptpath !='/') {
+		prefix = this.config.scriptpath;
+	    }
+	    else {
+		prefix ='/widgets/phenogrid/js/';
+	    }
+	    var res = prefix+'res/'+name+'.'+type;
+	    return prefix+'res/'+name+'.'+type;
 	},
 
 	
