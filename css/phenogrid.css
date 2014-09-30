@@ -31,21 +31,18 @@
 }
 
 
-
-#slabel,
-#org_div div
-{
-	width:175px;
+#org_div {
+    width:200px;
 }
+	    
 
 #sorts span,
-#org_div span,
+#org_sel,
 #calc_sel{
 	width:150px;
 	font-size:9px;
 }
 
-#org_div span,
 #calc_sel{
 	margin-top:-15px;
 }
@@ -67,7 +64,9 @@ text.accent{
 	font-size: 9px;
 }
 #prebl{
-
+    clear:both;
+    background-color: #9999FF;
+    float:left;
 
 }
 
@@ -105,7 +104,7 @@ text.accent{
 #svg_area{
 	float:left;
 	margin-top: -35px;
-	height:300px !important;
+	height:500px !important;
 }
 
 #selectionrect{
@@ -131,87 +130,10 @@ text.accent{
    stroke:#25349A;
 }
 
-.selects{
-  background-color:#f5f5f5; 
-  padding: 0 7px 8px 6px;
-  width: 205px;
-  
-  position:relative;
-  margin-top:-330px;
-  top:650px;
-  left:790px;
-  padding: 0 7px 8px 6px;
-  margin-left:-10px;
+
+#org_div {
+    float: left;
 }
-
-.shortSelects{
-	background-color: #f5f5f5;
-	width: 205px;
-    margin-left: 8px; 
-  position:relative;
-  top:500px;
-  left:775px;
-  padding: 0 7px 8px 0px;
-  margin-top:-330px;
- 
-}
-
-.shortNarrowSelects{
-	background-color: #f5f5f5;
-	width: 205px;
-    margin-left: 8px;
-	margin-top:-370px;
-	position: relative;
-    top: 550px;
-	left: 635px;
-
-}
-
-.overviewSelects{
-	background-color: #f5f5f5;
-	width: 205px;
-    margin-left: 8px; 
-    position:relative;
-	margin-top:-330px;
-	top:660px;
-	left:790px;
-    padding: 0 7px 8px 6px;
-    margin-left:-10px;
- 
-}
-
-#phenogrid .overviewSelects{
-	margin-top:-400px;
-	top: 650px;
-}
-
-
-
-
-.overviewShortSelects {
-    background-color: #f5f5f5;
-	width: 205px;
-    margin-left: 8px;
-	
-    left: 635px;
-    margin-left: 8px;
-    margin-top: -300px;
-    position: relative;
-    top: 550px;
-   
-}
-
-.overviewShortNarrowSelects {
-	background-color: #f5f5f5;
-	width: 205px;
-    margin-left: 8px;   
-	margin-top:-370px;
-	position: relative;
-    top: 620px;
-	left: 635px;
-	height:120px;
-}
-
 
 #org_div div, #calc_div div{
 	font-weight:bold;
@@ -220,26 +142,16 @@ text.accent{
 #org_div span, #calc_div span{
    font-size:14px;
 }
-#org_div, #calc_div {
+
+#calc_div {
 	height:60px;
 }
 
-#calc_sel{
-
-}
 #calcs {
   margin-left:10px;
   font-size: 22px;
   color: #25349A;
   font-weight:bold;
-}
-
-#clabel {
-
-}
-
-#olabel {
-
 }
 
 
@@ -327,11 +239,10 @@ margin-left: 55px;
 
 #unmatchedlabel,
 #unmatchedlabelhide{
-	float:left;
 	clear:both;
 	font-weight: bold;
 	color: rgb(68,162,147);
-	margin-top:-15px;
+	margin-top: 5px;
 	margin-left: 5px;
 	margin-bottom:20px;
 }
@@ -343,7 +254,7 @@ margin-left: 55px;
 	float:left;
 	clear:both;
 	font-size: 0.8em;
-    margin-left: -10px;
+    margin-left: 10px;
     text-align: right;
 	padding-bottom:30px;
 	margin-top:10px;
@@ -358,13 +269,14 @@ margin-left: 55px;
 
 #phenogrid_controls {
     clear:both;
-    background-color: #CCCCCC;
-    height:100;
+    float: left;
+    width:400;
+    background-color: #DDFFFF;
 }
 
 #svg_container {
-    height:300;
-    background-color: #DDDDDD;
+    height:600;
+    background-color: #FF99FF;
 }
 
 

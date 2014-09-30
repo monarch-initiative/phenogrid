@@ -203,10 +203,6 @@ var url = document.URL;
 	_create: function() {
 	    var self= this;
 
-	    console.log("in create...");
-	    console.log("server url is .."+this.options.serverURL);
-	   // console.log("this.configoptions is"+this.configoptions.serverURL);
-	    console.log("this config is "+this.config.serverURL);
 	    var confURL=this._getResourceUrl('phenogrid_conf','json');
 	    $.ajax( {dataType: "json",
 		     url: confURL,
@@ -227,7 +223,6 @@ var url = document.URL;
 	    // the initializer) come last
 	    this.state = $.extend({},this.internalOptions,this.config,
 				  this.configoptions,this.options);
-	    console.log("state url is "+this.state.serverURL);
 	    this.state.data = {}
 	    // will this work?
 	    this.configoptions = undefined;
@@ -272,19 +267,20 @@ var url = document.URL;
 
 	    this.state.currModelIdx = this.state.modelDisplayCount-1;
 	    this.state.currPhenotypeIdx = this.state.phenotypeDisplayCount-1;
-		this.state.phenotypeLabels = this._filterPhenotypeLabels(this.state.phenotypeData);
 	    this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 	    this.state.inputPhenotypeData = this.state.phenotypeData.slice();
-		this._loadData();
-		var modData = [];
-		if (this.state.targetSpeciesName == "Overview") {
-		    this.state.yoffsetOver = 30;
-		}
-	        modData = this.state.modelData.slice();
-
-   	        this._filterData(modData.slice());
+	    this._loadData();
+	    var modData = [];
+	    if (this.state.targetSpeciesName == "Overview") {
+		this.state.yoffsetOver = 30;
+	    }
+	    modData = this.state.modelData.slice();
 	    
-		this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
+   	    this._filterData(modData.slice());
+	    // stab in the dark.
+	    this.state.phenotypeLabels = this._filterPhenotypeLabels(this.state.phenotypeData);
+	    
+	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
 	    this.reDraw(); 
 
@@ -327,12 +323,10 @@ var url = document.URL;
 	   likely to have some content added as we proceed
 	 */
 	_setOption: function( key, value ) {
-	    console.log("setting option..."+key+", "+value);
             this._super( key, value );
 	},
 
 	_setOptions: function( options ) {
-	    console.log("setting options.."+JSON.stringify(options));
             this._super( options );
 	},
 
@@ -571,6 +565,8 @@ var url = document.URL;
 			partial = [],
 			matchedset = [],
 			unmatchedset = [];
+
+
 			
 			for (i=0; i < fullset.length; i++) {
 				full.push(fullset[i]);
@@ -586,7 +582,6 @@ var url = document.URL;
 				}
 			}
 			unmatchedset = unmatchedset.slice();
-						
 			var dupArray = [];
 			dupArray.push(unmatchedset[0]);	
 			//check for dups
@@ -616,19 +611,14 @@ var url = document.URL;
 		var unmatched = self.state.unmatchedPhenotypes,
 			dupLabels = [],
 			text = "";
-			
-		/**unmatched.sort(function(a,b) {
-			vst phenA = a.
-		}*/
-		
 		var labels = self.state.phenotypeLabels;
 		for (i = 0; i < unmatched.length; i++)
-		{
+	    {
 			for (j=0; j<labels.length; j++){
-				if ((labels[j].id).indexOf(unmatched[i]) != -1){					
-					if (dupLabels.indexOf(labels[j].label) < 0) {
+			    var res = (labels[j].id).indexOf(unmatched[i]);
+			    if ((labels[j].id).indexOf(unmatched[i]) !=-1){
+				if (dupLabels.indexOf(labels[j].label) < 0) {
 						var label = labels[j].label;
-						//console.log(labels[j].label);
 						var url_origin = self.document[0].location.origin;
 						text = text + "<a href='" + url_origin + "/phenotype/" + unmatched[i] + "' target='_blank'>" + label + "</a><br />";
 						dupLabels.push(label);
@@ -1198,7 +1188,6 @@ var url = document.URL;
 			   "rowid" : this._getConceptId(curr_row.a.id) + 
 			              "_" + this._getConceptId(curr_row.lcs.id)
 		  }; 
-		//  console.log("New Row Value: "); console.log(new_row.value);
     	    if (new_row.subsumer_id.indexOf("0005753") > -1) {
     	    	console.out("got it");
     	    }
@@ -2446,15 +2435,10 @@ var url = document.URL;
 		} 
 		else { selClass = "selects";}
 	    
-		var optionhtml = self._createOrganismSelection(selClass);
-		var disthtml = self._createCalculationSelection();
-		optionhtml = optionhtml+"<span id=\'calc_sel\'><select id=\"calculation\">";
-
-	    optionhtml = optionhtml+disthtml;
 	    var phenogrid_controls = $('<div id="phenogrid_controls"></div>');
 	    this.element.append(phenogrid_controls);
-	    //		this.element.append(optionhtml);			
-	    phenogrid_controls.append(optionhtml);
+	    var selControls = this._createSelectionControls(selClass);
+	    phenogrid_controls.append(selControls);
 		
 		
 		var calcs = d3.selectAll("#calcs")
@@ -2517,11 +2501,20 @@ var url = document.URL;
 			.style("font-size", "11px")
 			.text(this.state.targetSpeciesList[i].name);	
 	},
+
+	_createSelectionControls: function(selClass) {
+	    var optionhtml ='<div id="selects" class="'+selClass+'"></div>';
+	    var options = $(optionhtml);
+	    var orgSel = this._createOrganismSelection();
+	    options.append(orgSel)
+	    var calcSel = this._createCalculationSelection();
+	    options.append(calcSel);
+	    return options;
+	},
 	
 	_createOrganismSelection: function(selClass) {
 	    var selectedItem="";
-	    var optionhtml = "<div id='selects' class='" + selClass +
-		"'><div id='org_div'><span id='olabel'>Species</span>"+
+	    var optionhtml = "<div id='org_div'><span id='olabel'>Species</span>"+
 		"<span id='org_sel'><select id=\'organism\'>";
 
 	    for (var idx=0;idx<this.state.targetSpeciesList.length;idx++) {
@@ -2543,16 +2536,19 @@ var url = document.URL;
 		"<option value=\"Overview\" "+ selecteditem +">Overview</option>"
 	    
 	    optionhtml = optionhtml +
-		"</select></span></div><div id=\"calc_div\"><span id=\"clabel\">Display</span><span id=\"calcs\"><img class=\"calcs\" src=\"" +
+		"</select></span></div>";
+	    return $(optionhtml);
+	},
+
+
+	
+	_createCalculationSelection: function () {
+
+	    var optionhtml = "<div id=\"calc_div\"><span id=\"clabel\">Display</span><span id=\"calcs\"><img class=\"calcs\" src=\"" +
 		this.state.scriptpath +
 		"../image/greeninfo30.png\" height=\"15px\"></span><br />";
 
-	    return optionhtml;
-	},
-
-	_createCalculationSelection: function () {
-
-	    var optionhtml;
+	    optionhtml = optionhtml+"<span id=\'calc_sel\'><select id=\"calculation\">";
 	    for (var idx=0;idx<this.state.similarityCalculation.length;idx++) {
 		var selecteditem = "";
 		if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
@@ -2562,8 +2558,8 @@ var url = document.URL;
 		    this.state.similarityCalculation[idx].calc +"' "+ selecteditem +">" +
 		    this.state.similarityCalculation[idx].label +"</option>";
 	    }
-	    optionhtml = optionhtml + "</select></span></div></div>";
-	    return optionhtml;
+	    optionhtml = optionhtml + "</select></span></div>";
+	    return $(optionhtml);
 	},
 
 	//this code creates the text and rectangles containing the text 
@@ -2613,25 +2609,29 @@ var url = document.URL;
 			return self._getShortLabel(txt);
 		})
 		
-		if (this.state.unmatchedPhenotypes != undefined && this.state.unmatchedPhenotypes.length > 0){
-			d3.select("#unmatchedlabel").remove();
-			d3.select("#unmatchedlabelhide").remove();
-			d3.select("#prebl").remove();
+	    if (this.state.unmatchedPhenotypes != undefined && this.state.unmatchedPhenotypes.length > 0){
 		
 			var phenotypes = self._showUnmatchedPhenotypes();		
 		
-			var optionhtml3 = "<div id='prebl'><div id='unmatchedlabel' style='display:block;'>View Unmatched Phenotypes</div></div>";
+			var optionhtml = "<div id='prebl'><div id='unmatchedlabel' style='display:block;'>View Unmatched Phenotypes</div>";
 			var el = this.element;
-			el.append(optionhtml3);	
 
-			var optionhtml4 = "<div id='unmatchedlabelhide' style='display:none;'>Hide Unmatched Phenotypes<br /><div id='unmatched' style='display:none;'>" + phenotypes + "</div></div>";
-			el.append(optionhtml4)
-			
-			d3.select("#unmatchedlabel")
+			optionhtml = optionhtml+ "<div id='unmatchedlabelhide' style='display:none;'>Hide Unmatched Phenotypes<br /><div id='unmatched' style='display:none;'>" + phenotypes + "</div></div></div>";
+			el.append(optionhtml)
+
+		$("#unmatchedlabel").click(function() {
+		    $("#unmatchedlabel").hide();
+		    $("#unmatchedlabelhide").show();
+		    $("#unmatched").show();
+		});
+
+		$("#unmatchedlabelhide").click(function()  {
+		    $("#unmatchedlabel").show();
+		    $("#unmatchedlabelhide").hide();
+		    $("#unmatched").hide();
+		});
+			/*d3.select("#unmatchedlabel")
 				.on("click", function(d) {
-					$("#unmatchedlabel").hide();
-					$("#unmatchedlabelhide").show();
-					$("#unmatched").show();				
 				});
 				
 			d3.select("#unmatchedlabelhide")
@@ -2639,7 +2639,7 @@ var url = document.URL;
 					$("#unmatchedlabel").show();
 					$("#unmatchedlabelhide").hide();
 					$("#unmatched").hide();			
-				});
+				});*/
 		}
 		
 		if (this.state.targetSpeciesName == "Overview") {var pad = 14;}
@@ -2708,10 +2708,9 @@ var url = document.URL;
     _filterPhenotypeLabels : function(phenotypelist) {
     	//this.state.phenotypeData = phenotypelist.slice();
 		var newlist = [];
-
 		for (var i = 0; i < phenotypelist.length; i++) {
-			newlist.push({ "id" : phenotypelist[i].id, "label" : this._getShortLabel(phenotypelist[i].label)}); 
-		}   	
+			newlist.push({ "id" : phenotypelist[i].id_a.replace("_",":"), "label" : phenotypelist[i].label_a});
+		}
     	//copy the list of ids and labels to phenotypeLabels array
     	return newlist;
 

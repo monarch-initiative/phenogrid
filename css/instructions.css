@@ -32,10 +32,6 @@ ol.li, .title, .sectiontitle, h1, .subsectiontitle, .header{
 	margin-top:10px;
 }
 
-#phenogrid #prebl{
-	display:none;
-}
-
 #viscontent .shortselects {
     left: 770px;
     top: 450px;
@@ -55,6 +51,11 @@ subsectiontitle{
 	float:left;
 
 }
+
+#text {
+    clear:both;
+}
+	     
 
 #title b{
 //  position:absolute;
@@ -102,6 +103,7 @@ div .title{
 #viscontent { 
     height: 350px;
     width: 100%;
+    clear: both;
 }
 
 #footer {
