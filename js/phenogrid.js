@@ -624,10 +624,13 @@ var url = document.URL;
 				            console.log("Found one to add..");
 						var label = labels[j].label;
 						var url_origin = self.document[0].location.origin;
-						text = text + "<a href='" + url_origin + "/phenotype/" + unmatched[i] + "' target='_blank'>" + label + "</a><br />";
-						dupLabels.push(label);
-					}
+				    text = text + "<a href='" + url_origin + "/phenotype/" + unmatched[i] + "' target='_blank'>" + label + "</a>";
+				    if (i < unmatched.length -1) {
+					text = text +", ";
+				    }
+				    dupLabels.push(label);
 				}
+			    }
 
 			}
 		}
@@ -2411,38 +2414,9 @@ var url = document.URL;
 				div_text3.attr("x",self.state.axis_pos_list[2] + 150);			
 			}
 		}					
-		var selClass = "";
-
-		//This is for the new "Overview" target option 
-		if (self.state.targetSpeciesName == "Overview") {
-			if(self.state.modelWidth <= self.state.smallestModelWidth)
-			{
-				if (self.state.filteredPhenotypeData.length < 14) 
-				{ 
-					selClass = "overviewShortNarrowSelects"; 
-				} 
-				else { selClass = "overviewShortSelects";}
-			}
-			else { selClass = "overviewSelects"; }
-		} 
-		//else if (self.state.filteredPhenotypeData.length < 14) 
-		//{	selClass = "shortSelects";
-		//}
-		else if (self.state.modelWidth <= self.state.smallestModelWidth)
-		{
-				if (self.state.filteredPhenotypeData.length < 14) 
-				{ selClass = "shortNarrowSelects"; } 
-				else { selClass = "shortSelects";}
-		}
-		else if (self.state.filteredPhenotypeData.length < 14)
-		{ 
-			selClass = "shortSelects"; 
-		} 
-		else { selClass = "selects";}
-	    
 	    var phenogrid_controls = $('<div id="phenogrid_controls"></div>');
 	    this.element.append(phenogrid_controls);
-	    var selControls = this._createSelectionControls(selClass);
+	    var selControls = this._createSelectionControls(); 
 	    phenogrid_controls.append(selControls);
 		
 		
@@ -2508,7 +2482,9 @@ var url = document.URL;
 	},
 
 	_createSelectionControls: function(selClass) {
-	    var optionhtml ='<div id="selects" class="'+selClass+'"></div>';
+	    //var optionhtml ='<div id="selects" class="'+selClass+'"></div>';
+
+	    var optionhtml ='<div id="selects"></div>';
 	    var options = $(optionhtml);
 	    var orgSel = this._createOrganismSelection();
 	    options.append(orgSel)
@@ -2635,17 +2611,7 @@ var url = document.URL;
 		    $("#unmatchedlabelhide").hide();
 		    $("#unmatched").hide();
 		});
-			/*d3.select("#unmatchedlabel")
-				.on("click", function(d) {
-				});
-				
-			d3.select("#unmatchedlabelhide")
-				.on("click", function(d) {
-					$("#unmatchedlabel").show();
-					$("#unmatchedlabelhide").hide();
-					$("#unmatched").hide();			
-				});*/
-		}
+	    }
 		
 		if (this.state.targetSpeciesName == "Overview") {var pad = 14;}
 		else { var pad = 10;}

@@ -251,12 +251,8 @@ margin-left: 55px;
 }
 
 #unmatched {
-	float:left;
-	clear:both;
 	font-size: 0.8em;
-    margin-left: 10px;
-    text-align: right;
-	padding-bottom:30px;
+	padding-bottom:10px;
 	margin-top:10px;
 }
 
@@ -276,6 +272,8 @@ margin-left: 55px;
     height:600px;
     background-color: #FFCCFF;
 }
+
+
 
 
 /* spinner code from http://tobiasahlin.com/spinkit */
