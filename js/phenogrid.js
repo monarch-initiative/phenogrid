@@ -2589,7 +2589,30 @@ var url = document.URL;
 			}
 			return self._getShortLabel(txt);
 		})
+
+	    this._buildUnmatchedPhenotypeDisplay();
 		
+		if (this.state.targetSpeciesName == "Overview") {var pad = 14;}
+		else { var pad = 10;}
+		
+		rect_text.transition()
+   		.style('opacity', '1.0')
+		.delay(5)
+		.attr("y", function(d) {
+			//controls position of phenotype list
+			return self._getYPosition(d[0].id_a) +
+   		(self.state.yTranslation + self.state.yoffsetOver) + pad;//rowid
+		})
+	    rect_text.exit()
+	   	.transition()
+	   	.delay(20)
+	   	.style('opacity', '0.0')
+		.remove();
+	},
+
+
+
+	_buildUnmatchedPhenotypeDisplay: function() {
 	    if (this.state.unmatchedPhenotypes != undefined && this.state.unmatchedPhenotypes.length > 0){
 		
 			var phenotypes = self._showUnmatchedPhenotypes();		
@@ -2611,25 +2634,13 @@ var url = document.URL;
 		    $("#unmatchedlabelhide").hide();
 		    $("#unmatched").hide();
 		});
+	    } else { // no unmatched phenotypes
+		var optionhtml = "<div id='prebl'><div id='unmatchedlabel' style='display:block;'>No Unmatched Phenotypes</div></div>";
+		this.element.append(optionhtml);
 	    }
-		
-		if (this.state.targetSpeciesName == "Overview") {var pad = 14;}
-		else { var pad = 10;}
-		
-		rect_text.transition()
-   		.style('opacity', '1.0')
-		.delay(5)
-		.attr("y", function(d) {
-			//controls position of phenotype list
-			return self._getYPosition(d[0].id_a) +
-   		(self.state.yTranslation + self.state.yoffsetOver) + pad;//rowid
-		})
-	    rect_text.exit()
-	   	.transition()
-	   	.delay(20)
-	   	.style('opacity', '0.0')
-		.remove();
 	},
+
+	
 
 	_rectClick: function(data) {
 	    var retData;
