@@ -269,14 +269,12 @@ margin-left: 55px;
 
 #phenogrid_controls {
     clear:both;
-    float: left;
-    width:400;
     background-color: #DDFFFF;
 }
 
 #svg_container {
-    height:600;
-    background-color: #FF99FF;
+    height:600px;
+    background-color: #FFCCFF;
 }
 
 
