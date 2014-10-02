@@ -40,12 +40,13 @@
 		{ id:"HP:0002172", observed:"positive"},
 	   	{ id:"HP:0002322", observed:"positive"},
 		{ id:"HP:0007159", observed:"positive"}];	
-   
+
    
 	// jQuery gets to bootstrap everything.
 	jQuery(document).ready(
 	function(){
-	$("#phen_vis").phenogrid({serverURL : "http://tartini.crbs.ucsd.edu", phenotypeData: phenotypes, targetSpecies: "10090" });
+	$("#phen_vis").phenogrid({serverURL :
+	"http://tartini.crbs.ucsd.edu", phenotypeData:	phenotypes,targetSpeciesName: "Mus musculus" });
 	   });
 	
 	</script>
