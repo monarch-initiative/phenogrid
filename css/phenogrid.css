@@ -104,7 +104,7 @@ text.accent{
 #svg_area{
 	float:left;
 	margin-top: -35px;
-	height:500px !important;
+	/*height:500px;  !important;*/
 }
 
 #selectionrect{
@@ -269,7 +269,6 @@ margin-left: 55px;
 }
 
 #svg_container {
-    height:600px;
     background-color: #FFCCFF;
 }
 

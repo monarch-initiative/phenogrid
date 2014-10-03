@@ -277,7 +277,7 @@ var url = document.URL;
 	    if (this.state.targetSpeciesName == "Overview") {
 		this.state.yoffsetOver = 30;
 	    }
-	    console.log("laoded data..");
+	    console.log("loaded data..");
 	    modData = this.state.modelData.slice();
 	    
    	    this._filterData(modData.slice());
@@ -300,7 +300,7 @@ var url = document.URL;
 		 && this.state.filteredPhenotypeData.length != 0){
 	         
 	            this._initCanvas(); 
-				this._addLogoImage();	        
+		    this._addLogoImage();	        
 	            this.state.svg
 					.attr("width", "100%")
 					.attr("height", this.state.phenotypeDisplayCount * 18);
@@ -311,8 +311,17 @@ var url = document.URL;
 				this._createGridlines();
 				this._createModelRects();
 				this._createRects();			
-				this._createOverviewSection();
-	    } 	
+		    this._createOverviewSection();
+		    console.log("svg height is "+this.state.phenotypeDisplayCount*18);
+		    $("#svg_area").css("height",this.state.phenotypeDisplayCount*18+250);
+		    $("#svg_container").css("height",this.state.phenotypeDisplayCount*18+250);
+		}
+	    else {
+		
+		console.log("no data....");
+		this._createSvgContainer();
+		this._createEmptyVisualization();
+	    }
 	},
 	
 	_resetIndicies: function() {
@@ -334,12 +343,12 @@ var url = document.URL;
 
 	
 	//create this visualization if no phenotypes or models are returned
-	_createEmptyVisualization: function(url, organism) {
+	_createEmptyVisualization: function() {
 
 		var self = this;
-		var fullmsg = "There are no " + organism + " models for this disease. "
+		var fullmsg = "There are no " + self.state.targetSpeciesName + " models for this disease. "
 		d3.select("#svg_area").remove();
-		this.element.append("<svg id='svg_area'></svg>");
+		this.state.svgContainer.append("<svg id='svg_area'></svg>");
             this.state.svg = d3.select("#svg_area");
             self.state.svg
 		.attr("width", 1100)
@@ -634,7 +643,6 @@ var url = document.URL;
 
 			}
 		}
-	        console.log("unmatched text is..."+text);
 		return text;
 	},
 	
@@ -1050,21 +1058,12 @@ var url = document.URL;
 			url: url, 
 			async : false,
 			dataType : 'json',
-			success : function(data) {
-			   if (Object.getOwnPropertyNames(data).length == 0)
-			   {
-					if (self.state.targetSpeciesName != "Overview") {
-						self._createEmptyVisualization(url, self.state.targetSpeciesName);
-					}
-			   }
-			   else {
-					//This is for the new "Overview" target option 
+			    success : function(data) {
 			       if (self.state.targetSpeciesName == "Overview") {
 				   self.state.data[target] = data;
 			       }
 			       else {self._finishLoad(data);}			   
-			   }
-			},
+			    },
 			error: function ( xhr, errorType, exception ) { //Triggered if an error communicating with server  
 				self._displayResult(xhr, errorType, exception);
 			},  
@@ -1108,11 +1107,16 @@ var url = document.URL;
 	//Call _loadDataForModel to put the matches in an array
 	_finishLoad: function(data) {
 		var retData = data;
-		//extract the maxIC score
+	    //extract the maxIC score
+	    if (typeof (retData.metadata) !== 'undefined') {
 		this.state.maxICScore = retData.metadata.maxMaxIC;
-		var self= this;
+	    }
+	    var self= this;
 		
-		this.state.modelList = [];
+	    this.state.modelList = [];
+
+	    if (typeof (retData.b)  !== 'undefined') {
+	    
 		for (var idx=0;idx<retData.b.length;idx++) {
 			this.state.modelList.push(
 			{model_id: self._getConceptId(retData.b[idx].id), 
@@ -1142,6 +1146,7 @@ var url = document.URL;
 	    //TO DO: Check on the source field, it doesn't seem to be contain any data in general
 	    if (typeof(retData.source) !== 'undefined') {
 		this._setComparisonType(retData.source.b_type);
+	    }
 	    }
     },
     
@@ -1319,9 +1324,8 @@ var url = document.URL;
 
     	var self= this;
 
-	       var svgContainer = $('<div id="svg_container"></div>');
-	       this.element.append(svgContainer);
-		
+	this._createSvgContainer();
+	var svgContainer = this.state.svgContainer;
 		var species = '',
 			optionhtml = '';
 		
@@ -1364,11 +1368,17 @@ var url = document.URL;
 	    self._resetSelections();
         });
 			
-//		this.element.append("<svg id='svg_area'></svg>");		
 	        svgContainer.append("<svg id='svg_area'></svg>");		
 		this.state.svg = d3.select("#svg_area");
 			
     },
+
+	_createSvgContainer : function() {
+	    var svgContainer = $('<div id="svg_container"></div>');
+	    this.state.svgContainer =  svgContainer;
+	    this.element.append(svgContainer);
+
+	},
 
 	_resetSelections : function() {
 		var self = this;
