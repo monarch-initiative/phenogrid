@@ -255,7 +255,6 @@ var url = document.URL;
 
 	    this.element.empty();
 	    this._loadSpinner();
-	    console.log("started init...");
 	    this.state.phenotypeDisplayCount = this._calcPhenotypeDisplayCount();
 		//save a copy of the original phenotype data
 		this.state.origPhenotypeData = this.state.phenotypeData.slice();
@@ -269,15 +268,12 @@ var url = document.URL;
 	    this.state.currPhenotypeIdx = this.state.phenotypeDisplayCount-1;
 	    this.state.phenotypeLabels = this._filterPhenotypeLabels(this.state.phenotypeData);
 	    this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
- 	    console.log("filtered phenotype labels.");
-	    console.log("got phenotype results...");
 	    this.state.inputPhenotypeData = this.state.phenotypeData.slice();
 	    this._loadData();
 	    var modData = [];
 	    if (this.state.targetSpeciesName == "Overview") {
 		this.state.yoffsetOver = 30;
 	    }
-	    console.log("loaded data..");
 	    modData = this.state.modelData.slice();
 	    
    	    this._filterData(modData.slice());
@@ -315,16 +311,12 @@ var url = document.URL;
 		    
 		    this._createOverviewSection();
 
-		    console.log("ymax is "+ymax);
-		    console.log("svg height is "+this.state.phenotypeDisplayCount*18);
 		    ymax = ymax +30; //gap MAGIC NUBER ALERT
 		    var height = this.state.phenotypeDisplayCount*18;//+ this.state.yoffsetOver;
 		    if (height < ymax) {
 			height = ymax;
 		    }
 		    var containerHeight = height+30; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
-		    console.log("height is "+height);
-		    console.log("container height is "+containerHeight);
 		    $("#svg_area").css("height",height);
 		    $("#svg_container").css("height",containerHeight);
 
@@ -636,7 +628,6 @@ var url = document.URL;
 		var unmatched = self.state.unmatchedPhenotypes,
 			dupLabels = [],
 			text = "";
-	    console.log("unmatched phenotypes are...."+JSON.stringify(unmatched));
 		var labels = self.state.phenotypeLabels;
 		for (i = 0; i < unmatched.length; i++)
 	    {
@@ -644,7 +635,6 @@ var url = document.URL;
 			    var res = (labels[j].id).indexOf(unmatched[i]);
 			    if ((labels[j].id).indexOf(unmatched[i]) !=-1){
 				if (dupLabels.indexOf(labels[j].label) < 0) {
-				            console.log("Found one to add..");
 						var label = labels[j].label;
 						var url_origin = self.document[0].location.origin;
 				    text = text + "<a href='" + url_origin + "/phenotype/" + unmatched[i] + "' target='_blank'>" + label + "</a>";
@@ -2516,7 +2506,6 @@ var url = document.URL;
 			.attr("x", self.state.axis_pos_list[2] + 205)
 			.style("font-size", "11px")
 		    .text(this.state.targetSpeciesList[i].name);
-	    console.log("y of gradient is..."+y);
 	    return y;
 	},
 

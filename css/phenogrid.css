@@ -65,7 +65,7 @@ text.accent{
 }
 #prebl{
     clear:both;
-    background-color: #9999FF;
+  /*  background-color: #9999FF;*/
     float:left;
 
 }
@@ -265,11 +265,11 @@ margin-left: 55px;
 
 #phenogrid_controls {
     clear:both;
-    background-color: #DDFFFF;
+ /*   background-color: #DDFFFF;*/
 }
 
 #svg_container {
-   background-color: #FFCCFF;
+   /*background-color: #FFCCFF;*/
 }
 
 
