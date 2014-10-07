@@ -201,23 +201,10 @@ var url = document.URL;
 	 * [ "HP:12345", "HP:23451", ...]
 	 */
 	_create: function() {
-	    var self= this;
 
-	    var confURL=this._getResourceUrl('phenogrid_conf','json');
-	    $.ajax( {dataType: "json",
-		     url: confURL,
-		     async: false,
-		     dataType: "json",
-		     success: function(d) {
-			 self.configoptions = d;
-		     },
-		     fail: function() {
-			 configoptions = undefined;
-		     },
-		     error: function(jqXHR,textStatus,errorThrown)  {
-			 console.log("status is "+textStatus+", error is "+errorThrown);
-		     },
-            });
+
+	    // must be available from js loaded in a separate file...
+	    this.configoptions = configoptions;
 	    /** check these */
 	    // important that config options (from the file) and this. options (from
 	    // the initializer) come last
