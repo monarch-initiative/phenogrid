@@ -20,6 +20,7 @@
     <script src="js/jquery-1.11.0.min.js"></script>
     <script src="js/jquery-ui-1.10.3.custom.min.js"></script>
     <script src="js/d3.min.js"></script>
+    <script src="js/phenogrid_config.js"></script>
     <script src="js/phenogrid.js"></script>
 	<link rel="stylesheet" type="text/css" href="css/instructions.css"/>
 	<link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
@@ -79,8 +80,14 @@ A quick guide to installing and configuring the widget on your site:
 <LI>Add the required Files to your web server: Move the phenogrid
     directory and its subdirectories to the desired location within
     your web server content directories. 
-  </LI>
-<LI>Add a List of Phenotyopes and a jQuery Function Call:
+</LI>
+<LI>Load the following Javascript files (in this order) into your
+  page:</LI>
+<OL>
+  <LI> ./js/phenogrid_config.js</LI>
+  <LI> ./js/phenogrid.js</LI>
+  </OL>
+<LI>Add your own javascript to the page, containing the following content:
          <div class="text">
                  <ul>
 		<li>Create a list of phenotypes as an array of Javascript objects with the following attributes:

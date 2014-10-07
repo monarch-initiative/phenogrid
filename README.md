@@ -7,7 +7,9 @@ Phenogrid widget.
 #Phenogrid configuration
 
 The phenogrid can be configured via a variety of options contained in
-the ./js/res/phenogrid_config.json file.
+the ./js/phenogrid_config.js file. This file must be loaded as a
+separate Javascript file in every page that uses the phenogrid. Please
+be sure that this file is loaded _before_ the main ./js/phenogrid.js file.
 
 Options that can be modified include
 
