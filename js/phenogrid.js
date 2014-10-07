@@ -300,21 +300,35 @@ var url = document.URL;
 		 && this.state.filteredPhenotypeData.length != 0){
 	         
 	            this._initCanvas(); 
-		    this._addLogoImage();	        
+		    this._addLogoImage();
+
 	            this.state.svg
 					.attr("width", "100%")
 					.attr("height", this.state.phenotypeDisplayCount * 18);
 				this._createAccentBoxes();				
 				this._createColorScale();
-				this._createModelRegion();
+				var ymax  = this._createModelRegion();
 				this._updateAxes();
 				this._createGridlines();
 				this._createModelRects();
-				this._createRects();			
+		    this._createRects();
+		    
 		    this._createOverviewSection();
+
+		    console.log("ymax is "+ymax);
 		    console.log("svg height is "+this.state.phenotypeDisplayCount*18);
-		    $("#svg_area").css("height",this.state.phenotypeDisplayCount*18+250);
-		    $("#svg_container").css("height",this.state.phenotypeDisplayCount*18+250);
+		    ymax = ymax +30; //gap MAGIC NUBER ALERT
+		    var height = this.state.phenotypeDisplayCount*18;//+ this.state.yoffsetOver;
+		    if (height < ymax) {
+			height = ymax;
+		    }
+		    var containerHeight = height+30; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
+		    console.log("height is "+height);
+		    console.log("container height is "+containerHeight);
+		    $("#svg_area").css("height",height);
+		    $("#svg_container").css("height",containerHeight);
+
+
 		}
 	    else {
 		
@@ -2361,6 +2375,9 @@ var url = document.URL;
 		//	y2 = 294;
 		var y1 = 267,
 			y2 = 254;
+
+	    // indicator for bottom of gradients
+	    var ymax = 0;
 			
 		if (this.state.filteredPhenotypeData.length < 14) {y1 =177; y2 = 164;} //{y1 =217; y2 = 204;}
 	    //only show the scale if there is more than one value represented
@@ -2368,15 +2385,21 @@ var url = document.URL;
 	    if (diff > 0) {	
 			//If this is the Overview, get gradients for all species with an index
 			if (self.state.targetSpeciesName == "Overview" || self.state.targetSpeciesName == "All") {
-
+			        
 			        //this.state.overviewCount tells us how many fit in the overview
 				for (var i = 0; i < this.state.overviewCount; i++) {	
-				    this._createGradients(i,y1,y2);
+				    var y = this._createGradients(i,y1,y2);
+				    if (y  > ymax) {
+					ymax = y;
+				    }
 				}
 			}
 			else {  //This is not the overview - determine species and create single gradient
 			    var i = this._getTargetSpeciesIndexByName(self,self.state.targetSpeciesName);
-			    this._createGradients(i,y1,y2);
+			    var y  = this._createGradients(i,y1,y2);
+			    if (y > ymax) {
+				ymax = y;
+			    }
 			}			
 			
 			var calc = this.state.selectedCalculation,
@@ -2450,18 +2473,21 @@ var url = document.URL;
 			 self.state.similarityCalculation[d.target.selectedIndex].calc;
 			self._resetSelections();
 		});	
+	    return ymax;
 	},
 
 	//This renders ALL gradients - need to make it conditional on precise number of // target species
 	_createGradients: function(i, y1, y2){
 		self=this;
+
+	    var y;
  
 		var gradient = this.state.svg.append("svg:linearGradient")
-			.attr("id",  "gradient_" + i)
-			.attr("x1", "0")
-			.attr("x2", "100%")
-			.attr("y1", "0%")
-			.attr("y2", "0%");
+		    .attr("id",  "gradient_" + i)
+		    .attr("x1", "0")
+		    .attr("x2", "100%")
+		    .attr("y1", "0%")
+		    .attr("y2", "0%");
 			
 		for (j in this.state.colorDomains)
 		{
@@ -2483,12 +2509,15 @@ var url = document.URL;
 			.attr("height", 15)
 			.attr("fill", "url(#gradient_" + i + ")");
 		
+	    var y =  y2 + (27 + (i*20)) + this.state.yTranslation + self.state.yoffsetOver;
 		var grad_text = self.state.svg.append("svg:text")
 			.attr("class", "grad_text_" + i)
-			.attr("y", y2 + (27 + (i*20)) + this.state.yTranslation + self.state.yoffsetOver)
+			.attr("y", y)
 			.attr("x", self.state.axis_pos_list[2] + 205)
 			.style("font-size", "11px")
-			.text(this.state.targetSpeciesList[i].name);	
+		    .text(this.state.targetSpeciesList[i].name);
+	    console.log("y of gradient is..."+y);
+	    return y;
 	},
 
 	_createSelectionControls: function(selClass) {
