@@ -738,36 +738,13 @@ var url = document.URL;
 	//subset of data bounded by the phenotype display count and the model display count
 	_filterData: function(fulldataset) {
 	    var self = this;
-	    
-	    //Step 1:  Filter data so only unique phenotypes are represented (if a source phenotype matches two different targets, only keep one of them. 
-	    //Input: array of all data returned by query
-	    //Output: array of the unique phentypes for this disease
-	    //phenotypeArray: we should end up with an array with unique matched phenotypes
-	    var phenotypeArray = [];
+
+
+	    var phenotypeArray = this._uniquifyPhenotypes(fulldataset);
+
 	    var dupArray = [];
 	    var ic = [];
 	    
-    	    for (var idx=0;idx<fulldataset.length;idx++) {
-    		var result = $.grep(phenotypeArray, function(e){ return e.label_a == fulldataset[idx].label_a; });
-    		if (result.length == 0) {
-    		    phenotypeArray.push(fulldataset[idx]);
-    		}
-		else {
-		    var resultdup = $.grep(fulldataset, function(e){ return ( (e.label_a == fulldataset[idx].label_a)  &&  (e.model_id == fulldataset[idx].model_id) )});
-		    if (resultdup.length > 1) {
-			var max = 0;
-			for (var i = 0; i<resultdup.length; i++){
-			    if(resultdup[i].value > max) {
-				max = resultdup[i].value;
-			    }
-			}
-			//put this value back into the unique phenotype/model pair
-			//should only be one of this phenotype in the phenotype array
-			var resultmatch = $.grep(phenotypeArray, function(e){ return e.label_a == fulldataset[idx].label_a; });
-			if(resultmatch.length > 0) resultmatch.value = max;
-		    }
-		}
-    	    }
     	    //copy the phenotypeArray to phenotypeData array - now instead of ALL phenotypes, it will be limited to unique phenotypes for this disease
 	    //do not alter this array: this.state.phenotypeData
     	    this.state.phenotypeData = phenotypeArray.slice();
@@ -839,6 +816,38 @@ var url = document.URL;
 		});
 		self.state.filteredModelData = self.state.filteredModelData.concat(tempdata);
 	    }
+	},
+
+	_uniquifyPhenotypes: function(fulldataset) {
+	    var phenotypeArray = [];
+	    //Step 1:  Filter data so only unique phenotypes are represented (if a source phenotype matches two
+	    // different targets, only keep one of them. 
+	    //Input: array of all data returned by query
+	    //Output: array of the unique phentypes for this disease
+	    //phenotypeArray: we should end up with an array with unique matched phenotypes
+    	    for (var idx=0;idx<fulldataset.length;idx++) {
+    		var result = $.grep(phenotypeArray, function(e){ return e.label_a == fulldataset[idx].label_a; });
+    		if (result.length == 0) {
+    		    phenotypeArray.push(fulldataset[idx]);
+    		}
+		else {
+		    var resultdup = $.grep(fulldataset, function(e){ return ( (e.label_a == fulldataset[idx].label_a)  &&  (e.model_id == fulldataset[idx].model_id) )});
+		    if (resultdup.length > 1) {
+			var max = 0;
+			for (var i = 0; i<resultdup.length; i++){
+			    if(resultdup[i].value > max) {
+				max = resultdup[i].value;
+			    }
+			}
+			//put this value back into the unique phenotype/model pair
+			//should only be one of this phenotype in the phenotype array
+			var resultmatch = $.grep(phenotypeArray, function(e){ return e.label_a == fulldataset[idx].label_a; });
+			if(resultmatch.length > 0) resultmatch.value = max;
+		    }
+		}
+    	    }
+	    return phenotypeArray;
+
 	},
 	
 	//1. Sort the array by source phenotype name
