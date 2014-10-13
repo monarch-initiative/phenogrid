@@ -157,12 +157,9 @@ var url = document.URL;
 	/** Several procedures for various aspects of filtering/identifying appropriate entries
 	    in the target species list.. */
 	_getTargetSpeciesIndexByName: function(self,name) {
-	    var index = 0;
-	    for (var j=0; j < this.state.targetSpeciesList.length; j++){
-		if (this.state.targetSpeciesList[j].name === name) {
-		    index = j;
-		    break;
-		}
+	    var index = -1;
+	    if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
+		index  = self.state.targetSpeciesByName[name].index;
 	    }
 	    return index;
 	},
@@ -179,15 +176,13 @@ var url = document.URL;
 	},
 
 	_getTargetSpeciesTaxonByName: function(self,name) {
-	    var index = 0;
-	    for (var j=0; j < this.state.targetSpeciesList.length; j++){
-		if (this.state.targetSpeciesList[j].name === name) {
-		    index = j;
-		    break;
-		}
+	    var taxon;
+	    if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
+		taxon  = self.state.targetSpeciesByName[name].taxon;
 	    }
-	    return self.state.targetSpeciesList[index].taxon;
-	},	 
+	    return taxon;
+	},
+
 
 	
 	
@@ -213,7 +208,25 @@ var url = document.URL;
 	    this.state.data = {}
 	    // will this work?
 	    this.configoptions = undefined;
+	    this._createTargetSpeciesIndices();
+	    // index species
 	    this._reset();
+	},
+
+
+	// create a shortcut index for quick access to target species by name - to get index (position) and
+	// taxon
+	_createTargetSpeciesIndices: function() {
+	    this.state.targetSpeciesByName={};
+	    for (var j = 0; j < this.state.targetSpeciesList.length; j++ ) {
+		// list starts as name, taxon pairs
+		var name = this.state.targetSpeciesList[j].name;
+		var taxon = this.state.targetSpeciesList[j].taxon;
+		var entry = {};
+		entry.index = j;
+		entry.taxon = taxon;
+		this.state.targetSpeciesByName[name]= entry;
+	    }
 	},
 
 
@@ -238,8 +251,8 @@ var url = document.URL;
 
 	
 	_init: function() {
-
-
+	    console.profile();
+	    var start = new Date().getTime();
 	    this.element.empty();
 	    this._loadSpinner();
 	    this.state.phenotypeDisplayCount = this._calcPhenotypeDisplayCount();
@@ -256,7 +269,13 @@ var url = document.URL;
 	    this.state.phenotypeLabels = this._filterPhenotypeLabels(this.state.phenotypeData);
 	    this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 	    this.state.inputPhenotypeData = this.state.phenotypeData.slice();
+	    var before =  new Date().getTime();
+	    var elapsed = before-start;
+	    console.log("time before load..."+elapsed);
 	    this._loadData();
+	    var afterLoad =  new Date().getTime();
+	    elapsed = afterLoad-before;
+	    console.log("time for load..."+elapsed);
 	    var modData = [];
 	    if (this.state.targetSpeciesName == "Overview") {
 		this.state.yoffsetOver = 30;
@@ -267,8 +286,14 @@ var url = document.URL;
 	    
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
+	    var beforeRedraw =  new Date().getTime();
+	    elapsed = beforeRedraw-afterLoad;
+	    console.log("time until redraw is.."+elapsed);
 	    this.reDraw(); 
-
+	    var afterRedraw = new Date().getTime();
+	    elapsed  = afterRedraw-beforeRedraw;
+	    console.log("time for redraw is ..."+elapsed);
+	    console.profileEnd();
 	},
 
 	_loadSpinner: function() {
@@ -1015,7 +1040,8 @@ var url = document.URL;
 		    for (var idx= 0; idx <specData.b.length; idx++) {
 			var item = specData.b[idx];
 			data.push( {
-			    model_id: this._getConceptId(item.id),
+			    //model_id: this._getConceptId(item.id),
+			    model_id: item.id,
 			    model_label: item.label,
 			    model_score: item.score.score,
 			    model_rank: item.score.rank});
@@ -1163,10 +1189,10 @@ var url = document.URL;
 		calculatedArray.push(this._normalizeIC(data[idx]));
 	    }
 	    
-	    min =  Math.min.apply(Math, calculatedArray);
+	    /*min =  Math.min.apply(Math, calculatedArray);
 	    max = Math.max.apply(Math, calculatedArray);
 	    
-	    norm = max - min;
+	    norm = max - min;*/
 	    
 	    for (var idx=0;idx<data.length;idx++) {
     		
@@ -1190,17 +1216,11 @@ var url = document.URL;
     			       "model_label" : newModelData.label, 
 			       "species": species.label,
 			       "taxon" : species.id,
-			       "rowid" : this._getConceptId(curr_row.a.id) + 
-			       "_" + this._getConceptId(curr_row.lcs.id)
+			  //     "rowid" : this._getConceptId(curr_row.a.id) + 
+			    //   "_" + this._getConceptId(curr_row.lcs.id)
 			      }; 
-    		if (new_row.subsumer_id.indexOf("0005753") > -1) {
-    	    	    console.out("got it");
-    		}
 		this.state.modelData.push(new_row); 
-
     	    }
-	    //we may use this when normalization and ranking have been determined
-	    this._rankLCSScores();
 	},
 	
 	//we may use this when normalization and ranking have been determined
