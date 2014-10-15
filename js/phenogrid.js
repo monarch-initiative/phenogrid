@@ -294,35 +294,64 @@ var url = document.URL;
 	    elapsed  = afterRedraw-beforeRedraw;
 	    console.log("time for redraw is ..."+elapsed);
 	    console.profileEnd();
-	},
+	 },
 
-	_loadSpinner: function() {
+	 _loadSpinner: function() {
 
-	    var element =$('<div id="spinner"><h3>Loading...</h3><div class="cube1"></div><div class="cube2"></div></div>');
-	    this._createSvgContainer()
-	    element.appendTo(this.state.svgContainer);
-	},
-	
+	     var element =$('<div id="spinner"><h3>Loading...</h3><div class="cube1"></div><div class="cube2"></div></div>');
+	     this._createSvgContainer()
+	     element.appendTo(this.state.svgContainer);
+	 },
 
-	reDraw: function() {
-	    if (this.state.modelData.length != 0 && this.state.phenotypeData.length != 0
-		&& this.state.filteredPhenotypeData.length != 0){
-	        
+
+	 reDraw: function() {
+	     if (this.state.modelData.length != 0 && this.state.phenotypeData.length != 0
+		 && this.state.filteredPhenotypeData.length != 0){
+
+		 var start = new Date().getTime();
 	        this._initCanvas(); 
+		 var initted = new Date().getTime();
+		 var elapsed = initted-start;
+		 console.log("time to init canvas..."+elapsed);
 		this._addLogoImage();
 
 	        this.state.svg
 		    .attr("width", "100%")
 		    .attr("height", this.state.phenotypeDisplayCount * 18);
 		this._createAccentBoxes();				
-		this._createColorScale();
-		var ymax  = this._createModelRegion();
-		this._updateAxes();
-		this._createGridlines();
-		this._createModelRects();
-		this._createRects();
+		 var accented = new Date().getTime();
+		 var elapsed = accented-initted;
+		 console.log("acented..."+elapsed);
+		 this._createColorScale();
+		 var colorScale = new Date().getTime();
+		 var elapsed = colorScale-accented;
+		 console.log("color scale time is"+elapsed);
+		 
 		
+		var ymax  = this._createModelRegion();
+		 var model = new Date().getTime();
+		 var elapsed = model-colorScale;
+		 console.log("model time is "+elapsed);
+		this._updateAxes();
+		 var axes = new Date().getTime();
+		 var elapsed = axes-model;
+		 console.log("axes time is "+elapsed);
+		this._createGridlines();
+		 var grid = new Date().getTime();
+		 var elapsed = grid-axes;
+		 console.log("grid lines time is "+elapsed);
+		this._createModelRects();
+		 var mrects = new Date().getTime();
+		 var elapsed = mrects-grid;
+		 console.log("model rects time is "+elapsed);
+		this._createRects();
+		var crects = new Date().getTime();
+		 var elapsed = crects-mrects;
+		 console.log("creating rects time is "+elapsed);
 		this._createOverviewSection();
+		 var otime = new Date().getTime();
+		 var elapsed=otime-crects;
+		 console.log("overview time is "+elapsed);
 
 		ymax = ymax +30; //gap MAGIC NUBER ALERT
 		var height = this.state.phenotypeDisplayCount*18;//+ this.state.yoffsetOver;
@@ -826,12 +855,27 @@ var url = document.URL;
 	    //Output: array of the unique phentypes for this disease
 	    //phenotypeArray: we should end up with an array with unique matched phenotypes
     	    for (var idx=0;idx<fulldataset.length;idx++) {
-    		var result = $.grep(phenotypeArray, function(e){ return e.label_a == fulldataset[idx].label_a; });
-    		if (result.length == 0) {
+		var match =  null;
+		for (var pidx = 0; pidx < phenotypeArray.length; pidx++) {
+		    if (phenotypeArray[pidx].label_a == fulldataset[idx].label_a) {
+			match = phenotypeArray[pidx];
+			break;
+		    }
+		}
+    	//	var result = $.grep(phenotypeArray, function(e){ return e.label_a == fulldataset[idx].label_a; });
+    		//	if (result.length == 0) {
+		if (match == null) {
     		    phenotypeArray.push(fulldataset[idx]);
     		}
 		else {
-		    var resultdup = $.grep(fulldataset, function(e){ return ( (e.label_a == fulldataset[idx].label_a)  &&  (e.model_id == fulldataset[idx].model_id) )});
+		    //		    var resultdup = $.grep(fulldataset, function(e){ return ( (e.label_a == fulldataset[idx].label_a)  &&  (e.model_id == fulldataset[idx].model_id) )});
+		    var resultdup = [];
+		    for (var i = 0; i < fulldataset.length; i++) {
+			if (fulldataset[i].label_a == fulldataset[idx].label_a && fulldataset[i].model_id == fulldataset[idx].model_id && i != idx) {
+			    resultdup.push(fulldataset[i]);
+			}
+		    }
+		    
 		    if (resultdup.length > 1) {
 			var max = 0;
 			for (var i = 0; i<resultdup.length; i++){
@@ -841,8 +885,10 @@ var url = document.URL;
 			}
 			//put this value back into the unique phenotype/model pair
 			//should only be one of this phenotype in the phenotype array
-			var resultmatch = $.grep(phenotypeArray, function(e){ return e.label_a == fulldataset[idx].label_a; });
-			if(resultmatch.length > 0) resultmatch.value = max;
+			// do we need this check?
+			if (match.value < max) {  
+			    match.value = max;
+			}
 		    }
 		}
     	    }
@@ -860,9 +906,12 @@ var url = document.URL;
 	    modData = self.state.modelData.slice();
 	    
 	    for (var idx=0;idx<self.state.phenotypeData.length;idx++) {			
-		var tempdata = modData.filter(function(d) {
-    	    	    return d.id_a == self.state.phenotypeData[idx].id_a;
-    		});	
+		var tempdata = [];
+		for (var midx = 0; midx < modData.length; midx++) {
+		    if (modData[midx].id_a == self.state.phenotypeData[idx].id_a) {
+			tempdata.push(modData[midx]);
+		    }
+		}
 		modelDataForSorting.push(tempdata);
 	    }
 	    //sort the model list by rank
@@ -1843,27 +1892,25 @@ var url = document.URL;
 	    var self = this;
 	    var data = this.state.filteredModelData.slice();
 	    
+	    var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + "," + (self.state.yTranslation + self.state.yoffsetOver + 15)+   ")";
 	    var model_rects = this.state.svg.selectAll(".models")
 		.data( data, function(d) {
 		    return d.id;
 		});
 	    model_rects.enter()
 		.append("rect")
-		.attr("transform",
-		      "translate(" + ((this.state.textWidth + 30) + 4) + "," + (self.state.yTranslation + self.state.yoffsetOver + 15)+   ")")
+		.attr("transform",rectTranslation)
 		.attr("class", function(d) { 
+		    var dConcept = self._getConceptId(d.id);
+		    var modelConcept = self._getConceptId(d.model_id);
 		    //append the model id to all related items
-		    if (d.value > 0) {
-			var bla = self.state.svg.selectAll(".data_text." + self._getConceptId(d.id));	    	
-			bla.classed(self._getConceptId(d.model_id), true);
-		    }
-		    return "models " + " " +  self._getConceptId(d.model_id) + " " +  self._getConceptId(d.id);
+		  /*  if (d.value > 0) {
+			var bla = self.state.svg.selectAll(".data_text." + dConcept);	    	
+			bla.classed(modelConcept, true);
+		    }*/
+		    return "models " + " " +  modelConcept + " " +  dConcept;
 		})
 		.attr("y", function(d, i) { 
-		    //console.log("Y Pos: " + (self._getYPosition(d.id_a) - 10) + 
-		    //"  X Pos: " + self.state.xScale(d.model_id) + "  Model Name: " + d.model_label +  "  Model Id: " + //d.model_id +
-		    //"  Phen: " + d.label_a  + 
-		    //"  IA_a: " + d.id_a );
 		    return self._getYPosition(d.id_a) + (self.state.yTranslation + self.state.yoffsetOver  + 10) ;
 		})
 		.attr("x", function(d) { return self.state.xScale(d.model_id);})
@@ -2186,12 +2233,13 @@ var url = document.URL;
 
 	_createTextScores: function(list) {
 	    var self =this;
+	    var translation ="translate(" + (this.state.textWidth + 34) +"," 
+		      + (this.state.yTranslation + this.state.yoffset - 3) + ")";
 	    this.state.svg.selectAll("text.scores")
 		.data(list) 
 		.enter()	
 		.append("text")
-		.attr("transform","translate(" + (this.state.textWidth + 34) +"," 
-		      + (this.state.yTranslation + this.state.yoffset - 3) + ")")
+		.attr("transform",translation)
     	        .attr("id", "scorelist")
 		.attr("x",function(d,i){return i*18})
 		.attr("y", 0)
@@ -2205,18 +2253,22 @@ var url = document.URL;
 	    var self = this;
 	    
 	    var speciesList = self.state.speciesList;
+
+	    var translation = "translate(" + (self.state.textWidth + 30) +"," + 
+		      (self.state.yTranslation + self.state.yoffset + 10) + ")";
+
+	    var xPerModel = self.state.modelWidth/speciesList.length;
 	    var species = self.state.svg.selectAll("#specieslist")
 		.data(speciesList)
 		.enter()
 		.append("text")
-		.attr("transform","translate(" + (self.state.textWidth + 30) +"," + 
-		      (self.state.yTranslation + self.state.yoffset + 10) + ")")
-		.attr("x", function(d,i){
-		    return ((i+1) * (self.state.modelWidth/(speciesList.length))) - 
-			((self.state.modelWidth/speciesList.length)/2);})
+		.attr("transform",translation)
+		.attr("x", function(d,i){ return (i+1/2)*xPerModel;})
+		   // return ((i+1) * xPerModel ) - 
+		    //(xPerModel/2);})
 		.attr("id", "specieslist")
 		.attr("y", 10)
-		.attr("width", function(d,i){return self.state.modelWidth/speciesList.length;})
+		.attr("width", xPerModel) // function(d,i){return xPerModel;})
 		.attr("height", 10)
 		.attr("fill", "#0F473E")
 		.attr("stroke-width", 1)
@@ -2340,6 +2392,8 @@ var url = document.URL;
 	
 	//this code creates the colored rectangles below the models
 	_createModelRegion: function () {
+
+	    var cmrStart = new Date().getTime();
 	    var self=this;
 	    var list = [];
 
@@ -2369,6 +2423,10 @@ var url = document.URL;
 	        this._createOverviewList();		
 	    }
 	    
+	    var afterOl = new Date().getTime();
+	    var elapsed = afterOl-cmrStart;
+	    console.log("1/2 way through create model region .. time taken is "+elapsed);
+	    
 	    var modData = [];
 	    
 	    modData =this.state.modelData.slice();
@@ -2376,6 +2434,10 @@ var url = document.URL;
 	    var temp_data = modData.map(function(d) { 
 		return d.value;});
 	    var diff = d3.max(temp_data) - d3.min(temp_data);
+
+	    var afterMap = new Date().getTime();
+	    elapsed = afterMap-afterOl;
+	    console.log("after slice and map..."+elapsed);
 	    //account for a grid with less than 5 phenotypes
 	    //No matches
 	    //var y1 = 307,
@@ -2389,7 +2451,9 @@ var url = document.URL;
 	    if (this.state.filteredPhenotypeData.length < 14) {y1 =177; y2 = 164;} //{y1 =217; y2 = 204;}
 	    //only show the scale if there is more than one value represented
 	    //in the scale
-	    if (diff > 0) {	
+	    if (diff > 0) {
+
+		var diffStart = new Date().getTime();
 		//If this is the Overview, get gradients for all species with an index
 		if (self.state.targetSpeciesName == "Overview" || self.state.targetSpeciesName == "All") {
 		    
@@ -2408,6 +2472,10 @@ var url = document.URL;
 			ymax = y;
 		    }
 		}			
+
+		var gradients = new Date().getTime();
+		var elapsed = gradients-diffStart;
+		console.log("create gradients..."+elapsed);
 		
 		var calc = this.state.selectedCalculation,
 		text1 = "",
@@ -2425,26 +2493,37 @@ var url = document.URL;
 		else if (calc == 0) {text1 = "Min"; text2 = "Similarity"; text3 = "Max";}
 
 		
+		
+		var ytext1 =  y1  + this.state.yTranslation + self.state.yoffsetOver-5;
+		var xtext1= self.state.axis_pos_list[2] + 10;
 		var div_text1 = self.state.svg.append("svg:text")
 		    .attr("class", "detail_text")
-		    .attr("y", y1  + this.state.yTranslation + self.state.yoffsetOver-5)
-		    .attr("x", self.state.axis_pos_list[2] + 10)
+		    .attr("y", ytext1)
+		    .attr("x", xtext1)
 		    .style("font-size", "10px")
 		    .text(text1);
 		
+		var ytext2 = y2  + this.state.yTranslation + self.state.yoffsetOver;
+	        var xtext2  = self.state.axis_pos_list[2] + 75;
 		var div_text2 = self.state.svg.append("svg:text")
 		    .attr("class", "detail_text")
-		    .attr("y", y2  + this.state.yTranslation + self.state.yoffsetOver)
-		    .attr("x", self.state.axis_pos_list[2] + 75)
+		    .attr("y", ytext2)
+		    .attr("x", xtext2)
 		    .style("font-size", "12px")
 		    .text(text2);
 		
+	        var ytext3 = y1 + this.state.yTranslation + self.state.yoffsetOver-5;
+	        var xtext3 = self.state.axis_pos_list[2] + 125;
 		var div_text3 = self.state.svg.append("svg:text")
 		    .attr("class", "detail_text")
-		    .attr("y", y1 + this.state.yTranslation + self.state.yoffsetOver-5)
-		    .attr("x", self.state.axis_pos_list[2] + 125)
+		    .attr("y", ytext3)
+		    .attr("x", xtext3)
 		    .style("font-size", "10px")
-		    .text(text3);	
+		    .text(text3);
+
+		var texts = new Date().getTime();
+		var elapsed = texts-gradients;
+		console.log("creating texts..."+elapsed);
 		
 		//Position the max more carefully	
 		if (text3 == "Max") {
@@ -2454,6 +2533,8 @@ var url = document.URL;
 		    div_text3.attr("x",self.state.axis_pos_list[2] + 150);			
 		}
 	    }					
+
+	    var afterTexts  = new Date().getTime();
 	    var phenogrid_controls = $('<div id="phenogrid_controls"></div>');
 	    this.element.append(phenogrid_controls);
 	    var selControls = this._createSelectionControls(); 
@@ -2480,13 +2561,17 @@ var url = document.URL;
 		    self.state.similarityCalculation[d.target.selectedIndex].calc;
 		self._resetSelections();
 	    });	
+	    var cmrEnd = new Date().getTime();
+	    elapsed = cmrEnd - afterTexts;
+	    console.log("end of create model region..."+elapsed);
 	    return ymax;
 	},
 
 	//This renders ALL gradients - need to make it conditional on precise number of // target species
 	_createGradients: function(i, y1, y2){
 	    self=this;
-
+	    
+	    var cgStart = new Date().getTime();
 	    var y;
 	    
 	    var gradient = this.state.svg.append("svg:linearGradient")
@@ -2495,7 +2580,9 @@ var url = document.URL;
 		.attr("x2", "100%")
 		.attr("y1", "0%")
 		.attr("y2", "0%");
-	    
+	    var cg1 = new Date().getTime();
+	    var elapsed = cg1-cgStart;
+	    console.log("svg append..."+elapsed);
 	    for (j in this.state.colorDomains)
 	    {
 		gradient.append("svg:stop")
@@ -2503,27 +2590,47 @@ var url = document.URL;
 		    .style("stop-color", this.state.colorRanges[i][j])
 		    .style("stop-opacity", 1);				
 	    }
+
+	    var cg2 = new Date().getTime();
+	    var elapsed =cg2-cg1;
+	    console.log("svg:stop.."+elapsed);
+
 	    
+	    var y = (y1 + (-5 + (20 * i))) + this.state.yTranslation + self.state.yoffsetOver;
+	    var  x = self.state.axis_pos_list[2] + 12;
+	    var translate  = "translate(0,10)";
 	    var legend = this.state.svg.append("rect")
-		.attr("transform","translate(0,10)")
+		.attr("transform",translate)
 		.attr("class", "legend_rect_" + i)
 		.attr("id","legendscale_" + i)
-		.attr("y", (y1 + (-5 + (20 * i))) + this.state.yTranslation + self.state.yoffsetOver)
-		.attr("x", self.state.axis_pos_list[2] + 12)
+		.attr("y", y)
+		.attr("x", x)
 		.attr("rx",8)
 		.attr("ry",8)
 		.attr("width", 180)
 		.attr("height", 15)
 		.attr("fill", "url(#gradient_" + i + ")");
+
+	    var cg3 = new Date().getTime();
+	    var elapsed = cg3-cg2;
+	    console.log("text rect..."+elapsed);
 	    
-	    var y =  y2 + (27 + (i*20)) + this.state.yTranslation + self.state.yoffsetOver;
+	    y =  y2 + (27 + (i*20)) + this.state.yTranslation + self.state.yoffsetOver;
+	    x = self.state.axis_pos_list[2] + 205;
+	    var gclass = "grad_text_"+i;
+	    var specName = this.state.targetSpeciesList[i].name;
 	    var grad_text = self.state.svg.append("svg:text")
-		.attr("class", "grad_text_" + i)
+		.attr("class", gclass)
 		.attr("y", y)
-		.attr("x", self.state.axis_pos_list[2] + 205)
+		.attr("x", x)
 		.style("font-size", "11px")
-		.text(this.state.targetSpeciesList[i].name);
+		.text(specName);
+
+	    var cgEnd = new Date().getTime();
+	    var elapsed = cgEnd-cg3;
+	    console.log("species text..."+elapsed);
 	    return y;
+
 	},
 
 	_createSelectionControls: function(selClass) {
