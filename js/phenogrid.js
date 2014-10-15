@@ -1,3 +1,4 @@
+
 /*
  *
  * Phenogrid - the Phenogrid widget.
@@ -1539,7 +1540,7 @@ var url = document.URL;
 		.attr("height", 12);
 	    
     	    this._resetLinks();
-    	    var alabels = this.state.svg.selectAll("text.a_text." + this._getConceptId(curr_data[0].id));
+    	    var alabels = this.state.svg.selectAll("text.a_text." + curr_data[0].id);//this._getConceptId(curr_data[0].id));
     	    var txt = curr_data[0].label_a;
     	    if (txt == undefined) {
     		txt = curr_data[0].id_a;
@@ -1548,7 +1549,8 @@ var url = document.URL;
 		.style("font-weight", "bold")
 		.style("fill", "blue")
 		.on("click",function(d){
-		    self._clickPhenotype(self._getConceptId(curr_data[0].id_a), self.document[0].location.origin);
+		    //self._clickPhenotype(self._getConceptId(curr_data[0].id_a), self.document[0].location.origin);
+		    self._clickPhenotype(cur_data[0].id_a, self.document[0].location.origin);
 		});
 
 	    this._highlightMatchingModels(curr_data);
@@ -1593,7 +1595,7 @@ var url = document.URL;
 	    if (curr_data[0] == undefined) { var row = curr_data;}
 	    else {row = curr_data[0];}
 	    
-	    var alabels = this.state.svg.selectAll("text.a_text." + this._getConceptId(row.id));
+	    var alabels = this.state.svg.selectAll("text.a_text." + row.id); //this._getConceptId(row.id));
 	    alabels.text(this._getShortLabel(row.label_a));
 	    data_text = this.state.svg.selectAll("text.a_text");
 	    data_text.style("text-decoration", "none");
@@ -1616,8 +1618,14 @@ var url = document.URL;
 		.attr("height", (self.state.phenotypeDisplayCount * 13));
 
 	    //select the model label
-	    
-	    var model_label = self.state.svg.selectAll("text#" + this._getConceptId(modelData.model_id));
+
+	    console.log("in selectModel.. model is "+modelData.model_id);
+	    console.log("concept id is "+this._getConceptId(modelData.model_id));
+	    // I don't know why I'm still seeing the un-processed concept id
+	    var classlabel = "text#" +this._getConceptId(modelData.model_id);
+	    console.log("class label..."+classlabel);
+	    var model_label = self.state.svg.selectAll("text#" +this._getConceptId(modelData.model_id));
+
 	    
     	    model_label.style("font-weight", "bold");
 	    model_label.style("fill", "blue");
@@ -1714,7 +1722,7 @@ var url = document.URL;
 	//Second, I like to use unique ids for CSS classes.  This allows me to selectively manipulate related groups of items on the
 	//screen based their relationship to a common concept (ex: HP000123).  However, I can't use a URI as a class.
 	_getConceptId: function (uri) {
-	    if (!uri) {
+	    /*if (!uri) {
 		return "";
 	    }
 	    var startpos = uri.lastIndexOf("/");
@@ -1726,10 +1734,10 @@ var url = document.URL;
   		retString = uri.substring(startpos+1,endpos);
 	    }
 	    //replace spaces with underscores.  Classes are separated with spaces so
-	    //a class called "Model 1" will be two classes: Model and 1.  Convert this to "Model_1" to avoid this problem.
+	    //a class called "Model 1" will be two classes: Model and 1.  Convert this to "Model_1" to avoid this problem. */
+	    var retString = uri;
 	    retString = retString.replace(" ", "_");
 	    retString = retString.replace(":", "_");
-	    console.log("get concept id..input is "+uri+", output is "+retString);
 	    return retString;
 	},
 
@@ -1742,12 +1750,12 @@ var url = document.URL;
 	    x = +t.getAttribute("x"),
 	    y = +t.getAttribute("y");
 
-	    
+	    console.log("convert label html...raw model is "+data.model_id +", concept is "+this._getConceptId(data.model_id));
     	    p.append("text")
     	       	.attr('x', x + 15)
     	        .attr('y', y -5)
     	        .attr("width", width)
-    	        .attr("id", this._getConceptId(data.model_id))
+    	        .attr("id", data.model_id) //this._getConceptId(data.model_id))
     	        .attr("model_id", data.model_id)
     	        .attr("height", 60)
     	        .attr("transform", function(d) {
@@ -1757,6 +1765,7 @@ var url = document.URL;
 		    self._clickModel(data, self.document[0].location.origin);
 		})
     	        .on("mouseover", function(d) {
+		    console.log("moused over model..");
     	    	    self._selectModel(data, this);
     	        })
     	        .on("mouseout", function(d) {
@@ -1765,6 +1774,7 @@ var url = document.URL;
 			self._deselectData(self.state.selectedRow);}
     	        })
     		.attr("class", this._getConceptId(data.model_id) + " model_label")
+        	//.attr("class", data.model_id + " model_label")
     		.style("font-size", "12px")
     		.text( function(d) {if (label == "") return ""; else return label;});
 	    
@@ -1914,8 +1924,8 @@ var url = document.URL;
 		.append("rect")
 		.attr("transform",rectTranslation)
 		.attr("class", function(d) { 
-		    var dConcept = self._getConceptId(d.id);
-		    var modelConcept = self._getConceptId(d.model_id);
+		    var dConcept = d.id //self._getConceptId(d.id);
+		    var modelConcept = d.model_id //self._getConceptId(d.model_id);
 		    //append the model id to all related items
 		  /*  if (d.value > 0) {
 			var bla = self.state.svg.selectAll(".data_text." + dConcept);	    	
@@ -2729,11 +2739,11 @@ var url = document.URL;
 	    rect_text.enter()
 		.append("text")
 		.attr("class", function(d) {
-		    return "a_text data_text " + self._getConceptId(d[0].id);
+		    return "a_text data_text " + d[0].id;//self._getConceptId(d[0].id);
 		})
 	    //store the id for this item.  This will be used on click events
 		.attr("ontology_id", function(d) {
-		    return self._getConceptId(d[0].id_a);   
+		    return d[0].id_a; //self._getConceptId(d[0].id_a);   
 		})
 		.attr("x", 208)
 		.attr("y", function(d) {
