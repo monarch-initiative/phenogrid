@@ -283,11 +283,14 @@ var url = document.URL;
 	    modData = this.state.modelData.slice();
 	    
    	    this._filterData(modData.slice());
+	    var filtered = new Date().getTime();
+	    elapsed = filtered-afterLoad;
+	    console.log("filtered..."+elapsed);
 	    
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
 	    var beforeRedraw =  new Date().getTime();
-	    elapsed = beforeRedraw-afterLoad;
+	    elapsed = beforeRedraw-filtered;
 	    console.log("time until redraw is.."+elapsed);
 	    this.reDraw(); 
 	    var afterRedraw = new Date().getTime();
@@ -833,17 +836,25 @@ var url = document.URL;
 		
 		//find the rowid in the original ModelData (list of models and their matching phenotypes) and write it to tempdata if it matches this phenotypeSortData rowid.
 		//In this case, the rowid is just the id_a value in the model data
-		var tempdata = modData.filter(function(d) {
-		    return d.id_a == self.state.phenotypeSortData[i][0].id_a;
-		});
-		tempFilteredModelData = tempFilteredModelData.concat(tempdata);
+
+		for (var midx = 0; midx < modData.length; midx++) {
+		    if (modData[midx].id_a == self.state.phenotypeSortData[i][0].id_a) {
+			tempFilteredModelData.push(modData[midx]);
+		    }
+		}
+		//var tempdata = modData.filter(function(d) {
+		//    return d.id_a == self.state.phenotypeSortData[i][0].id_a;
+		//});
+		//tempFilteredModelData = tempFilteredModelData.concat(tempdata);
 	    }
 	    
 	    for (var idx=0;idx<self.state.filteredModelList.length;idx++) {
-		var tempdata = tempFilteredModelData.filter(function(d) {
-		    return d.model_id == self._getConceptId(self.state.filteredModelList[idx].model_id);
-		});
-		self.state.filteredModelData = self.state.filteredModelData.concat(tempdata);
+		for (var tdx = 0; tdx < tempFilteredModelData.length;tdx++) {
+		    if (tempFilteredModelData[tdx].model_id ==
+			self._getConceptId(self.state.filteredModelList[idx].model_id)) {
+			self.state.filteredModelData.push(tempFilteredModelData[tdx]);
+		    }
+		}
 	    }
 	},
 
@@ -1037,6 +1048,7 @@ var url = document.URL;
 	    }
 	    else {
 		this._loadSpeciesData(this.state.targetSpeciesName);
+		this._finishLoad(this.state.data[this.state.targetSpeciesName]);
 	    }
 	},
 
@@ -1048,7 +1060,8 @@ var url = document.URL;
 	    if (typeof(limit) !== 'undefined') {
 		url = url +"&limit="+limit;
 	    }
-	    this._ajaxLoadData(speciesName,url);
+	    var res = this._ajaxLoadData(speciesName,url);
+	    this.state.data[speciesName]= res;
 	},
 	
 	_loadOverviewData: function() {
@@ -1129,21 +1142,20 @@ var url = document.URL;
 	//generic ajax call for all queries
 	_ajaxLoadData : function (target, url) {
 	    var self = this;
+	    var res;
 	    jQuery.ajax({
 
 		url: url, 
 		async : false,
 		dataType : 'json',
 		success : function(data) {
-		    if (self.state.targetSpeciesName == "Overview") {
-			self.state.data[target] = data;
-		    }
-		    else {self._finishLoad(data);}			   
+		    res = data;
 		},
 		error: function ( xhr, errorType, exception ) { //Triggered if an error communicating with server  
 		    self._displayResult(xhr, errorType, exception);
 		},  
 	    });
+	    return res;
 	},
 	
 	_displayResult : function(xhr, errorType, exception){
@@ -1717,6 +1729,7 @@ var url = document.URL;
 	    //a class called "Model 1" will be two classes: Model and 1.  Convert this to "Model_1" to avoid this problem.
 	    retString = retString.replace(" ", "_");
 	    retString = retString.replace(":", "_");
+	    console.log("get concept id..input is "+uri+", output is "+retString);
 	    return retString;
 	},
 
