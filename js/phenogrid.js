@@ -2705,15 +2705,23 @@ var url = document.URL;
 
 
 	_buildUnmatchedPhenotypeDisplay: function() {
+		var prebl = $("#prebl");
+		if (prebl.length == 0) {
+		    var preblHtml ="<div id='prebl'></div>";
+		    this.element.append(preblHtml);
+		    prebl = $("#prebl");
+		}
+	    prebl.empty();
+	    // empty out prebl!!!!
+
 	    if (this.state.unmatchedPhenotypes != undefined && this.state.unmatchedPhenotypes.length > 0){
 		
 		var phenotypes = self._showUnmatchedPhenotypes();		
 		
-		var optionhtml = "<div id='prebl'><div id='unmatchedlabel' style='display:block;'>View Unmatched Phenotypes</div>";
-		var el = this.element;
+		var optionhtml = "<div id='unmatchedlabel' style='display:block;'>View Unmatched Phenotypes</div>";
 
 		optionhtml = optionhtml+ "<div id='unmatchedlabelhide' style='display:none;'>Hide Unmatched Phenotypes<br /><div id='unmatched' style='display:none;'>" + phenotypes + "</div></div></div>";
-		el.append(optionhtml)
+		prebl.append(optionhtml)
 
 		$("#unmatchedlabel").click(function() {
 		    $("#unmatchedlabel").hide();
@@ -2727,8 +2735,8 @@ var url = document.URL;
 		    $("#unmatched").hide();
 		});
 	    } else { // no unmatched phenotypes
-		var optionhtml = "<div id='prebl'><div id='unmatchedlabel' style='display:block;'>No Unmatched Phenotypes</div></div>";
-		this.element.append(optionhtml);
+		var optionhtml = "<div id='unmatchedlabel' style='display:block;'>No Unmatched Phenotypes</div>";
+		prebl.append(optionhtml);
 	    }
 	},
 
