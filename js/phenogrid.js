@@ -696,25 +696,14 @@ var url = document.URL;
 	    return label;
 	}, 
 	
-	_setComparisonType : function(comp){
+	_setComparisonType : function(){
 	    var self = this;
 	    
-	    if (comp != undefined || comp != null)
-	    { this.state.comparisonType = comp + "s";}
-	    else { 
-		comp = this.state.defaultComparisonType[this.state.targetSpeciesName];
-		if (typeof(comp) === 'undefined') {
-		    comp = 'genes';
-		}
-		this.state.comparisonType = comp;
+	    comp = this.state.defaultComparisonType[this.state.targetSpeciesName];
+	    if (typeof(comp) === 'undefined') {
+		comp = 'genes';
 	    }
-	    /*			if (this.state.targetSpeciesName === "Homo sapiens") {
-				this.state.comparisonType = "models";
-				}
-				else {
-				this.state.comparisonType = "genes";
-				}
-				}*/
+	    this.state.comparisonType = comp;
 	},
 
 	_setSelectedCalculation: function(calc) {
@@ -1200,10 +1189,7 @@ var url = document.URL;
 		}
 
 		
-		//TO DO: Check on the source field, it doesn't seem to be contain any data in general
-		if (typeof(retData.source) !== 'undefined') {
-		    this._setComparisonType(retData.source.b_type);
-		}
+		this._setComparisonType();
 	    }
 	},
 	
@@ -1713,7 +1699,8 @@ var url = document.URL;
     	    el = d3.select(t),
     	    p = d3.select(t.parentNode),
 	    x = +t.getAttribute("x"),
-	    y = +t.getAttribute("y");
+		y = +t.getAttribute("y");
+	    console.log("addgin model label..."+this._getConceptId(data.model_id));
 
     	    p.append("text")
     	       	.attr('x', x + 15)
