@@ -66,7 +66,6 @@ var url = document.URL;
 	// core commit. Not changeable by options. 
 	config: {
 	    scriptpath : $('script[src]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/',        
-	    comparisonType : "genes",
    	    colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
 	    colorRanges: [['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'],
 			  ['rgb(252,248,227)','rgb(249,205,184)','rgb(234,118,59)','rgb(221,56,53)','rgb(181,92,85)','rgb(70,19,19)'],
@@ -90,7 +89,9 @@ var url = document.URL;
 	    textWidth: 200,
 	    w : 0,
 	    headerAreaHeight: 130,
-	    defaultComparisonType: { "Homo sapiens": "models"},
+	    comparisonTypes: [ { organism: "Homo sapiens",
+				 comparison: "models"}],
+	    defaultComparisonType: { comparison: "genes"},
 	    speciesLabels : [ { abbrev: "HP", label: "Human"},
 			      { abbrev: "MP", label: "Mouse"},
 			      { abbrev: "ZFIN", label: "Zebrafish"},
@@ -99,8 +100,12 @@ var url = document.URL;
 			      { abbrev: "GO", label: "Gene Ontology"}],
 	    modelDisplayCount : 30,
 	    phenotypeDisplayCount : 26,
-	    dimensions: [ "Phenotype Profile", "Lowest Common Subsumer", "Phenotypes in common" ], 
+	    dimensions: [ "Phenotype Profile", "Lowest Common Subsumer", "Phenotypes in common" ],
+	    apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
+			  {prefix: "OMIM", apifragment: "disease"}],
+	    defaultApiEntity: "gene",
 	    tooltips: {}
+	    
 	},
 
 
@@ -298,6 +303,9 @@ var url = document.URL;
 	     if (this.state.modelData.length != 0 && this.state.phenotypeData.length != 0
 		 && this.state.filteredPhenotypeData.length != 0){
 
+
+
+		 this._setComparisonType();
 		 console.time("initCanvas");
 	         this._initCanvas();
 		 console.timeEnd("initCanvas");
@@ -698,10 +706,11 @@ var url = document.URL;
 	
 	_setComparisonType : function(){
 	    var self = this;
-	    
-	    comp = this.state.defaultComparisonType[this.state.targetSpeciesName];
-	    if (typeof(comp) === 'undefined') {
-		comp = 'genes';
+	    var comp = this.state.defaultComparisonType;
+	    for (var i=0; i < this.state.comparisonTypes.length; i++) {
+		if (this.state.targetSpeciesName === this.state.comparisonTypes[i].organism) {
+		    comp = this.state.comparisonTypes[i];
+		}
 	    }
 	    this.state.comparisonType = comp;
 	},
@@ -1189,7 +1198,6 @@ var url = document.URL;
 		}
 
 		
-		this._setComparisonType();
 	    }
 	},
 	
@@ -1372,7 +1380,7 @@ var url = document.URL;
 		optionhtml = "<span id='mtitle'><span id='s2title'><b>Cross-species Overview</b></span>";	
 	    } else {
 		species= this.state.targetSpeciesName;
-		optionhtml = "<span id='mtitle'><span id='stitle'><b>Phenotype comparison (grouped by " + species + " " + this.state.comparisonType + ")</b></span>";	
+		optionhtml = "<span id='mtitle'><span id='stitle'><b>Phenotype comparison (grouped by " + species + " " + this.state.comparisonType.comparison + ")</b></span>";	
 	    }
 	    
 	    optionhtml = optionhtml + "<span id='faq'><img class='faq' src='" + this.state.scriptpath + "../image/greeninfo30.png' height='15px'></span><br /></span><div id='header'><span id='sort_div'><span id='slabel' >Sort Phenotypes<span id='sorts'></span></span><br /><span><select id=\'sortphenotypes\'>";	
@@ -1504,7 +1512,7 @@ var url = document.URL;
 		.style("fill", "blue")
 		.on("click",function(d){
 		    //self._clickPhenotype(self._getConceptId(curr_data[0].id_a), self.document[0].location.origin);
-		    self._clickPhenotype(cur_data[0].id_a, self.document[0].location.origin);
+		    self._clickPhenotype(curr_data[0].id_a, self.document[0].location.origin);
 		});
 
 	    this._highlightMatchingModels(curr_data);
@@ -1584,7 +1592,7 @@ var url = document.URL;
 	    
 	    var retData;
 	    //initialize the model data based on the scores
-	    retData = "<strong>" +  self._toProperCase(self.state.comparisonType).substring(0, self.state.comparisonType.length-1) +" Label:</strong> "   
+	    retData = "<strong>" +  self._toProperCase(self.state.comparisonType.comparison).substring(0, self.state.comparisonType.comparison.length-1) +" Label:</strong> "   
 		+ modelData.model_label + "<br/><strong>Rank:</strong> " + (parseInt(modelData.model_rank) + 1);
 
 	    //obj = try creating an ojbect with an attributes array including "attributes", but I may need to define
@@ -1700,7 +1708,6 @@ var url = document.URL;
     	    p = d3.select(t.parentNode),
 	    x = +t.getAttribute("x"),
 		y = +t.getAttribute("y");
-	    console.log("addgin model label..."+this._getConceptId(data.model_id));
 
     	    p.append("text")
     	       	.attr('x', x + 15)
@@ -1733,7 +1740,18 @@ var url = document.URL;
 	},
 	
 	_clickModel: function(data, url_origin) {
-    	    var url = url_origin + "/gene/" + data.model_id;
+	    var concept = self._getConceptId(data.model_id);
+	    // hardwire check
+	    var apientity = this.state.defaultApiEntity;
+	    for (var i =0; i < this.state.apiEntityMap.length; i++) {
+		if (concept.indexOf(this.state.apiEntityMap[i].prefix) ==0) {
+		    apientity = this.state.apiEntityMap[i].apifragment;
+		}
+	    }
+
+		
+    	    var url = url_origin + "/"+apientity+"/" + concept;
+	    console.log("click model... url is "+url);
     	    var win = window.open(url, '_blank');
 	},
 
@@ -1836,7 +1854,7 @@ var url = document.URL;
 	    retData = "<strong>Query: </strong> " + d.label_a + " (IC: " + d.IC_a.toFixed(2) + ")"   
 		+ "<br/><strong>Match: </strong> " + d.label_b + " (IC: " + d.IC_b.toFixed(2) +")"
 		+ "<br/><strong>Common: </strong> " + d.subsumer_label + " (IC: " + d.subsumer_IC.toFixed(2) +")"
-     		+ "<br/><strong>" + this._toProperCase(this.state.comparisonType).substring(0, this.state.comparisonType.length-1)  +": </strong> " + d.model_label
+     		+ "<br/><strong>" + this._toProperCase(this.state.comparisonType.comparison).substring(0, this.state.comparisonType.comparison.length-1)  +": </strong> " + d.model_label
 		+ "<br/><strong>" + prefix + ":</strong> " + d.value.toFixed(2) + suffix
 		+ "<br/><strong>Species: </strong> " + d.species + " (" + taxon + ")";
 	    this._updateDetailSection(retData, this._getXYPos(obj));
