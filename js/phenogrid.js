@@ -518,7 +518,7 @@ var url = document.URL;
 			  return {x: current.attr("x"), y: current.attr("y") };
 		      })
                       .on("drag", function(d) {
-                	  
+                	  // drag the highlight in the overview window
                 	  //notes: account for the width of the rectangle in my x and y calculations
                 	  //do not use the event x and y, they will be out of range at times.  use the converted values instead.
                 	  var rect = self.state.svg.select("#selectionrect");
