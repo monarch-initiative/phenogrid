@@ -252,8 +252,6 @@ var url = document.URL;
 
 	
 	_init: function() {
-	    console.profile();
-	    var start = new Date().getTime();
 	    this.element.empty();
 	    this._loadSpinner();
 	    this.state.phenotypeDisplayCount = this._calcPhenotypeDisplayCount();
@@ -270,13 +268,7 @@ var url = document.URL;
 	    this.state.phenotypeLabels = this._filterPhenotypeLabels(this.state.phenotypeData);
 	    this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 	    this.state.inputPhenotypeData = this.state.phenotypeData.slice();
-	    var before =  new Date().getTime();
-	    var elapsed = before-start;
-	    console.log("time before load..."+elapsed);
 	    this._loadData();
-	    var afterLoad =  new Date().getTime();
-	    elapsed = afterLoad-before;
-	    console.log("time for load..."+elapsed);
 	    var modData = [];
 	    if (this.state.targetSpeciesName == "Overview") {
 		this.state.yoffsetOver = 30;
@@ -284,20 +276,10 @@ var url = document.URL;
 	    modData = this.state.modelData.slice();
 	    
    	    this._filterData(modData.slice());
-	    var filtered = new Date().getTime();
-	    elapsed = filtered-afterLoad;
-	    console.log("filtered..."+elapsed);
 	    
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
-	    var beforeRedraw =  new Date().getTime();
-	    elapsed = beforeRedraw-filtered;
-	    console.log("time until redraw is.."+elapsed);
 	    this.reDraw(); 
-	    var afterRedraw = new Date().getTime();
-	    elapsed  = afterRedraw-beforeRedraw;
-	    console.log("time for redraw is ..."+elapsed);
-	    console.profileEnd();
 	 },
 
 	 _loadSpinner: function() {
@@ -312,50 +294,21 @@ var url = document.URL;
 	     if (this.state.modelData.length != 0 && this.state.phenotypeData.length != 0
 		 && this.state.filteredPhenotypeData.length != 0){
 
-		 var start = new Date().getTime();
 	        this._initCanvas(); 
-		 var initted = new Date().getTime();
-		 var elapsed = initted-start;
-		 console.log("time to init canvas..."+elapsed);
 		this._addLogoImage();
 
 	        this.state.svg
 		    .attr("width", "100%")
 		    .attr("height", this.state.phenotypeDisplayCount * 18);
 		this._createAccentBoxes();				
-		 var accented = new Date().getTime();
-		 var elapsed = accented-initted;
-		 console.log("acented..."+elapsed);
 		 this._createColorScale();
-		 var colorScale = new Date().getTime();
-		 var elapsed = colorScale-accented;
-		 console.log("color scale time is"+elapsed);
-		 
 		
 		var ymax  = this._createModelRegion();
-		 var model = new Date().getTime();
-		 var elapsed = model-colorScale;
-		 console.log("model time is "+elapsed);
 		this._updateAxes();
-		 var axes = new Date().getTime();
-		 var elapsed = axes-model;
-		 console.log("axes time is "+elapsed);
 		this._createGridlines();
-		 var grid = new Date().getTime();
-		 var elapsed = grid-axes;
-		 console.log("grid lines time is "+elapsed);
 		this._createModelRects();
-		 var mrects = new Date().getTime();
-		 var elapsed = mrects-grid;
-		 console.log("model rects time is "+elapsed);
 		this._createRects();
-		var crects = new Date().getTime();
-		 var elapsed = crects-mrects;
-		 console.log("creating rects time is "+elapsed);
 		this._createOverviewSection();
-		 var otime = new Date().getTime();
-		 var elapsed=otime-crects;
-		 console.log("overview time is "+elapsed);
 
 		ymax = ymax +30; //gap MAGIC NUBER ALERT
 		var height = this.state.phenotypeDisplayCount*18;//+ this.state.yoffsetOver;
@@ -1619,11 +1572,8 @@ var url = document.URL;
 
 	    //select the model label
 
-	    console.log("in selectModel.. model is "+modelData.model_id);
-	    console.log("concept id is "+this._getConceptId(modelData.model_id));
 	    // I don't know why I'm still seeing the un-processed concept id
 	    var classlabel = "text#" +this._getConceptId(modelData.model_id);
-	    console.log("class label..."+classlabel);
 	    var model_label = self.state.svg.selectAll("text#" +this._getConceptId(modelData.model_id));
 
 	    
@@ -1750,7 +1700,6 @@ var url = document.URL;
 	    x = +t.getAttribute("x"),
 	    y = +t.getAttribute("y");
 
-	    console.log("convert label html...raw model is "+data.model_id +", concept is "+this._getConceptId(data.model_id));
     	    p.append("text")
     	       	.attr('x', x + 15)
     	        .attr('y', y -5)
@@ -1765,7 +1714,6 @@ var url = document.URL;
 		    self._clickModel(data, self.document[0].location.origin);
 		})
     	        .on("mouseover", function(d) {
-		    console.log("moused over model..");
     	    	    self._selectModel(data, this);
     	        })
     	        .on("mouseout", function(d) {
@@ -2416,7 +2364,6 @@ var url = document.URL;
 	//this code creates the colored rectangles below the models
 	_createModelRegion: function () {
 
-	    var cmrStart = new Date().getTime();
 	    var self=this;
 	    var list = [];
 
@@ -2446,9 +2393,6 @@ var url = document.URL;
 	        this._createOverviewList();		
 	    }
 	    
-	    var afterOl = new Date().getTime();
-	    var elapsed = afterOl-cmrStart;
-	    console.log("1/2 way through create model region .. time taken is "+elapsed);
 	    
 	    var modData = [];
 	    
@@ -2458,9 +2402,6 @@ var url = document.URL;
 		return d.value;});
 	    var diff = d3.max(temp_data) - d3.min(temp_data);
 
-	    var afterMap = new Date().getTime();
-	    elapsed = afterMap-afterOl;
-	    console.log("after slice and map..."+elapsed);
 	    //account for a grid with less than 5 phenotypes
 	    //No matches
 	    //var y1 = 307,
@@ -2476,7 +2417,6 @@ var url = document.URL;
 	    //in the scale
 	    if (diff > 0) {
 
-		var diffStart = new Date().getTime();
 		//If this is the Overview, get gradients for all species with an index
 		if (self.state.targetSpeciesName == "Overview" || self.state.targetSpeciesName == "All") {
 		    
@@ -2496,9 +2436,6 @@ var url = document.URL;
 		    }
 		}			
 
-		var gradients = new Date().getTime();
-		var elapsed = gradients-diffStart;
-		console.log("create gradients..."+elapsed);
 		
 		var calc = this.state.selectedCalculation,
 		text1 = "",
@@ -2544,9 +2481,6 @@ var url = document.URL;
 		    .style("font-size", "10px")
 		    .text(text3);
 
-		var texts = new Date().getTime();
-		var elapsed = texts-gradients;
-		console.log("creating texts..."+elapsed);
 		
 		//Position the max more carefully	
 		if (text3 == "Max") {
@@ -2557,7 +2491,6 @@ var url = document.URL;
 		}
 	    }					
 
-	    var afterTexts  = new Date().getTime();
 	    var phenogrid_controls = $('<div id="phenogrid_controls"></div>');
 	    this.element.append(phenogrid_controls);
 	    var selControls = this._createSelectionControls(); 
@@ -2584,9 +2517,6 @@ var url = document.URL;
 		    self.state.similarityCalculation[d.target.selectedIndex].calc;
 		self._resetSelections();
 	    });	
-	    var cmrEnd = new Date().getTime();
-	    elapsed = cmrEnd - afterTexts;
-	    console.log("end of create model region..."+elapsed);
 	    return ymax;
 	},
 
@@ -2594,7 +2524,6 @@ var url = document.URL;
 	_createGradients: function(i, y1, y2){
 	    self=this;
 	    
-	    var cgStart = new Date().getTime();
 	    var y;
 	    
 	    var gradient = this.state.svg.append("svg:linearGradient")
@@ -2603,9 +2532,6 @@ var url = document.URL;
 		.attr("x2", "100%")
 		.attr("y1", "0%")
 		.attr("y2", "0%");
-	    var cg1 = new Date().getTime();
-	    var elapsed = cg1-cgStart;
-	    console.log("svg append..."+elapsed);
 	    for (j in this.state.colorDomains)
 	    {
 		gradient.append("svg:stop")
@@ -2614,9 +2540,6 @@ var url = document.URL;
 		    .style("stop-opacity", 1);				
 	    }
 
-	    var cg2 = new Date().getTime();
-	    var elapsed =cg2-cg1;
-	    console.log("svg:stop.."+elapsed);
 
 	    
 	    var y = (y1 + (-5 + (20 * i))) + this.state.yTranslation + self.state.yoffsetOver;
@@ -2634,9 +2557,6 @@ var url = document.URL;
 		.attr("height", 15)
 		.attr("fill", "url(#gradient_" + i + ")");
 
-	    var cg3 = new Date().getTime();
-	    var elapsed = cg3-cg2;
-	    console.log("text rect..."+elapsed);
 	    
 	    y =  y2 + (27 + (i*20)) + this.state.yTranslation + self.state.yoffsetOver;
 	    x = self.state.axis_pos_list[2] + 205;
@@ -2649,9 +2569,6 @@ var url = document.URL;
 		.style("font-size", "11px")
 		.text(specName);
 
-	    var cgEnd = new Date().getTime();
-	    var elapsed = cgEnd-cg3;
-	    console.log("species text..."+elapsed);
 	    return y;
 
 	},
