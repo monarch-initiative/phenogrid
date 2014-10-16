@@ -252,6 +252,7 @@ var url = document.URL;
 
 	
 	_init: function() {
+	    console.time("init");
 	    this.element.empty();
 	    this._loadSpinner();
 	    this.state.phenotypeDisplayCount = this._calcPhenotypeDisplayCount();
@@ -266,20 +267,23 @@ var url = document.URL;
 	    this.state.currModelIdx = this.state.modelDisplayCount-1;
 	    this.state.currPhenotypeIdx = this.state.phenotypeDisplayCount-1;
 	    this.state.phenotypeLabels = this._filterPhenotypeLabels(this.state.phenotypeData);
-	    this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
-	    this.state.inputPhenotypeData = this.state.phenotypeData.slice();
+			this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
+	    console.time("load");
 	    this._loadData();
-	    var modData = [];
+	    console.timeEnd("load");
+
 	    if (this.state.targetSpeciesName == "Overview") {
 		this.state.yoffsetOver = 30;
 	    }
-	    modData = this.state.modelData.slice();
-	    
-   	    this._filterData(modData.slice());
-	    
+
+	    this._filterData(this.state.modelData);
+	    	    
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
-	    this.reDraw(); 
+	    console.time("reDraw");
+	    this.reDraw();
+	    console.timeEnd("reDraw");
+	    console.timeEnd("init");
 	 },
 
 	 _loadSpinner: function() {
@@ -575,7 +579,7 @@ var url = document.URL;
 
 	_getUnmatchedPhenotypes : function(){
 	    
-	    var fullset = this.state.inputPhenotypeData,
+	    var fullset = this.state.origPhenotypeData, 
 	    partialset = this.state.phenotypeSortData,
 	    full = [],
 	    partial = [],
@@ -597,7 +601,6 @@ var url = document.URL;
 		    unmatchedset.push(full[k]);
 		}
 	    }
-	    unmatchedset = unmatchedset.slice();
 	    var dupArray = [];
 	    dupArray.push(unmatchedset[0]);	
 	    //check for dups
@@ -733,7 +736,7 @@ var url = document.URL;
 	    
     	    //copy the phenotypeArray to phenotypeData array - now instead of ALL phenotypes, it will be limited to unique phenotypes for this disease
 	    //do not alter this array: this.state.phenotypeData
-    	    this.state.phenotypeData = phenotypeArray.slice();
+    	    this.state.phenotypeData = phenotypeArray;
 
     	    //we need to adjust the display counts and indexing if there are fewer phenotypes than the default phenotypeDisplayCount
     	    if (this.state.phenotypeData.length < this.state.phenotypeDisplayCount) {
@@ -755,9 +758,8 @@ var url = document.URL;
 	    default:			this._alphabetizePhenotypes();
 	    }
 	    
-	    //Soted phenotype data, "phenotypeSortData", is returned from each sorting function; 
-	    this.state.phenotypeSortData = this.state.phenotypeSortData.slice();
-	    
+	    //Sorted phenotype data, "phenotypeSortData", is returned from each sorting function; 
+		    
 	    //Step 3: Filter for the next n phenotypes based on phenotypeDisplayCount and update the y-axis
 	    this.state.filteredPhenotypeData = [];
 	    this.state.yAxis = [];
@@ -770,7 +772,6 @@ var url = document.URL;
 	    var axis_idx = 0;
 	    var tempFilteredModelData = [];
 	    
-	    modData = this.state.modelData.slice();
 	    
 	    //get phenotype[startIdx] up to phenotype[currPhenotypeIdx] from the array of sorted phenotypes
 	    for (var i = startIdx;i <self.state.currPhenotypeIdx + 1;i++) {
@@ -791,9 +792,10 @@ var url = document.URL;
 		//find the rowid in the original ModelData (list of models and their matching phenotypes) and write it to tempdata if it matches this phenotypeSortData rowid.
 		//In this case, the rowid is just the id_a value in the model data
 
-		for (var midx = 0; midx < modData.length; midx++) {
-		    if (modData[midx].id_a == self.state.phenotypeSortData[i][0].id_a) {
-			tempFilteredModelData.push(modData[midx]);
+		for (var midx = 0; midx < this.state.modelData.length; midx++) {
+		    var mod = this.state.modelData[midx];
+		    if (mod.id_a == self.state.phenotypeSortData[i][0].id_a) {
+			tempFilteredModelData.push(mod);
 		    }
 		}
 		//var tempdata = modData.filter(function(d) {
@@ -868,7 +870,7 @@ var url = document.URL;
 	    
 	    var self = this;
 	    var modelDataForSorting = [];
-	    modData = self.state.modelData.slice();
+	    var modData =self.state.modelData;
 	    
 	    for (var idx=0;idx<self.state.phenotypeData.length;idx++) {			
 		var tempdata = [];
@@ -913,10 +915,9 @@ var url = document.URL;
 	_rankPhenotypes: function() {
 	    
 	    var self = this;
-	    var modelDataForSorting = [],
-	    modData = [];
+	    var modelDataForSorting = [];
 	    
-	    modData = self.state.modelData.slice();
+	    var modData = self.state.modelData;
 	    
 	    for (var idx=0;idx<self.state.phenotypeData.length;idx++) {			
 		var tempdata = modData.filter(function(d) {
@@ -957,9 +958,9 @@ var url = document.URL;
 	//4. Sort the array by sums. descending
 	_alphabetizePhenotypes: function() {
 	    var self = this;
-	    var modelDataForSorting = [],
-	    modData = [];
-	    modData = self.state.modelData.slice();
+	    var modelDataForSorting = [];
+
+	    var modData = self.state.modelData;
 	    
 	    for (var idx=0;idx<self.state.phenotypeData.length;idx++) {			
 		var tempdata = modData.filter(function(d) {
@@ -1076,11 +1077,11 @@ var url = document.URL;
 		    speciesList.push(species);
 		    orgCtr++;
 		    data.sort(function(a,b) { return a.model_rank - b.model_rank;});
-		    modList = modList.concat(data.slice());
+		    modList =  modList.concat(data);
 		}
 	    }
-	    this.state.modelList = modList.slice();	
-	    this.state.speciesList = speciesList.slice();
+	    this.state.modelList = modList;
+	    this.state.speciesList = speciesList;
 	    if (this.state.modelList.length < this.state.modelDisplayCount) {
 		this.state.currModelIdx = this.state.modelList.length-1;
 		this.state.modelDisplayCount = this.state.modelList.length;
@@ -1861,7 +1862,8 @@ var url = document.URL;
 	//something like this: $( "p" ).addClass( "myClass yourClass" );
 	_createModelRects: function() {
 	    var self = this;
-	    var data = this.state.filteredModelData.slice();
+	    var data = this.state.filteredModelData;
+
 	    
 	    var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + "," + (self.state.yTranslation + self.state.yoffsetOver + 15)+   ")";
 	    var model_rects = this.state.svg.selectAll(".models")
@@ -2369,11 +2371,11 @@ var url = document.URL;
 
 	    //This is for the new "Overview" target option 
 	    if (this.state.targetSpeciesName == "Overview"){
-		list = this.state.modelList.slice();	
+		list = this.state.modelList;
 	    }
 	    else
 	    {
-		list = this.state.filteredModelList.slice();
+		list = this.state.filteredModelList;
 	    }
 	    
 	    this.state.xScale = d3.scale.ordinal()
@@ -2394,9 +2396,10 @@ var url = document.URL;
 	    }
 	    
 	    
-	    var modData = [];
+	    //var modData = [];
 	    
-	    modData =this.state.modelData.slice();
+	    //modData =this.state.modelData.slice();
+	    var modData = this.state.modelData;
 	    
 	    var temp_data = modData.map(function(d) { 
 		return d.value;});
@@ -2716,7 +2719,7 @@ var url = document.URL;
 
 	    if (this.state.unmatchedPhenotypes != undefined && this.state.unmatchedPhenotypes.length > 0){
 		
-		var phenotypes = self._showUnmatchedPhenotypes();		
+		var phenotypes = this._showUnmatchedPhenotypes();		
 		
 		var optionhtml = "<div id='unmatchedlabel' style='display:block;'>View Unmatched Phenotypes</div>";
 
