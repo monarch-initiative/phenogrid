@@ -298,21 +298,40 @@ var url = document.URL;
 	     if (this.state.modelData.length != 0 && this.state.phenotypeData.length != 0
 		 && this.state.filteredPhenotypeData.length != 0){
 
-	        this._initCanvas(); 
+		 console.time("initCanvas");
+	         this._initCanvas();
+		 console.timeEnd("initCanvas");
 		this._addLogoImage();
 
 	        this.state.svg
 		    .attr("width", "100%")
-		    .attr("height", this.state.phenotypeDisplayCount * 18);
+		     .attr("height", this.state.phenotypeDisplayCount * 18);
+		 console.time("accents-color");
 		this._createAccentBoxes();				
 		 this._createColorScale();
-		
-		var ymax  = this._createModelRegion();
-		this._updateAxes();
-		this._createGridlines();
-		this._createModelRects();
-		this._createRects();
-		this._createOverviewSection();
+		 console.timeEnd("accents-color");
+
+		 console.time("model-region");
+		 var ymax  = this._createModelRegion();
+		 console.timeEnd("model-region");
+
+
+		 console.time("axes");		 
+		 this._updateAxes();
+		 console.timeEnd("axes");
+
+		 console.time("gridlines");
+		 this._createGridlines();
+		 console.timeEnd("gridlines");
+		 console.time("modelrects");
+		 this._createModelRects();
+		 console.timeEnd("modelrects");
+		 console.time("createRects");
+		 this._createRects();
+		 console.timeEnd("createRects");
+		 console.time("overview");
+		 this._createOverviewSection();
+		 console.timeEnd("overview");
 
 		ymax = ymax +30; //gap MAGIC NUBER ALERT
 		var height = this.state.phenotypeDisplayCount*18;//+ this.state.yoffsetOver;
@@ -579,13 +598,12 @@ var url = document.URL;
 
 	_getUnmatchedPhenotypes : function(){
 	    
-	    var fullset = this.state.origPhenotypeData, 
+	    var fullset = this.state.origPhenotypeData,
 	    partialset = this.state.phenotypeSortData,
 	    full = [],
 	    partial = [],
 	    matchedset = [],
 	    unmatchedset = [];
-
 
 	    
 	    for (i=0; i < fullset.length; i++) {
@@ -596,7 +614,7 @@ var url = document.URL;
 	    }
 	    for (k=0; k <full.length; k++) {
 		//if no match in fullset
-		if (partial.indexOf(full[k]) < 0) {	
+		if (partial.indexOf(full[k].id) < 0) {	
 		    //if there unmatched set is empty, add this umatched phenotype
 		    unmatchedset.push(full[k]);
 		}
@@ -605,10 +623,15 @@ var url = document.URL;
 	    dupArray.push(unmatchedset[0]);	
 	    //check for dups
 	    for ( i=1; i < unmatchedset.length;i++){
-		if (dupArray.indexOf(unmatchedset[i]) < 0) 
-		{
+		var found = false;
+		for (var j = 0; j < dupArray.length; j++) {
+		    if (dupArray[j].id == unmatchedset[i].id) {
+			found = true;
+		    }
+		}
+		if (found == false) {
 		    dupArray.push(unmatchedset[i]);
-		}		
+		}
 	    }					
 	    if (dupArray[0] == undefined) {dupArray = []};
 	    
@@ -620,8 +643,8 @@ var url = document.URL;
 	       return 0;
 	       });	*/	
 	    
-	    
 	    return dupArray;
+
 	},
 	
 	_showUnmatchedPhenotypes : function(){
@@ -631,22 +654,13 @@ var url = document.URL;
 	    dupLabels = [],
 	    text = "";
 	    var labels = self.state.phenotypeLabels;
-	    for (i = 0; i < unmatched.length; i++)
-	    {
-		for (j=0; j<labels.length; j++){
-		    var res = (labels[j].id).indexOf(unmatched[i]);
-		    if ((labels[j].id).indexOf(unmatched[i]) !=-1){
-			if (dupLabels.indexOf(labels[j].label) < 0) {
-			    var label = labels[j].label;
-			    var url_origin = self.document[0].location.origin;
-			    text = text + "<a href='" + url_origin + "/phenotype/" + unmatched[i] + "' target='_blank'>" + label + "</a>";
-			    if (i < unmatched.length -1) {
-				text = text +", ";
-			    }
-			    dupLabels.push(label);
-			}
-		    }
-
+	    for (i = 0; i < unmatched.length; i++) {
+		var label = unmatched[i].label;
+		var id = self._getConceptId(unmatched[i].id);
+		var url_origin = self.document[0].location.origin;
+		text = text + "<a href='" + url_origin + "/phenotype/" + id + "' target='_blank'>" + label + "</a>";
+		if (i < unmatched.length -1) {
+		    text = text +", ";
 		}
 	    }
 	    return text;
@@ -1705,7 +1719,8 @@ var url = document.URL;
     	       	.attr('x', x + 15)
     	        .attr('y', y -5)
     	        .attr("width", width)
-    	        .attr("id", data.model_id) //this._getConceptId(data.model_id))
+    	    //       .attr("id", data.model_id) //this._getConceptId(data.model_id))
+	        .attr("id", this._getConceptId(data.model_id))
     	        .attr("model_id", data.model_id)
     	        .attr("height", 60)
     	        .attr("transform", function(d) {
@@ -1874,13 +1889,15 @@ var url = document.URL;
 		.append("rect")
 		.attr("transform",rectTranslation)
 		.attr("class", function(d) { 
-		    var dConcept = d.id //self._getConceptId(d.id);
-		    var modelConcept = d.model_id //self._getConceptId(d.model_id);
+		    //var dConcept = d.id //self._getConceptId(d.id);
+		    //var modelConcept = d.model_id //self._getConceptId(d.model_id);
+		    var dConcept = self._getConceptId(d.id);
+		    var modelConcept = self._getConceptId(d.model_id);
 		    //append the model id to all related items
-		  /*  if (d.value > 0) {
+		    if (d.value > 0) {
 			var bla = self.state.svg.selectAll(".data_text." + dConcept);	    	
 			bla.classed(modelConcept, true);
-		    }*/
+		    }
 		    return "models " + " " +  modelConcept + " " +  dConcept;
 		})
 		.attr("y", function(d, i) { 
@@ -2720,7 +2737,6 @@ var url = document.URL;
 	    if (this.state.unmatchedPhenotypes != undefined && this.state.unmatchedPhenotypes.length > 0){
 		
 		var phenotypes = this._showUnmatchedPhenotypes();		
-		
 		var optionhtml = "<div id='unmatchedlabel' style='display:block;'>View Unmatched Phenotypes</div>";
 
 		optionhtml = optionhtml+ "<div id='unmatchedlabelhide' style='display:none;'>Hide Unmatched Phenotypes<br /><div id='unmatched' style='display:none;'>" + phenotypes + "</div></div></div>";
