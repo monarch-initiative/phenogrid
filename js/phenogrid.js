@@ -1557,7 +1557,8 @@ var url = document.URL;
 	    if (curr_data[0] == undefined) { var row = curr_data;}
 	    else {row = curr_data[0];}
 	    
-	    var alabels = this.state.svg.selectAll("text.a_text." + row.id); //this._getConceptId(row.id));
+	    //var alabels = this.state.svg.selectAll("text.a_text." + row.id); //this._getConceptId(row.id));
+	    var alabels = this.state.svg.selectAll("text.a_text." + this._getConceptId(row.id));
 	    alabels.text(this._getShortLabel(row.label_a));
 	    data_text = this.state.svg.selectAll("text.a_text");
 	    data_text.style("text-decoration", "none");
@@ -1617,10 +1618,10 @@ var url = document.URL;
 	    
 	    var self = this;
 	    var  models = self.state.modelData;
-	    
+	    var curModel = this._getConceptId(curr_data.model_id);
 	    for(var i = 0; i < models.length; i++){
-		//models[i] is the matching model that contains all phenotypes 
-		if (models[i].model_id == curr_data.model_id)
+		//models[i] is the matching model that contains all phenotypes
+		if (models[i].model_id == curModel)
 		{
 		    var alabels = this.state.svg.selectAll("text.a_text");
 		    var mtxt = models[i].label_a;
@@ -1631,7 +1632,6 @@ var url = document.URL;
 		    for (var j=0; j < alabels[0].length; j++){
 			if (alabels[0][j].innerHTML == shortTxt){
 			    alabels[0][j].style.fill = "blue";
-			    
 			    break;
 			}
 		    }
@@ -1729,6 +1729,7 @@ var url = document.URL;
     	        .on("mouseout", function(d) {
     	    	    self._clearModelData(d, d3.mouse(this));
 		    if(self.state.selectedRow){
+			console.log("deselecting data..");
 			self._deselectData(self.state.selectedRow);}
     	        })
     		.attr("class", this._getConceptId(data.model_id) + " model_label")
@@ -1884,7 +1885,7 @@ var url = document.URL;
 	    var self = this;
 	    var data = this.state.filteredModelData;
 
-	    
+	    console.time("mod-rects-basics");
 	    var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + "," + (self.state.yTranslation + self.state.yoffsetOver + 15)+   ")";
 	    var model_rects = this.state.svg.selectAll(".models")
 		.data( data, function(d) {
@@ -1916,6 +1917,8 @@ var url = document.URL;
 	    //I need to pass this into the function
 		.on("mouseover", function(d) {
 		    this.parentNode.appendChild(this);
+
+		    console.log("mousing over phenotype...");
 		    
 		    //if this column and row are selected, clear the column/row and unset the column/row flag
 		    if (self.state.selectedColumn != undefined && self.state.selectedRow != undefined) 
@@ -1927,7 +1930,7 @@ var url = document.URL;
 			if (this != self.state.currSelectedRect){
 			    self._highlightIntersection(d, d3.mouse(this));
 			    //put the clicked rect on the top layer of the svg so other events work
-			    this.parentNode.appendChild(this);
+			   // ???this.parentNode.appendChild(this);
 			    self._enableRowColumnRects(this);
 			    //set the current selected rectangle
 			    self.state.currSelectedRect = this;  
@@ -1935,7 +1938,7 @@ var url = document.URL;
 		    }
 		    else {
 			self._highlightIntersection(d, d3.mouse(this));
-			this.parentNode.appendChild(this);
+			//this.parentNode.appendChild(this);
 			self._enableRowColumnRects(this);
 			self.state.currSelectedRect = this;  
 		    }
@@ -1948,10 +1951,14 @@ var url = document.URL;
 		})
 		.style('opacity', '1.0')
 		.attr("fill", function(d,i) { return self._setRectFill(self,d,i)});
-	    
+	    console.timeEnd("mod-rects-basics");
+
+	    console.time("highlightspec");
 	    if (self.state.targetSpeciesName == "Overview") {
 		this._highlightSpecies();
-	    }		
+	    }
+	    console.timeEnd("highlightspec");
+	    console.time("modrects-trans");
 	    model_rects.transition()
 		.delay(20)
 		.style('opacity', '1.0')
@@ -1963,6 +1970,7 @@ var url = document.URL;
 	    model_rects.exit().transition()
 		.style('opacity', '0.0')
 		.remove();
+	    console.timeEnd("modrects-trans");
 	    
 	},
 	
@@ -2033,6 +2041,7 @@ var url = document.URL;
     	    if (txt == undefined) {
     		txt = curr_data.id_a;
     	    }
+	    console.log("a labels..."+JSON.stringify(alabels));
     	    alabels.text(txt);
 	    alabels.style("font-weight", "bold");
 	    alabels.style("fill", "blue");
@@ -2399,34 +2408,44 @@ var url = document.URL;
 	    {
 		list = this.state.filteredModelList;
 	    }
-	    
+
+	    console.time("rangerounds");
 	    this.state.xScale = d3.scale.ordinal()
 		.domain(list.map(function (d) {
 		    return d.model_id; })).rangeRoundBands([0,this.state.modelWidth]);
+	    console.timeEnd("rangerounds");
 	    
 	    model_x_axis = d3.svg.axis()
 		.scale(this.state.xScale).orient("top");
 
+	    console.time("modellabels");
 	    this._createModelLabels(self);
-	    
-	    this._createModelLines();
-	    this._createTextScores(list);
+	    console.timeEnd("modellabels");
 
-	    
+	    console.time("modellines");
+	    this._createModelLines();
+	    console.timeEnd("modellines");
+	    console.time("textscores");
+	    this._createTextScores(list);
+	    console.timeEnd("textscores");
+
+	    console.time("col");
 	    if (self.state.targetSpeciesName == "Overview") {
 	        this._createOverviewList();		
 	    }
+	    console.timeEnd("col");
 	    
 	    
 	    //var modData = [];
 	    
 	    //modData =this.state.modelData.slice();
 	    var modData = this.state.modelData;
-	    
+
+	    console.time("moddiff");
 	    var temp_data = modData.map(function(d) { 
 		return d.value;});
 	    var diff = d3.max(temp_data) - d3.min(temp_data);
-
+	    console.timeEnd("moddiff");
 	    //account for a grid with less than 5 phenotypes
 	    //No matches
 	    //var y1 = 307,
@@ -2442,6 +2461,7 @@ var url = document.URL;
 	    //in the scale
 	    if (diff > 0) {
 
+		console.time("creategrads");
 		//If this is the Overview, get gradients for all species with an index
 		if (self.state.targetSpeciesName == "Overview" || self.state.targetSpeciesName == "All") {
 		    
@@ -2460,7 +2480,7 @@ var url = document.URL;
 			ymax = y;
 		    }
 		}			
-
+		console.timeEnd("creategrads");
 		
 		var calc = this.state.selectedCalculation,
 		text1 = "",
@@ -2478,7 +2498,7 @@ var url = document.URL;
 		else if (calc == 0) {text1 = "Min"; text2 = "Similarity"; text3 = "Max";}
 
 		
-		
+		console.time("mrtexts");
 		var ytext1 =  y1  + this.state.yTranslation + self.state.yoffsetOver-5;
 		var xtext1= self.state.axis_pos_list[2] + 10;
 		var div_text1 = self.state.svg.append("svg:text")
@@ -2505,7 +2525,7 @@ var url = document.URL;
 		    .attr("x", xtext3)
 		    .style("font-size", "10px")
 		    .text(text3);
-
+		console.timeEnd("mrtexts");
 		
 		//Position the max more carefully	
 		if (text3 == "Max") {
@@ -2516,11 +2536,12 @@ var url = document.URL;
 		}
 	    }					
 
+	    console.time("pgcontrols");
 	    var phenogrid_controls = $('<div id="phenogrid_controls"></div>');
 	    this.element.append(phenogrid_controls);
 	    var selControls = this._createSelectionControls(); 
 	    phenogrid_controls.append(selControls);
-	    
+	    console.timeEnd("pgcontrols");
 	    
 	    var calcs = d3.selectAll("#calcs")
 		.on("click", function(d,i){
@@ -2551,6 +2572,7 @@ var url = document.URL;
 	    
 	    var y;
 	    
+	    console.time("gradientappend");
 	    var gradient = this.state.svg.append("svg:linearGradient")
 		.attr("id",  "gradient_" + i)
 		.attr("x1", "0")
@@ -2564,9 +2586,9 @@ var url = document.URL;
 		    .style("stop-color", this.state.colorRanges[i][j])
 		    .style("stop-opacity", 1);				
 	    }
+	    console.timeEnd("gradientappend");
 
-
-	    
+	    console.time("gradientlabs");
 	    var y = (y1 + (-5 + (20 * i))) + this.state.yTranslation + self.state.yoffsetOver;
 	    var  x = self.state.axis_pos_list[2] + 12;
 	    var translate  = "translate(0,10)";
@@ -2593,7 +2615,7 @@ var url = document.URL;
 		.attr("x", x)
 		.style("font-size", "11px")
 		.text(specName);
-
+	    console.timeEnd("gradientlabs");
 	    return y;
 
 	},
