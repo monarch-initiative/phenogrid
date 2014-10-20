@@ -282,7 +282,6 @@ var url = document.URL;
 	    }
 
 	    this._filterData(this.state.modelData);
-	    	    
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
 	    console.time("reDraw");
@@ -905,7 +904,7 @@ var url = document.URL;
 	    for (var k =0; k < modelDataForSorting.length;k++) {
 		var ct  = 0;
 		var d = modelDataForSorting[k];
-		if (d[0].id_a === self.state.phenotypeData[k].id_a){
+		if (d[0].id_a == self.state.phenotypeData[k].id_a){
 		    for (var i=0; i< d.length; i++)
 		    {
 			ct+= 1;
@@ -913,10 +912,16 @@ var url = document.URL;
 		    d["count"] = ct;
 		    self.state.phenotypeSortData.push(d);
 		}
-	    }		
+	    }	
+
 	    //sort the phenotype list by sum of LCS
-	    self.state.phenotypeSortData.sort(function(a,b) { 
-		return b.count - a.count; 
+	    self.state.phenotypeSortData.sort(function(a,b) {
+		var diff = b.count -a.count;
+		if (diff ==0) {// counts are equal
+		    diff = a[0].id_a.localeCompare(b[0].id_a);
+		}
+		return diff;		    
+
 	    });	 	
 	},
 	
@@ -1729,7 +1734,6 @@ var url = document.URL;
     	        .on("mouseout", function(d) {
     	    	    self._clearModelData(d, d3.mouse(this));
 		    if(self.state.selectedRow){
-			console.log("deselecting data..");
 			self._deselectData(self.state.selectedRow);}
     	        })
     		.attr("class", this._getConceptId(data.model_id) + " model_label")
@@ -1752,7 +1756,6 @@ var url = document.URL;
 
 		
     	    var url = url_origin + "/"+apientity+"/" + concept;
-	    console.log("click model... url is "+url);
     	    var win = window.open(url, '_blank');
 	},
 
@@ -1918,7 +1921,6 @@ var url = document.URL;
 		.on("mouseover", function(d) {
 		    this.parentNode.appendChild(this);
 
-		    console.log("mousing over phenotype...");
 		    
 		    //if this column and row are selected, clear the column/row and unset the column/row flag
 		    if (self.state.selectedColumn != undefined && self.state.selectedRow != undefined) 
@@ -2041,7 +2043,6 @@ var url = document.URL;
     	    if (txt == undefined) {
     		txt = curr_data.id_a;
     	    }
-	    console.log("a labels..."+JSON.stringify(alabels));
     	    alabels.text(txt);
 	    alabels.style("font-weight", "bold");
 	    alabels.style("fill", "blue");
