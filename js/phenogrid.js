@@ -78,7 +78,7 @@ var url = document.URL;
             detailRectStrokeWidth: 3,
 	    globalViewWidth : 110,
 	    globalViewHeight : 110,
-	    h : 490,
+	    h : 525,
 	    m :[ 30, 10, 10, 10 ],
 	    multiOrganismCt: 10,
 	    multiOrgModelLimit: 750,
@@ -90,7 +90,7 @@ var url = document.URL;
 	    w : 0,
 	    headerAreaHeight: 130,
 	    comparisonTypes: [ { organism: "Homo sapiens",
-				 comparison: "models"}],
+				 comparison: "diseases"}],
 	    defaultComparisonType: { comparison: "genes"},
 	    speciesLabels : [ { abbrev: "HP", label: "Human"},
 			      { abbrev: "MP", label: "Mouse"},
@@ -282,7 +282,6 @@ var url = document.URL;
 	    }
 
 	    this._filterData(this.state.modelData);
-	    	    
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
 	    console.time("reDraw");
@@ -342,11 +341,11 @@ var url = document.URL;
 		 console.timeEnd("overview");
 
 		ymax = ymax +30; //gap MAGIC NUBER ALERT
-		var height = this.state.phenotypeDisplayCount*18;//+ this.state.yoffsetOver;
+		var height = this.state.phenotypeDisplayCount*18 + this.state.yoffsetOver;
 		if (height < ymax) {
 		    height = ymax;
 		}
-		var containerHeight = height+30; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
+		var containerHeight = height + 30; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
 		$("#svg_area").css("height",height);
 		$("#svg_container").css("height",containerHeight);
 
@@ -704,6 +703,22 @@ var url = document.URL;
 	    return label;
 	}, 
 	
+	_getComparisonType : function(organism){
+	    var label = "";
+	    
+	    for (var i=0; i < this.state.comparisonTypes.length; i++) {
+		{ 
+			if (organism === this.state.comparisonTypes[i].organism){
+				label = this.state.comparisonTypes[i].comparison;
+			}			
+		}
+		if (label === "")
+			label = this.state.defaultComparisonType.comparison;		
+	    }
+	    return label;
+	}, 
+	
+	
 	_setComparisonType : function(){
 	    var self = this;
 	    var comp = this.state.defaultComparisonType;
@@ -905,7 +920,7 @@ var url = document.URL;
 	    for (var k =0; k < modelDataForSorting.length;k++) {
 		var ct  = 0;
 		var d = modelDataForSorting[k];
-		if (d[0].id_a === self.state.phenotypeData[k].id_a){
+		if (d[0].id_a == self.state.phenotypeData[k].id_a){
 		    for (var i=0; i< d.length; i++)
 		    {
 			ct+= 1;
@@ -913,10 +928,16 @@ var url = document.URL;
 		    d["count"] = ct;
 		    self.state.phenotypeSortData.push(d);
 		}
-	    }		
+	    }	
+
 	    //sort the phenotype list by sum of LCS
-	    self.state.phenotypeSortData.sort(function(a,b) { 
-		return b.count - a.count; 
+	    self.state.phenotypeSortData.sort(function(a,b) {
+		var diff = b.count -a.count;
+		if (diff ==0) {// counts are equal
+		    diff = a[0].id_a.localeCompare(b[0].id_a);
+		}
+		return diff;		    
+
 	    });	 	
 	},
 	
@@ -1383,7 +1404,8 @@ var url = document.URL;
 		optionhtml = "<span id='mtitle'><span id='stitle'><b>Phenotype comparison (grouped by " + species + " " + this.state.comparisonType.comparison + ")</b></span>";	
 	    }
 	    
-	    optionhtml = optionhtml + "<span id='faq'><img class='faq' src='" + this.state.scriptpath + "../image/greeninfo30.png' height='15px'></span><br /></span><div id='header'><span id='sort_div'><span id='slabel' >Sort Phenotypes<span id='sorts'></span></span><br /><span><select id=\'sortphenotypes\'>";	
+	    optionhtml = optionhtml + "<span id='faq'><img class='faq' src='" + this.state.scriptpath + "../image/greeninfo30.png' height='15px'></span><br /></span><div id='header'><span id='sort_div'><span id='slabel' >Sort Phenotypes<span id=\"sorts\"><img class=\"sortimg\" src=\"" +
+		this.state.scriptpath + "../image/greeninfo30.png\" height=\"15px\"></span></span><br /><span><select id=\'sortphenotypes\'>";	
 	    
 	    for (var idx=0;idx<self.state.phenotypeSort.length;idx++) {
     		var selecteditem = "";
@@ -1404,6 +1426,11 @@ var url = document.URL;
 	    var sorts = d3.selectAll("#sorts")
 		.on("click", function(d,i){
 		    self._showDialog( "sorts");
+		});
+	    
+	    var calcs= d3.selectAll("#calcs")
+		.on("click", function(d,i){
+		    self._showDialog( "calcs");
 		});
 	    
 	    //add the handler for the select control
@@ -1473,51 +1500,8 @@ var url = document.URL;
 	    link_labels.attr("fill", "black");
 	},
 	
-	//I need to check to see if the modelData is an object.  If so, get the model_id
-	_clearModelData: function(modelData) {
-	    this.state.svg.selectAll("#detail_content").remove();
-	    this.state.svg.selectAll(".model_accent").remove();
-	    var model_text = "";
-	    if (modelData != null && typeof modelData != 'object') {
-		model_text = this.state.svg.selectAll("text#" + this._getConceptId(modelData));   
-	    } else {model_text = this.state.svg.selectAll("text#" + this._getConceptId(modelData.model_id));}
-	    
-	    model_text.style("font-weight","normal");
-	    model_text.style("text-decoration", "none");
-	    model_text.style("fill", "black");    
-	},
 	
-	_selectData: function(curr_data, obj) {    	
-    	    
-    	    //create a highlight row
-	    var self=this;
-	    //create the related row rectangle
-	    var highlight_rect = self.state.svg.append("svg:rect")
-		.attr("transform","translate(" + (self.state.axis_pos_list[1]) +"," + ( self.state.yTranslation + self.state.yoffsetOver + 4)  + ")")
-	    
-		.attr("x", 12)
-		.attr("y", function(d) {return self._getYPosition(curr_data[0].id_a) ;}) //rowid
-		.attr("class", "row_accent")
-		.attr("width", this.state.modelWidth - 4)
-		.attr("height", 12);
-	    
-    	    this._resetLinks();
-    	    var alabels = this.state.svg.selectAll("text.a_text." + curr_data[0].id);//this._getConceptId(curr_data[0].id));
-    	    var txt = curr_data[0].label_a;
-    	    if (txt == undefined) {
-    		txt = curr_data[0].id_a;
-    	    }
-    	    alabels.text(txt)
-		.style("font-weight", "bold")
-		.style("fill", "blue")
-		.on("click",function(d){
-		    //self._clickPhenotype(self._getConceptId(curr_data[0].id_a), self.document[0].location.origin);
-		    self._clickPhenotype(curr_data[0].id_a, self.document[0].location.origin);
-		});
-
-	    this._highlightMatchingModels(curr_data);
-	    
-	},
+	
 	_highlightMatchingModels : function(curr_data){
 	    var self = this;
 	    var models = self.state.modelData,
@@ -1550,23 +1534,6 @@ var url = document.URL;
 	},
 	
 	
-	_deselectData: function (curr_data) {
-    	    
-	    this.state.svg.selectAll(".row_accent").remove();
-    	    this._resetLinks();
-	    if (curr_data[0] == undefined) { var row = curr_data;}
-	    else {row = curr_data[0];}
-	    
-	    //var alabels = this.state.svg.selectAll("text.a_text." + row.id); //this._getConceptId(row.id));
-	    var alabels = this.state.svg.selectAll("text.a_text." + this._getConceptId(row.id));
-	    alabels.text(this._getShortLabel(row.label_a));
-	    data_text = this.state.svg.selectAll("text.a_text");
-	    data_text.style("text-decoration", "none");
-	    data_text.style("fill", "black");    
-	    
-	    this._deselectMatchingModels(curr_data);
-	},
-	
 	_selectModel: function(modelData, obj) {
 	    var self=this;
 	    
@@ -1584,16 +1551,29 @@ var url = document.URL;
 
 	    // I don't know why I'm still seeing the un-processed concept id
 	    var classlabel = "text#" +this._getConceptId(modelData.model_id);
+        
+	    //Show that model label is selected. Change styles to bold, blue and full-length label
 	    var model_label = self.state.svg.selectAll("text#" +this._getConceptId(modelData.model_id));
 
-	    
-    	    model_label.style("font-weight", "bold");
+    	model_label.style("font-weight", "bold");
 	    model_label.style("fill", "blue");
-	    
-	    
+		model_label.html(modelData.model_label);
+		
+		var concept = self._getConceptId(modelData.model_id),
+					  type = this.state.defaultApiEntity;
+		   
+		for (var i =0; i < this.state.apiEntityMap.length; i++) {
+			if (concept.indexOf(this.state.apiEntityMap[i].prefix) ==0) {
+			    type = this.state.apiEntityMap[i].apifragment;
+			}
+		}
+		
+		var width = (type === "gene")?80:200;
+		var height = (type === "gene")?50:60;
+		
 	    var retData;
 	    //initialize the model data based on the scores
-	    retData = "<strong>" +  self._toProperCase(self.state.comparisonType.comparison).substring(0, self.state.comparisonType.comparison.length-1) +" Label:</strong> "   
+	    retData = "<strong>" + self._toProperCase(type).substring(0, type.length) + ": </strong> "   
 		+ modelData.model_label + "<br/><strong>Rank:</strong> " + (parseInt(modelData.model_rank) + 1);
 
 	    //obj = try creating an ojbect with an attributes array including "attributes", but I may need to define
@@ -1602,17 +1582,88 @@ var url = document.URL;
 	    var obj = {				
 		attributes: [],
 		getAttribute: function(keystring) {
-		    var ret = self.state.xScale(modelData.model_id)-2
+		    var ret = self.state.xScale(modelData.model_id)+ 15;
 		    if (keystring == "y") {
-			ret = Number(self.state.yoffset + /**self.state.yoffsetOver)*/-190);
+			ret = Number(self.state.yoffset + /**self.state.yoffsetOver)*/-100);
 		    }
 		    return ret;
 		},
             };		
 	    obj.attributes['transform'] = {value: highlight_rect.attr("transform")};		
-	    this._updateDetailSection(retData, this._getXYPos(obj), undefined, 50);
+	    this._updateDetailSection(retData, this._getXYPos(obj), width, height);
 	    self._highlightMatchingPhenotypes(modelData);
 	},
+	
+	//I need to check to see if the modelData is an object.  If so, get the model_id
+	
+	_clearModelData: function(modelData,obj) {
+	    this.state.svg.selectAll("#detail_content").remove();
+	    this.state.svg.selectAll(".model_accent").remove();
+	    var model_text = "",
+			mod_id = "";
+	    if (modelData != null && typeof modelData != 'object') {
+			mod_id = this._getConceptId(modelData);   
+	    } else {mod_id = this._getConceptId(modelData.model_id);}
+	    
+	    //Show that model label is no longer selected. Change styles to normal weight, black and short label
+		model_text = this.state.svg.selectAll("text#" + mod_id);
+	    model_text.style("font-weight","normal");
+	    model_text.style("text-decoration", "none");
+	    model_text.style("fill", "black");
+		model_text.html(this._getShortLabel(modelData.model_label, 15));
+		
+	},
+	
+	_selectData: function(curr_data, obj) {    	
+		    
+		    //create a highlight row
+	    var self=this;
+	    //create the related row rectangle
+	    var highlight_rect = self.state.svg.append("svg:rect")
+		.attr("transform","translate(" + (self.state.axis_pos_list[1]) +"," + ( self.state.yTranslation + self.state.yoffsetOver + 4)  + ")")
+	    
+		.attr("x", 12)
+		.attr("y", function(d) {return self._getYPosition(curr_data[0].id_a) ;}) //rowid
+		.attr("class", "row_accent")
+		.attr("width", this.state.modelWidth - 4)
+		.attr("height", 12);
+	    
+		    this._resetLinks();
+		    var alabels = this.state.svg.selectAll("text.a_text." + curr_data[0].id);//this._getConceptId(curr_data[0].id));
+		    var txt = curr_data[0].label_a;
+		    if (txt == undefined) {
+			txt = curr_data[0].id_a;
+		    }
+		    alabels.text(txt)
+		.style("font-weight", "bold")
+		.style("fill", "blue")
+		.on("click",function(d){
+		    //self._clickPhenotype(self._getConceptId(curr_data[0].id_a), self.document[0].location.origin);
+		    self._clickPhenotype(curr_data[0].id_a, self.document[0].location.origin);
+		});
+	
+	    this._highlightMatchingModels(curr_data);
+	    
+	},
+	
+	
+	_deselectData: function (curr_data) {
+    	    
+	    this.state.svg.selectAll(".row_accent").remove();
+    	    this._resetLinks();
+	    if (curr_data[0] == undefined) { var row = curr_data;}
+	    else {row = curr_data[0];}
+	    
+	    //var alabels = this.state.svg.selectAll("text.a_text." + row.id); //this._getConceptId(row.id));
+	    var alabels = this.state.svg.selectAll("text.a_text." + this._getConceptId(row.id));
+	    alabels.text(this._getShortLabel(row.label_a));
+	    data_text = this.state.svg.selectAll("text.a_text");
+	    data_text.style("text-decoration", "none");
+	    data_text.style("fill", "black");    
+	    
+	    this._deselectMatchingModels(curr_data);
+	},
+	
 	
 	_highlightMatchingPhenotypes: function(curr_data){
 	    
@@ -1649,6 +1700,22 @@ var url = document.URL;
     	    var url = url_origin + "/phenotype/" + data;
     	    var win = window.open(url, '_blank');
 	},	
+	
+	_clickModel: function(data, url_origin) {
+	    var concept = self._getConceptId(data.model_id);
+	    // hardwire check
+	    var apientity = this.state.defaultApiEntity;
+	    for (var i =0; i < this.state.apiEntityMap.length; i++) {
+		if (concept.indexOf(this.state.apiEntityMap[i].prefix) ==0) {
+		    apientity = this.state.apiEntityMap[i].apifragment;
+		}
+	    }
+
+		
+    	    var url = url_origin + "/"+apientity+"/" + concept;
+    	    var win = window.open(url, '_blank');
+	},
+
 
 	//return a label for use in the list.  This label is shortened
 	//to fit within the space in the column
@@ -1665,6 +1732,8 @@ var url = document.URL;
 	    }
 	    else return "Unknown";
 	},
+	
+	
 
 	//return a useful label to use for visualizing the rectangles
 	_getCleanLabel: function (uri, label) {
@@ -1706,8 +1775,8 @@ var url = document.URL;
     	    var width = 100,
     	    el = d3.select(t),
     	    p = d3.select(t.parentNode),
-	    x = +t.getAttribute("x"),
-		y = +t.getAttribute("y");
+    	    x = +t.getAttribute("x"),
+    	    y = +t.getAttribute("y");
 
     	    p.append("text")
     	       	.attr('x', x + 15)
@@ -1715,47 +1784,31 @@ var url = document.URL;
     	        .attr("width", width)
     	    //       .attr("id", data.model_id) //this._getConceptId(data.model_id))
 	        .attr("id", this._getConceptId(data.model_id))
-    	        .attr("model_id", data.model_id)
-    	        .attr("height", 60)
-    	        .attr("transform", function(d) {
-    	            return "rotate(-45)" 
-    	        })
-		.on("click", function(d) {
-		    self._clickModel(data, self.document[0].location.origin);
-		})
-    	        .on("mouseover", function(d) {
-    	    	    self._selectModel(data, this);
-    	        })
-    	        .on("mouseout", function(d) {
-    	    	    self._clearModelData(d, d3.mouse(this));
-		    if(self.state.selectedRow){
-			console.log("deselecting data..");
-			self._deselectData(self.state.selectedRow);}
-    	        })
+	        .attr("model_id", data.model_id)
+	        .attr("height", 60)
+	        .attr("transform", function(d) {
+	            return "rotate(-45)" 
+	        })
+			.on("click", function(d) {
+			    self._clickModel(data, self.document[0].location.origin);
+			})
+	        .on("mouseover", function(d) {
+	    	    self._selectModel(data, this);
+	        })
+	        .on("mouseout", function(d) {
+	    	    self._clearModelData(data, d3.mouse(this));
+	    	    if(self.state.selectedRow){
+	    	    	self._deselectData(self.state.selectedRow);}
+	        })
     		.attr("class", this._getConceptId(data.model_id) + " model_label")
         	//.attr("class", data.model_id + " model_label")
-    		.style("font-size", "12px")
+    		.style("font-size", "11px")
     		.text( function(d) {if (label == "") return ""; else return label;});
 	    
     	    el.remove();
 	},
 	
-	_clickModel: function(data, url_origin) {
-	    var concept = self._getConceptId(data.model_id);
-	    // hardwire check
-	    var apientity = this.state.defaultApiEntity;
-	    for (var i =0; i < this.state.apiEntityMap.length; i++) {
-		if (concept.indexOf(this.state.apiEntityMap[i].prefix) ==0) {
-		    apientity = this.state.apiEntityMap[i].apifragment;
-		}
-	    }
-
-		
-    	    var url = url_origin + "/"+apientity+"/" + concept;
-	    console.log("click model... url is "+url);
-    	    var win = window.open(url, '_blank');
-	},
-
+	
 	_updateDetailSection: function(htmltext, coords, width, height) {
 
 	    this.state.svg.selectAll("#detail_content").remove();
@@ -1787,6 +1840,41 @@ var url = document.URL;
 		.append("xhtml:body")
 		.attr("id", "detail_text")
 		.html(htmltext);  	
+	},
+	
+	_showModelData: function(d, obj) {
+	    var retData;
+	    /* we aren't currently using these, but we might later.*/
+	    var aSpecies = this._getSpeciesLabel(d.id_a);
+        var subSpecies = this._getSpeciesLabel(d.subsumer_id);
+	    var bSpecies = this._getSpeciesLabel(d.id_b);
+	    
+	    var species = d.species,
+	    taxon =   d.taxon;
+	    
+	    var type = this._getComparisonType(species);
+	    
+	    if (taxon != undefined || taxon!= null || taxon != '' || isNaN(taxon));{
+		if (taxon.indexOf("NCBITaxon:") != -1) {taxon = taxon.slice(10);}
+	    }
+	    
+	    var calc = this.state.selectedCalculation;
+	    var suffix = "";
+	    var prefix = "";
+	    if (calc == 0 || calc == 1 || calc == 3) {suffix = '%';}
+	    if (calc == 0) {prefix = "Similarity";}
+	    else if (calc == 1) {prefix = "Ratio (q)";}
+	    else if (calc == 2) {prefix = "Uniquesness";}
+	    else if (calc == 3) {prefix = "Ratio (t)";}
+	    
+	    retData = "<strong>Query: </strong> " + d.label_a + " (IC: " + d.IC_a.toFixed(2) + ")"   
+		+ "<br/><strong>Match: </strong> " + d.label_b + " (IC: " + d.IC_b.toFixed(2) +")"
+		+ "<br/><strong>Common: </strong> " + d.subsumer_label + " (IC: " + d.subsumer_IC.toFixed(2) +")"
+     	+ "<br/><strong>" + this._toProperCase(type).substring(0, type.length-1)  +": </strong> " + d.model_label
+		+ "<br/><strong>" + prefix + ":</strong> " + d.value.toFixed(2) + suffix
+		+ "<br/><strong>Species: </strong> " + d.species + " (" + taxon + ")";
+	    this._updateDetailSection(retData, this._getXYPos(obj));
+	    
 	},
 	
 	_showThrobber: function() {
@@ -1829,38 +1917,7 @@ var url = document.URL;
 	    return {x: Number(obj.getAttribute("x")) + tform.x, y: Number(obj.getAttribute("y")) + tform.y};
 	},
 	
-	_showModelData: function(d, obj) {
-	    var retData;
-	    /* we aren't currently using these, but we might later.*/
-	    var aSpecies = this._getSpeciesLabel(d.id_a);
-            var subSpecies = this._getSpeciesLabel(d.subsumer_id);
-	    var bSpecies = this._getSpeciesLabel(d.id_b);
-	    
-	    var species = d.species,
-	    taxon =   d.taxon;
-	    
-	    if (taxon != undefined || taxon!= null || taxon != '' || isNaN(taxon));{
-		if (taxon.indexOf("NCBITaxon:") != -1) {taxon = taxon.slice(10);}
-	    }
-	    
-	    var calc = this.state.selectedCalculation;
-	    var suffix = "";
-	    var prefix = "";
-	    if (calc == 0 || calc == 1 || calc == 3) {suffix = '%';}
-	    if (calc == 0) {prefix = "Similarity";}
-	    else if (calc == 1) {prefix = "Ratio (q)";}
-	    else if (calc == 2) {prefix = "Uniquesness";}
-	    else if (calc == 3) {prefix = "Ratio (t)";}
-	    
-	    retData = "<strong>Query: </strong> " + d.label_a + " (IC: " + d.IC_a.toFixed(2) + ")"   
-		+ "<br/><strong>Match: </strong> " + d.label_b + " (IC: " + d.IC_b.toFixed(2) +")"
-		+ "<br/><strong>Common: </strong> " + d.subsumer_label + " (IC: " + d.subsumer_IC.toFixed(2) +")"
-     		+ "<br/><strong>" + this._toProperCase(this.state.comparisonType.comparison).substring(0, this.state.comparisonType.comparison.length-1)  +": </strong> " + d.model_label
-		+ "<br/><strong>" + prefix + ":</strong> " + d.value.toFixed(2) + suffix
-		+ "<br/><strong>Species: </strong> " + d.species + " (" + taxon + ")";
-	    this._updateDetailSection(retData, this._getXYPos(obj));
-	    
-	},
+	
 
 	_getSpeciesLabel: function(idstring) {
 
@@ -1918,7 +1975,6 @@ var url = document.URL;
 		.on("mouseover", function(d) {
 		    this.parentNode.appendChild(this);
 
-		    console.log("mousing over phenotype...");
 		    
 		    //if this column and row are selected, clear the column/row and unset the column/row flag
 		    if (self.state.selectedColumn != undefined && self.state.selectedRow != undefined) 
@@ -1945,7 +2001,7 @@ var url = document.URL;
 		    self._showModelData(d, this);
 		})
 		.on("mouseout", function(d) {
-		    self._clearModelData(d, d3.mouse(this));
+		    self._clearModelData(data, d3.mouse(this));
 		    if(self.state.selectedRow){
 			self._deselectData(self.state.selectedRow);}
 		})
@@ -2032,24 +2088,26 @@ var url = document.URL;
 		.attr("width", this.state.modelWidth - 4)
 		.attr("height", 12);
 	    
-    	    this.state.selectedRow = curr_data;
+    	this.state.selectedRow = curr_data;
 	    this.state.selectedColumn = curr_data;
-	    this._resetLinks();
 	    
-	    var alabels = this.state.svg.selectAll("text.a_text." + this._getConceptId(curr_data.id));
+	    var alabels = this.state.svg.selectAll("text.a_text." + curr_data.id);//this._getConceptId(curr_data[0].id));
 	    var txt = curr_data.label_a;
-    	    if (txt == undefined) {
-    		txt = curr_data.id_a;
-    	    }
-	    console.log("a labels..."+JSON.stringify(alabels));
-    	    alabels.text(txt);
-	    alabels.style("font-weight", "bold");
-	    alabels.style("fill", "blue");
+	    if (txt == undefined) {
+		txt = curr_data.id_a;
+	    }
+	    alabels.text(txt)
+	    	.style("font-weight", "bold")
+	    	.style("fill", "blue");
+	    	//.on("click",function(d){
+	    	//self._clickPhenotype(curr_data.id_a, self.document.location.origin);
+	   // });
+	    
+	    
 
 	    //Highlight Column
 	    var model_label = self.state.svg.selectAll("text#" + this._getConceptId(curr_data.model_id));
-	    
-    	    model_label.style("font-weight", "bold");
+	    model_label.style("font-weight", "bold");
 	    model_label.style("fill", "blue");
 
 	    //create the related model rectangles
@@ -2752,6 +2810,8 @@ var url = document.URL;
 
 
 	_buildUnmatchedPhenotypeDisplay: function() {
+		var self=this;
+		
 		var prebl = $("#prebl");
 		if (prebl.length == 0) {
 		    var preblHtml ="<div id='prebl'></div>";
@@ -2763,30 +2823,43 @@ var url = document.URL;
 
 	    if (this.state.unmatchedPhenotypes != undefined && this.state.unmatchedPhenotypes.length > 0){
 		
-		var phenotypes = this._showUnmatchedPhenotypes();		
-		var optionhtml = "<div id='unmatchedlabel' style='display:block;'>View Unmatched Phenotypes</div>";
+	    	var phenotypes = this._showUnmatchedPhenotypes();		
+			var optionhtml = "<div class='clearfix'><form id='matches'><input type='checkbox' name='unmatched' value='unmatched' >&nbsp;&nbsp;View Unmatched Phenotypes<br /><form><div id='clear'></div>";
 
-		optionhtml = optionhtml+ "<div id='unmatchedlabelhide' style='display:none;'>Hide Unmatched Phenotypes<br /><div id='unmatched' style='display:none;'>" + phenotypes + "</div></div></div>";
-		prebl.append(optionhtml)
-
-		$("#unmatchedlabel").click(function() {
-		    $("#unmatchedlabel").hide();
-		    $("#unmatchedlabelhide").show();
-		    $("#unmatched").show();
-		});
-
-		$("#unmatchedlabelhide").click(function()  {
-		    $("#unmatchedlabel").show();
-		    $("#unmatchedlabelhide").hide();
-		    $("#unmatched").hide();
-		});
+			optionhtml = optionhtml + "<div id='unmatched' style='display:none;'>" + phenotypes + "</div></div>";
+			prebl.append(optionhtml);
+	    	
+	    	
 	    } else { // no unmatched phenotypes
 		var optionhtml = "<div id='unmatchedlabel' style='display:block;'>No Unmatched Phenotypes</div>";
 		prebl.append(optionhtml);
 	    }
+	    
+
+
+	    $('#matches :checkbox').click(function() {
+	        var $this = $(this);
+	        // $this will contain a reference to the checkbox   
+	        if ($this.is(':checked')) {
+	            // the checkbox was checked 
+	        	$("#unmatched").show();
+	        } else {
+	            // the checkbox was unchecked
+	        	$("#unmatched").hide();
+	        }
+	    });
 	},
 
-	
+	_matchedClick: function(checkboxEl) {
+		  if (checkboxEl.checked) {
+		    // Do something special
+			$("#unmatched").show();
+		  } else {
+		    // Do something else
+			$("#unmatched").hide();
+		  }
+	},
+
 
 	_rectClick: function(data) {
 	    var retData;
