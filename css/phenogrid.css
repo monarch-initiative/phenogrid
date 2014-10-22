@@ -104,6 +104,7 @@ text.accent{
 #svg_area{
 	float:left;
 	margin-top: -35px;
+	padding-top: 35px;
 	/*height:500px;  !important;*/
 }
 
@@ -190,7 +191,11 @@ text.accent{
 	margin-top:-5px;
 }
 
-
+.sortimg{
+	margin-left:10px;
+	padding-bottom:5px;
+	height:20px;
+}
 
 
 #logo {
@@ -237,13 +242,18 @@ margin-left: 55px;
 	fill: black;
 }
 
+#matches input{
+	padding-top:5px;
+}
+
+#matches,
 #unmatchedlabel,
 #unmatchedlabelhide{
 	clear:both;
 	font-weight: bold;
 	color: rgb(68,162,147);
 	margin-top: 5px;
-	margin-left: 5px;
+	margin-left: 10px;
 	margin-bottom:20px;
 }
 #unmatched a{
@@ -323,5 +333,25 @@ cube1, .cube2 {
     transform: rotate(-360deg);
     -webkit-transform: rotate(-360deg);
   }
+}
+
+#unmatchedimg,
+#unmatchedhideimg{
+	font-size:1.1em;
+	font-weight:bold;
+	color: #428bca;
+	vertical-align:middle;
+}
+#unmatchedimg{
+	font-size:1.4em;
+}
+
+
+.clearfix:after {
+   content: " "; /* Older browser do not support empty content */
+   visibility: hidden;
+   display: block;
+   height: 0;
+   clear: both;
 }
 
