@@ -1784,6 +1784,7 @@ var url = document.URL;
     	        .attr("width", width)
     	    //       .attr("id", data.model_id) //this._getConceptId(data.model_id))
 	        .attr("id", this._getConceptId(data.model_id))
+
 	        .attr("model_id", data.model_id)
 	        .attr("height", 60)
 	        .attr("transform", function(d) {
@@ -1800,6 +1801,7 @@ var url = document.URL;
 	    	    if(self.state.selectedRow){
 	    	    	self._deselectData(self.state.selectedRow);}
 	        })
+
     		.attr("class", this._getConceptId(data.model_id) + " model_label")
         	//.attr("class", data.model_id + " model_label")
     		.style("font-size", "11px")
@@ -1808,7 +1810,7 @@ var url = document.URL;
     	    el.remove();
 	},
 	
-	
+
 	_updateDetailSection: function(htmltext, coords, width, height) {
 
 	    this.state.svg.selectAll("#detail_content").remove();
@@ -2093,6 +2095,7 @@ var url = document.URL;
 	    
 	    var alabels = this.state.svg.selectAll("text.a_text." + curr_data.id);//this._getConceptId(curr_data[0].id));
 	    var txt = curr_data.label_a;
+
 	    if (txt == undefined) {
 		txt = curr_data.id_a;
 	    }
@@ -2102,8 +2105,7 @@ var url = document.URL;
 	    	//.on("click",function(d){
 	    	//self._clickPhenotype(curr_data.id_a, self.document.location.origin);
 	   // });
-	    
-	    
+
 
 	    //Highlight Column
 	    var model_label = self.state.svg.selectAll("text#" + this._getConceptId(curr_data.model_id));
