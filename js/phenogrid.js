@@ -302,8 +302,6 @@ var url = document.URL;
 	     if (this.state.modelData.length != 0 && this.state.phenotypeData.length != 0
 		 && this.state.filteredPhenotypeData.length != 0){
 
-
-
 		 this._setComparisonType();
 		 console.time("initCanvas");
 	         this._initCanvas();
@@ -314,7 +312,7 @@ var url = document.URL;
 		    .attr("width", "100%")
 		     .attr("height", this.state.phenotypeDisplayCount * 18);
 		 console.time("accents-color");
-		this._createAccentBoxes();				
+		 this._createAccentBoxes();				
 		 this._createColorScale();
 		 console.timeEnd("accents-color");
 
@@ -352,10 +350,10 @@ var url = document.URL;
 
 	    }
 	    else {
-		
+	    var msg = "There are no " + self.state.targetSpeciesName + " models for this disease." 
 		console.log("no data....");
 		this._createSvgContainer();
-		this._createEmptyVisualization();
+		this._createEmptyVisualization(msg);
 	    }
 	},
 	
@@ -378,10 +376,10 @@ var url = document.URL;
 
 	
 	//create this visualization if no phenotypes or models are returned
-	_createEmptyVisualization: function() {
+	_createEmptyVisualization: function(msg) {
 
 	    var self = this;
-	    var fullmsg = "There are no " + self.state.targetSpeciesName + " models for this disease. "
+	    
 	    d3.select("#svg_area").remove();
 	    this.state.svgContainer.append("<svg id='svg_area'></svg>");
             this.state.svg = d3.select("#svg_area");
@@ -396,9 +394,10 @@ var url = document.URL;
 		.attr("height", 70)
 		.attr("width", 200)
 		.attr("id", "errmsg")
-		.text(fullmsg);	
+		.text(msg);	
 	    
-	    var html = "<br /><div id='return'><button id='button' type='button'>Return</button></div>";	this.element.append(html);
+	    var html = "<br /><div id='return'><button id='button' type='button'>Return</button></div>";	
+	    this.element.append(html);
 	    
 	    var btn = d3.selectAll("#button")
 		.on("click", function(d,i){
@@ -683,7 +682,10 @@ var url = document.URL;
 		    dataType : 'json',
 		    success : function(data) {
 			unmatchedLabels.push(data.label);
-		    }
+		    },
+			error: function ( xhr, errorType, exception ) { //Triggered if an error communicating with server  
+				 self._populateDialog(self,"Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);				
+			},
 		});
 	    }
 	    return unmatchedLabels;
@@ -1149,7 +1151,25 @@ var url = document.URL;
 	_displayResult : function(xhr, errorType, exception){
 	    var self = this;
 	    var msg = '';
-	    if (xhr.status === 0) {
+	    
+	    switch(xhr.status){
+	    	case 404:
+	    	case 500:
+	    	case 501:
+	    	case 502:
+	    	case 503:
+	    	case 504:
+	    	case 505:
+	    	default:
+	    			msg = "We're having some problems.  Please try again soon."
+	    			break;
+	    		
+	    	case 0: msg = "Please check your network connection."
+	    			break;   
+	    
+	    }
+	    
+	    /**if (xhr.status === 0) {
 		msg = 'Not connected.\n Verify Network.';
 	    } else if (xhr.status == 404) {
 		msg = 'The requested page was not found.';
@@ -1173,7 +1193,7 @@ var url = document.URL;
 		msg = 'Ajax request aborted.';
 	    } else {
 		msg = 'Uncaught Error.\n' + xhr.responseText;
-	    }
+	    } */
 
 	    this._createEmptyVisualization(msg);
 	},
@@ -1405,7 +1425,7 @@ var url = document.URL;
 	    }
 	    
 	    optionhtml = optionhtml + "<span id='faq'><img class='faq' src='" + this.state.scriptpath + "../image/greeninfo30.png' height='15px'></span><br /></span><div id='header'><span id='sort_div'><span id='slabel' >Sort Phenotypes<span id=\"sorts\"><img class=\"sortimg\" src=\"" +
-		this.state.scriptpath + "../image/greeninfo30.png\" height=\"15px\"></span></span><br /><span><select id=\'sortphenotypes\'>";	
+		this.state.scriptpath + "../image/greeninfo30.png\" height=\"15px\"></span><span id='sorts'></span></span><br /><span><select id=\'sortphenotypes\'>";	
 	    
 	    for (var idx=0;idx<self.state.phenotypeSort.length;idx++) {
     		var selecteditem = "";
@@ -1511,7 +1531,8 @@ var url = document.URL;
 		for (var j=0; j < alabels[0].length; j++){
 		    var shortTxt = self._getShortLabel(label,15);
 		    if(alabels[0][j].innerHTML == shortTxt){
-			alabels[0][j].style.fill = "blue";
+		    	alabels[0][j].style.fill = "blue";
+		    	alabels[0][j].innerHTML = label;
 		    }			
 		}
 	    }	 
@@ -1526,8 +1547,9 @@ var url = document.URL;
 		var label = curr_data[i].model_label;
 		for (var j=0; j < alabels[0].length; j++){
 		    var shortTxt = this._getShortLabel(label,15);
-		    if(alabels[0][j].innerHTML == shortTxt){
-			alabels[0][j].style.fill = "black";
+		    if(alabels[0][j].innerHTML == label){
+		    	alabels[0][j].style.fill = "black";
+		    	alabels[0][j].innerHTML = shortTxt;
 		    }			
 		}
 	    }	 
@@ -1568,8 +1590,8 @@ var url = document.URL;
 			}
 		}
 		
-		var width = (type === "gene")?80:200;
-		var height = (type === "gene")?50:60;
+		var width = (type === this.state.defaultApiEntity)?80:200;
+		var height = (type === this.state.defaultApiEntity)?50:60;
 		
 	    var retData;
 	    //initialize the model data based on the scores
@@ -1697,8 +1719,8 @@ var url = document.URL;
 	},
 
 	_clickPhenotype: function(data, url_origin) {
-    	    var url = url_origin + "/phenotype/" + data;
-    	    var win = window.open(url, '_blank');
+	    var url = url_origin + "/phenotype/" + data;
+	    var win = window.open(url, '_blank');
 	},	
 	
 	_clickModel: function(data, url_origin) {
@@ -1706,14 +1728,12 @@ var url = document.URL;
 	    // hardwire check
 	    var apientity = this.state.defaultApiEntity;
 	    for (var i =0; i < this.state.apiEntityMap.length; i++) {
-		if (concept.indexOf(this.state.apiEntityMap[i].prefix) ==0) {
-		    apientity = this.state.apiEntityMap[i].apifragment;
-		}
+	    	if (concept.indexOf(this.state.apiEntityMap[i].prefix) ==0) {
+	    		apientity = this.state.apiEntityMap[i].apifragment;
+	    	}
 	    }
-
-		
-    	    var url = url_origin + "/"+apientity+"/" + concept;
-    	    var win = window.open(url, '_blank');
+ 	    var url = url_origin + "/"+apientity+"/" + concept;
+    	var win = window.open(url, '_blank');
 	},
 
 
@@ -1721,24 +1741,23 @@ var url = document.URL;
 	//to fit within the space in the column
 	_getShortLabel: function(label, newlength) {
 	    if (label != undefined){
-		var retLabel = label;
-		if (!newlength) {
-		    newlength = this.state.textLength;
-		}
-		if (label.length > newlength) {
-		    retLabel = label.substring(0,newlength-3) + "...";
-		}	
-		return retLabel;
+	    	var retLabel = label;
+	    	if (!newlength) {
+	    		newlength = this.state.textLength;
+	    	}
+	    	if (label.length > newlength) {
+	    		retLabel = label.substring(0,newlength-3) + "...";
+			}	
+	    	return retLabel;
 	    }
 	    else return "Unknown";
 	},
 	
 	
-
 	//return a useful label to use for visualizing the rectangles
 	_getCleanLabel: function (uri, label) {
 	    if (label && label != "" && label != "null") {
-		return label;
+	    	return label;
 	    } 
 	    var temp = this._getConceptId(uri);
 	    return temp;
@@ -1771,18 +1790,18 @@ var url = document.URL;
 
 	_convertLabelHTML: function (t, label, data) {
     	    
-    	    var self = this;
-    	    var width = 100,
-    	    el = d3.select(t),
-    	    p = d3.select(t.parentNode),
-    	    x = +t.getAttribute("x"),
-    	    y = +t.getAttribute("y");
+	    var self = this;
+	    var width = 100,
+	    el = d3.select(t),
+	    p = d3.select(t.parentNode),
+	    x = +t.getAttribute("x"),
+	    y = +t.getAttribute("y");
 
-    	    p.append("text")
-    	       	.attr('x', x + 15)
-    	        .attr('y', y -5)
-    	        .attr("width", width)
-    	    //       .attr("id", data.model_id) //this._getConceptId(data.model_id))
+	    p.append("text")
+	       	.attr('x', x + 15)
+	        .attr('y', y -5)
+	        .attr("width", width)
+	    //       .attr("id", data.model_id) //this._getConceptId(data.model_id))
 	        .attr("id", this._getConceptId(data.model_id))
 	        .attr("model_id", data.model_id)
 	        .attr("height", 60)
@@ -1800,12 +1819,12 @@ var url = document.URL;
 	    	    if(self.state.selectedRow){
 	    	    	self._deselectData(self.state.selectedRow);}
 	        })
-    		.attr("class", this._getConceptId(data.model_id) + " model_label")
-        	//.attr("class", data.model_id + " model_label")
-    		.style("font-size", "11px")
-    		.text( function(d) {if (label == "") return ""; else return label;});
-	    
-    	    el.remove();
+			.attr("class", this._getConceptId(data.model_id) + " model_label")
+	    	//.attr("class", data.model_id + " model_label")
+			.style("font-size", "11px")
+			.text( function(d) {if (label == "") return ""; else return label;});
+    
+	    el.remove();
 	},
 	
 	
@@ -1831,15 +1850,15 @@ var url = document.URL;
 	    else {wv = coords.x + 20;}
 
 	    this.state.svg.append("foreignObject")
-		.attr("width", w + 60)
-		.attr("height", h)
-		.attr("id", "detail_content")
-	    //add an offset.  Otherwise, the tooltip turns off the mouse event
-		.attr("y", yv)
-		.attr("x", wv) 
-		.append("xhtml:body")
-		.attr("id", "detail_text")
-		.html(htmltext);  	
+			.attr("width", w + 60)
+			.attr("height", h)
+			.attr("id", "detail_content")
+		    //add an offset.  Otherwise, the tooltip turns off the mouse event
+			.attr("y", yv)
+			.attr("x", wv) 
+			.append("xhtml:body")
+			.attr("id", "detail_text")
+			.html(htmltext);  	
 	},
 	
 	_showModelData: function(d, obj) {
@@ -1880,18 +1899,18 @@ var url = document.URL;
 	_showThrobber: function() {
 	    this.state.svg.selectAll("#detail_content").remove();
 	    this.state.svg.append("svg:text")
-		.attr("id", "detail_content")
-		.attr("y", (26+this.state.detailRectStrokeWidth))
-		.attr("x", (440+this.state.detailRectStrokeWidth))
-		.style("font-size", "12px")
-		.text("Searching for data")
+			.attr("id", "detail_content")
+			.attr("y", (26+this.state.detailRectStrokeWidth))
+			.attr("x", (440+this.state.detailRectStrokeWidth))
+			.style("font-size", "12px")
+			.text("Searching for data")
 	    this.state.svg.append("svg:image")
-		.attr("width", 16)
-		.attr("height", 16)
-		.attr("id", "detail_content")
-		.attr("y", (16+this.state.detailRectStrokeWidth))
-		.attr("x", (545+this.state.detailRectStrokeWidth))
-		.attr("xlink:href","/widgets/phenogrid/image/throbber.gif");	       
+			.attr("width", 16)
+			.attr("height", 16)
+			.attr("id", "detail_content")
+			.attr("y", (16+this.state.detailRectStrokeWidth))
+			.attr("x", (545+this.state.detailRectStrokeWidth))
+			.attr("xlink:href","/widgets/phenogrid/image/throbber.gif");	       
 	},
 	
 	//extract the x,y values from a SVG transform string (ex: transform(200,20))
@@ -1918,16 +1937,15 @@ var url = document.URL;
 	},
 	
 	
-
 	_getSpeciesLabel: function(idstring) {
 
 	    var label;
 	    for (var i = 0; i < this.state.speciesLabels.length; i++) {
-		var labinfo = this.state.speciesLabels[i];
-		if (idstring.indexOf(labinfo.abbrev) > -1) {
-		    label = labinfo.label;
-		    break;
-		}
+			var labinfo = this.state.speciesLabels[i];
+			if (idstring.indexOf(labinfo.abbrev) > -1) {
+			    label = labinfo.label;
+			    break;
+			}
 	    }
 	    return label;
 	},
@@ -1945,87 +1963,86 @@ var url = document.URL;
 	    console.time("mod-rects-basics");
 	    var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + "," + (self.state.yTranslation + self.state.yoffsetOver + 15)+   ")";
 	    var model_rects = this.state.svg.selectAll(".models")
-		.data( data, function(d) {
-		    return d.id;
-		});
+			.data( data, function(d) {
+			    return d.id;
+			});
 	    model_rects.enter()
-		.append("rect")
-		.attr("transform",rectTranslation)
-		.attr("class", function(d) { 
-		    //var dConcept = d.id //self._getConceptId(d.id);
-		    //var modelConcept = d.model_id //self._getConceptId(d.model_id);
-		    var dConcept = self._getConceptId(d.id);
-		    var modelConcept = self._getConceptId(d.model_id);
-		    //append the model id to all related items
-		    if (d.value > 0) {
-			var bla = self.state.svg.selectAll(".data_text." + dConcept);	    	
-			bla.classed(modelConcept, true);
-		    }
-		    return "models " + " " +  modelConcept + " " +  dConcept;
-		})
-		.attr("y", function(d, i) { 
-		    return self._getYPosition(d.id_a) + (self.state.yTranslation + self.state.yoffsetOver  + 10) ;
-		})
-		.attr("x", function(d) { return self.state.xScale(d.model_id);})
-		.attr("width", 10)
-		.attr("height", 10)
-		.attr("rx", "3")
-		.attr("ry", "3")		 
-	    //I need to pass this into the function
-		.on("mouseover", function(d) {
-		    this.parentNode.appendChild(this);
+			.append("rect")
+			.attr("transform",rectTranslation)
+			.attr("class", function(d) { 
+			    //var dConcept = d.id //self._getConceptId(d.id);
+			    //var modelConcept = d.model_id //self._getConceptId(d.model_id);
+			    var dConcept = self._getConceptId(d.id);
+			    var modelConcept = self._getConceptId(d.model_id);
+			    //append the model id to all related items
+			    if (d.value > 0) {
+				var bla = self.state.svg.selectAll(".data_text." + dConcept);	    	
+				bla.classed(modelConcept, true);
+			    }
+			    return "models " + " " +  modelConcept + " " +  dConcept;
+			})
+			.attr("y", function(d, i) { 
+			    return self._getYPosition(d.id_a) + (self.state.yTranslation + self.state.yoffsetOver  + 10) ;
+			})
+			.attr("x", function(d) { return self.state.xScale(d.model_id);})
+			.attr("width", 10)
+			.attr("height", 10)
+			.attr("rx", "3")
+			.attr("ry", "3")		 
+		    //I need to pass this into the function
+			.on("mouseover", function(d) {
+			    this.parentNode.appendChild(this);		    
+			    
+			    //if this column and row are selected, clear the column/row and unset the column/row flag
+			    if (self.state.selectedColumn != undefined && self.state.selectedRow != undefined) 
+			    {
+					self._clearModelData(self.state.selectedColumn);
+					self.state.selectedColumn = undefined;
+					self._deselectData(self.state.selectedRow);
+					self.state.selectedRow = undefined;	
+					if (this != self.state.currSelectedRect){
+					    self._highlightIntersection(d, d3.mouse(this));
+					    //put the clicked rect on the top layer of the svg so other events work
+					   // ???this.parentNode.appendChild(this);
+					    self._enableRowColumnRects(this);
+					    //set the current selected rectangle
+					    self.state.currSelectedRect = this;  
+					}
+			    }
+			    else {
+					self._highlightIntersection(d, d3.mouse(this));
+					//this.parentNode.appendChild(this);
+					self._enableRowColumnRects(this);
+					self.state.currSelectedRect = this;  
+				}
+			    self._showModelData(d, this);
+			})
+			.on("mouseout", function(d) {
+			    self._clearModelData(data, d3.mouse(this));
+			    if(self.state.selectedRow){
+				self._deselectData(self.state.selectedRow);}
+			})
+			.style('opacity', '1.0')
+			.attr("fill", function(d,i) { return self._setRectFill(self,d,i)});
 
-		    
-		    //if this column and row are selected, clear the column/row and unset the column/row flag
-		    if (self.state.selectedColumn != undefined && self.state.selectedRow != undefined) 
-		    {
-			self._clearModelData(self.state.selectedColumn);
-			self.state.selectedColumn = undefined;
-			self._deselectData(self.state.selectedRow);
-			self.state.selectedRow = undefined;	
-			if (this != self.state.currSelectedRect){
-			    self._highlightIntersection(d, d3.mouse(this));
-			    //put the clicked rect on the top layer of the svg so other events work
-			   // ???this.parentNode.appendChild(this);
-			    self._enableRowColumnRects(this);
-			    //set the current selected rectangle
-			    self.state.currSelectedRect = this;  
-			}
-		    }
-		    else {
-			self._highlightIntersection(d, d3.mouse(this));
-			//this.parentNode.appendChild(this);
-			self._enableRowColumnRects(this);
-			self.state.currSelectedRect = this;  
-		    }
-		    self._showModelData(d, this);
-		})
-		.on("mouseout", function(d) {
-		    self._clearModelData(data, d3.mouse(this));
-		    if(self.state.selectedRow){
-			self._deselectData(self.state.selectedRow);}
-		})
-		.style('opacity', '1.0')
-		.attr("fill", function(d,i) { return self._setRectFill(self,d,i)});
 	    console.timeEnd("mod-rects-basics");
-
 	    console.time("highlightspec");
 	    if (self.state.targetSpeciesName == "Overview") {
-		this._highlightSpecies();
+	    	this._highlightSpecies();
 	    }
 	    console.timeEnd("highlightspec");
 	    console.time("modrects-trans");
 	    model_rects.transition()
-		.delay(20)
-		.style('opacity', '1.0')
-		.attr("y", function(d) {
-		    return self._getYPosition(d.id_a) -10; //rowid
-		})
-		.attr("x", function(d) { return self.state.xScale(d.model_id);})
+			.delay(20)
+			.style('opacity', '1.0')
+			.attr("y", function(d) {
+			    return self._getYPosition(d.id_a) -10; //rowid
+			})
+			.attr("x", function(d) { return self.state.xScale(d.model_id);})
 
 	    model_rects.exit().transition()
-		.style('opacity', '0.0')
-		.remove();
+			.style('opacity', '0.0')
+			.remove();
 	    console.timeEnd("modrects-trans");
 	    
 	},
@@ -2090,21 +2107,20 @@ var url = document.URL;
 	    
     	this.state.selectedRow = curr_data;
 	    this.state.selectedColumn = curr_data;
+	    this._resetLinks();
 	    
-	    var alabels = this.state.svg.selectAll("text.a_text." + curr_data.id);//this._getConceptId(curr_data[0].id));
+	    var phen_label = this.state.svg.selectAll("text.a_text." + this._getConceptId(curr_data.id));
 	    var txt = curr_data.label_a;
 	    if (txt == undefined) {
-		txt = curr_data.id_a;
+	    	txt = curr_data.id_a;
 	    }
-	    alabels.text(txt)
+	    phen_label.text(txt)
 	    	.style("font-weight", "bold")
 	    	.style("fill", "blue");
 	    	//.on("click",function(d){
 	    	//self._clickPhenotype(curr_data.id_a, self.document.location.origin);
 	   // });
 	    
-	    
-
 	    //Highlight Column
 	    var model_label = self.state.svg.selectAll("text#" + this._getConceptId(curr_data.model_id));
 	    model_label.style("font-weight", "bold");
@@ -2127,19 +2143,19 @@ var url = document.URL;
 	    
 	    //This is for the new "Overview" target option 
 	    if (this.state.targetSpeciesName == "Overview"){	
-		data = this.state.modelData;
+	    	data = this.state.modelData;
 	    }
 	    else
 	    {
-		data = self.state.filteredModelData;	
+	    	data = self.state.filteredModelData;	
 	    }
 	    this.state.h = (data.length*2.5);
 
 	    self.state.yScale = d3.scale.ordinal()
-		.domain(data.map(function (d) {return d.id_a; }))
-		.range([0,data.length])
-		.rangePoints([ self.state.yoffset + self.state.yoffsetOver, self.state.yoffset + self.state.yoffsetOver +this.state.h ]);
-	    
+			.domain(data.map(function (d) {return d.id_a; }))
+			.range([0,data.length])
+			.rangePoints([ self.state.yoffset + self.state.yoffsetOver, self.state.yoffset + self.state.yoffsetOver +this.state.h ]);
+		    
 	    //update accent boxes
 	    self.state.svg.selectAll("#rect.accent").attr("height", self.state.h);
 	},
@@ -2148,7 +2164,7 @@ var url = document.URL;
 	
 	//NOTE: FOR FILTERING IT MAY BE FASTER TO CONCATENATE THE PHENOTYPE and MODEL into an attribute
 	
-	//change the list of phenotypes and filter the models accordling.  The 
+	//change the list of phenotypes and filter the models accordingly.  The 
 	//movecount is an integer and can be either positive or negative
 	_updateModel: function(modelIdx, phenotypeIdx) {
 	    var self = this;
@@ -2338,21 +2354,20 @@ var url = document.URL;
 		.attr("text-anchor","middle");
 	},
 
-
-
-
-
 	// we might want to modify this to do a dynamic http retrieval to grab the dialog components...
 	_showDialog : function(name){
 	    var self= this;
 	    var url = this._getResourceUrl(name,'html'); 
 	    if (typeof(self.state.tooltips[name]) === 'undefined') {
-		$.ajax( {url: url,
-			 dataType: 'html',
-			 async: 'false',
-			 success: function(data) {
-			     self._populateDialog(self,name,data);
-			 }
+			$.ajax( {url: url,
+				 dataType: 'html',
+				 async: 'false',
+				 success: function(data) {
+				     self._populateDialog(self,name,data);
+				 },
+				 error: function ( xhr, errorType, exception ) { //Triggered if an error communicating with server  
+					 self._populateDialog(self,"Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
+				 },
 			});
 	    }
 	    else {
@@ -2395,19 +2410,19 @@ var url = document.URL;
 	    //add an axis for each ordinal scale found in the data
 	    for (var i=0;i<this.state.dimensions.length;i++) {
 	    	//move the last accent over a bit for the scrollbar
-		if (i == 2) {
-		    var w = 0;
-		    if(this.state.modelWidth < this.state.smallestModelWidth)
-		    { w = this.state.smallestModelWidth;}
-		    else {w = this.state.modelWidth;}
-		    
-		    self.state.axis_pos_list.push((this.state.textWidth + 30) 
-						  + this.state.colStartingPos 
-						  + w);
-		} else {
-		    self.state.axis_pos_list.push((i*(this.state.textWidth + 10)) + 
-						  this.state.colStartingPos);
-		}
+			if (i == 2) {
+			    var w = 0;
+			    if(this.state.modelWidth < this.state.smallestModelWidth)
+			    { w = this.state.smallestModelWidth;}
+			    else {w = this.state.modelWidth;}
+			    
+			    self.state.axis_pos_list.push((this.state.textWidth + 30) 
+							  + this.state.colStartingPos 
+							  + w);
+			} else {
+			    self.state.axis_pos_list.push((i*(this.state.textWidth + 10)) + 
+							  this.state.colStartingPos);
+			}
 	    }	
 	    //create accent boxes
 	    var rect_accents = this.state.svg.selectAll("#rect.accent")
@@ -2519,23 +2534,23 @@ var url = document.URL;
 	    //in the scale
 	    if (diff > 0) {
 
-		console.time("creategrads");
-		//If this is the Overview, get gradients for all species with an index
-		if (self.state.targetSpeciesName == "Overview" || self.state.targetSpeciesName == "All") {
-		    
-		    //this.state.overviewCount tells us how many fit in the overview
-		    for (var i = 0; i < this.state.overviewCount; i++) {	
-			var y = this._createGradients(i,y1,y2);
-			if (y  > ymax) {
-			    ymax = y;
-			}
+			console.time("creategrads");
+			//If this is the Overview, get gradients for all species with an index
+			if (self.state.targetSpeciesName == "Overview" || self.state.targetSpeciesName == "All") {
+			    
+			    //this.state.overviewCount tells us how many fit in the overview
+			    for (var i = 0; i < this.state.overviewCount; i++) {	
+				var y = this._createGradients(i,y1,y2);
+				if (y  > ymax) {
+				    ymax = y;
+				}
 		    }
 		}
 		else {  //This is not the overview - determine species and create single gradient
 		    var i = this._getTargetSpeciesIndexByName(self,self.state.targetSpeciesName);
 		    var y  = this._createGradients(i,y1,y2);
 		    if (y > ymax) {
-			ymax = y;
+		    	ymax = y;
 		    }
 		}			
 		console.timeEnd("creategrads");
@@ -2871,7 +2886,10 @@ var url = document.URL;
 		success : function(data) {
 		    retData = "<strong>Label:</strong> " + "<a href=\"" + data.url + "\">"  
 			+ data.label + "</a><br/><strong>Type:</strong> " + data.category;
-		}
+		},
+	    error: function ( xhr, errorType, exception ) { //Triggered if an error communicating with server  
+	    	 self._populateDialog(self,"Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
+		},
 	    });
 	    this._updateDetailSection(retData, this._getXYPos(data));
 	},
