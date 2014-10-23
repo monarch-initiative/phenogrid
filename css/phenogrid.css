@@ -54,7 +54,8 @@ text.accent{
 
 .row_accent,
 .model_accent{
-	stroke:#ea763b;
+	/*stroke:#ea763b;*/
+	stroke:#4CA092;
 	stroke-width: 2;
 	fill: #ffffff;
 	fill-opacity: 0.05;
@@ -87,8 +88,10 @@ text.accent{
 #detail_text{
 	font-size: 10px;
 	padding: 8px;
-	background-color: #f9d0bb;
-	border: 1px solid #c5c5c5;
+	/* background-color:#ea763b;*/
+	background-color: #A5D5D3;
+	border: 1px solid #959595;
+	box-shadow: 5px 5px 3px #959595;
 }
 
 #stitle{
