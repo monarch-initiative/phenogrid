@@ -1579,7 +1579,7 @@ var url = document.URL;
 
     	model_label.style("font-weight", "bold");
 	    model_label.style("fill", "blue");
-		model_label.html(modelData.model_label);
+		model_label.html(modelData.model_label);	
 		
 		var concept = self._getConceptId(modelData.model_id),
 					  type = this.state.defaultApiEntity;
@@ -1596,7 +1596,7 @@ var url = document.URL;
 	    var retData;
 	    //initialize the model data based on the scores
 	    retData = "<strong>" + self._toProperCase(type).substring(0, type.length) + ": </strong> "   
-		+ modelData.model_label + "<br/><strong>Rank:</strong> " + (parseInt(modelData.model_rank) + 1);
+		+ modelData.model_label + "<br/><strong>Rank:</strong> " + (parseInt(modelData.model_rank) );
 
 	    //obj = try creating an ojbect with an attributes array including "attributes", but I may need to define
 	    //getAttrbitues
@@ -1821,7 +1821,7 @@ var url = document.URL;
 	        })
 			.attr("class", this._getConceptId(data.model_id) + " model_label")
 	    	//.attr("class", data.model_id + " model_label")
-			.style("font-size", "11px")
+			.style("font-size", "12px")
 			.text( function(d) {if (label == "") return ""; else return label;});
     
 	    el.remove();
@@ -2093,6 +2093,17 @@ var url = document.URL;
 	    }
 	},
 	
+	_getFirstModelId:  function(phenotype){
+		var firstModel=""; 
+		for(var i=0; i < this.state.filteredModelData.length; i++){
+			 if (this.state.filteredModelData[i].id_a === phenotype){
+				 firstModel = this.state.filteredModelData[i].id;
+				 break;
+			 }
+		 }
+		 return firstModel;	
+	},
+	
 	_highlightIntersection : function(curr_data, obj){
 	    var self=this;
 	    
@@ -2109,8 +2120,15 @@ var url = document.URL;
 	    this.state.selectedColumn = curr_data;
 	    this._resetLinks();
 	    
-	    var phen_label = this.state.svg.selectAll("text.a_text." + this._getConceptId(curr_data.id));
-	    var txt = curr_data.label_a;
+	    //To get the phenotype label from the selected rect data, we need to concat the phenotype ids to the model id 
+	    // that is in the 0th position in the grid. No labels exist with the curr_data.id except for the first column
+	    //For the overview, there will be a 0th position for each species so we need to get the right model_id
+	    
+	    var species = curr_data.species,
+	    	mid = this._getFirstModelId(curr_data.id_a),
+	    	//fakeId = mid,
+	    	phen_label = this.state.svg.selectAll("text.a_text." + this._getConceptId(mid)),
+	    	txt = curr_data.label_a;
 	    if (txt == undefined) {
 	    	txt = curr_data.id_a;
 	    }
