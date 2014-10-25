@@ -2472,7 +2472,7 @@ var url = document.URL;
 		})	
 		.style("opacity", '0.4')
 		.attr("fill", function(d, i) {
-		    return i != 1 ? d3.rgb("#15e5e5") : "blue"; // was e5e5e5, white
+		    return i != 1 ? d3.rgb("#e5e5e5") : "white"; 
 		});
 	    
 	    if (self.state.targetSpeciesName == "Overview") { var ct = 0;}
