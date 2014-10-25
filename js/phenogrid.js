@@ -104,7 +104,8 @@ var url = document.URL;
 	    apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
 			  {prefix: "OMIM", apifragment: "disease"}],
 	    defaultApiEntity: "gene",
-	    tooltips: {}
+	    tooltips: {},
+	    widthOfSingleModel: 18
 	    
 	},
 
@@ -1413,32 +1414,73 @@ var url = document.URL;
 
 	    this._createSvgContainer();
 	    var svgContainer = this.state.svgContainer;
-	    var species = '',
-	    optionhtml = '';
+	    this._addGridTitle();
+	    this._buildSortSelector();
+	    this._configureFaqs();
 	    
+	    svgContainer.append("<svg id='svg_area'></svg>");		
+	    this.state.svg = d3.select("#svg_area");
+	},
+
+	_createSvgContainer : function() {
+	    var svgContainer = $('<div id="svg_container"></div>');
+	    this.state.svgContainer =  svgContainer;
+	    this.element.append(svgContainer);
+
+	},
+
+	_addGridTitle: function() {
+	    var species = '';
+	    var optionhtml;
 	    //This is for the new "Overview" target option 
 	    if (this.state.targetSpeciesName == "Overview") {
 		species = "All";
-		optionhtml = "<span id='mtitle'><span id='s2title'><b>Cross-species Overview</b></span>";	
+		optionhtml = "<span id='mtitle'><span id='s2title'>"+
+		    "<b>Cross-species Overview</b></span>";	
 	    } else {
 		species= this.state.targetSpeciesName;
-		optionhtml = "<span id='mtitle'><span id='stitle'><b>Phenotype comparison (grouped by " + species + " " + this.state.comparisonType.comparison + ")</b></span>";	
+		optionhtml = "<span id='mtitle'><span id='stitle'>"+
+		    "<b>Phenotype comparison (grouped by " + species + " " + 
+		    this.state.comparisonType.comparison + ")</b></span>";	
 	    }
+	    optionhtml = optionhtml+ "<span id='faq'>"+
+		"<img class='faq' src='" + this.state.scriptpath + 
+		"../image/greeninfo30.png' height='15px'></span></br></span>"
+	    this.state.svgContainer.append(optionhtml);
+	},
+
+	_buildSortSelector: function() {
+	    var optionhtml ="<div id='header'><span id='sort_div'>"+
+		"<span id='slabel' >Sort Phenotypes<span id=\"sorts\">"+
+		"<img class=\"sortimg\" src=\"" +this.state.scriptpath + 
+		"../image/greeninfo30.png\" height=\"15px\"></span>"+
+		"<span id='sorts'></span></span><br />"+
+		"<span><select id=\'sortphenotypes\'>"
 	    
-	    optionhtml = optionhtml + "<span id='faq'><img class='faq' src='" + this.state.scriptpath + "../image/greeninfo30.png' height='15px'></span><br /></span><div id='header'><span id='sort_div'><span id='slabel' >Sort Phenotypes<span id=\"sorts\"><img class=\"sortimg\" src=\"" +
-		this.state.scriptpath + "../image/greeninfo30.png\" height=\"15px\"></span><span id='sorts'></span></span><br /><span><select id=\'sortphenotypes\'>";	
-	    
-	    for (var idx=0;idx<self.state.phenotypeSort.length;idx++) {
+	    for (var idx=0;idx<this.state.phenotypeSort.length;idx++) {
     		var selecteditem = "";
-    		if (self.state.phenotypeSort[idx].type === self.state.selectedSort) {
+    		if (this.state.phenotypeSort[idx].type === this.state.selectedSort) {
     		    selecteditem = "selected";
     		}
-		optionhtml = optionhtml + "<option value='" + self.state.phenotypeSort[idx].order +"' "+ selecteditem +">" + self.state.phenotypeSort[idx].type +"</option>"
+		optionhtml = optionhtml + "<option value='" + 
+		    this.state.phenotypeSort[idx].order +
+		    "' "+ selecteditem +">" + this.state.phenotypeSort[idx].type +"</option>"
 	    }
-	    
 	    optionhtml = optionhtml + "</select></span>";			
 	    //	    this.element.append(optionhtml);
-	    svgContainer.append(optionhtml);
+	    this.state.svgContainer.append(optionhtml);
+
+	    
+	    //add the handler for the select control
+            $( "#sortphenotypes" ).change(function(d) {
+		//this._showThrobber();
+        	self.state.selectedSort = self.state.phenotypeSort[d.target.selectedIndex].type;
+		self._resetSelections();
+            });
+
+	},
+
+	_configureFaqs: function() {
 	    
 	    var faqs = d3.selectAll("#faq")
 		.on("click", function(d) {self._showDialog("faq");
@@ -1453,25 +1495,8 @@ var url = document.URL;
 		.on("click", function(d,i){
 		    self._showDialog( "calcs");
 		});
-	    
-	    //add the handler for the select control
-            $( "#sortphenotypes" ).change(function(d) {
-		//this._showThrobber();
-        	self.state.selectedSort = self.state.phenotypeSort[d.target.selectedIndex].type;
-		self._resetSelections();
-            });
-	    
-	    svgContainer.append("<svg id='svg_area'></svg>");		
-	    this.state.svg = d3.select("#svg_area");
-	    
 	},
 
-	_createSvgContainer : function() {
-	    var svgContainer = $('<div id="svg_container"></div>');
-	    this.state.svgContainer =  svgContainer;
-	    this.element.append(svgContainer);
-
-	},
 
 	_resetSelections : function() {
 	    var self = this;
@@ -2429,27 +2454,7 @@ var url = document.URL;
 	_createAccentBoxes: function() {
 	    var self=this;
 	    
-	    //For Overview of Organisms 0 width = ((multiOrganismCt*2)+2) *18	
-	    //Add two  extra columns as separators
-	    self.state.axis_pos_list = [];
-	    this.state.modelWidth = this.state.filteredModelList.length * 18;
-	    //add an axis for each ordinal scale found in the data
-	    for (var i=0;i<this.state.dimensions.length;i++) {
-	    	//move the last accent over a bit for the scrollbar
-			if (i == 2) {
-			    var w = 0;
-			    if(this.state.modelWidth < this.state.smallestModelWidth)
-			    { w = this.state.smallestModelWidth;}
-			    else {w = this.state.modelWidth;}
-			    
-			    self.state.axis_pos_list.push((this.state.textWidth + 30) 
-							  + this.state.colStartingPos 
-							  + w);
-			} else {
-			    self.state.axis_pos_list.push((i*(this.state.textWidth + 10)) + 
-							  this.state.colStartingPos);
-			}
-	    }	
+	    this._buildAxisPositionList();
 	    //create accent boxes
 	    var rect_accents = this.state.svg.selectAll("#rect.accent")
 		.data(this.state.dimensions, function(d) { return d;});
@@ -2491,6 +2496,43 @@ var url = document.URL;
 		.text(String);
 	    
 	},
+
+
+	/* Build out the widths as position of axes..
+	 * Dimensions are "Phenotype Profile", "Lowest Common Subsumer", "Phenotypes in common" 
+	 * TODO: REMOVE MAGIC NUMBERS... 
+	 */
+	 
+	_buildAxisPositionList: function() {
+	    //For Overview of Organisms 0 width = ((multiOrganismCt*2)+2) *18	
+	    //Add two  extra columns as separators
+	    this.state.axis_pos_list = [];
+
+	    // calculate width of model section
+	    this.state.modelWidth = this.state.filteredModelList.length * 
+		this.state.widthOfSingleModel;
+	    //add an axis for each ordinal scale found in the data
+	    for (var i=0;i<this.state.dimensions.length;i++) {
+	    	//move the last accent over a bit for the scrollbar
+			if (i == 2) {
+			    // make sure it's not too narrow i
+			    var w = this.state.modelWidth;
+			    if(w < this.state.smallestModelWidth) {
+				w = this.state.smallestModelWidth;
+			    }
+			    this.state.axis_pos_list.push((this.state.textWidth + 30) 
+							  + this.state.colStartingPos 
+							  + w);
+			} else {
+			    this.state.axis_pos_list.push((i*(this.state.textWidth + 10)) + 
+							  this.state.colStartingPos);
+			}
+	    }	
+
+	},
+
+
+	
 	
 	
 	//this code creates the colored rectangles below the models
@@ -2642,10 +2684,6 @@ var url = document.URL;
 	    phenogrid_controls.append(selControls);
 	    console.timeEnd("pgcontrols");
 	    
-	    var calcs = d3.selectAll("#calcs")
-		.on("click", function(d,i){
-		    self._showDialog( "calcs");
-		});
 	    
 	    //add the handler for the select control
 	    $( "#organism" ).change(function(d) {
