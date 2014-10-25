@@ -1062,6 +1062,7 @@ var url = document.URL;
 		this._loadSpeciesData(species,limit);
 		if (species === this.state.refSpecies && typeof(this.state.data[species]) !== 'undefined') { // if it's the one we're reffering to
 		    this.state.maxICScore = this.state.data[species].metadata.maxMaxIC;
+		    console.log("got max score as "+this.state.maxICScore);
 		}
 		else {
 		    var data = this.state.data[species];
@@ -1625,15 +1626,18 @@ var url = document.URL;
 			mod_id = "";
 	    if (modelData != null && typeof modelData != 'object') {
 			mod_id = this._getConceptId(modelData);   
-	    } else {mod_id = this._getConceptId(modelData.model_id);}
+	    } else if (typeof (modelData.model_id) !== 'undefined') {
+		mod_id = this._getConceptId(modelData.model_id);
+	    }
 	    
 	    //Show that model label is no longer selected. Change styles to normal weight, black and short label
+	    if (mod_id !== "") {
 		model_text = this.state.svg.selectAll("text#" + mod_id);
-	    model_text.style("font-weight","normal");
-	    model_text.style("text-decoration", "none");
-	    model_text.style("fill", "black");
+		model_text.style("font-weight","normal");
+		model_text.style("text-decoration", "none");
+		model_text.style("fill", "black");
 		model_text.html(this._getShortLabel(modelData.model_label, 15));
-		
+	    }
 	},
 	
 	_selectData: function(curr_data, obj) {    	
@@ -1783,9 +1787,13 @@ var url = document.URL;
 	    //replace spaces with underscores.  Classes are separated with spaces so
 	    //a class called "Model 1" will be two classes: Model and 1.  Convert this to "Model_1" to avoid this problem. */
 	    var retString = uri;
-	    retString = retString.replace(" ", "_");
-	    retString = retString.replace(":", "_");
-	    return retString;
+	    try {
+		retString = retString.replace(" ", "_");
+		retString = retString.replace(":", "_");
+		return retString;
+	    } catch (exception) {
+		console.log(new Error().stack);
+	    }
 	},
 
 	_convertLabelHTML: function (t, label, data) {
