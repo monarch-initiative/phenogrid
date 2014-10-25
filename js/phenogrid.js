@@ -100,7 +100,6 @@ var url = document.URL;
 			      { abbrev: "GO", label: "Gene Ontology"}],
 	    modelDisplayCount : 30,
 	    phenotypeDisplayCount : 26,
-	    dimensions: [ "Phenotype Profile", "Lowest Common Subsumer", "Phenotypes in common" ],
 	    apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
 			  {prefix: "OMIM", apifragment: "disease"}],
 	    defaultApiEntity: "gene",
@@ -313,7 +312,7 @@ var url = document.URL;
 		    .attr("width", "100%")
 		     .attr("height", this.state.phenotypeDisplayCount * 18);
 		 console.time("accents-color");
-		 this._createAccentBoxes();				
+		 this._createRectangularContainers();				
 		 this._createColorScale();
 		 console.timeEnd("accents-color");
 
@@ -2445,61 +2444,44 @@ var url = document.URL;
 	    self.state.tooltips[name]=text;
 	},
 	
-	//** Multiple Organism Overview affects these functions:
-	//	 _createAccentBoxes - increase width of grid to add two verticla colmns between two separate grids
-	//	 _createModelRegion - we now need two sets of models on the x-axis.
-	//   _createRects - account for two separator columns and data from two seoarate arrays - Human and Other
-	//   _updateModel - when overview select rectangle is moved, update the UI 
-	
-	_createAccentBoxes: function() {
+	/**
+	 * Build the three main left-right visual components: the rectangle containing the 
+	 * phenotypes, the main grid iself, and the right-hand side including the overview and color 
+	 *   scales
+	 *
+	 */
+	_createRectangularContainers: function() {
 	    var self=this;
 	    
 	    this._buildAxisPositionList();
+
+	    var gridHeight = self.state.phenotypeDisplayCount * 13 + 10;
+	    var y = self.state.yoffset + self.state.yoffsetOver + this.state.yTranslation;
 	    //create accent boxes
 	    var rect_accents = this.state.svg.selectAll("#rect.accent")
-		.data(this.state.dimensions, function(d) { return d;});
+		.data([0,1,2], function(d) { return d;});
 	    rect_accents.enter()
 	    	.append("rect")
 		.attr("class", "accent")
 		.attr("x", function(d, i) { return self.state.axis_pos_list[i];})
-		.attr("y", self.state.yoffset + self.state.yoffsetOver + this.state.yTranslation )
-		.attr("width", function(d, i) {
-		    return i == 2 ? self.state.textWidth + 5 : self.state.textWidth + 5;
-		})		
-		.attr("height",  function(d, i) {
-		    //return i == 2 ? self.state.h /**- 216*/ : self.state.h;
-		    //return i == 2 ? self.state.h : (self.state.phenotypeDisplayCount *  //13) + 10;  //phenotype count * height of rect + padding
-		    return self.state.phenotypeDisplayCount * 13 + 10;
-		})
+		.attr("y", y)
+		.attr("width", self.state.textWidth+5)
+		.attr("height",  gridHeight)
 		.attr("id", function(d, i) {
 		    if(i==0) {return "leftrect";} else if(i==1) {return "centerrect";} else {return "rightrect";}
 		})	
 		.style("opacity", '0.4')
 		.attr("fill", function(d, i) {
-		    return i != 1 ? d3.rgb("#e5e5e5") : "white";
+		    return i != 1 ? d3.rgb("#15e5e5") : "blue"; // was e5e5e5, white
 		});
 	    
 	    if (self.state.targetSpeciesName == "Overview") { var ct = 0;}
 	    else { var ct = -15;}
 	    
-	    //add text headers
-	    var rect_headers = this.state.svg.selectAll("#text.accent")
-		.data(this.state.dimensions, function(d) { return d;});
-	    rect_headers.enter()
-	    	.append("text")
-		.attr("class", "accent")
-		.attr("x", function(d, i) { return i == 0 ?(self.state.axis_pos_list[i]+10)+25 : (self.state.axis_pos_list[i]);})
-		.attr("y", self.state.yoffset +(this.state.yTranslation) + ct) //+ self.state.yoffsetOver))
-		.style("display", function(d, i) {
-		    return i == 0 ? "" : "none";
-		})
-		.text(String);
-	    
 	},
 
 
-	/* Build out the widths as position of axes..
-	 * Dimensions are "Phenotype Profile", "Lowest Common Subsumer", "Phenotypes in common" 
+	/* Build out the positions of the 3 boxes 
 	 * TODO: REMOVE MAGIC NUMBERS... 
 	 */
 	 
@@ -2512,7 +2494,7 @@ var url = document.URL;
 	    this.state.modelWidth = this.state.filteredModelList.length * 
 		this.state.widthOfSingleModel;
 	    //add an axis for each ordinal scale found in the data
-	    for (var i=0;i<this.state.dimensions.length;i++) {
+	    for (var i=0;i<3;i++) {
 	    	//move the last accent over a bit for the scrollbar
 			if (i == 2) {
 			    // make sure it's not too narrow i
