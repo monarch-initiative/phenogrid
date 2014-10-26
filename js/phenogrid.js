@@ -318,6 +318,7 @@ var url = document.URL;
 
 		 console.time("model-region");
 		 var ymax  = this._createModelRegion();
+		 console.log("ymax is "+ymax);
 		 console.timeEnd("model-region");
 
 
@@ -338,13 +339,18 @@ var url = document.URL;
 		 this._createOverviewSection();
 		 console.timeEnd("overview");
 
-		ymax = ymax +30; //gap MAGIC NUBER ALERT
-		var height = this.state.phenotypeDisplayCount*18 + this.state.yoffsetOver;
-		if (height < ymax) {
-		    height = ymax;
+		ymax = ymax +60; //gap MAGIC NUBER ALERT. DOES THIS
+		 //NEED TO BE CLEANED?
+		 console.log("phenotype display count is "+this.state.phenotypeDisplayCount);
+		var height = this.state.phenotypeDisplayCount*18+this.state.yoffsetOver;
+		 
+		 if (height < ymax) {
+		    height = ymax+60;
 		}
 		var containerHeight = height + 30; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
-		$("#svg_area").css("height",height);
+		 console.log("svg area  height is "+height);
+		 console.log("svg container height is "+containerHeight);
+		 $("#svg_area").css("height",height);
 		$("#svg_container").css("height",containerHeight);
 
 
@@ -1816,7 +1822,6 @@ var url = document.URL;
 		retString = retString.replace(":", "_");
 		return retString;
 	    } catch (exception) {
-		console.log(new Error().stack);
 	    }
 	},
 
@@ -2296,9 +2301,6 @@ var url = document.URL;
 		.domain(self.state.filteredModelList.map(function (d) {
 		    return d.model_id; }))
 	        .rangeRoundBands([0,self.state.modelWidth]);
-	    model_x_axis = d3.svg.axis()
-		.scale(self.state.xScale).orient("top");
-	    //model_x_axis.tickEndSize = 1;
 	    this._createModelLabels(self);
 	    
 	    //The pathline creates a line  below the labels. We don't want two lines to show up so fill=white hides the line.
@@ -2322,6 +2324,8 @@ var url = document.URL;
 	},
 
 	_createModelLabels: function(self) {
+	    var    model_x_axis = d3.svg.axis().scale(self.state.xScale).orient("top");
+
 	    self.state.svg.append("g")
 	  	.attr("transform","translate(" + (self.state.textWidth +28) +"," + 
 		      (self.state.yTranslation + self.state.yoffset ) + ")")
@@ -2538,8 +2542,6 @@ var url = document.URL;
 		    return d.model_id; })).rangeRoundBands([0,this.state.modelWidth]);
 	    console.timeEnd("rangerounds");
 	    
-	    model_x_axis = d3.svg.axis()
-		.scale(this.state.xScale).orient("top");
 
 	    console.time("modellabels");
 	    this._createModelLabels(self);
@@ -2568,128 +2570,80 @@ var url = document.URL;
 	    var temp_data = modData.map(function(d) { 
 		return d.value;});
 	    var diff = d3.max(temp_data) - d3.min(temp_data);
+
 	    console.timeEnd("moddiff");
-	    //account for a grid with less than 5 phenotypes
-	    //No matches
-	    //var y1 = 307,
-	    //	y2 = 294;
-	    var y1 = 267,
-	    y2 = 254;
 
 	    // indicator for bottom of gradients
 	    var ymax = 0;
 	    
-	    if (this.state.filteredPhenotypeData.length < 14) {y1 =177; y2 = 164;} //{y1 =217; y2 = 204;}
+
 	    //only show the scale if there is more than one value represented
 	    //in the scale
 	    if (diff > 0) {
+		// baseline for gradient positioning
+		var y1 = 262;  
+		//more magic data
+		if (this.state.filteredPhenotypeData.length < 14) {
+		    y1=172;  
+		} 
 
-			console.time("creategrads");
-			//If this is the Overview, get gradients for all species with an index
-			if (self.state.targetSpeciesName == "Overview" || self.state.targetSpeciesName == "All") {
-			    
-			    //this.state.overviewCount tells us how many fit in the overview
-			    for (var i = 0; i < this.state.overviewCount; i++) {	
-				var y = this._createGradients(i,y1,y2);
-				if (y  > ymax) {
-				    ymax = y;
-				}
-		    }
-		}
-		else {  //This is not the overview - determine species and create single gradient
-		    var i = this._getTargetSpeciesIndexByName(self,self.state.targetSpeciesName);
-		    var y  = this._createGradients(i,y1,y2);
-		    if (y > ymax) {
-		    	ymax = y;
-		    }
-		}			
-		console.timeEnd("creategrads");
-		
-		var calc = this.state.selectedCalculation,
-		text1 = "",
-		text2 = "",
-		text3 = "";
-		
-		//account for a grid with less than 5 phenotypes
-		var y1 = 267,
-		y2 = 257;
-		if (this.state.filteredPhenotypeData.length < 14) {y1 = 172; y2 = 162;}
-		
-		if (calc == 2) {text1 = "Lowest"; text2 = "Uniqueness"; text3 = "Highest";}
-		else if (calc == 1) {text1 = "Less Similar"; text2 = "Ratio (q)"; text3 = "More Similar";}
-		else if (calc == 3) {text1 = "Less Similar"; text2 = "Ratio (t)"; text3 = "More Similar";}
-		else if (calc == 0) {text1 = "Min"; text2 = "Similarity"; text3 = "Max";}
-
-		
-		console.time("mrtexts");
-		var ytext1 =  y1  + this.state.yTranslation + self.state.yoffsetOver-5;
-		var xtext1= self.state.axis_pos_list[2] + 10;
-		var div_text1 = self.state.svg.append("svg:text")
-		    .attr("class", "detail_text")
-		    .attr("y", ytext1)
-		    .attr("x", xtext1)
-		    .style("font-size", "10px")
-		    .text(text1);
-		
-		var ytext2 = y2  + this.state.yTranslation + self.state.yoffsetOver;
-	        var xtext2  = self.state.axis_pos_list[2] + 75;
-		var div_text2 = self.state.svg.append("svg:text")
-		    .attr("class", "detail_text")
-		    .attr("y", ytext2)
-		    .attr("x", xtext2)
-		    .style("font-size", "12px")
-		    .text(text2);
-		
-	        var ytext3 = y1 + this.state.yTranslation + self.state.yoffsetOver-5;
-	        var xtext3 = self.state.axis_pos_list[2] + 125;
-		var div_text3 = self.state.svg.append("svg:text")
-		    .attr("class", "detail_text")
-		    .attr("y", ytext3)
-		    .attr("x", xtext3)
-		    .style("font-size", "10px")
-		    .text(text3);
-		console.timeEnd("mrtexts");
-		
-		//Position the max more carefully	
-		if (text3 == "Max") {
-		    div_text3.attr("x",self.state.axis_pos_list[2] + 150);			
-		}
-		if (text3 == "Highest") {
-		    div_text3.attr("x",self.state.axis_pos_list[2] + 150);			
-		}
+		ymax = this._buildGradientDisplays(y1);
+		this._buildGradientTexts(y1);
 	    }					
 
 	    console.time("pgcontrols");
-	    var phenogrid_controls = $('<div id="phenogrid_controls"></div>');
-	    this.element.append(phenogrid_controls);
-	    var selControls = this._createSelectionControls(); 
-	    phenogrid_controls.append(selControls);
+	    var phenogridControls = $('<div id="phenogrid_controls"></div>');
+	    this.element.append(phenogridControls);
+	    this._createSelectionControls(phenogridControls); 
 	    console.timeEnd("pgcontrols");
-	    
-	    
-	    //add the handler for the select control
-	    $( "#organism" ).change(function(d) {
-		//msg =  "Handler for .change()
-		//called." );
-		self.state.targetSpeciesName = 
-		    self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
-		self._resetSelections();
-	    });
-	    
-	    
-	    $( "#calculation" ).change(function(d) {
-		self.state.selectedCalculation = 
-		    self.state.similarityCalculation[d.target.selectedIndex].calc;
-		self._resetSelections();
-	    });	
+
 	    return ymax;
 	},
 
-	//This renders ALL gradients - need to make it conditional on precise number of // target species
-	_createGradients: function(i, y1, y2){
+	/**
+	 * build the gradient displays used to show the range of colors
+	 */
+	_buildGradientDisplays: function(y1) {
+	    var ymax = 0;
+
+	    console.time("creategrads");
+	    //If this is the Overview, get gradients for all species with an index
+	    if (this.state.targetSpeciesName == "Overview" || 
+		this.state.targetSpeciesName == "All") {
+		
+		//this.state.overviewCount tells us how many fit in the overview
+		for (var i = 0; i < this.state.overviewCount; i++) {	
+		    var y = this._createGradients(i,y1);
+		    if (y  > ymax) {
+			ymax = y;
+		    }
+		}
+	    }
+	    else {  //This is not the overview - determine species and create single gradient
+		var i = this._getTargetSpeciesIndexByName(this,this.state.targetSpeciesName);
+		var y  = this._createGradients(i,y1);
+		if (y > ymax) {
+		    ymax = y;
+		}
+	    }
+	    console.log("ymax is "+ymax);
+	    return ymax;
+	},
+
+	/*
+	 * add the gradients to the grid, returning the max x so that
+	 * we know how much space the grid will need vertically on the
+	 * right.  This is important because this region will extend 
+	 * below the main grid if there are only a few phenotypes.
+	 *
+	 * y1 is the baseline for computing the y position of the
+	 *    gradient
+	 */
+	_createGradients: function(i, y1){
 	    self=this;
 	    
 	    var y;
+	    var gradientHeight=20;
 	    
 	    console.time("gradientappend");
 	    var gradient = this.state.svg.append("svg:linearGradient")
@@ -2708,7 +2662,8 @@ var url = document.URL;
 	    console.timeEnd("gradientappend");
 
 	    console.time("gradientlabs");
-	    var y = (y1 + (-5 + (20 * i))) + this.state.yTranslation + self.state.yoffsetOver;
+	    /* gradient + gap is 20 pixels */
+	    var y = y1 + (gradientHeight * i) + this.state.yTranslation + self.state.yoffsetOver;
 	    var  x = self.state.axis_pos_list[2] + 12;
 	    var translate  = "translate(0,10)";
 	    var legend = this.state.svg.append("rect")
@@ -2724,7 +2679,8 @@ var url = document.URL;
 		.attr("fill", "url(#gradient_" + i + ")");
 
 	    
-	    y =  y2 + (27 + (i*20)) + this.state.yTranslation + self.state.yoffsetOver;
+	    /* text is 20 below gradient */
+	    y =  y1 + gradientHeight*(i+1) + this.state.yTranslation + self.state.yoffsetOver;
 	    x = self.state.axis_pos_list[2] + 205;
 	    var gclass = "grad_text_"+i;
 	    var specName = this.state.targetSpeciesList[i].name;
@@ -2735,11 +2691,74 @@ var url = document.URL;
 		.style("font-size", "11px")
 		.text(specName);
 	    console.timeEnd("gradientlabs");
+	    
+	    y = y+gradientHeight;
+	   
 	    return y;
 
 	},
 
-	_createSelectionControls: function(selClass) {
+	/***
+	 * Show the labels next to the gradients, including
+	 * descriptions of min and max sides 
+	 * y1 is the baseline to work from
+	 */
+	_buildGradientTexts: function(y1) {
+	    var calc = this.state.selectedCalculation,
+	    text1 = "",
+	    text2 = "",
+	    text3 = "";
+	    
+	    if (calc == 2) {text1 = "Lowest"; text2 = "Uniqueness"; text3 = "Highest";}
+	    else if (calc == 1) {text1 = "Less Similar"; text2 = "Ratio (q)"; text3 = "More Similar";}
+	    else if (calc == 3) {text1 = "Less Similar"; text2 = "Ratio (t)"; text3 = "More Similar";}
+	    else if (calc == 0) {text1 = "Min"; text2 = "Similarity"; text3 = "Max";}
+	    
+	    
+	    console.time("mrtexts");
+	    var ytext1 =  y1  + this.state.yTranslation + self.state.yoffsetOver-5;
+	    var xtext1= self.state.axis_pos_list[2] + 10;
+	    var div_text1 = self.state.svg.append("svg:text")
+		.attr("class", "detail_text")
+		.attr("y", ytext1)
+		.attr("x", xtext1)
+		.style("font-size", "10px")
+		.text(text1);
+	    
+	    var ytext2 = y1-10  + this.state.yTranslation + self.state.yoffsetOver;
+	    var xtext2  = self.state.axis_pos_list[2] + 75;
+	    var div_text2 = self.state.svg.append("svg:text")
+		.attr("class", "detail_text")
+		.attr("y", ytext2)
+		.attr("x", xtext2)
+		.style("font-size", "12px")
+		.text(text2);
+	    
+	    var ytext3 = y1 + this.state.yTranslation + self.state.yoffsetOver-5;
+	    var xtext3 = self.state.axis_pos_list[2] + 125;
+	    var div_text3 = self.state.svg.append("svg:text")
+		.attr("class", "detail_text")
+		.attr("y", ytext3)
+		.attr("x", xtext3)
+		.style("font-size", "10px")
+		.text(text3);
+	    console.timeEnd("mrtexts");
+	    
+		//Position the max more carefully	
+	    if (text3 == "Max") {
+		div_text3.attr("x",self.state.axis_pos_list[2] + 150);			
+	    }
+	    if (text3 == "Highest") {
+		div_text3.attr("x",self.state.axis_pos_list[2] + 150);			
+	    }
+	},
+
+	/**
+	 * build controls for selecting organism and
+	comparison. Install handlers
+	 * 
+	 */
+	_createSelectionControls: function(container) {
 	    //var optionhtml ='<div id="selects" class="'+selClass+'"></div>';
 
 	    var optionhtml ='<div id="selects"></div>';
@@ -2748,9 +2767,28 @@ var url = document.URL;
 	    options.append(orgSel)
 	    var calcSel = this._createCalculationSelection();
 	    options.append(calcSel);
-	    return options;
+	    container.append(options);
+	    //add the handler for the select control
+	    $( "#organism" ).change(function(d) {
+		//msg =  "Handler for .change()
+		//called." );
+		self.state.targetSpeciesName = 
+		    self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
+		self._resetSelections();
+	    });
+	    
+	    
+	    $( "#calculation" ).change(function(d) {
+		self.state.selectedCalculation = 
+		    self.state.similarityCalculation[d.target.selectedIndex].calc;
+		self._resetSelections();
+	    });	
+
 	},
 	
+	/**
+	 * construct the HTML needed for selecting organism
+	 */
 	_createOrganismSelection: function(selClass) {
 	    var selectedItem="";
 	    var optionhtml = "<div id='org_div'><span id='olabel'>Species</span>"+
@@ -2780,7 +2818,10 @@ var url = document.URL;
 	},
 
 
-	
+	/** 
+	 * create the html necessary for selecting the calculation 
+	 */
+
 	_createCalculationSelection: function () {
 
 	    var optionhtml = "<div id=\"calc_div\"><span id=\"clabel\">Display</span><span id=\"calcs\"><img class=\"calcs\" src=\"" +
