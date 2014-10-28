@@ -24,7 +24,7 @@
  * documentation hopefully coming soon.
  *
  *
- *  The phneogrid widget uses semantic similarity calculations
+ *  The phenogrid widget uses semantic similarity calculations
  *  provided by OWLSim (www.owlsim.org), as provided through APIs from
  *  the Monarch initiative (www.monarchinitiative.org). 
  * 
@@ -297,20 +297,19 @@ var url = document.URL;
 	     element.appendTo(this.state.svgContainer);
 	 },
 
-
 	 reDraw: function() {
 	     if (this.state.modelData.length != 0 && this.state.phenotypeData.length != 0
 		 && this.state.filteredPhenotypeData.length != 0){
 
 		 this._setComparisonType();
 		 console.time("initCanvas");
-	         this._initCanvas();
+	     this._initCanvas();
 		 console.timeEnd("initCanvas");
-		this._addLogoImage();
+		 this._addLogoImage();
 
-	        this.state.svg
+	     this.state.svg
 		    .attr("width", "100%")
-		     .attr("height", this.state.phenotypeDisplayCount * 18);
+		    .attr("height", this.state.phenotypeDisplayCount * 18);
 		 console.time("accents-color");
 		 this._createRectangularContainers();				
 		 this._createColorScale();
@@ -320,7 +319,6 @@ var url = document.URL;
 		 var ymax  = this._createModelRegion();
 		 console.log("ymax is "+ymax);
 		 console.timeEnd("model-region");
-
 
 		 console.time("axes");		 
 		 this._updateAxes();
@@ -339,21 +337,19 @@ var url = document.URL;
 		 this._createOverviewSection();
 		 console.timeEnd("overview");
 
-		ymax = ymax +60; //gap MAGIC NUBER ALERT. DOES THIS
+    	 ymax = ymax +60; //gap MAGIC NUBER ALERT. DOES THIS
 		 //NEED TO BE CLEANED?
 		 console.log("phenotype display count is "+this.state.phenotypeDisplayCount);
-		var height = this.state.phenotypeDisplayCount*18+this.state.yoffsetOver;
+		 var height = this.state.phenotypeDisplayCount*18+this.state.yoffsetOver;
 		 
 		 if (height < ymax) {
 		    height = ymax+60;
-		}
-		var containerHeight = height + 30; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
+		 }
+		 var containerHeight = height + 30; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
 		 console.log("svg area  height is "+height);
 		 console.log("svg container height is "+containerHeight);
 		 $("#svg_area").css("height",height);
-		$("#svg_container").css("height",containerHeight);
-
-
+		 $("#svg_container").css("height",containerHeight);
 	    }
 	    else {
 	    var msg = "There are no " + self.state.targetSpeciesName + " models for this disease." 
@@ -757,32 +753,47 @@ var url = document.URL;
 
 	    self.state.selectedSort = tempdata[0].type;
 	},
+	
+	_processSelectedPhenotypeSort: function(){
+		var self = this;
+		
+		console.time("Start processSelectedPhenotypeSort");
+		
+		this.state.phenotypeSortData = [];
+	    //Select phenotype sort method based on options in #sortphenotypes dropdown
+		this._filterPhenotypes(); 
+		this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
+		this.element.empty();
+		this.reDraw();   
+	
+	    console.timeEnd("End processSelectedPhenotypeSort");
+	},
 
 	//given the full dataset, return a filtered dataset containing the
 	//subset of data bounded by the phenotype display count and the model display count
 	_filterData: function(fulldataset) {
-	    var self = this;
-
-
+	   
 	    var phenotypeArray = this._uniquifyPhenotypes(fulldataset);
-
-	    var dupArray = [];
-	    var ic = [];
-	    
-    	    //copy the phenotypeArray to phenotypeData array - now instead of ALL phenotypes, it will be limited to unique phenotypes for this disease
+	    //copy the phenotypeArray to phenotypeData array - now instead of ALL phenotypes, it will be limited to unique phenotypes for this disease
 	    //do not alter this array: this.state.phenotypeData
-    	    this.state.phenotypeData = phenotypeArray;
+	    this.state.phenotypeData = phenotypeArray;
 
-    	    //we need to adjust the display counts and indexing if there are fewer phenotypes than the default phenotypeDisplayCount
-    	    if (this.state.phenotypeData.length < this.state.phenotypeDisplayCount) {
-    		this.state.currPhenotypeIdx = this.state.phenotypeData.length-1;
-    		this.state.phenotypeDisplayCount = this.state.phenotypeData.length;
-    	    }
-	    
-	    //Step 2: Select phenotype sort method based on options in #sortphenotypes dropdown
+	    //we need to adjust the display counts and indexing if there are fewer phenotypes than the default phenotypeDisplayCount
+	    if (this.state.phenotypeData.length < this.state.phenotypeDisplayCount) {
+		this.state.currPhenotypeIdx = this.state.phenotypeData.length-1;
+		this.state.phenotypeDisplayCount = this.state.phenotypeData.length;
+	    }
+    	
+    	this._filterPhenotypes();
+	},
+	
+	_filterPhenotypes: function(){
+		var self = this;
+	    //Step 1: Select phenotype sort method based on options in #sortphenotypes dropdown
 	    //Alphabetic: sorted alphabetically
 	    //Frequency and Rarity: sorted by the sum of each phenotype across all models
 	    //Frequency: sorted by the count of number of model matches per phenotype
+    	//"this.state.phenotypeSortData", is built in each sorting function
 	    switch(this.state.selectedSort) {
 	    case "Alphabetic":  this._alphabetizePhenotypes();
 		break;
@@ -793,9 +804,8 @@ var url = document.URL;
 	    default:			this._alphabetizePhenotypes();
 	    }
 	    
-	    //Sorted phenotype data, "phenotypeSortData", is returned from each sorting function; 
-		    
-	    //Step 3: Filter for the next n phenotypes based on phenotypeDisplayCount and update the y-axis
+	     	    
+	    //Step 2: Filter for the next n phenotypes based on phenotypeDisplayCount and update the y-axis
 	    this.state.filteredPhenotypeData = [];
 	    this.state.yAxis = [];
 	    this.state.filteredModelData = [];
@@ -806,8 +816,7 @@ var url = document.URL;
 	    //also update the modeldata
 	    var axis_idx = 0;
 	    var tempFilteredModelData = [];
-	    
-	    
+	    	    
 	    //get phenotype[startIdx] up to phenotype[currPhenotypeIdx] from the array of sorted phenotypes
 	    for (var i = startIdx;i <self.state.currPhenotypeIdx + 1;i++) {
 		//move the ranked phenotypes onto the filteredPhenotypeData array
@@ -826,17 +835,12 @@ var url = document.URL;
 		
 		//find the rowid in the original ModelData (list of models and their matching phenotypes) and write it to tempdata if it matches this phenotypeSortData rowid.
 		//In this case, the rowid is just the id_a value in the model data
-
 		for (var midx = 0; midx < this.state.modelData.length; midx++) {
 		    var mod = this.state.modelData[midx];
 		    if (mod.id_a == self.state.phenotypeSortData[i][0].id_a) {
 			tempFilteredModelData.push(mod);
 		    }
-		}
-		//var tempdata = modData.filter(function(d) {
-		//    return d.id_a == self.state.phenotypeSortData[i][0].id_a;
-		//});
-		//tempFilteredModelData = tempFilteredModelData.concat(tempdata);
+		}		
 	    }
 	    
 	    for (var idx=0;idx<self.state.filteredModelList.length;idx++) {
@@ -1239,7 +1243,7 @@ var url = document.URL;
 		    this._fixForFewerModels(this.state.modelDisplayCount);
 		}
 
-	        this.state.filteredModelllist=[];
+	        this.state.filteredModelList=[];
 		//initialize the filtered model list
 		for (var idx=0;idx<this.state.modelDisplayCount;idx++) {
 		    this.state.filteredModelList.push(this.state.modelList[idx]);
@@ -1253,14 +1257,11 @@ var url = document.URL;
 	//the a column, b column, and lowest common subsumer
 	//for the triple's IC score, use the LCS score
 	_loadDataForModel: function(newModelData) {
-	    
-	    //data is an array of all model matches
-	    
+	    //data is an array of all model matches	    
 	    data = newModelData.matches;
 	    
-	    
-	    var species = newModelData.taxon;
-	    var calculatedArray = [],
+	  	var species = newModelData.taxon,
+	    calculatedArray = [],
 	    normalizedArray = [],
 	    min,
 	    max,
@@ -1269,11 +1270,6 @@ var url = document.URL;
 	    for (var idx=0;idx<data.length;idx++) {
 		calculatedArray.push(this._normalizeIC(data[idx]));
 	    }
-	    
-	    /*min =  Math.min.apply(Math, calculatedArray);
-	    max = Math.max.apply(Math, calculatedArray);
-	    
-	    norm = max - min;*/
 	    
 	    for (var idx=0;idx<data.length;idx++) {
     		
@@ -1297,18 +1293,16 @@ var url = document.URL;
     			       "model_label" : newModelData.label, 
 			       "species": species.label,
 			       "taxon" : species.id,
-			  //     "rowid" : this._getConceptId(curr_row.a.id) + 
-			    //   "_" + this._getConceptId(curr_row.lcs.id)
 			      }; 
 		this.state.modelData.push(new_row); 
-    	    }
+    	}
 	},
 	
 	//we may use this when normalization and ranking have been determined
 	_rankLCSScores : function () {
 	},
 
-	//Different methods of calculation based on the selectedCalculationMethod
+	//Different methods of  based on the selectedCalculationMethod
 	_normalizeIC: function(datarow){
 	    var ics = [],
 	    aIC = datarow.a.IC,
@@ -1387,7 +1381,7 @@ var url = document.URL;
 	    }	
 	    /** 3 september 2014  still a bit clunky in handling many organisms, 
 		but much less hardbound. */
-    	    this.state.colorScale={};
+    	this.state.colorScale={};
 	    
 	    for(var i = 0; i < this.state.targetSpeciesList.length; i++) {	
 		var speciesindex;
@@ -1480,7 +1474,8 @@ var url = document.URL;
             $( "#sortphenotypes" ).change(function(d) {
 		//this._showThrobber();
         	self.state.selectedSort = self.state.phenotypeSort[d.target.selectedIndex].type;
-		self._resetSelections();
+        	self._resetSelections("sortphenotypes");
+        	self._processSelectedPhenotypeSort();
             });
 
 	},
@@ -1503,7 +1498,7 @@ var url = document.URL;
 	},
 
 
-	_resetSelections : function() {
+	_resetSelections : function(type) {
 	    var self = this;
 	    $("#unmatchedlabel").remove();
 	    $("#unmatchedlabelhide").remove();
@@ -1515,9 +1510,11 @@ var url = document.URL;
 	    $("#mtitle").remove();
 	    $("#header").remove();
 	    $("#svg_area").remove();
-	    self.state.phenotypeData = self.state.origPhenotypeData.slice();
-	    self._reset();
-	    self._init();
+	    if (type !== "sortphenotypes"){
+	      self.state.phenotypeData = self.state.origPhenotypeData.slice();
+	      self._reset();
+	      self._init();
+	    }
 	},
 	
 	_addLogoImage : function() { 
@@ -2514,12 +2511,8 @@ var url = document.URL;
 							  this.state.colStartingPos);
 			}
 	    }	
-
 	},
 
-
-	
-	
 	
 	//this code creates the colored rectangles below the models
 	_createModelRegion: function () {
@@ -2540,8 +2533,7 @@ var url = document.URL;
 	    this.state.xScale = d3.scale.ordinal()
 		.domain(list.map(function (d) {
 		    return d.model_id; })).rangeRoundBands([0,this.state.modelWidth]);
-	    console.timeEnd("rangerounds");
-	    
+	    console.timeEnd("rangerounds");	    
 
 	    console.time("modellabels");
 	    this._createModelLabels(self);
@@ -2550,6 +2542,7 @@ var url = document.URL;
 	    console.time("modellines");
 	    this._createModelLines();
 	    console.timeEnd("modellines");
+	    
 	    console.time("textscores");
 	    this._createTextScores(list);
 	    console.timeEnd("textscores");
@@ -2559,8 +2552,7 @@ var url = document.URL;
 	        this._createOverviewList();		
 	    }
 	    console.timeEnd("col");
-	    
-	    
+	    	    
 	    //var modData = [];
 	    
 	    //modData =this.state.modelData.slice();
@@ -2570,13 +2562,11 @@ var url = document.URL;
 	    var temp_data = modData.map(function(d) { 
 		return d.value;});
 	    var diff = d3.max(temp_data) - d3.min(temp_data);
-
 	    console.timeEnd("moddiff");
 
 	    // indicator for bottom of gradients
 	    var ymax = 0;
 	    
-
 	    //only show the scale if there is more than one value represented
 	    //in the scale
 	    if (diff > 0) {
@@ -2773,15 +2763,15 @@ var url = document.URL;
 		//msg =  "Handler for .change()
 		//called." );
 		self.state.targetSpeciesName = 
-		    self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
-		self._resetSelections();
+			self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
+		self._resetSelections("organism");
 	    });
 	    
 	    
 	    $( "#calculation" ).change(function(d) {
 		self.state.selectedCalculation = 
 		    self.state.similarityCalculation[d.target.selectedIndex].calc;
-		self._resetSelections();
+		self._resetSelections("calculation");
 	    });	
 
 	},
