@@ -29,29 +29,7 @@
 	padding-bottom:0px;
 	margin-bottom: 0px;
 }
-
-
-#org_div {
-    width:200px;
-}
-	    
-
-#sorts span,
-#org_sel,
-#calc_sel{
-	width:150px;
-	font-size:9px;
-}
-
-#calc_sel{
-	margin-top:-15px;
-}
-
-text.accent{
-	
-
-}
-
+    
 .row_accent,
 .model_accent{
 	/*stroke:#ea763b;*/
@@ -136,11 +114,33 @@ text.accent{
    stroke:#25349A;
 }
 
-
-#org_div {
-    float: left;
+#toptitle, #bottitle {
+	font-size:1.8em;
+	font-weight:bold;
+}
+#toptitle2, #bottitle2, #title2 {
+	font-size:1.4em;
+	font-weight:bold;
 }
 
+#bottitle2 {
+	text-align:center;
+	margin-left:20px;
+	font-size:1.0em;
+}
+
+
+#org_div, #sort_div, #calc_div {
+    float: left;
+    width:175px;
+}
+#calc_div {  
+	width:120px;
+}
+
+#org_div{
+	width:200px;
+}
 #org_div div, #calc_div div{
 	font-weight:bold;
 }
@@ -166,12 +166,12 @@ text.accent{
   margin-left:5px;
 }
 
-#organism , #calculation{
+#organism , #calculation, #sortphenotypes{
    margin-top: 5px; 
    margin-left: 5px;
 }
 
-#org_div div, #calc_div div {
+#org_div div, #calc_div div, #sort_div {
 	font-weight:bold;
 }
 
@@ -189,7 +189,6 @@ text.accent{
 #slabel{
 	font-size:14px;
 	font-weight:bold;
-	margin-left: -20px;
 }
 
 .faq{
@@ -205,16 +204,6 @@ text.accent{
 
 #logo {
 	height:90px;
-}
-
-#sort_div {
-margin-top: 0px;
-margin-left: 55px;
-}
-
-#sortphenotypes{
-
-	margin-left: 35px;
 }
 
 /** jQDialog styles */
