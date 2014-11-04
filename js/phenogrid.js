@@ -78,7 +78,7 @@ var url = document.URL;
             detailRectStrokeWidth: 3,
 	    globalViewWidth : 110,
 	    globalViewHeight : 110,
-	    h : 525,
+	    h : 560,
 	    m :[ 30, 10, 10, 10 ],
 	    multiOrganismCt: 10,
 	    multiOrgModelLimit: 750,
@@ -134,8 +134,9 @@ var url = document.URL;
 	    this.state.filteredModelList = [];
 
 	    this.state.yAxisMax = 0;
-	    this.state.yoffset  = 85;
+	    this.state.yoffset  = 115;
 	    this.state.yoffsetOver = 0;
+	    this.state.modelName = "";
 
 	    this.state.yTranslation = 0;
 
@@ -341,7 +342,7 @@ var url = document.URL;
 			 if (height < ymax) {
 			    height = ymax+60;
 			 }
-			 var containerHeight = height + 30; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
+			 var containerHeight = height + 10; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
 			 console.log("svg area  height is "+ height);
 			 console.log("svg container height is "+ containerHeight);
 			 $("#svg_area").css("height",height);
@@ -380,19 +381,19 @@ var url = document.URL;
 	    
 	    d3.select("#svg_area").remove();
 	    this.state.svgContainer.append("<svg id='svg_area'></svg>");
-        this.state.svg = d3.select("#svg_area");
-        self.state.svg
-		  .attr("width", 1100)
-		  .attr("height", 70);
-        self.state.h = 60;
-        self.state.yoffset = 50;
-        self.state.svg.append("text")
-		  .attr("x", 80)
-		  .attr("y", 60)
-		  .attr("height", 70)
-		  .attr("width", 200)
-		  .attr("id", "errmsg")
-		  .text(msg);	
+            this.state.svg = d3.select("#svg_area");
+            self.state.svg
+		.attr("width", 1100)
+		.attr("height", 70);
+            self.state.h = 60;
+            self.state.yoffset = 50;
+            self.state.svg.append("text")
+		.attr("x", 80)
+		.attr("y", 60)
+		.attr("height", 70)
+		.attr("width", 200)
+		.attr("id", "errmsg")
+		.text(msg);	
 	    
 	    var html = "<br /><div id='return'><button id='button' type='button'>Return</button></div>";	
 	    this.element.append(html);
@@ -482,13 +483,13 @@ var url = document.URL;
 	    
 	    var rect_instructions = self.state.svg.append("text")
  		.attr("x", self.state.axis_pos_list[2] + 10)
-		.attr("y", self.state.yoffset + self.state.yoffsetOver + 5 + this.state.yTranslation)
+		.attr("y", (self.state.yoffset *3) - 25)
  		.attr("class", "instruct")
- 		.text("Use the phenotype map below to");
+ 		.text("Use the phenotype map above to");
  	    
  	    var rect_instructions = self.state.svg.append("text")
  		.attr("x", self.state.axis_pos_list[2] + 10)
-		.attr("y", self.state.yoffset + self.state.yoffsetOver + 15 + this.state.yTranslation) 
+		.attr("y", (self.state.yoffset * 3) - 15) 
  		.attr("class", "instruct")
  		.text("navigate the model view on the left");
 	    
@@ -534,7 +535,7 @@ var url = document.URL;
 	    //create the "highlight" rectangle
 	    self.state.highlightRect = self.state.svg.append("rect")
 		.attr("transform",												//133
-		      "translate(" + (self.state.axis_pos_list[2] + 41) + "," + (116+ self.state.yoffsetOver + self.state.yTranslation) + ")")
+		      "translate(" + (self.state.axis_pos_list[2] + 41) + "," + (143+ self.state.yoffsetOver + self.state.yTranslation) + ")")
 		.attr("x", 0)
 		.attr("y", 0)		
 		.attr("class", "draggable")					
@@ -558,7 +559,7 @@ var url = document.URL;
         		  var newY = d3.event.y - 119;					
         		  newY = Math.max(newY,0);
         		  newY = Math.min(newY,(self.state.globalViewHeight-self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a)));  //rowid
-               		  rect.attr("y", newY + 119 + self.state.yTranslation + self.state.yoffsetOver);
+               		  rect.attr("y", newY + 146 + self.state.yTranslation + self.state.yTranslation);
 			  
         		  var xPos = newX;
         		  
@@ -598,9 +599,6 @@ var url = document.URL;
 	    return selectedScale(d.value);
 	},
 	
-
-	
-	
 	_getComparisonType : function(organism){
 	    var label = "";
 	    
@@ -615,8 +613,7 @@ var url = document.URL;
 	    }
 	    return label;
 	}, 
-	
-	
+		
 	_setComparisonType : function(){
 	    var self = this;
 	    var comp = this.state.defaultComparisonType;
@@ -675,7 +672,6 @@ var url = document.URL;
 	    console.timeEnd("End processSelectedCalculation");
 	},
 
-
 	//given the full dataset, return a filtered dataset containing the
 	//subset of data bounded by the phenotype display count and the model display count
 	_filterData: function(fulldataset) {
@@ -711,8 +707,7 @@ var url = document.URL;
 	    case "Frequency": this._sortByModelMatches();
 		break;
 	    default:			this._alphabetizePhenotypes();
-	    }
-	    
+	    }	    
 	     	    
 	    //Step 2: Filter for the next n phenotypes based on phenotypeDisplayCount and update the y-axis
 	    this.state.filteredPhenotypeData = [];
@@ -816,13 +811,7 @@ var url = document.URL;
 		else {
 			this._finishLoad(this.state.data[this.state.targetSpeciesName]);
 		}
-		
-		/**
-		 * //sort the model list by rank
-		this.state.modelList.sort(function(a,b) { 
-		    return a.model_rank - b.model_rank; } 
-		);**/
-	    
+	
 	},
 	
 	_uniquifyPhenotypes: function(fulldataset) {
@@ -1391,10 +1380,8 @@ var url = document.URL;
 	    this._createSvgContainer();
 	    var svgContainer = this.state.svgContainer;
 	    svgContainer.append("<svg id='svg_area'></svg>");		
-	    this.state.svg = d3.select("#svg_area");
-	    //this.state.ytranslation = 120;
-	    this._addGridTitle();
-	   // this._buildSortSelector();
+	    this.state.svg = d3.select("#svg_area");	 
+	    this._addGridTitle();	  
 	    this._configureFaqs();
 	},
 
@@ -1402,25 +1389,71 @@ var url = document.URL;
 	    var svgContainer = $('<div id="svg_container"></div>');
 	    this.state.svgContainer =  svgContainer;
 	    this.element.append(svgContainer);
-
 	},
 
 	_addGridTitle: function() {
+	    var species = '',
+	        xoffset = 0,
+	        foffset = 0,
+	        doffset = 0;
+	    if (this.state.targetSpeciesName == "Overview") {
+	    	xoffset = 340; foffset = 320; doffset = -10;
+		    this.state.svg.append("svg:text")
+		    	.attr("id","toptitle")
+		    	.attr("transform","translate(" + (xoffset ) + "," + (18) + ")")
+		    	.attr("x", 0)
+		    	.attr("y", 0)
+		    	.text("Cross-Options Overview");
+	    } else {
+	    	species= this.state.targetSpeciesName;
+	    	xoffset = 260; foffset = 500; doffset = -50;
+	    	var mtitle = this.state.svg.append("svg:text")
+		    	.attr("id","toptitle2")
+		    	.attr("transform","translate(" + (xoffset ) + "," + (18) + ")")
+		    	.attr("x", 0)
+		    	.attr("y", 10)
+		    	.text("Phenotype Comparison (grouped by " + species + ")");
+	    }	    
+    	var faq	= this.state.svg
+			.append("svg:image")				
+			.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
+			.attr("transform","translate(" + (xoffset + foffset) + "," + (10 ) + ")")
+			.attr("id","faqinfo")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 15)
+	    	.attr("height", 15)		
+			.on("click", function(d) {
+			    var name = "faq";					
+			    self._showDialog(this.state.modelName);
+			});
+    	
+    	var title = document.getElementsByTagName("title")[0].innerHTML;
+    	var dtitle = title.replace("Monarch Disease:", "");
+    	var disease = dtitle.replace(/ *\([^)]*\) */g,"");
+    		this.state.svg.append("svg:text")
+	    	.attr("id","diseasetitle")
+	    	.attr("transform","translate(" + (0) + "," + (this.state.yoffset + doffset) + ")")
+	    	.attr("x", 0)
+	    	.attr("y", 10)
+	    	.text(disease);
+	},
+	
+	
+	
+/**	_addGridTitle: function() {
 	    var species = '';
-	    /**
-	    optionhtml = optionhtml + "<br /><span id='faq'><img class='faq' src='" + this.state.scriptpath + 
-	    	"../image/greeninfo30.png' height='15px'></span></span>";
-	    */
+	    
 	    if (this.state.targetSpeciesName == "Overview") {
 		    var mtitle = this.state.svg.append("svg:text")
 		    	.attr("id","toptitle")
-		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.state.yoffset - 60) + ")")
+		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.yoffset- 60) + ")")
 		    	.attr("x", 0)
 		    	.attr("y", 0)
 		    	.text("Cross-options");
 		    this.state.svg.append("svg:text")
 		    	.attr("id","bottitle")
-		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.state.yoffset -20) + ")")
+		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.yoffset-20) + ")")
 			    .attr("x", 0)
 			    .attr("y", 0)
 			    .text("Overview");
@@ -1428,19 +1461,19 @@ var url = document.URL;
 	    	species= this.state.targetSpeciesName;
 	    	var mtitle = this.state.svg.append("svg:text")
 		    	.attr("id","toptitle2")
-		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.state.yoffset - 80) + ")")
+		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.yoffset- 80) + ")")
 		    	.attr("x", 0)
-		    	.attr("y", 0)
+		    	.attr("y", 10)
 		    	.text("Phenotype Comparison");
 	    	this.state.svg.append("svg:text")
 		    	.attr("id","bottitle2")
-		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.state.yoffset -50) + ")")
+		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.yoffset-50) + ")")
 			    .attr("x", 0)
 			    .attr("y", 0)
 			    .text("grouped by");
 	    	this.state.svg.append("svg:text")
 		    	.attr("id","title2")
-		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.state.yoffset - 20 ) + ")")
+		    	.attr("transform","translate(" + (this.state.colStartingPos ) + "," + (this.yoffset- 25 ) + ")")
 			    .attr("x", 0)
 			    .attr("y", 0)
 			    .text(species);
@@ -1449,7 +1482,7 @@ var url = document.URL;
     	var faq	= this.state.svg
 			.append("svg:image")				
 			.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-			.attr("transform","translate(" + (this.state.colStartingPos + 150) + "," + (this.state.yoffset - 35 ) + ")")
+			.attr("transform","translate(" + (this.state.colStartingPos + 150) + "," + (this.yoffset- 35 ) + ")")
 			.attr("id","faqinfo")
 			.attr("x", 0)
 			.attr("y", 0)
@@ -1461,7 +1494,7 @@ var url = document.URL;
 			});	    
 	},
 	
-	
+*/	
 
 	_configureFaqs: function() {
 	    
@@ -1569,8 +1602,7 @@ var url = document.URL;
 		}
 	    }	 
 	},
-	
-	
+		
 	_selectModel: function(modelData, obj) {
 	    var self=this;
 	    
@@ -2221,7 +2253,6 @@ var url = document.URL;
 	    }
 	    var startPhenotypeIdx = this.state.currPhenotypeIdx - this.state.phenotypeDisplayCount;
 	    
-	    
 	    this.state.filteredPhenotypeData = [];
 	    this.state.yAxis = [];
 	    
@@ -2644,7 +2675,7 @@ var url = document.URL;
 
 	    console.time("gradientlabs");
 	    /* gradient + gap is 20 pixels */
-	    var y = y1 + (gradientHeight * i) + this.state.yTranslation + self.state.yoffsetOver;
+	    var y = y1 + (gradientHeight * i) + this.state.yTranslation + self.state.yoffset;
 	    var  x = self.state.axis_pos_list[2] + 12;
 	    var translate  = "translate(0,10)";
 	    var legend = this.state.svg.append("rect")
@@ -2661,7 +2692,7 @@ var url = document.URL;
 
 	    
 	    /* text is 20 below gradient */
-	    y =  y1 + gradientHeight*(i+1) + this.state.yTranslation + self.state.yoffsetOver;
+	    y =  y1 + gradientHeight*(i+1) + this.state.yTranslation + self.state.yoffset;
 	    x = self.state.axis_pos_list[2] + 205;
 	    var gclass = "grad_text_"+i;
 	    var specName = this.state.targetSpeciesList[i].name;
@@ -2696,7 +2727,7 @@ var url = document.URL;
 	    else if (calc == 0) {text1 = "Min"; text2 = "Similarity"; text3 = "Max";}
 	    	    
 	    console.time("mrtexts");
-	    var ytext1 =  y1  + this.state.yTranslation + self.state.yoffsetOver-5;
+	    var ytext1 =  y1  + this.state.yTranslation + self.state.yoffset-5;
 	    var xtext1= self.state.axis_pos_list[2] + 10;
 	    var div_text1 = self.state.svg.append("svg:text")
 		.attr("class", "detail_text")
@@ -2705,7 +2736,7 @@ var url = document.URL;
 		.style("font-size", "10px")
 		.text(text1);
 	    
-	    var ytext2 = y1-10  + this.state.yTranslation + self.state.yoffsetOver;
+	    var ytext2 = y1-10  + this.state.yTranslation + self.state.yoffset;
 	    var xtext2  = self.state.axis_pos_list[2] + 75;
 	    var div_text2 = self.state.svg.append("svg:text")
 		.attr("class", "detail_text")
@@ -2714,7 +2745,7 @@ var url = document.URL;
 		.style("font-size", "12px")
 		.text(text2);
 	    
-	    var ytext3 = y1 + this.state.yTranslation + self.state.yoffsetOver-5;
+	    var ytext3 = y1 + this.state.yTranslation + self.state.yoffset-5;
 	    var xtext3 = self.state.axis_pos_list[2] + 125;
 	    var div_text3 = self.state.svg.append("svg:text")
 		.attr("class", "detail_text")
@@ -2748,7 +2779,6 @@ var url = document.URL;
 	    options.append(sortSel);
 	    var calcSel = this._createCalculationSelection();
 	    options.append(calcSel);
-	    
 	    container.append(options);
 	    //add the handler for the select control
 	    $( "#organism" ).change(function(d) {
@@ -2958,16 +2988,7 @@ _getUnmatchedPhenotypes : function(){
 	    }					
 	    if (dupArray[0] == undefined) {dupArray = []};
 	    
-	    /**self.state.phenotypeSortData.sort(function(a,b) {
-	       var labelA = a.label.toLowerCase(), 
-	       labelB = b.label.toLowerCase();
-	       if (labelA < labelB) {return -1;}
-	       if (labelA > labelB) {return 1;}
-	       return 0;
-	       });	*/	
-	    
 	    return dupArray;
-
 	},
 	
 	_getUnmatchedLabels: function() {
@@ -2988,7 +3009,6 @@ _getUnmatchedPhenotypes : function(){
 	    }
 	    return unmatchedLabels;
 	},
-
 	
 	_getPhenotypeLabel : function(id){
 	    var label = "";
@@ -3013,8 +3033,7 @@ _getUnmatchedPhenotypes : function(){
 		    prebl = $("#prebl");
 		}
 	    prebl.empty();
-	    // empty out prebl!!!!
-
+	   
 	    if (this.state.unmatchedPhenotypes != undefined && this.state.unmatchedPhenotypes.length > 0){
 	    	//var phenotypes = this._showUnmatchedPhenotypes();		
 			var optionhtml = "<div class='clearfix'><form id='matches'><input type='checkbox' name='unmatched' value='unmatched' >&nbsp;&nbsp;View Unmatched Phenotypes<br /><form><div id='clear'></div>";

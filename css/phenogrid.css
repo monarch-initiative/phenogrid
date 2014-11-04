@@ -114,6 +114,13 @@
    stroke:#25349A;
 }
 
+
+#diseasetitle{
+	font-weight:bold;
+	font-size: 0.9em;
+	margin-left:-20px;
+}
+
 #toptitle, #bottitle {
 	font-size:1.8em;
 	font-weight:bold;
@@ -274,6 +281,7 @@
 
 #svg_container {
    /*background-color: #FFCCFF;*/
+   margin-top:40px;
 }
 
 
