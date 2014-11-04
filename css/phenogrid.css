@@ -276,7 +276,7 @@
 
 #phenogrid_controls {
     clear:both;
- /*   background-color: #DDFFFF;*/
+ 	margin-top:-50px;
 }
 
 #svg_container {
@@ -284,7 +284,10 @@
    margin-top:40px;
 }
 
-
+#specieslist{
+	font-weight:bold;
+	font-size:1.2em;
+}
 
 
 /* spinner code from http://tobiasahlin.com/spinkit */
