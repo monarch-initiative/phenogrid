@@ -78,7 +78,7 @@ var url = document.URL;
             detailRectStrokeWidth: 3,
 	    globalViewWidth : 110,
 	    globalViewHeight : 110,
-	    h : 560,
+	    h : 526,
 	    m :[ 30, 10, 10, 10 ],
 	    multiOrganismCt: 10,
 	    multiOrgModelLimit: 750,
@@ -88,7 +88,7 @@ var url = document.URL;
 	    textLength: 34,
 	    textWidth: 200,
 	    w : 0,
-	    headerAreaHeight: 130,
+	    headerAreaHeight: 160,
 	    comparisonTypes: [ { organism: "Homo sapiens",
 				 comparison: "diseases"}],
 	    defaultComparisonType: { comparison: "genes"},
@@ -134,7 +134,7 @@ var url = document.URL;
 	    this.state.filteredModelList = [];
 
 	    this.state.yAxisMax = 0;
-	    this.state.yoffset  = 115;
+	    this.state.yoffset  = 150;
 	    this.state.yoffsetOver = 0;
 	    this.state.modelName = "";
 
@@ -334,7 +334,7 @@ var url = document.URL;
 			 this._createOverviewSection();
 			 console.timeEnd("overview");
 	
-	    	 ymax = ymax +60; //gap MAGIC NUBER ALERT. DOES THIS
+	    	 ymax = ymax + 60; //gap MAGIC NUBER ALERT. DOES THIS
 			 //NEED TO BE CLEANED?
 			 console.log("phenotype display count is "+ this.state.phenotypeDisplayCount);
 			 var height = this.state.phenotypeDisplayCount*18+this.state.yoffsetOver;
@@ -481,15 +481,17 @@ var url = document.URL;
 		    self._showDialog(name);
 		});
 	    
-	    var rect_instructions = self.state.svg.append("text")
- 		.attr("x", self.state.axis_pos_list[2] + 10)
-		.attr("y", (self.state.yoffset *3) - 25)
+	    var rect_instructions = self.state.svg.append("text")		
+	    .attr("x", self.state.axis_pos_list[2] + 10)
+		//This changes for vertical positioning
+	    .attr("y", (self.state.yoffset * 2) + 50)
  		.attr("class", "instruct")
  		.text("Use the phenotype map above to");
  	    
  	    var rect_instructions = self.state.svg.append("text")
  		.attr("x", self.state.axis_pos_list[2] + 10)
-		.attr("y", (self.state.yoffset * 3) - 15) 
+ 		//This changes for vertical positioning
+		.attr("y", (self.state.yoffset * 2) +  60) 
  		.attr("class", "instruct")
  		.text("navigate the model view on the left");
 	    
@@ -532,10 +534,16 @@ var url = document.URL;
 	    
 	    selectRectHeight = self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a); //rowid
 	    selectRectWidth = self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id);
+	    if (self.state.targetSpeciesName === "Overview"){ self.state.yTranslation = 60;} else { self.state.yTranslation = 25;}
+	    //self.state.yTranslation = 60;
+	    console.log("self.state.yoffsetOver: " + self.state.yoffsetOver);
+	    console.log("self.state.yTranslation: " + self.state.yTranslation);
+	    console.log("self.state.yoffset: " + self.state.yoffset);
+	    
 	    //create the "highlight" rectangle
 	    self.state.highlightRect = self.state.svg.append("rect")
-		.attr("transform",												//133
-		      "translate(" + (self.state.axis_pos_list[2] + 41) + "," + (143+ self.state.yoffsetOver + self.state.yTranslation) + ")")
+		.attr("transform",												//This changes for vertical positioning
+		      "translate(" + (self.state.axis_pos_list[2] + 47) + "," + (5 + self.state.yoffset + self.state.yTranslation) + ")")
 		.attr("x", 0)
 		.attr("y", 0)		
 		.attr("class", "draggable")					
@@ -544,50 +552,56 @@ var url = document.URL;
 			  var current = d3.select(this);
 			  return {x: current.attr("x"), y: current.attr("y") };
 		      })
-                      .on("drag", function(d) {
-                	  // drag the highlight in the overview window
-                	  //notes: account for the width of the rectangle in my x and y calculations
-                	  //do not use the event x and y, they will be out of range at times.  use the converted values instead.
-                	  var rect = self.state.svg.select("#selectionrect");
+              .on("drag", function(d) {
+            	  // drag the highlight in the overview window
+            	  //notes: account for the width of the rectangle in my x and y calculations
+            	  //do not use the event x and y, they will be out of range at times.  use the converted values instead.
+            	  //if (self.state.targetSpeciesName === "Overview"){ self.state.yTranslation = 60;} else { self.state.yTranslation = 25;}
+            	  var rect = self.state.svg.select("#selectionrect");
         		  rect.attr("transform","translate(0,0)")
+        		  
         		  //limit the range of the x value
         		  var newX = d3.event.x - (self.state.axis_pos_list[2] + 45);
         		  newX = Math.max(newX,0);
         		  newX = Math.min(newX,(110-self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id)));
-               		  rect.attr("x", newX + (self.state.axis_pos_list[2] + 45))
-               		  //limit the range of the y value
+        		  rect.attr("x", newX + (self.state.axis_pos_list[2] + 45))
+               		  
+        		  //limit the range of the y value
         		  var newY = d3.event.y - 119;					
         		  newY = Math.max(newY,0);
         		  newY = Math.min(newY,(self.state.globalViewHeight-self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a)));  //rowid
-               		  rect.attr("y", newY + 146 + self.state.yTranslation + self.state.yTranslation);
+        		  //This changes for vertical positioning
+        		  var non = 0;
+        		  if (self.state.targetSpeciesName === "Overview"){ non = 65;} else { non = 31;}
+        		  rect.attr("y", newY + non + self.state.yoffset + self.state.yTranslation);
 			  
         		  var xPos = newX;
         		  
         		  var leftEdges = self.state.smallXScale.range();
-			  var width = self.state.smallXScale.rangeBand()+10;
-			  var j;
-			  for(j=0; xPos > (leftEdges[j] + width); j++) {}
-			  //do nothing, just increment j until case fails
-               		  var newModelPos = j+self.state.modelDisplayCount;
+				  var width = self.state.smallXScale.rangeBand()+10;
+				  var j;
+				  for(j=0; xPos > (leftEdges[j] + width); j++) {}
+				  //do nothing, just increment j until case fails
+               	  var newModelPos = j+self.state.modelDisplayCount;
 
-			  var yPos = newY;
-			  
+               	  var yPos = newY;
+			  	
         		  var leftEdges = self.state.smallYScale.range();
-			  var height = self.state.smallYScale.rangeBand();// + self.state.yTranslation;
-			  var j;
-			  for(j=0; yPos > (leftEdges[j] + height); j++) {}
-			  //do nothing, just increment j until case fails
-               		  var newPhenotypePos = j+self.state.phenotypeDisplayCount;
+        		  var height = self.state.smallYScale.rangeBand();// + self.state.yTranslation;
+        		  var j;
+				  for(j=0; yPos > (leftEdges[j] + height); j++) {}
+				  //do nothing, just increment j until case fails
+               	  var newPhenotypePos = j+self.state.phenotypeDisplayCount;
 
-			  self._updateModel(newModelPos, newPhenotypePos);
+               	  self._updateModel(newModelPos, newPhenotypePos);
 			  
-                      }))
-
-
+               }))
 		.attr("id", "selectionrect")
 	    //set the height and width to match the number of items shown on the axes
 		.attr("height", self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a))  //rowid
 		.attr("width", self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id));
+	    //set this back to 0 so it doesn't affect other rendering
+	    self.state.yTranslation = 0;
 	},
 
 	/* we only have 3 color,s but that will do for now */
@@ -1400,19 +1414,20 @@ var url = document.URL;
 	    	xoffset = 340; foffset = 320; doffset = -10;
 		    this.state.svg.append("svg:text")
 		    	.attr("id","toptitle")
-		    	.attr("transform","translate(" + (xoffset ) + "," + (18) + ")")
+		    	.attr("transform","translate(" + (xoffset ) + "," + (20) + ")")
 		    	.attr("x", 0)
 		    	.attr("y", 0)
-		    	.text("Cross-Options Overview");
+		    	.text("Cross-Species Overview");
 	    } else {
 	    	species= this.state.targetSpeciesName;
-	    	xoffset = 260; foffset = 500; doffset = -50;
+	    	var comp = this._getComparisonType(species);
+	    	xoffset = 220; foffset = 580; doffset = -15;
 	    	var mtitle = this.state.svg.append("svg:text")
 		    	.attr("id","toptitle2")
-		    	.attr("transform","translate(" + (xoffset ) + "," + (18) + ")")
+		    	.attr("transform","translate(" + (xoffset ) + "," + (20) + ")")
 		    	.attr("x", 0)
 		    	.attr("y", 10)
-		    	.text("Phenotype Comparison (grouped by " + species + ")");
+		    	.text("Phenotype Comparison (grouped by " + species + " " +   comp + ")");
 	    }	    
     	var faq	= this.state.svg
 			.append("svg:image")				
@@ -1531,15 +1546,18 @@ var url = document.URL;
 	    if (type === "organism"){
 	       self.state.phenotypeData = self.state.origPhenotypeData.slice();
 	       self.state.phenotypeSortData = [];
-		   self._reset();
+		   self._reset("organism");
 		   self._init();
 	    }
 	    else if (type === "calculation"){
-	      self._reset();
-	    }
-	},
-	
-	_addLogoImage : function() { 
+	    	self._reset("calculation");
+		}	
+		else if (type === "sortphenotypes"){
+		   self._reset("sortphenotypes");
+		}
+ },
+ 
+ 	_addLogoImage :	 function() { 
 
 	    var start = 0;
 	    
@@ -1550,7 +1568,7 @@ var url = document.URL;
 	    this.state.svg.append("svg:image")
                 .attr("xlink:href", this.state.scriptpath + "../image/logo.png")
                 .attr("x", start)
-                .attr("y", this.state.yTranslation - 10)
+                .attr("y", this.state.yTranslation + 10)
                 .attr("id", "logo")
                 .attr("width", "60")
                 .attr("height", "90");       
