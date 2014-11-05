@@ -377,26 +377,23 @@ var url = document.URL;
 	//create this visualization if no phenotypes or models are returned
 	_createEmptyVisualization: function(msg) {
 
-	    var self = this;
-	    
 	    d3.select("#svg_area").remove();
 	    this.state.svgContainer.append("<svg id='svg_area'></svg>");
-            this.state.svg = d3.select("#svg_area");
-            self.state.svg
-		.attr("width", 1100)
-		.attr("height", 70);
-            self.state.h = 60;
-            self.state.yoffset = 50;
-            self.state.svg.append("text")
-		.attr("x", 80)
-		.attr("y", 60)
-		.attr("height", 70)
-		.attr("width", 200)
-		.attr("id", "errmsg")
-		.text(msg);	
+        this.state.svg = d3.select("#svg_area");
+        
+        var svgContainer = this.state.svgContainer;
+	    svgContainer.append("<svg id='svg_area'></svg>");		
+	    this.state.svg = d3.select("#svg_area")
+	    .attr("width", 1100)
+		.attr("height", 70);	 
+        
+		
 	    
-	    var html = "<br /><div id='return'><button id='button' type='button'>Return</button></div>";	
-	    this.element.append(html);
+	    //var error = "<br /><div id='err'><h4>" + msg + "</h4></div><br /><div id='return'><button id='button' type='button'>Return</button></div>";
+	    //this.element.append(error);
+       
+	    var html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><button id='button' type='button'>Return</button></div>";	    
+        this.element.append(html);
 	    
 	    var btn = d3.selectAll("#button")
 		.on("click", function(d,i){

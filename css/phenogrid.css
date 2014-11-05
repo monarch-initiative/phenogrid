@@ -271,7 +271,7 @@
 #button {
 	float:left;
 	margin-top:15px;
-	margin-left: -510px;
+	margin-left: -495px;
 }
 
 #phenogrid_controls {
@@ -289,6 +289,10 @@
 	font-size:1.2em;
 }
 
+#err {
+	margin-left:-1225px;
+	float:left;
+}
 
 /* spinner code from http://tobiasahlin.com/spinkit */
 #spinner {
