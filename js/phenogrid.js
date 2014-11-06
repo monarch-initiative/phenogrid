@@ -105,12 +105,15 @@ var url = document.URL;
 	    defaultApiEntity: "gene",
 	    tooltips: {},
 	    widthOfSingleModel: 18,
-	    overviewTitleXOffset: 340,
-	    overviewTitleFaqOffset: 320,
-	    overviewTitleDiseaseOffset: -10,
-	    nonOverviewTitleXOffset: 220,
-	    nonOverviewTitleFaqOffset: 580,
-	    nonOverviewTitleDiseaseOffset: -15,	    
+	    overviewGridTitleXOffset: 340,
+	    overviewGridTitleFaqOffset: 230,
+	    overviewGridTitleDiseaseOffset: -15,
+	    nonOverviewGridTitleXOffset: 220,
+	    nonOverviewGridTitleFaqOffset: 545,
+	    nonOverviewGridTitleDiseaseOffset: -15,
+	    gridTitleYOffset: 20,
+	    baseYOffset: 150
+	    
 	},
 
 
@@ -139,7 +142,7 @@ var url = document.URL;
 	    this.state.filteredModelList = [];
 
 	    this.state.yAxisMax = 0;
-	    this.state.yoffset  = 150;
+	    this.state.yoffset  = this.state.baseYOffset;
 	    this.state.yoffsetOver = 0;
 	    this.state.modelName = "";
 
@@ -279,6 +282,7 @@ var url = document.URL;
 	    this._loadData();
 	    console.timeEnd("load");
 
+	    // amont of extra space needed for overview
 	    if (this.state.targetSpeciesName == "Overview") {
 	    	this.state.yoffsetOver = 30;
 	    }
@@ -1408,50 +1412,51 @@ var url = document.URL;
 	},
 
 	_addGridTitle: function() {
-	    var species = '',
-	        xoffset = this.state.overviewTitleXOffset;
-	        foffset = this.state.overviewTitleFaqOffset;
-	        doffset = this.state.overviewTitleDiseaseOffset;
-	    if (this.state.targetSpeciesName == "Overview") {
-		    this.state.svg.append("svg:text")
-		    	.attr("id","toptitle")
-		// 	.attr("transform","translate(" + (xoffset ) + "," + (20) + ")")
-		    .attr("x",xoffset)
-		    .attr("y",20)
-		    	.text("Cross-Species Overview");
-	    } else {
+	    var species = '';
+	    var faqWidth = 15;
+	    var faqHeight = 15;
 
+	    // set up defaults as if overview
+	    var xoffset = this.state.overviewGridTitleXOffset;
+	    var foffset = this.state.overviewGridTitleFaqOffset;
+	    var doffset = this.state.overviewGridTitleDiseaseOffset;
+	    var titleText = "Cross-Species Overview";
+	    
+	    if (this.state.targetSpeciesName !== "Overview") {
 	    	species= this.state.targetSpeciesName;
-		xoffset = this.state.nonOverviewTitleXOffset;
-	        foffset = this.state.nonOverviewTitleFaqOffset;
-	        doffset = this.state.nonOverviewTitleDiseaseOffset;
+		xoffset = this.state.nonOverviewGridTitleXOffset;
+	        foffset = this.state.nonOverviewGridTitleFaqOffset;
+	        doffset = this.state.nonOverviewGridTitleDiseaseOffset;
 	    	var comp = this._getComparisonType(species);
-	 	var mtitle = this.state.svg.append("svg:text")
-		    .attr("id","toptitle2")
-		    .attr("x",xoffset)
-		    .attr("y",20)
-		    .text("Phenotype Comparison (grouped by " + species + " " +   comp + ")");
-	    }	    
-    	var faq	= this.state.svg
-			.append("svg:image")				
-			.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-			.attr("transform","translate(" + (xoffset + foffset) + "," + (5) + ")")
-			.attr("id","faqinfo")
-	                .attr("width", 15)
-	    	        .attr("height", 15)		
-			.on("click", function(d) {
-			    var name = "faq";					
-			    self._showDialog(this.state.modelName);
-			});
-    	
+		titleText = "Phenotype Comparison (grouped by " + species + " " +   comp + ")";
+	    }
+
+	    
+	    var mtitle = this.state.svg.append("svg:text")
+	        .attr("class","gridtitle")
+		.attr("id","toptitle2")
+		.attr("x",xoffset)
+		.attr("y",this.state.gridTitleYOffset)
+		.text(titleText);
+
+    	    var faq	= this.state.svg
+	    .append("svg:image")				
+	    .attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
+	    .attr("x",xoffset+foffset)
+	    .attr("id","faqinfo")
+	    .attr("width", faqWidth)
+	    .attr("height",faqHeight)		
+	    .on("click", function(d) {
+		var name = "faq";					
+		self._showDialog(this.state.modelName);
+	    });
+    	    
     	var title = document.getElementsByTagName("title")[0].innerHTML;
     	var dtitle = title.replace("Monarch Disease:", "");
     	var disease = dtitle.replace(/ *\([^)]*\) */g,"");
     		this.state.svg.append("svg:text")
 	    	.attr("id","diseasetitle")
-	    	.attr("transform","translate(" + (0) + "," + (this.state.yoffset + doffset) + ")")
-	    	.attr("x", 0)
-	    	.attr("y", 10)
+	    	.attr("y", this.state.yoffset+doffset)
 	    	.text(disease);
 	},
 	
