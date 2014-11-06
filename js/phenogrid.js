@@ -104,8 +104,13 @@ var url = document.URL;
 			  {prefix: "OMIM", apifragment: "disease"}],
 	    defaultApiEntity: "gene",
 	    tooltips: {},
-	    widthOfSingleModel: 18
-	    
+	    widthOfSingleModel: 18,
+	    overviewTitleXOffset: 340,
+	    overviewTitleFaqOffset: 320,
+	    overviewTitleDiseaseOffset: -10,
+	    nonOverviewTitleXOffset: 220,
+	    nonOverviewTitleFaqOffset: 580,
+	    nonOverviewTitleDiseaseOffset: -15,	    
 	},
 
 
@@ -1404,37 +1409,36 @@ var url = document.URL;
 
 	_addGridTitle: function() {
 	    var species = '',
-	        xoffset = 0,
-	        foffset = 0,
-	        doffset = 0;
+	        xoffset = this.state.overviewTitleXOffset;
+	        foffset = this.state.overviewTitleFaqOffset;
+	        doffset = this.state.overviewTitleDiseaseOffset;
 	    if (this.state.targetSpeciesName == "Overview") {
-	    	xoffset = 340; foffset = 320; doffset = -10;
 		    this.state.svg.append("svg:text")
 		    	.attr("id","toptitle")
-		    	.attr("transform","translate(" + (xoffset ) + "," + (20) + ")")
-		    	.attr("x", 0)
-		    	.attr("y", 0)
+		// 	.attr("transform","translate(" + (xoffset ) + "," + (20) + ")")
+		    .attr("x",xoffset)
+		    .attr("y",20)
 		    	.text("Cross-Species Overview");
 	    } else {
+
 	    	species= this.state.targetSpeciesName;
+		xoffset = this.state.nonOverviewTitleXOffset;
+	        foffset = this.state.nonOverviewTitleFaqOffset;
+	        doffset = this.state.nonOverviewTitleDiseaseOffset;
 	    	var comp = this._getComparisonType(species);
-	    	xoffset = 220; foffset = 580; doffset = -15;
-	    	var mtitle = this.state.svg.append("svg:text")
-		    	.attr("id","toptitle2")
-		    	.attr("transform","translate(" + (xoffset ) + "," + (20) + ")")
-		    	.attr("x", 0)
-		    	.attr("y", 10)
-		    	.text("Phenotype Comparison (grouped by " + species + " " +   comp + ")");
+	 	var mtitle = this.state.svg.append("svg:text")
+		    .attr("id","toptitle2")
+		    .attr("x",xoffset)
+		    .attr("y",20)
+		    .text("Phenotype Comparison (grouped by " + species + " " +   comp + ")");
 	    }	    
     	var faq	= this.state.svg
 			.append("svg:image")				
 			.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-			.attr("transform","translate(" + (xoffset + foffset) + "," + (10 ) + ")")
+			.attr("transform","translate(" + (xoffset + foffset) + "," + (5) + ")")
 			.attr("id","faqinfo")
-			.attr("x", 0)
-			.attr("y", 0)
-			.attr("width", 15)
-	    	.attr("height", 15)		
+	                .attr("width", 15)
+	    	        .attr("height", 15)		
 			.on("click", function(d) {
 			    var name = "faq";					
 			    self._showDialog(this.state.modelName);
