@@ -1439,21 +1439,28 @@ var url = document.URL;
 		.attr("y",this.state.gridTitleYOffset)
 		.text(titleText);
 
+	    // foffset is the offset to place the icon at the right of the grid title.
+	    //ideally should do this by dynamically grabbing the width of mtitle,
+	    // but that doesn't seem to work.
     	    var faq	= this.state.svg
-	    .append("svg:image")				
-	    .attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-	    .attr("x",xoffset+foffset)
-	    .attr("id","faqinfo")
-	    .attr("width", faqWidth)
-	    .attr("height",faqHeight)		
-	    .on("click", function(d) {
-		var name = "faq";					
-		self._showDialog(this.state.modelName);
+		.append("svg:image")				
+		.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
+		.attr("x",xoffset+foffset)
+		.attr("id","faqinfo")
+		.attr("width", faqWidth)
+		.attr("height",faqHeight)		
+		.on("click", function(d) {
+		    var name = "faq";					
+		    self._showDialog(this.state.modelName);
 	    });
     	    
     	var title = document.getElementsByTagName("title")[0].innerHTML;
     	var dtitle = title.replace("Monarch Disease:", "");
-    	var disease = dtitle.replace(/ *\([^)]*\) */g,"");
+
+
+	    // place it at yoffset - the top of the rectangles with the phenotypes
+	    // + doffset, which will be negative to raise it up a bit.
+        var disease = dtitle.replace(/ *\([^)]*\) */g,"");
     		this.state.svg.append("svg:text")
 	    	.attr("id","diseasetitle")
 	    	.attr("y", this.state.yoffset+doffset)
