@@ -109,7 +109,7 @@ var url = document.URL;
 	    overviewGridTitleFaqOffset: 230,
 	    overviewGridTitleDiseaseOffset: -15,
 	    nonOverviewGridTitleXOffset: 220,
-	    nonOverviewGridTitleFaqOffset: 545,
+	    nonOverviewGridTitleFaqOffset: 570,
 	    nonOverviewGridTitleDiseaseOffset: -15,
 	    gridTitleYOffset: 20,
 	    baseYOffset: 150
@@ -262,7 +262,7 @@ var url = document.URL;
 
 	
 	_init: function() {
-	    console.time("init");
+	  //  console.time("init");
 	    this.element.empty();
 	    this._loadSpinner();
 	    this.state.phenotypeDisplayCount = this._calcPhenotypeDisplayCount();
@@ -280,7 +280,7 @@ var url = document.URL;
 			this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 	    console.time("load");
 	    this._loadData();
-	    console.timeEnd("load");
+//	    console.timeEnd("load");
 
 	    // amont of extra space needed for overview
 	    if (this.state.targetSpeciesName == "Overview") {
@@ -292,8 +292,8 @@ var url = document.URL;
 	    this.element.empty();
 	    console.time("reDraw");
 	    this.reDraw();
-	    console.timeEnd("reDraw");
-	    console.timeEnd("init");
+	  //  console.timeEnd("reDraw");
+	   // console.timeEnd("init");
 	 },
 
 	 _loadSpinner: function() {
@@ -308,9 +308,9 @@ var url = document.URL;
 		 && this.state.filteredPhenotypeData.length != 0){
 
 			 this._setComparisonType();
-			 console.time("initCanvas");
+//			 console.time("initCanvas");
 		     this._initCanvas();
-			 console.timeEnd("initCanvas");
+			// console.timeEnd("initCanvas");
 			 this._addLogoImage();
 	
 		     this.state.svg
@@ -319,29 +319,29 @@ var url = document.URL;
 			 console.time("accents-color");
 			 this._createRectangularContainers();				
 			 this._createColorScale();
-			 console.timeEnd("accents-color");
+//			 console.timeEnd("accents-color");
 	
-			 console.time("model-region");
+//			 console.time("model-region");
 			 var ymax  = this._createModelRegion();
 			 console.log("ymax is "+ymax);
-			 console.timeEnd("model-region");
+//			 console.timeEnd("model-region");
 	
-			 console.time("axes");		 
+//			 console.time("axes");		 
 			 this._updateAxes();
-			 console.timeEnd("axes");
+//			 console.timeEnd("axes");
 	
-			 console.time("gridlines");
+//			 console.time("gridlines");
 			 this._createGridlines();
-			 console.timeEnd("gridlines");
-			 console.time("modelrects");
+//			 console.timeEnd("gridlines");
+//			 console.time("modelrects");
 			 this._createModelRects();
-			 console.timeEnd("modelrects");
-			 console.time("createRects");
+//			 console.timeEnd("modelrects");
+//			 console.time("createRects");
 			 this._createRects();
-			 console.timeEnd("createRects");
-			 console.time("overview");
+//			 console.timeEnd("createRects");
+//			 console.time("overview");
 			 this._createOverviewSection();
-			 console.timeEnd("overview");
+//			 console.timeEnd("overview");
 	
 	    	 ymax = ymax + 60; //gap MAGIC NUBER ALERT. DOES THIS
 			 //NEED TO BE CLEANED?
@@ -460,6 +460,7 @@ var url = document.URL;
 	    }
 	    var globalview = self.state.svg.append("rect")
 	    //note: I had to make the rectangle slightly bigger to compensate for the strike-width
+	    // X OFFSET OF THE OVERVIEW is 42 to the right of the overview section
 		.attr("x", self.state.axis_pos_list[2] + 42)
 		.attr("y", self.state.yoffset + self.state.yoffsetOver+ 30 + this.state.yTranslation)
 		.attr("id", "globalview")
@@ -522,6 +523,10 @@ var url = document.URL;
 
   	    //next assign the x and y axis using the full list
 	    //add the items using smaller rects
+
+
+
+	    
 	    var model_rects = this.state.svg.selectAll(".mini_models")
 	      	.data(modData, function(d) {
 	      	    return d.id;
@@ -565,8 +570,11 @@ var url = document.URL;
             	  //if (self.state.targetSpeciesName === "Overview"){ self.state.yTranslation = 60;} else { self.state.yTranslation = 25;}
             	  var rect = self.state.svg.select("#selectionrect");
         		  rect.attr("transform","translate(0,0)")
-        		  
-        		  //limit the range of the x value
+
+		  console.log("drag at absolute position.."+d3.event.x+","+d3.event.y);
+        	  //limit the range of the x value
+
+		          /*// get the position of the drag relative to the window...
         		  var newX = d3.event.x - (self.state.axis_pos_list[2] + 45);
         		  newX = Math.max(newX,0);
         		  newX = Math.min(newX,(110-self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id)));
@@ -575,7 +583,13 @@ var url = document.URL;
         		  //limit the range of the y value
         		  var newY = d3.event.y - 119;					
         		  newY = Math.max(newY,0);
-        		  newY = Math.min(newY,(self.state.globalViewHeight-self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a)));  //rowid
+        		  newY = Math.min(newY,(self.state.globalViewHeight-self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a)));  //rowid*/
+
+		  var newX =d3.event.x;
+		  var newY = d3.event.y;
+		  rect.attr("x", newX + (self.state.axis_pos_list[2] + 45))
+
+		  console.log("dragging overview at..."+newX+", "+newY);
         		  //This changes for vertical positioning
         		  var non = 0;
         		  if (self.state.targetSpeciesName === "Overview"){ non = 65;} else { non = 31;}
@@ -676,7 +690,7 @@ var url = document.URL;
 		this.element.empty();
 		this.reDraw();   
 	
-	    console.timeEnd("End processSelectedPhenotypeSort");
+//	    console.timeEnd("End processSelectedPhenotypeSort");
 	},
 	
 	_processSelectedCalculation: function(){
@@ -689,7 +703,7 @@ var url = document.URL;
 		this.element.empty();
 		this.reDraw();   
 	
-	    console.timeEnd("End processSelectedCalculation");
+	 //   console.timeEnd("End processSelectedCalculation");
 	},
 
 	//given the full dataset, return a filtered dataset containing the
@@ -2107,13 +2121,13 @@ var url = document.URL;
 			.style('opacity', '1.0')
 			.attr("fill", function(d,i) { return self._setRectFill(self,d,i)});
 
-	    console.timeEnd("mod-rects-basics");
-	    console.time("highlightspec");
+//	    console.timeEnd("mod-rects-basics");
+//	    console.time("highlightspec");
 	    if (self.state.targetSpeciesName == "Overview") {
 	    	this._highlightSpecies();
 	    }
-	    console.timeEnd("highlightspec");
-	    console.time("modrects-trans");
+//	    console.timeEnd("highlightspec");
+//	    console.time("modrects-trans");
 	    model_rects.transition()
 			.delay(20)
 			.style('opacity', '1.0')
@@ -2125,7 +2139,7 @@ var url = document.URL;
 	    model_rects.exit().transition()
 			.style('opacity', '0.0')
 			.remove();
-	    console.timeEnd("modrects-trans");	    
+//	    console.timeEnd("modrects-trans");	    
 	},
 	
 	_highlightSpecies : function () {
@@ -2585,37 +2599,37 @@ var url = document.URL;
 	    this.state.xScale = d3.scale.ordinal()
 		.domain(list.map(function (d) {
 		    return d.model_id; })).rangeRoundBands([0,this.state.modelWidth]);
-	    console.timeEnd("rangerounds");	    
+//	    console.timeEnd("rangerounds");	    
 
-	    console.time("modellabels");
+//	    console.time("modellabels");
 	    this._createModelLabels(self);
-	    console.timeEnd("modellabels");
+//	    console.timeEnd("modellabels");
 
-	    console.time("modellines");
+//	    console.time("modellines");
 	    this._createModelLines();
-	    console.timeEnd("modellines");
+//	    console.timeEnd("modellines");
 	    
-	    console.time("textscores");
+//	    console.time("textscores");
 	    this._createTextScores(list);
-	    console.timeEnd("textscores");
+//	    console.timeEnd("textscores");
 
-	    console.time("col");
+//	    console.time("col");
 	    if (self.state.targetSpeciesName == "Overview") {
 	        this._createOverviewSpeciesLabels();		
 	    }
-	    console.timeEnd("col");
+//	    console.timeEnd("col");
 	    	    
 	    //var modData = [];
 	    
 	    //modData =this.state.modelData.slice();
 	    var modData = this.state.modelData;
 
-	    console.time("moddiff");
+//	    console.time("moddiff");
 	    var temp_data = modData.map(function(d) { 
 	    	return d.value;}
 	    );
 	    var diff = d3.max(temp_data) - d3.min(temp_data);
-	    console.timeEnd("moddiff");
+//	    console.timeEnd("moddiff");
 
 	    // indicator for bottom of gradients
 	    var ymax = 0;
@@ -2634,11 +2648,11 @@ var url = document.URL;
 		this._buildGradientTexts(y1);
 	    }					
 
-	    console.time("pgcontrols");
+//	    console.time("pgcontrols");
 	    var phenogridControls = $('<div id="phenogrid_controls"></div>');
 	    this.element.append(phenogridControls);
 	    this._createSelectionControls(phenogridControls); 
-	    console.timeEnd("pgcontrols");
+//	    console.timeEnd("pgcontrols");
 
 	    return ymax;
 	},
@@ -2702,9 +2716,9 @@ var url = document.URL;
 			    .style("stop-color", this.state.colorRanges[i][j])
 			    .style("stop-opacity", 1);				
 		    }
-	    console.timeEnd("gradientappend");
+//	    console.timeEnd("gradientappend");
 
-	    console.time("gradientlabs");
+//	    console.time("gradientlabs");
 	    /* gradient + gap is 20 pixels */
 	    var y = y1 + (gradientHeight * i) + this.state.yTranslation + self.state.yoffset;
 	    var  x = self.state.axis_pos_list[2] + 12;
@@ -2733,7 +2747,7 @@ var url = document.URL;
 		.attr("x", x)
 		.style("font-size", "11px")
 		.text(specName);
-	    console.timeEnd("gradientlabs");
+//	    console.timeEnd("gradientlabs");
 	    
 	    y = y+gradientHeight;
 	   
@@ -2784,7 +2798,7 @@ var url = document.URL;
 		.attr("x", xtext3)
 		.style("font-size", "10px")
 		.text(text3);
-	    console.timeEnd("mrtexts");
+//	    console.timeEnd("mrtexts");
 	    
 		//Position the max more carefully	
 	    if (text3 == "Max") {
