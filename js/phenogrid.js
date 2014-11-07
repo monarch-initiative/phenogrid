@@ -467,91 +467,35 @@ var url = document.URL;
 	    if (this.state.phenotypeData.length < this.state.defaultPhenotypeDisplayCount) {
 		overviewRegionSize = self.state.reducedGlobalViewSize;
 	    }
-	    
+
+	    // create the legend for the modelScores
+	    self._createModelScoresLegend();
+
 	    // make it a bit bigger to ccont for widths
 	    // MAGIC NUMBER ALERT
 	    var overviewBoxDim = overviewRegionSize+strokePadding;
 
-	    //note: I had to make the rectangle slightly bigger to compensate for the strike-width
-	    // X OFFSET OF THE OVERVIEW is 42 to the right of the overview section
-	    var globalview = self.state.svg.append("rect")
-		.attr("x", self.state.axis_pos_list[2] + overviewXOffset)
-		.attr("y", self.state.yoffset + self.state.yoffsetOver+ 30 + this.state.yTranslation)
-		.attr("id", "globalview")
-		.attr("height", overviewBoxDim)
-		.attr("width", overviewBoxDim);
-	    
-	    var scoretip = self.state.svg.append("text")
-		.attr("transform","translate(" + (self.state.axis_pos_list[2] ) + "," + 
-		      (self.state.yTranslation + self.state.yoffset - 6) + ")")
-    	        .attr("x", 0)
-		.attr("y", 0)
-		.attr("class", "tip")
-		.text("< Model Scores");			
-	    
-	    var tip	= self.state.svg
-		.append("svg:image")				
-		.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-		.attr("transform","translate(" + (self.state.axis_pos_list[2] +102) + "," + 
-		      (self.state.yTranslation + self.state.yoffset - 20) + ")")
-		.attr("id","modelscores")
-		.attr("x", 0)
-		.attr("y", 0)
-		.attr("width", 15)
-    	        .attr("height", 15)		
-		.on("click", function(d) {
-		    var name = "modelscores";					
-		    self._showDialog(name);
-		});
-	    
-	    var rect_instructions = self.state.svg.append("text")		
-	    .attr("x", self.state.axis_pos_list[2] + 10)
-		//This changes for vertical positioning
-	    .attr("y", (self.state.yoffset * 2) + 50)
- 		.attr("class", "instruct")
- 		.text("Use the phenotype map above to");
- 	    
- 	    var rect_instructions = self.state.svg.append("text")
- 		.attr("x", self.state.axis_pos_list[2] + 10)
- 		//This changes for vertical positioning
-		.attr("y", (self.state.yoffset * 2) +  60) 
- 		.attr("class", "instruct")
- 		.text("navigate the model view on the left");
-	    
-	    var  sortDataList = [];
-	    
-	    for (i=0; i<self.state.phenotypeSortData.length; i++) {
-	    	sortDataList.push(self.state.phenotypeSortData[i][0].id_a);  //rowid
-	    }
-	    var mods = [],
-	    modData = [];
-	    
-	    mods = self.state.modelList;
-	    modData = self.state.modelData;
-	    
-	    this.state.smallYScale = d3.scale.ordinal()
-		.domain(sortDataList.map(function (d) {return d; }))				    
-		.rangePoints([0,overviewRegionSize]);
+	    // create the main box and the instruction labels.
+	    self._initializeOverviewRegion(overviewBoxDim,overviewXOffset);
 
-	    this.state.smallXScale = d3.scale.ordinal()
-		.domain(mods.map(function (d) {return d.model_id; }))
-		.rangePoints([0,overviewRegionSize]);
 
-  	    //next assign the x and y axis using the full list
+	    // create the scales
+	    self._createSmallScales(overviewRegionSize);
+	    
 	    //add the items using smaller rects
+	    var mods = self.state.modelList;
+	    var modData = self.state.modelData;
 
-
-
-	    
 	    var model_rects = this.state.svg.selectAll(".mini_models")
 	      	.data(modData, function(d) {
 	      	    return d.id;
 	      	});
 	    
+	    var modelRectTransform = "translate(" + (self.state.axis_pos_list[2] + overviewXOffset) +
+		"," + (self.state.yoffset + self.state.yoffsetOver +30 + self.state.yTranslation) + ")"
 	    model_rects.enter()
 		.append("rect")
-		.attr("transform",
-		      "translate(" + (self.state.axis_pos_list[2] + overviewXOffset) + "," + (self.state.yoffset + self.state.yoffsetOver +30 + self.state.yTranslation) + ")")
+		.attr("transform",modelRectTransform)
 		.attr("class",  "mini_model")
 		.attr("y", function(d, i) { return self.state.smallYScale(d.id_a);})
 		.attr("x", function(d) { return self.state.smallXScale(d.model_id);})
@@ -559,27 +503,33 @@ var url = document.URL;
 		.attr("height", 2)
 		.attr("fill", function(d,i) { return self._setRectFill(self,d,i)});
 	    
-	    selectRectHeight = self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a); //rowid
-	    selectRectWidth = self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id);
-	    if (self.state.targetSpeciesName === "Overview"){ self.state.yTranslation = 60;} else { self.state.yTranslation = 25;}
+	    var lastId = self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a; //rowid
+	    var selectRectHeight = self.state.smallYScale(lastId);
+	    var selectRectWidth = self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id);
+	    if (self.state.targetSpeciesName === "Overview"){ 
+		self.state.yTranslation = 60;
+	    } 
+	    else { 
+		self.state.yTranslation = 25;
+	    }
 	    //self.state.yTranslation = 60;
-	    console.log("self.state.yoffsetOver: " + self.state.yoffsetOver);
-	    console.log("self.state.yTranslation: " + self.state.yTranslation);
-	    console.log("self.state.yoffset: " + self.state.yoffset);
 	    
 	    //create the "highlight" rectangle
+	    var highlightRectTransform = "translate(" + 
+		(self.state.axis_pos_list[2] + 47) + "," 
+		+ (5 + self.state.yoffset + self.state.yTranslation) + ")"
 	    self.state.highlightRect = self.state.svg.append("rect")
-		.attr("transform",												//This changes for vertical positioning
-		      "translate(" + (self.state.axis_pos_list[2] + 47) + "," + (5 + self.state.yoffset + self.state.yTranslation) + ")")
-		.attr("x", 0)
-		.attr("y", 0)		
+		.attr("transform",highlightRectTransform)
 		.attr("class", "draggable")					
+		.attr("id", "selectionrect")
+		.attr("height", selectRectHeight)
+		.attr("width", selectRectWidth)
 		.call(d3.behavior.drag()
 		      .origin(function() {
 			  var current = d3.select(this);
 			  return {x: current.attr("x"), y: current.attr("y") };
 		      })
-              .on("drag", function(d) {
+		      .on("drag", function(d) {
             	  // drag the highlight in the overview window
             	  //notes: account for the width of the rectangle in my x and y calculations
             	  //do not use the event x and y, they will be out of range at times.  use the converted values instead.
@@ -631,11 +581,7 @@ var url = document.URL;
 
                	  self._updateModel(newModelPos, newPhenotypePos);
 			  
-               }))
-		.attr("id", "selectionrect")
-	    //set the height and width to match the number of items shown on the axes
-		.attr("height", self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a))  //rowid
-		.attr("width", self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id));
+               }));
 	    //set this back to 0 so it doesn't affect other rendering
 	    self.state.yTranslation = 0;
 	},
@@ -647,6 +593,76 @@ var url = document.URL;
 	    var scaleIndex  = this._getTargetSpeciesIndexByName(self,d.species);
 	    var selectedScale = self.state.colorScale[scaleIndex];
 	    return selectedScale(d.value);
+	},
+
+	_createModelScoresLegend: function() {
+	    var scoretip = self.state.svg.append("text")
+		.attr("transform","translate(" + (self.state.axis_pos_list[2] ) + "," + 
+		      (self.state.yTranslation + self.state.yoffset - 6) + ")")
+    	        .attr("x", 0)
+		.attr("y", 0)
+		.attr("class", "tip")
+		.text("< Model Scores");			
+	    
+	    var tip	= self.state.svg
+		.append("svg:image")				
+		.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
+		.attr("transform","translate(" + (self.state.axis_pos_list[2] +102) + "," + 
+		      (self.state.yTranslation + self.state.yoffset - 20) + ")")
+		.attr("id","modelscores")
+		.attr("x", 0)
+		.attr("y", 0)
+		.attr("width", 15)
+    	        .attr("height", 15)		
+		.on("click", function(d) {
+		    var name = "modelscores";					
+		    self._showDialog(name);
+		});
+	},
+
+	_initializeOverviewRegion: function(overviewBoxDim,overviewXOffset) {
+	    //note: I had to make the rectangle slightly bigger to compensate for the strike-width
+	    // X OFFSET OF THE OVERVIEW is 42 to the right of the overview section
+	    var globalview = self.state.svg.append("rect")
+		.attr("x", self.state.axis_pos_list[2] + overviewXOffset)
+		.attr("y", self.state.yoffset + self.state.yoffsetOver+ 30 + this.state.yTranslation)
+		.attr("id", "globalview")
+		.attr("height", overviewBoxDim)
+		.attr("width", overviewBoxDim);
+	    
+	    
+	    var rect_instructions = self.state.svg.append("text")		
+	    .attr("x", self.state.axis_pos_list[2] + 10)
+		//This changes for vertical positioning
+	    .attr("y", (self.state.yoffset * 2) + 50)
+ 		.attr("class", "instruct")
+ 		.text("Use the phenotype map above to");
+ 	    
+ 	    var rect_instructions = self.state.svg.append("text")
+ 		.attr("x", self.state.axis_pos_list[2] + 10)
+ 		//This changes for vertical positioning
+		.attr("y", (self.state.yoffset * 2) +  60) 
+ 		.attr("class", "instruct")
+ 		.text("navigate the model view on the left");
+	},
+
+	_createSmallScales: function(overviewRegionSize) {
+	    var  sortDataList = [];
+	    var self=this;
+	    console.log("createSmallScales..."+self.state.phenotypeSortData.length);
+	    for (i=0; i<self.state.phenotypeSortData.length; i++) {
+	    	sortDataList.push(self.state.phenotypeSortData[i][0].id_a);  //rowid
+	    }
+	    var mods = self.state.modelList;
+	    var modData = self.state.modelData;
+	    
+	    this.state.smallYScale = d3.scale.ordinal()
+		.domain(sortDataList.map(function (d) {return d; }))				    
+		.rangePoints([0,overviewRegionSize]);
+
+	    this.state.smallXScale = d3.scale.ordinal()
+		.domain(mods.map(function (d) {return d.model_id; }))
+		.rangePoints([0,overviewRegionSize]);
 	},
 	
 	_getComparisonType : function(organism){
