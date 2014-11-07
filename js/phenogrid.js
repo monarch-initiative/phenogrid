@@ -76,8 +76,8 @@ var url = document.URL;
 	    detailRectWidth: 240,   
             detailRectHeight: 140,
             detailRectStrokeWidth: 3,
-	    globalViewWidth : 110,
-	    globalViewHeight : 110,
+	    globalViewSize : 110,
+	    reducedGlobalViewSize: 30,
 	    h : 526,
 	    m :[ 30, 10, 10, 10 ],
 	    multiOrganismCt: 10,
@@ -100,6 +100,7 @@ var url = document.URL;
 			      { abbrev: "GO", label: "Gene Ontology"}],
 	    modelDisplayCount : 30,
 	    phenotypeDisplayCount : 26,
+	    defaultPhenotypeDisplayCount: 26,
 	    apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
 			  {prefix: "OMIM", apifragment: "disease"}],
 	    defaultApiEntity: "gene",
@@ -455,20 +456,34 @@ var url = document.URL;
 	_createOverviewSection: function() {
 	    var self=this;
 	    
-	    if (this.state.phenotypeData.length < 26) {
-		self.state.globalViewHeight = 30;
+	    // add-ons for stroke size on view box
+	    var strokePadding = 6;
+
+	    /// x offset of overview in section
+	    var overviewXOffset = 42;
+	    
+	    // size of the entire region 
+	    var overviewRegionSize = self.state.globalViewSize;
+	    if (this.state.phenotypeData.length < this.state.defaultPhenotypeDisplayCount) {
+		overviewRegionSize = self.state.reducedGlobalViewSize;
 	    }
-	    var globalview = self.state.svg.append("rect")
+	    
+	    // make it a bit bigger to ccont for widths
+	    // MAGIC NUMBER ALERT
+	    var overviewBoxDim = overviewRegionSize+strokePadding;
+
 	    //note: I had to make the rectangle slightly bigger to compensate for the strike-width
 	    // X OFFSET OF THE OVERVIEW is 42 to the right of the overview section
-		.attr("x", self.state.axis_pos_list[2] + 42)
+	    var globalview = self.state.svg.append("rect")
+		.attr("x", self.state.axis_pos_list[2] + overviewXOffset)
 		.attr("y", self.state.yoffset + self.state.yoffsetOver+ 30 + this.state.yTranslation)
 		.attr("id", "globalview")
-		.attr("height", self.state.globalViewHeight + 6)
-		.attr("width", self.state.globalViewWidth + 6);
+		.attr("height", overviewBoxDim)
+		.attr("width", overviewBoxDim);
 	    
 	    var scoretip = self.state.svg.append("text")
-		.attr("transform","translate(" + (self.state.axis_pos_list[2] ) + "," + (self.state.yTranslation + self.state.yoffset - 6) + ")")
+		.attr("transform","translate(" + (self.state.axis_pos_list[2] ) + "," + 
+		      (self.state.yTranslation + self.state.yoffset - 6) + ")")
     	        .attr("x", 0)
 		.attr("y", 0)
 		.attr("class", "tip")
@@ -477,7 +492,8 @@ var url = document.URL;
 	    var tip	= self.state.svg
 		.append("svg:image")				
 		.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-		.attr("transform","translate(" + (self.state.axis_pos_list[2] +102) + "," + (self.state.yTranslation + self.state.yoffset - 20) + ")")
+		.attr("transform","translate(" + (self.state.axis_pos_list[2] +102) + "," + 
+		      (self.state.yTranslation + self.state.yoffset - 20) + ")")
 		.attr("id","modelscores")
 		.attr("x", 0)
 		.attr("y", 0)
@@ -515,11 +531,11 @@ var url = document.URL;
 	    
 	    this.state.smallYScale = d3.scale.ordinal()
 		.domain(sortDataList.map(function (d) {return d; }))				    
-		.rangePoints([0,self.state.globalViewHeight]);
+		.rangePoints([0,overviewRegionSize]);
 
 	    this.state.smallXScale = d3.scale.ordinal()
 		.domain(mods.map(function (d) {return d.model_id; }))
-		.rangePoints([0,self.state.globalViewWidth]);
+		.rangePoints([0,overviewRegionSize]);
 
   	    //next assign the x and y axis using the full list
 	    //add the items using smaller rects
@@ -535,7 +551,7 @@ var url = document.URL;
 	    model_rects.enter()
 		.append("rect")
 		.attr("transform",
-		      "translate(" + (self.state.axis_pos_list[2] + 42) + "," + (self.state.yoffset + self.state.yoffsetOver +30 + self.state.yTranslation) + ")")
+		      "translate(" + (self.state.axis_pos_list[2] + overviewXOffset) + "," + (self.state.yoffset + self.state.yoffsetOver +30 + self.state.yTranslation) + ")")
 		.attr("class",  "mini_model")
 		.attr("y", function(d, i) { return self.state.smallYScale(d.id_a);})
 		.attr("x", function(d) { return self.state.smallXScale(d.model_id);})
