@@ -103,12 +103,12 @@
 .tip{
 	width: 80px;
 	height:10px;
-	font-size:12px;
+	font-size:10px;
 	font-weight:bold;
 }
 
 #tip{  
-   font-size: 13px;
+   font-size: 10px;
    margin-left:-20px;
    stroke-width: 1px;
    stroke:#25349A;
@@ -117,7 +117,7 @@
 
 #diseasetitle{
 	font-weight:bold;
-	font-size: 0.9em;
+	font-size: 0.8em;
 	margin-left:-20px;
 }
 

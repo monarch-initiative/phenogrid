@@ -106,12 +106,11 @@ var url = document.URL;
 	    defaultApiEntity: "gene",
 	    tooltips: {},
 	    widthOfSingleModel: 18,
+	    overviewGap: 30,
 	    overviewGridTitleXOffset: 340,
 	    overviewGridTitleFaqOffset: 230,
-	    overviewGridTitleDiseaseOffset: -15,
 	    nonOverviewGridTitleXOffset: 220,
 	    nonOverviewGridTitleFaqOffset: 570,
-	    nonOverviewGridTitleDiseaseOffset: -15,
 	    gridTitleYOffset: 20,
 	    baseYOffset: 150
 	    
@@ -144,7 +143,7 @@ var url = document.URL;
 
 	    this.state.yAxisMax = 0;
 	    this.state.yoffset  = this.state.baseYOffset;
-	    this.state.yoffsetOver = 0;
+//	    this.state.yoffsetOver = 0;
 	    this.state.modelName = "";
 
 	    this.state.yTranslation = 0;
@@ -285,7 +284,7 @@ var url = document.URL;
 
 	    // amont of extra space needed for overview
 	    if (this.state.targetSpeciesName == "Overview") {
-	    	this.state.yoffsetOver = 30;
+	    	this.state.yoffsetOver = this.state.overviwGap;
 	    }
 
 	    this._filterData(this.state.modelData);
@@ -506,20 +505,15 @@ var url = document.URL;
 	    var lastId = self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a; //rowid
 	    var selectRectHeight = self.state.smallYScale(lastId);
 	    var selectRectWidth = self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id);
-	    if (self.state.targetSpeciesName === "Overview"){ 
-		self.state.yTranslation = 60;
-	    } 
-	    else { 
-		self.state.yTranslation = 25;
-	    }
-	    //self.state.yTranslation = 60;
+
+	    var yTranslation = 60;
 	    
 	    //create the "highlight" rectangle
 	    var highlightRectTransform = "translate(" + 
 		(self.state.axis_pos_list[2] + 47) + "," 
-		+ (5 + self.state.yoffset + self.state.yTranslation) + ")"
+		+ (5 + self.state.yoffset + yTranslation) + ")"
 	    self.state.highlightRect = self.state.svg.append("rect")
-		.attr("transform",highlightRectTransform)
+   	        .attr("transform",highlightRectTransform)
 		.attr("class", "draggable")					
 		.attr("id", "selectionrect")
 		.attr("height", selectRectHeight)
@@ -533,7 +527,6 @@ var url = document.URL;
             	  // drag the highlight in the overview window
             	  //notes: account for the width of the rectangle in my x and y calculations
             	  //do not use the event x and y, they will be out of range at times.  use the converted values instead.
-            	  //if (self.state.targetSpeciesName === "Overview"){ self.state.yTranslation = 60;} else { self.state.yTranslation = 25;}
             	  var rect = self.state.svg.select("#selectionrect");
         		  rect.attr("transform","translate(0,0)")
 
@@ -557,9 +550,7 @@ var url = document.URL;
 
 		  console.log("dragging overview at..."+newX+", "+newY);
         		  //This changes for vertical positioning
-        		  var non = 0;
-        		  if (self.state.targetSpeciesName === "Overview"){ non = 65;} else { non = 31;}
-        		  rect.attr("y", newY + non + self.state.yoffset + self.state.yTranslation);
+        		  rect.attr("y", newY + self.state.yoffset+yTranslation); ///self.state.yTranslation);
 			  
         		  var xPos = newX;
         		  
@@ -583,7 +574,6 @@ var url = document.URL;
 			  
                }));
 	    //set this back to 0 so it doesn't affect other rendering
-	    self.state.yTranslation = 0;
 	},
 
 	/* we only have 3 color,s but that will do for now */
@@ -596,9 +586,12 @@ var url = document.URL;
 	},
 
 	_createModelScoresLegend: function() {
+	    var faqOffset = 20;
+	    var scoreTipY = self.state.yTranslation+self.state.yoffset;
+	    var faqY = scoreTipY-faqOffset
+	    var tipTextLength =92;
 	    var scoretip = self.state.svg.append("text")
-		.attr("transform","translate(" + (self.state.axis_pos_list[2] ) + "," + 
-		      (self.state.yTranslation + self.state.yoffset - 6) + ")")
+		.attr("transform","translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY+ ")")
     	        .attr("x", 0)
 		.attr("y", 0)
 		.attr("class", "tip")
@@ -607,8 +600,7 @@ var url = document.URL;
 	    var tip	= self.state.svg
 		.append("svg:image")				
 		.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-		.attr("transform","translate(" + (self.state.axis_pos_list[2] +102) + "," + 
-		      (self.state.yTranslation + self.state.yoffset - 20) + ")")
+		.attr("transform","translate(" + (self.state.axis_pos_list[2] +tipTextLength) + "," + faqY + ")")
 		.attr("id","modelscores")
 		.attr("x", 0)
 		.attr("y", 0)
@@ -798,7 +790,7 @@ var url = document.URL;
 			var gap = 3;
 			//push the rowid and ypos onto the yaxis array
 			//so now the yaxis will be in the order of the ranked phenotypes
-			var stuff = {"id": self.state.phenotypeSortData[i][0].id_a, "ypos" : ((axis_idx * (size+gap)) + self.state.yoffset)};// + self.state.yoffsetOver)};
+			var stuff = {"id": self.state.phenotypeSortData[i][0].id_a, "ypos" : ((axis_idx * (size+gap)) + self.state.yoffset)};
 			self.state.yAxis.push(stuff); 
 			axis_idx = axis_idx + 1;
 			//update the ModelData			
@@ -1465,14 +1457,12 @@ var url = document.URL;
 	    // set up defaults as if overview
 	    var xoffset = this.state.overviewGridTitleXOffset;
 	    var foffset = this.state.overviewGridTitleFaqOffset;
-	    var doffset = this.state.overviewGridTitleDiseaseOffset;
 	    var titleText = "Cross-Species Overview";
 	    
 	    if (this.state.targetSpeciesName !== "Overview") {
 	    	species= this.state.targetSpeciesName;
 		xoffset = this.state.nonOverviewGridTitleXOffset;
 	        foffset = this.state.nonOverviewGridTitleFaqOffset;
-	        doffset = this.state.nonOverviewGridTitleDiseaseOffset;
 	    	var comp = this._getComparisonType(species);
 		titleText = "Phenotype Comparison (grouped by " + species + " " +   comp + ")";
 	    }
@@ -1505,11 +1495,10 @@ var url = document.URL;
 
 
 	    // place it at yoffset - the top of the rectangles with the phenotypes
-	    // + doffset, which will be negative to raise it up a bit.
         var disease = dtitle.replace(/ *\([^)]*\) */g,"");
     		this.state.svg.append("svg:text")
 	    	.attr("id","diseasetitle")
-	    	.attr("y", this.state.yoffset+doffset)
+	    	.attr("y", this.state.yoffset+this.state.yTranslation)
 	    	.text(disease);
 	},
 	
@@ -1929,7 +1918,7 @@ var url = document.URL;
 
 	    p.append("text")
 	       	.attr('x', x + 15)
-	        .attr('y', y -5)
+	        .attr('y', y)
 	        .attr("width", width)
 	    //       .attr("id", data.model_id) //this._getConceptId(data.model_id))
 	        .attr("id", this._getConceptId(data.model_id))
@@ -2091,7 +2080,8 @@ var url = document.URL;
 	    var data = this.state.filteredModelData;
 
 	    console.time("mod-rects-basics");
-	    var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + "," + (self.state.yTranslation + self.state.yoffsetOver + 15)+   ")";
+	    var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + ","
+		+ (self.state.yTranslation + self.state.yoffsetOver + 15)+   ")";
 	    var model_rects = this.state.svg.selectAll(".models")
 			.data( data, function(d) {
 			    return d.id;
@@ -2432,12 +2422,15 @@ var url = document.URL;
 	
 
 	_createModelLines: function() {
+
+	    var modelLineGap = 10;
+	    var lineY = this.state.yTranslation+this.state.yoffset-modelLineGap;
 	    this.state.svg.selectAll("path.domain").remove();	
 	    this.state.svg.selectAll("text.scores").remove();
 	    this.state.svg.selectAll("#specieslist").remove();
 
 	    this.state.svg.append("line")
-		.attr("transform","translate(" + (this.state.textWidth + 30) +"," + (this.state.yTranslation + this.state.yoffset - 16) + ")")
+		.attr("transform","translate(" + (this.state.textWidth + 30) +"," + lineY + ")")
 		.attr("x1", 0)
 		.attr("y1", 0)
 		.attr("x2", this.state.modelWidth)
@@ -2445,20 +2438,12 @@ var url = document.URL;
 		.attr("stroke", "#0F473E")
 		.attr("stroke-width", 1);
 
-	    this.state.svg.append("line")
-		.attr("transform","translate(" + (this.state.textWidth + 30) +"," + (this.state.yTranslation + this.state.yoffset + 0) + ")")
-		.attr("x1", 0)
-		.attr("y1", 0)
-		.attr("x2", this.state.modelWidth)
-		.attr("y2", 0);
-	    
-
 	},
 
 	_createTextScores: function(list) {
 	    var self =this;
 	    var translation ="translate(" + (this.state.textWidth + 34) +"," 
-		      + (this.state.yTranslation + this.state.yoffset - 3) + ")";
+		      + (this.state.yTranslation + this.state.yoffset) + ")"; // was yoffset -3
 	    this.state.svg.selectAll("text.scores")
 		.data(list) 
 		.enter()	
