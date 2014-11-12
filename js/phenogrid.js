@@ -143,7 +143,7 @@ var url = document.URL;
 
 	    this.state.yAxisMax = 0;
 	    this.state.yoffset  = this.state.baseYOffset;
-//	    this.state.yoffsetOver = 0;
+	    this.state.yoffsetOver = 0;
 	    this.state.modelName = "";
 
 	    this.state.yTranslation = 0;
@@ -284,7 +284,7 @@ var url = document.URL;
 
 	    // amont of extra space needed for overview
 	    if (this.state.targetSpeciesName == "Overview") {
-	    	this.state.yoffsetOver = this.state.overviwGap;
+	    	this.state.yoffsetOver = this.state.overviewGap;
 	    }
 
 	    this._filterData(this.state.modelData);
@@ -489,9 +489,12 @@ var url = document.URL;
 	      	.data(modData, function(d) {
 	      	    return d.id;
 	      	});
-	    
-	    var modelRectTransform = "translate(" + (self.state.axis_pos_list[2] + overviewXOffset) +
-		"," + (self.state.yoffset + self.state.yoffsetOver +30 + self.state.yTranslation) + ")"
+
+	    var yTranslation = 30;
+	    var selectY = self.state.yoffset+self.state.yoffsetOver+yTranslation;
+	    var modelRectTransform = "translate(" + 
+		(self.state.axis_pos_list[2] + overviewXOffset) +
+		"," + selectY + ")"
 	    model_rects.enter()
 		.append("rect")
 		.attr("transform",modelRectTransform)
@@ -506,12 +509,16 @@ var url = document.URL;
 	    var selectRectHeight = self.state.smallYScale(lastId);
 	    var selectRectWidth = self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id);
 
-	    var yTranslation = 60;
+
 	    
 	    //create the "highlight" rectangle
+	    console.log("self.state.yoffset is ..."+self.state.yoffset);
+	    console.log("yTranslation is.."+yTranslation);
+	    console.log(".. selectY is "+selectY);
 	    var highlightRectTransform = "translate(" + 
-		(self.state.axis_pos_list[2] + 47) + "," 
-		+ (5 + self.state.yoffset + yTranslation) + ")"
+		(self.state.axis_pos_list[2] + 47) + "," +selectY + ")";
+	    
+	    console.log("setting up select rect..."+selectY);
 	    self.state.highlightRect = self.state.svg.append("rect")
    	        .attr("transform",highlightRectTransform)
 		.attr("class", "draggable")					
