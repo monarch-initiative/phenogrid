@@ -146,7 +146,7 @@ var url = document.URL;
 	    this.state.yoffsetOver = 0;
 	    this.state.modelName = "";
 
-	    this.state.yTranslation = 0;
+	  //  this.state.yTranslation = 0;
 
 	    // must reset height explicitly
 	    this.state.h = this.config.h;
@@ -271,7 +271,7 @@ var url = document.URL;
 
 	    this._setSelectedCalculation(this.state.selectedCalculation);
 	    this._setSelectedSort(this.state.selectedSort);
-	    this.state.yTranslation = 0;
+	 //   this.state.yTranslation = 0;
 	    this.state.w = this.state.m[1]-this.state.m[3];
 
 	    this.state.currModelIdx = this.state.modelDisplayCount-1;
@@ -557,7 +557,7 @@ var url = document.URL;
 
 		  console.log("dragging overview at..."+newX+", "+newY);
         		  //This changes for vertical positioning
-        		  rect.attr("y", newY + self.state.yoffset+yTranslation); ///self.state.yTranslation);
+        		  rect.attr("y", newY + self.state.yoffset+yTranslation); 
 			  
         		  var xPos = newX;
         		  
@@ -571,7 +571,7 @@ var url = document.URL;
                	  var yPos = newY;
 			  	
         		  var leftEdges = self.state.smallYScale.range();
-        		  var height = self.state.smallYScale.rangeBand();// + self.state.yTranslation;
+        		  var height = self.state.smallYScale.rangeBand();
         		  var j;
 				  for(j=0; yPos > (leftEdges[j] + height); j++) {}
 				  //do nothing, just increment j until case fails
@@ -594,7 +594,7 @@ var url = document.URL;
 
 	_createModelScoresLegend: function() {
 	    var faqOffset = 20;
-	    var scoreTipY = self.state.yTranslation+self.state.yoffset;
+	    var scoreTipY = self.state.yoffset;
 	    var faqY = scoreTipY-faqOffset
 	    var tipTextLength =92;
 	    var scoretip = self.state.svg.append("text")
@@ -624,7 +624,7 @@ var url = document.URL;
 	    // X OFFSET OF THE OVERVIEW is 42 to the right of the overview section
 	    var globalview = self.state.svg.append("rect")
 		.attr("x", self.state.axis_pos_list[2] + overviewXOffset)
-		.attr("y", self.state.yoffset + self.state.yoffsetOver+ 30 + this.state.yTranslation)
+		.attr("y", self.state.yoffset + self.state.yoffsetOver+ 30)
 		.attr("id", "globalview")
 		.attr("height", overviewBoxDim)
 		.attr("width", overviewBoxDim);
@@ -1505,7 +1505,7 @@ var url = document.URL;
         var disease = dtitle.replace(/ *\([^)]*\) */g,"");
     		this.state.svg.append("svg:text")
 	    	.attr("id","diseasetitle")
-	    	.attr("y", this.state.yoffset+this.state.yTranslation)
+	    	.attr("y", this.state.yoffset)
 	    	.text(disease);
 	},
 	
@@ -1623,7 +1623,7 @@ var url = document.URL;
 	    this.state.svg.append("svg:image")
                 .attr("xlink:href", this.state.scriptpath + "../image/logo.png")
                 .attr("x", start)
-                .attr("y", this.state.yTranslation + 10)
+                .attr("y",0)
                 .attr("id", "logo")
                 .attr("width", "60")
                 .attr("height", "90");       
@@ -1682,7 +1682,8 @@ var url = document.URL;
 	    //create the related model rectangles
 	    var highlight_rect = self.state.svg.append("svg:rect")
 		.attr("transform",
-		      "translate(" + (self.state.textWidth + 32) + "," +( self.state.yTranslation + self.state.yoffsetOver)+ ")")
+		      "translate(" + (self.state.textWidth + 32) + "," + 
+		      self.state.yoffsetOver+ ")")
 		.attr("x", function(d) { return (self.state.xScale(modelData.model_id)-1);})
 		.attr("y", self.state.yoffset + 2)
 		.attr("class", "model_accent")
@@ -1765,7 +1766,7 @@ var url = document.URL;
 	    var self=this;
 	    //create the related row rectangle
 	    var highlight_rect = self.state.svg.append("svg:rect")
-		.attr("transform","translate(" + (self.state.axis_pos_list[1]) +"," + ( self.state.yTranslation + self.state.yoffsetOver + 4)  + ")")
+		.attr("transform","translate(" + (self.state.axis_pos_list[1]) +"," + (self.state.yoffsetOver + 4)  + ")")
 	    
 		.attr("x", 12)
 		.attr("y", function(d) {return self._getYPosition(curr_data[0].id_a) ;}) //rowid
@@ -2088,7 +2089,7 @@ var url = document.URL;
 
 	    console.time("mod-rects-basics");
 	    var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + ","
-		+ (self.state.yTranslation + self.state.yoffsetOver + 15)+   ")";
+		+ (self.state.yoffsetOver + 15)+   ")";
 	    var model_rects = this.state.svg.selectAll(".models")
 			.data( data, function(d) {
 			    return d.id;
@@ -2107,7 +2108,7 @@ var url = document.URL;
 			    return "models " + " " +  modelConcept + " " +  dConcept;
 			})
 			.attr("y", function(d, i) { 
-			    return self._getYPosition(d.id_a) + (self.state.yTranslation + self.state.yoffsetOver  + 10) ;
+			    return self._getYPosition(d.id_a) + (self.state.yoffsetOver  + 10) ;
 			})
 			.attr("x", function(d) { return self.state.xScale(d.model_id);})
 			.attr("width", 10)
@@ -2186,7 +2187,7 @@ var url = document.URL;
 		.enter()
 		.append("rect")			
 		.attr("transform",
-		      "translate(" + (self.state.textWidth + 30) + "," +( self.state.yTranslation + self.state.yoffsetOver)+ ")")
+		      "translate(" + (self.state.textWidth + 30) + "," +(self.state.yoffsetOver)+ ")")
 	    //.attr("x", function(d,i) { return (i * (hwidthAndGap * ct));})
 		.attr("x", function(d,i) { totCt += self.state.multiOrganismCt; 
 					   if (i==0) { return 0; }
@@ -2233,7 +2234,7 @@ var url = document.URL;
 	    
 	    //Highlight Row
 	    var highlight_rect = self.state.svg.append("svg:rect")
-		.attr("transform","translate(" + self.state.axis_pos_list[1] + ","+ (self.state.yTranslation + self.state.yoffsetOver + 4 ) + ")")
+		.attr("transform","translate(" + self.state.axis_pos_list[1] + ","+ (self.state.yoffsetOver + 4 ) + ")")
 		.attr("x", 12)
 		.attr("y", function(d) {return self._getYPosition(curr_data.id_a) ;}) //rowid
 		.attr("class", "row_accent")
@@ -2271,7 +2272,7 @@ var url = document.URL;
 	    //create the related model rectangles
 	    var highlight_rect2 = self.state.svg.append("svg:rect")
 		.attr("transform",
-		      "translate(" + (self.state.textWidth + 34) + "," +( self.state.yTranslation + self.state.yoffsetOver)+ ")")
+		      "translate(" + (self.state.textWidth + 34) + "," +self.state.yoffsetOver+ ")")
 		.attr("x", function(d) { return (self.state.xScale(curr_data.model_id) - 1);})
 		.attr("y", self.state.yoffset + 2 )
 		.attr("class", "model_accent")
@@ -2417,7 +2418,7 @@ var url = document.URL;
 
 	    self.state.svg.append("g")
 	  	.attr("transform","translate(" + (self.state.textWidth +28) +"," + 
-		      (self.state.yTranslation + self.state.yoffset ) + ")")
+		      self.state.yoffset + ")")
 	  	.attr("class", "x axis")
 	  	.call(model_x_axis)			
 	    //this be some voodoo...
@@ -2431,7 +2432,7 @@ var url = document.URL;
 	_createModelLines: function() {
 
 	    var modelLineGap = 10;
-	    var lineY = this.state.yTranslation+this.state.yoffset-modelLineGap;
+	    var lineY = this.state.yoffset-modelLineGap;
 	    this.state.svg.selectAll("path.domain").remove();	
 	    this.state.svg.selectAll("text.scores").remove();
 	    this.state.svg.selectAll("#specieslist").remove();
@@ -2450,7 +2451,7 @@ var url = document.URL;
 	_createTextScores: function(list) {
 	    var self =this;
 	    var translation ="translate(" + (this.state.textWidth + 34) +"," 
-		      + (this.state.yTranslation + this.state.yoffset) + ")"; // was yoffset -3
+		      + this.state.yoffset + ")"; // was yoffset -3
 	    this.state.svg.selectAll("text.scores")
 		.data(list) 
 		.enter()	
@@ -2472,7 +2473,7 @@ var url = document.URL;
 	    var speciesList = self.state.speciesList;
 
 	    var translation = "translate(" + (self.state.textWidth + 30) +"," + 
-		      (self.state.yTranslation + self.state.yoffset + 10) + ")";
+		      (self.state.yoffset + 10) + ")";
 
 	    var xPerModel = self.state.modelWidth/speciesList.length;
 	    var species = self.state.svg.selectAll("#specieslist")
@@ -2546,7 +2547,7 @@ var url = document.URL;
 	    if (self.state.targetSpeciesName === "Overview") {self.state.yoffsetOver = 35;}
 	    else {yoffsetOver = 0;}
 	    var gridHeight = self.state.phenotypeDisplayCount * 13 + 10;
-	    var y = self.state.yoffset + self.state.yoffsetOver + this.state.yTranslation;
+	    var y = self.state.yoffset + self.state.yoffsetOver;
 	    //create accent boxes
 	    var rect_accents = this.state.svg.selectAll("#rect.accent")
 		.data([0,1,2], function(d) { return d;});
@@ -2744,7 +2745,7 @@ var url = document.URL;
 
 //	    console.time("gradientlabs");
 	    /* gradient + gap is 20 pixels */
-	    var y = y1 + (gradientHeight * i) + this.state.yTranslation + self.state.yoffset;
+	    var y = y1 + (gradientHeight * i) +  self.state.yoffset;
 	    var  x = self.state.axis_pos_list[2] + 12;
 	    var translate  = "translate(0,10)";
 	    var legend = this.state.svg.append("rect")
@@ -2761,7 +2762,7 @@ var url = document.URL;
 
 	    
 	    /* text is 20 below gradient */
-	    y =  y1 + gradientHeight*(i+1) + this.state.yTranslation + self.state.yoffset;
+	    y =  y1 + gradientHeight*(i+1) + self.state.yoffset;
 	    x = self.state.axis_pos_list[2] + 205;
 	    var gclass = "grad_text_"+i;
 	    var specName = this.state.targetSpeciesList[i].name;
@@ -2796,7 +2797,7 @@ var url = document.URL;
 	    else if (calc == 0) {text1 = "Min"; text2 = "Similarity"; text3 = "Max";}
 	    	    
 	    console.time("mrtexts");
-	    var ytext1 =  y1  + this.state.yTranslation + self.state.yoffset-5;
+	    var ytext1 =  y1  + self.state.yoffset-5;
 	    var xtext1= self.state.axis_pos_list[2] + 10;
 	    var div_text1 = self.state.svg.append("svg:text")
 		.attr("class", "detail_text")
@@ -2805,7 +2806,7 @@ var url = document.URL;
 		.style("font-size", "10px")
 		.text(text1);
 	    
-	    var ytext2 = y1-10  + this.state.yTranslation + self.state.yoffset;
+	    var ytext2 = y1-10  +  self.state.yoffset;
 	    var xtext2  = self.state.axis_pos_list[2] + 75;
 	    var div_text2 = self.state.svg.append("svg:text")
 		.attr("class", "detail_text")
@@ -2814,7 +2815,7 @@ var url = document.URL;
 		.style("font-size", "12px")
 		.text(text2);
 	    
-	    var ytext3 = y1 + this.state.yTranslation + self.state.yoffset-5;
+	    var ytext3 = y1 + self.state.yoffset-5;
 	    var xtext3 = self.state.axis_pos_list[2] + 125;
 	    var div_text3 = self.state.svg.append("svg:text")
 		.attr("class", "detail_text")
@@ -2979,7 +2980,7 @@ var url = document.URL;
 		})
 		.attr("x", 208)
 		.attr("y", function(d) {
-		    return self._getYPosition(d[0].id_a) + (self.state.yTranslation) + 10;   //rowid
+		    return self._getYPosition(d[0].id_a);   //rowid +10?
 		})
 		.on("mouseover", function(d) {
 		    self._selectData(d, d3.mouse(this));
@@ -2999,8 +3000,9 @@ var url = document.URL;
 
 	    this._buildUnmatchedPhenotypeDisplay();
 	    
-	    if (this.state.targetSpeciesName == "Overview") {var pad = 14;}
-	    else { var pad = 10;}
+	 //   if (this.state.targetSpeciesName == "Overview") {var pad = 14;}
+	   // else { var pad = 10;}
+	    var pad =14;
 	    
 	    rect_text.transition()
    		.style('opacity', '1.0')
@@ -3008,7 +3010,7 @@ var url = document.URL;
 		.attr("y", function(d) {
 		    //controls position of phenotype list
 		    return self._getYPosition(d[0].id_a) +
-   			(self.state.yTranslation + self.state.yoffsetOver) + pad;//rowid
+   			(self.state.yoffsetOver) + pad;//rowid
 		})
 	    rect_text.exit()
 	   	.transition()
