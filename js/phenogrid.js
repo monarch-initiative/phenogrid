@@ -1,4 +1,3 @@
-
 /*
  *
  * Phenogrid - the Phenogrid widget.
@@ -107,6 +106,7 @@ var url = document.URL;
 	    tooltips: {},
 	    widthOfSingleModel: 18,
 	    overviewGap: 30,
+	    nonOverviewGap: 5,
 	    overviewGridTitleXOffset: 340,
 	    overviewGridTitleFaqOffset: 230,
 	    nonOverviewGridTitleXOffset: 220,
@@ -143,7 +143,8 @@ var url = document.URL;
 
 	    this.state.yAxisMax = 0;
 	    this.state.yoffset  = this.state.baseYOffset;
-	    this.state.yoffsetOver = 0;
+	    //basic gap for a bit of space above modelregion
+	    this.state.yoffsetOver = this.state.nonOverviewGap;
 	    this.state.modelName = "";
 
 	  //  this.state.yTranslation = 0;
@@ -286,6 +287,8 @@ var url = document.URL;
 	    if (this.state.targetSpeciesName == "Overview") {
 	    	this.state.yoffsetOver = this.state.overviewGap;
 	    }
+	    // shorthand for top of model region
+	    this.state.yModelRegion = this.state.yoffsetOver+this.state.yoffset;
 
 	    this._filterData(this.state.modelData);
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
@@ -336,9 +339,9 @@ var url = document.URL;
 //			 console.time("modelrects");
 			 this._createModelRects();
 //			 console.timeEnd("modelrects");
-//			 console.time("createRects");
-			 this._createRects();
-//			 console.timeEnd("createRects");
+//			 console.time("createRowLabels");
+			 this._createRowLabels();
+//			 console.timeEnd("createRowLabels");
 //			 console.time("overview");
 			 this._createOverviewSection();
 //			 console.timeEnd("overview");
@@ -442,7 +445,7 @@ var url = document.URL;
 		.enter()
 		.append("rect")
 		.attr("id","gridline")
-		.attr("transform","translate(232, " + (self.state.yoffset + self.state.yoffsetOver + 5) +")")
+		.attr("transform","translate(232, " + (this.state.yModelRegion + 5) +")")
 		.attr("x", function(d,i) { return d[1] * 18 })
 		.attr("y", function(d,i) { return d[0] * 13 })  
 		.attr("class", "hour bordered deselected")
@@ -491,7 +494,7 @@ var url = document.URL;
 	      	});
 
 	    var yTranslation = 30;
-	    var selectY = self.state.yoffset+self.state.yoffsetOver+yTranslation;
+	    var selectY = self.state.yModelRegion+yTranslation;
 	    var modelRectTransform = "translate(" + 
 		(self.state.axis_pos_list[2] + overviewXOffset) +
 		"," + selectY + ")"
@@ -624,7 +627,7 @@ var url = document.URL;
 	    // X OFFSET OF THE OVERVIEW is 42 to the right of the overview section
 	    var globalview = self.state.svg.append("rect")
 		.attr("x", self.state.axis_pos_list[2] + overviewXOffset)
-		.attr("y", self.state.yoffset + self.state.yoffsetOver+ 30)
+		.attr("y", self.state.yModelRegion+ 30)
 		.attr("id", "globalview")
 		.attr("height", overviewBoxDim)
 		.attr("width", overviewBoxDim);
@@ -847,7 +850,7 @@ var url = document.URL;
 			var gap = 3;
 			//push the rowid and ypos onto the yaxis array
 			//so now the yaxis will be in the order of the ranked phenotypes
-			var stuff = {"id": self.state.phenotypeSortData[i][0].id_a, "ypos" : ((axis_idx * (size+gap)) + self.state.yoffset)};// + self.state.yoffsetOver)};
+			var stuff = {"id": self.state.phenotypeSortData[i][0].id_a, "ypos" : ((axis_idx * (size+gap)) + self.state.yoffset)};
 			self.state.yAxis.push(stuff); 
 			axis_idx = axis_idx + 1;
 			//update the ModelData			
@@ -1385,12 +1388,18 @@ var url = document.URL;
 	//given a rowid, return the y-axis position
 	_getYPosition: function(newRowId) {
     	    var retValue = this.state.yoffset;
-    	    var newObj = this.state.yAxis.filter(function(d){
-	    	return d.id == newRowId;
-	    });
-    	    if (newObj[0]) {
-    		retValue = newObj[0].ypos;
-    	    }
+
+	    for (var i  =0; i < this.state.yAxis.length; i++) {
+		if (this.state.yAxis[i].id == newRowId) {
+		    retValue = this.state.yAxis[i].ypos;
+		}
+	    }
+    	   // var newObj = this.state.yAxis.filter(function(d){
+	   // 	return d.id == newRowId;
+	    //});
+    	    //if (newObj[0]) {
+    //		retValue = newObj[0].ypos;
+    //	    }
     	    return retValue;
 	},
 	
@@ -1727,7 +1736,7 @@ var url = document.URL;
 		getAttribute: function(keystring) {
 		    var ret = self.state.xScale(modelData.model_id)+ 15;
 		    if (keystring == "y") {
-			ret = Number(self.state.yoffset + /**self.state.yoffsetOver)*/-100);
+			ret = Number(self.state.yoffset -100);
 		    }
 		    return ret;
 		},
@@ -2108,7 +2117,7 @@ var url = document.URL;
 			    return "models " + " " +  modelConcept + " " +  dConcept;
 			})
 			.attr("y", function(d, i) { 
-			    return self._getYPosition(d.id_a) + (self.state.yoffsetOver  + 10) ;
+			    return i;
 			})
 			.attr("x", function(d) { return self.state.xScale(d.model_id);})
 			.attr("width", 10)
@@ -2162,7 +2171,7 @@ var url = document.URL;
 			.delay(20)
 			.style('opacity', '1.0')
 			.attr("y", function(d) {
-			    return self._getYPosition(d.id_a) -10; //rowid
+			    return self._getYPosition(d.id_a)-10; //rowid
 			})
 			.attr("x", function(d) { return self.state.xScale(d.model_id);
 		})
@@ -2294,11 +2303,6 @@ var url = document.URL;
 	    }
 	    this.state.h = (data.length*2.5);
 
-	    self.state.yScale = d3.scale.ordinal()
-			.domain(data.map(function (d) {return d.id_a; }))
-			.range([0,data.length])
-			.rangePoints([ self.state.yoffset + self.state.yoffsetOver, self.state.yoffset + self.state.yoffsetOver +this.state.h ]);
-		    
 	    //update accent boxes
 	    self.state.svg.selectAll("#rect.accent").attr("height", self.state.h);
 	},
@@ -2370,7 +2374,8 @@ var url = document.URL;
         	//the spacing you want between rows
         	var gap = 3;
 
-    		var stuff = {"id": self.state.phenotypeSortData[idx][0].id_a, "ypos" : ((axis_idx * (size+gap)) + self.state.yoffset /**+ self.state.yoffsetOver +10*/)};
+    		var stuff = {"id": self.state.phenotypeSortData[idx][0].id_a, 
+			     "ypos" : ((axis_idx * (size+gap)) + self.state.yoffset)};
     		self.state.yAxis.push(stuff); 
     		axis_idx = axis_idx + 1;
     		//update the ModelData
@@ -2544,10 +2549,10 @@ var url = document.URL;
 	    var self=this;
 	    
 	    this._buildAxisPositionList();
-	    if (self.state.targetSpeciesName === "Overview") {self.state.yoffsetOver = 35;}
-	    else {yoffsetOver = 0;}
+	    //if (self.state.targetSpeciesName === "Overview") {self.state.yoffsetOver = 35;}
+	    //else {yoffsetOver = 0;}
 	    var gridHeight = self.state.phenotypeDisplayCount * 13 + 10;
-	    var y = self.state.yoffset + self.state.yoffsetOver;
+	    var y = self.state.yModelRegion;
 	    //create accent boxes
 	    var rect_accents = this.state.svg.selectAll("#rect.accent")
 		.data([0,1,2], function(d) { return d;});
@@ -2953,7 +2958,7 @@ var url = document.URL;
 
 	//this code creates the text and rectangles containing the text 
 	//on either side of the model data
-	_createRects : function() {
+	_createRowLabels : function() {
 	    // this takes some 'splaining
 	    //the raw dataset contains repeats of data within the
 	    //A,subsumer, and B columns.   
@@ -2979,8 +2984,8 @@ var url = document.URL;
 		    return d[0].id_a; //self._getConceptId(d[0].id_a);   
 		})
 		.attr("x", 208)
-		.attr("y", function(d) {
-		    return self._getYPosition(d[0].id_a);   //rowid +10?
+		.attr("y", function(d,i) {
+		    return i; 
 		})
 		.on("mouseover", function(d) {
 		    self._selectData(d, d3.mouse(this));
