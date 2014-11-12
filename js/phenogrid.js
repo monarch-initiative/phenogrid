@@ -461,10 +461,16 @@ var url = document.URL;
 	    // add-ons for stroke size on view box
 	    var strokePadding = 6;
 
-	    /// x offset of overview in section
-	    var overviewXOffset = 42;
-	    
-	    // size of the entire region 
+	    // overview region is offset by xTranslation, yTranslation
+	    var xTranslation = 42;
+	    var yTranslation = 30;
+
+	    // these translations from the top-left of the rectangular region give the
+	    // absolute coordinates
+	    var overviewX = self.state.axis_pos_list[2]+xTranslation;
+	    var overviewY = self.state.yModelRegion+yTranslation;
+
+	    // size of the entire region - it is a square
 	    var overviewRegionSize = self.state.globalViewSize;
 	    if (this.state.phenotypeData.length < this.state.defaultPhenotypeDisplayCount) {
 		overviewRegionSize = self.state.reducedGlobalViewSize;
@@ -478,7 +484,7 @@ var url = document.URL;
 	    var overviewBoxDim = overviewRegionSize+strokePadding;
 
 	    // create the main box and the instruction labels.
-	    self._initializeOverviewRegion(overviewBoxDim,overviewXOffset);
+	    self._initializeOverviewRegion(overviewBoxDim,overviewX,overviewY);
 
 
 	    // create the scales
@@ -493,11 +499,8 @@ var url = document.URL;
 	      	    return d.id;
 	      	});
 
-	    var yTranslation = 30;
-	    var selectY = self.state.yModelRegion+yTranslation;
-	    var modelRectTransform = "translate(" + 
-		(self.state.axis_pos_list[2] + overviewXOffset) +
-		"," + selectY + ")"
+
+	    var modelRectTransform = "translate(" + overviewX +	"," + overviewY + ")"
 	    model_rects.enter()
 		.append("rect")
 		.attr("transform",modelRectTransform)
@@ -517,11 +520,11 @@ var url = document.URL;
 	    //create the "highlight" rectangle
 	    console.log("self.state.yoffset is ..."+self.state.yoffset);
 	    console.log("yTranslation is.."+yTranslation);
-	    console.log(".. selectY is "+selectY);
+	    console.log(".. overviewY is "+overviewY);
 	    var highlightRectTransform = "translate(" + 
-		(self.state.axis_pos_list[2] + 47) + "," +selectY + ")";
+		(self.state.axis_pos_list[2] + xTranslation) + "," +overviewY + ")";
 	    
-	    console.log("setting up select rect..."+selectY);
+	    console.log("setting up select rect..."+overviewY);
 	    self.state.highlightRect = self.state.svg.append("rect")
    	        .attr("transform",highlightRectTransform)
 		.attr("class", "draggable")					
@@ -538,9 +541,9 @@ var url = document.URL;
             	  //notes: account for the width of the rectangle in my x and y calculations
             	  //do not use the event x and y, they will be out of range at times.  use the converted values instead.
             	  var rect = self.state.svg.select("#selectionrect");
-        		  rect.attr("transform","translate(0,0)")
+			  rect.attr("transform","translate(0,0)");
 
-		  console.log("drag at absolute position.."+d3.event.x+","+d3.event.y);
+			  console.log("drag at absolute position.."+d3.event.x+","+d3.event.y);
         	  //limit the range of the x value
 
 		          /*// get the position of the drag relative to the window...
@@ -554,19 +557,21 @@ var url = document.URL;
         		  newY = Math.max(newY,0);
         		  newY = Math.min(newY,(self.state.globalViewHeight-self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a)));  //rowid*/
 
+
 		  var newX =d3.event.x;
 		  var newY = d3.event.y;
-		  rect.attr("x", newX + (self.state.axis_pos_list[2] + 45))
 
-		  console.log("dragging overview at..."+newX+", "+newY);
-        		  //This changes for vertical positioning
-        		  rect.attr("y", newY + self.state.yoffset+yTranslation); 
+			  if (newX  >=0 && newY >=0) {
+			      console.log("dragging overview at..."+newX+", "+newY);
+			      rect.attr("x", newX + overviewX);
+       		  //This changes for vertical positioning
+       			      rect.attr("y", newY + overviewY); //self.state.yoffset+yTranslation); 
 			  
-        		  var xPos = newX;
+       		  var xPos = newX;
         		  
-        		  var leftEdges = self.state.smallXScale.range();
-				  var width = self.state.smallXScale.rangeBand()+10;
-				  var j;
+       		  var leftEdges = self.state.smallXScale.range();
+		  var width = self.state.smallXScale.rangeBand()+10;
+			  var j;
 				  for(j=0; xPos > (leftEdges[j] + width); j++) {}
 				  //do nothing, just increment j until case fails
                	  var newModelPos = j+self.state.modelDisplayCount;
@@ -580,7 +585,8 @@ var url = document.URL;
 				  //do nothing, just increment j until case fails
                	  var newPhenotypePos = j+self.state.phenotypeDisplayCount;
 
-               	  self._updateModel(newModelPos, newPhenotypePos);
+               		      self._updateModel(newModelPos, newPhenotypePos);
+			  }
 			  
                }));
 	    //set this back to 0 so it doesn't affect other rendering
@@ -622,12 +628,11 @@ var url = document.URL;
 		});
 	},
 
-	_initializeOverviewRegion: function(overviewBoxDim,overviewXOffset) {
-	    //note: I had to make the rectangle slightly bigger to compensate for the strike-width
-	    // X OFFSET OF THE OVERVIEW is 42 to the right of the overview section
+	_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
+	    //rectangular border for overview
 	    var globalview = self.state.svg.append("rect")
-		.attr("x", self.state.axis_pos_list[2] + overviewXOffset)
-		.attr("y", self.state.yModelRegion+ 30)
+		.attr("x", overviewX)
+		.attr("y", overviewY)
 		.attr("id", "globalview")
 		.attr("height", overviewBoxDim)
 		.attr("width", overviewBoxDim);
@@ -1389,17 +1394,17 @@ var url = document.URL;
 	_getYPosition: function(newRowId) {
     	    var retValue = this.state.yoffset;
 
-	    for (var i  =0; i < this.state.yAxis.length; i++) {
+	 /*   for (var i  =0; i < this.state.yAxis.length; i++) {
 		if (this.state.yAxis[i].id == newRowId) {
 		    retValue = this.state.yAxis[i].ypos;
 		}
-	    }
-    	   // var newObj = this.state.yAxis.filter(function(d){
-	   // 	return d.id == newRowId;
-	    //});
-    	    //if (newObj[0]) {
-    //		retValue = newObj[0].ypos;
-    //	    }
+	    }*/
+    	  var newObj = this.state.yAxis.filter(function(d){
+	  	return d.id == newRowId;
+	  });
+	    if (newObj[0]) {
+		retValue = newObj[0].ypos;
+            }
     	    return retValue;
 	},
 	
@@ -2958,7 +2963,7 @@ var url = document.URL;
 
 	//this code creates the text and rectangles containing the text 
 	//on either side of the model data
-	_createRowLabels : function() {
+	_createRowLabels: function() {
 	    // this takes some 'splaining
 	    //the raw dataset contains repeats of data within the
 	    //A,subsumer, and B columns.   
@@ -2985,7 +2990,8 @@ var url = document.URL;
 		})
 		.attr("x", 208)
 		.attr("y", function(d,i) {
-		    return i; 
+		    //return i;
+		    return self._getYPosition(d[0].id_a)+10;
 		})
 		.on("mouseover", function(d) {
 		    self._selectData(d, d3.mouse(this));
