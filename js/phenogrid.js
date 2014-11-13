@@ -1380,9 +1380,11 @@ var url = document.URL;
     	    var gap = 3;
 	    
     	    //use the max phenotype size to limit the number of phenotypes shown 
-    	    var yLength = self.state.phenotypeSortData.length > this.state.phenotypeDisplayCount ? this.state.phenotypeDisplayCount : self.state.phenotypeSortData.length;
+    	    var yLength = self.state.phenotypeSortData.length > this.state.phenotypeDisplayCount ?
+		this.state.phenotypeDisplayCount : self.state.phenotypeSortData.length;
     	    for (var idx=0;idx<yLength;idx++) {
-    		var stuff = {"id": self.state.phenotypeSortData[idx][0].id_a, "ypos" : ((idx * (size+gap)) + this.state.yoffset + 10)};
+    		var stuff = {"id": self.state.phenotypeSortData[idx][0].id_a,
+			     "ypos" : ((idx * (size+gap)) + this.state.yoffset + 10)};
     		this.state.yAxis.push(stuff);
     		if (((idx * (size+gap)) + this.state.yoffset) > this.state.yAxisMax) {
     	    	    this.state.yAxisMax = (idx * (size+gap)) + this.state.yoffset;
@@ -2307,6 +2309,12 @@ var url = document.URL;
 	    	data = self.state.filteredModelData;	
 	    }
 	    this.state.h = (data.length*2.5);
+
+	    self.state.yScale = d3.scale.ordinal()
+                .domain(data.map(function (d) {return d.id_a; }))
+		.range([0,data.length])
+                .rangePoints([ self.state.yModelRegion,self.state.yModelRegion +this.state.h ]);
+
 
 	    //update accent boxes
 	    self.state.svg.selectAll("#rect.accent").attr("height", self.state.h);
