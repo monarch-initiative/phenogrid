@@ -594,11 +594,14 @@ var url = document.URL;
        			  //This changes for vertical positioning
        			  rect.attr("y", newY); //self.state.yoffset+yTranslation); 
 			  
+			  // adjust x back to have 0,0 as base instead of overviewX, overviewY
+			  newX = newX- overviewX;
+			  newY = newY -overviewY;
         		  
        			  var leftEdges = self.state.smallXScale.range();
 			  var width = self.state.smallXScale.rangeBand()+10;
 			  console.log("newX is ..."+newX);
-			  console.log("leftEdges..."+JSON.stringify(leftEdges));
+			  console.log("leftEdges length is"+leftEdges.length+"..."+JSON.stringify(leftEdges));
 			  console.log("width is "+width);
 			  
 			  var j;
@@ -607,7 +610,9 @@ var url = document.URL;
                		  var newModelPos = j+self.state.modelDisplayCount;
 			  console.log("j is "+j+", newModelPos is.."+newModelPos);
 
+			  console.log("newY is ..."+newY);
         		  var leftEdges = self.state.smallYScale.range();
+			  console.log("leftEdges length is"+leftEdges.length+"..."+JSON.stringify(leftEdges));
         		  var height = self.state.smallYScale.rangeBand();
 			  console.log("height is "+height);
         		  var j;
