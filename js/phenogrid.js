@@ -553,23 +553,8 @@ var url = document.URL;
 
         		  //limit the range of the x value
 
-		          /*// get the position of the drag relative to the window...
-        		    var newX = d3.event.x - (self.state.axis_pos_list[2] + 45);
-        		    newX = Math.max(newX,0);
-        		    newX = Math.min(newX,(110-self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id)));
-        		    rect.attr("x", newX + (self.state.axis_pos_list[2] + 45))
-               		    
-        		    //limit the range of the y value
-        		    var newY = d3.event.y - 119;					
-        		    newY = Math.max(newY,0);
-        		    newY = Math.min(newY,(self.state.globalViewHeight-self.state.smallYScale(self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a)));  //rowid*/
-
-
-			 // var newX =d3.event.x;
-			  //var newY = d3.event.y;
-			  var newX = curX+d3.event.dx;
+ 			  var newX = curX+d3.event.dx;
 			  var newY = curY+d3.event.dy;
-//			  console.log("new x is.."+newX+","+newY);
 
 			  // block from going out of bounds on left
 			  if (newX  <overviewX) {
@@ -597,29 +582,13 @@ var url = document.URL;
 			  // adjust x back to have 0,0 as base instead of overviewX, overviewY
 			  newX = newX- overviewX;
 			  newY = newY -overviewY;
-        		  
-       			  var leftEdges = self.state.smallXScale.range();
-			  var width = self.state.smallXScale.rangeBand()+10;
-			  console.log("newX is ..."+newX);
-			  console.log("leftEdges length is"+leftEdges.length+"..."+JSON.stringify(leftEdges));
-			  console.log("width is "+width);
-			  
-			  var j;
-			  for(j=0; newX > (leftEdges[j] + width); j++) {}
-			  //do nothing, just increment j until case fails
-               		  var newModelPos = j+self.state.modelDisplayCount;
-			  console.log("j is "+j+", newModelPos is.."+newModelPos);
 
-			  console.log("newY is ..."+newY);
-        		  var leftEdges = self.state.smallYScale.range();
-			  console.log("leftEdges length is"+leftEdges.length+"..."+JSON.stringify(leftEdges));
-        		  var height = self.state.smallYScale.rangeBand();
-			  console.log("height is "+height);
-        		  var j;
-			  for(j=0; newY > (leftEdges[j] + height); j++) {}
-			  //do nothing, just increment j until case fails
+			  // invert newX and newY into posiions in the model and phenotype lists.
+			  var j = self._invertOverviewDragPosition(self.state.smallXScale,newX);
+               		  var newModelPos = j+self.state.modelDisplayCount;
+
+        		  var j = self._invertOverviewDragPosition(self.state.smallYScale,newY);
                		  var newPhenotypePos = j+self.state.phenotypeDisplayCount;
-			  console.log("j is "+j+", newPhenotypePos is.."+newPhenotypePos);
 			  
                		  self._updateModel(newModelPos, newPhenotypePos);
 		      }));
@@ -709,6 +678,18 @@ var url = document.URL;
 		.domain(modids)
 		.rangePoints([0,overviewRegionSize]);
 	},
+
+	_invertOverviewDragPosition: function(scale,value) {
+	    var leftEdges = scale.range();
+	    var size = scale.rangeBand();
+	    var  j;
+	    for (j = 0; value > (leftEdges[j]+size); j++) {} // iterate until leftEdges[j]+size is past value
+	    return j;
+	},
+		 
+
+
+	
 	
 	_getComparisonType : function(organism){
 	    var label = "";
