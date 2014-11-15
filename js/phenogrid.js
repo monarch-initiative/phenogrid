@@ -72,7 +72,7 @@ var url = document.URL;
 			  ['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)']], 
 	    overviewCount: 3,
 	    colStartingPos: 10,
-	    detailRectWidth: 240,   
+	    detailRectWidth: 300,   
             detailRectHeight: 140,
             detailRectStrokeWidth: 3,
 	    globalViewSize : 110,
@@ -1707,6 +1707,7 @@ var url = document.URL;
 	
 	_selectModel: function(modelData, obj) {
 	    var self=this;
+	    console.log("model highight..."+modelData.model_label);
 	    
 	    //create the related model rectangles
 	    var highlight_rect = self.state.svg.append("svg:rect")
@@ -1988,7 +1989,7 @@ var url = document.URL;
 
 	    this.state.svg.selectAll("#detail_content").remove();
 	    
-	    var w = this.state.detailRectWidth-(this.state.detailRectStrokeWidth*2);
+	    var w = this.state.detailRectWidth-(this.state.detailRectStrokeWidth*2) ;
 	    var h = this.state.detailRectHeight-(this.state.detailRectStrokeWidth*2);
 	    if (width != undefined) {
 	    	w = width;
@@ -2002,11 +2003,16 @@ var url = document.URL;
 	    if (coords.y > hgt) { yv = coords.y - this.state.detailRectHeight - 10;}
 	    else {yv = coords.y + 20;}
 	    
-	    if (coords.x > wdt) { wv = coords.x - this.state.detailRectWidth - 70;}
+	    console.log("putting tooltip at .."+coords.x+",..wdt is "+wdt);
+	    console.log("detail width is "+this.state.detailRectWidth);
+	    console.log("width is..."+width+","+w);
+	    console.log("height is..."+width+","+w);
+	    if (coords.x > wdt) { wv = coords.x -w - 20;}
 	    else {wv = coords.x + 20;}
+	    console.log("final x pos is "+wv);
 
 	    this.state.svg.append("foreignObject")
-		.attr("width", w + 60)
+		.attr("width", w)
 		.attr("height", h)
 		.attr("id", "detail_content")
 	    //add an offset.  Otherwise, the tooltip turns off the mouse event
