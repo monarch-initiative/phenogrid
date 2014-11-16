@@ -326,7 +326,6 @@ var url = document.URL;
 		
 		//			 console.time("model-region");
 		var ymax  = this._createModelRegion();
-		console.log("ymax is "+ymax);
 		//			 console.timeEnd("model-region");
 		
 		//			 console.time("axes");		 
@@ -348,21 +347,17 @@ var url = document.URL;
 		
 	    	ymax = ymax + 60; //gap MAGIC NUBER ALERT. DOES THIS
 		//NEED TO BE CLEANED?
-		console.log("phenotype display count is "+ this.state.phenotypeDisplayCount);
 		var height = this.state.phenotypeDisplayCount*18+this.state.yoffsetOver;
 		
 		if (height < ymax) {
 		    height = ymax+60;
 		}
 		var containerHeight = height + 10; // MAGIC NUMBER? OR OVERVIEWW OFFSET?
-		console.log("svg area  height is "+ height);
-		console.log("svg container height is "+ containerHeight);
 		$("#svg_area").css("height",height);
 		$("#svg_container").css("height",containerHeight);
 	    }
 	    else {
 		var msg = "There are no " + self.state.targetSpeciesName + " models for this disease." 
-		console.log("no data....");
 		this._createSvgContainer();
 		this._createEmptyVisualization(msg);
 	    }
@@ -586,6 +581,7 @@ var url = document.URL;
 			  // invert newX and newY into posiions in the model and phenotype lists.
 			  var j = self._invertOverviewDragPosition(self.state.smallXScale,newX);
                		  var newModelPos = j+self.state.modelDisplayCount;
+			  
 
         		  var j = self._invertOverviewDragPosition(self.state.smallYScale,newY);
                		  var newPhenotypePos = j+self.state.phenotypeDisplayCount;
@@ -672,7 +668,6 @@ var url = document.URL;
 		.rangePoints([0,overviewRegionSize]);
 
 	    var modids = mods.map(function (d) {return d.model_id; });
-	    console.log("model ids..."+JSON.stringify(modids));
 	    this.state.smallXScale = d3.scale.ordinal()
 		//.domain(mods.map(function (d) {return d.model_id; }))
 		.domain(modids)
@@ -1707,7 +1702,6 @@ var url = document.URL;
 	
 	_selectModel: function(modelData, obj) {
 	    var self=this;
-	    console.log("model highight..."+modelData.model_label);
 	    
 	    //create the related model rectangles
 	    var highlight_rect = self.state.svg.append("svg:rect")
@@ -2003,10 +1997,6 @@ var url = document.URL;
 	    if (coords.y > hgt) { yv = coords.y - this.state.detailRectHeight - 10;}
 	    else {yv = coords.y + 20;}
 	    
-	    console.log("putting tooltip at .."+coords.x+",..wdt is "+wdt);
-	    console.log("detail width is "+this.state.detailRectWidth);
-	    console.log("width is..."+width+","+w);
-	    console.log("height is..."+width+","+w);
 	    if (coords.x > wdt) { wv = coords.x -w - 20;}
 	    else {wv = coords.x + 20;}
 	    console.log("final x pos is "+wv);
@@ -2143,7 +2133,7 @@ var url = document.URL;
 		    return "models " + " " +  modelConcept + " " +  dConcept;
 		})
 		.attr("y", function(d, i) { 
-		    return i;
+		    return self._getYPosition(d.id_a) + self.state.yoffsetOver;
 		})
 		.attr("x", function(d) { return self.state.xScale(d.model_id);})
 		.attr("width", 10)
@@ -2172,7 +2162,6 @@ var url = document.URL;
 		    }
 		    else {
 			self._highlightIntersection(d, d3.mouse(this));
-			//this.parentNode.appendChild(this);
 			self._enableRowColumnRects(this);
 			self.state.currSelectedRect = this;  
 		    }
@@ -2346,13 +2335,19 @@ var url = document.URL;
 	//change the list of phenotypes and filter the models accordingly.  The 
 	//movecount is an integer and can be either positive or negative
 	_updateModel: function(modelIdx, phenotypeIdx) {
+	    
 	    var self = this;
+
+	    var fmd = self.state.filteredModelData;
+
 	    //This is for the new "Overview" target option 
 	    var modelData = [].
 		modelList = [];
 	    modelData = this.state.modelData;
 	    modelList = this.state.modelList;
+	    console.log("updating model to .model, phenotype.."+modelIdx+","+phenotypeIdx);
 
+	    console.log("phenotype data length is "+this.state.phenotypeData.length);
 	    //check to see if the phenotypeIdx is greater than the number of items in the list
 	    if (phenotypeIdx > this.state.phenotypeData.length) {
 		this.state.currPhenotypeIdx = this.state.phenotypeSortData.length;
@@ -2362,7 +2357,9 @@ var url = document.URL;
 	    } else {
 		this.state.currPhenotypeIdx = phenotypeIdx;
 	    }
+	    console.log("curr phenotype index is"+this.state.currPhenotypeIdx);
 	    var startPhenotypeIdx = this.state.currPhenotypeIdx - this.state.phenotypeDisplayCount;
+	    console.log("start phenotype index is.."+startPhenotypeIdx);
 	    
 	    this.state.filteredPhenotypeData = [];
 	    this.state.yAxis = [];
@@ -2378,19 +2375,19 @@ var url = document.URL;
 		this.state.currModelIdx = modelIdx;
 	    }
 	    var startModelIdx = this.state.currModelIdx - this.state.modelDisplayCount;
+	    console.log("start model index is "+startModelIdx);
 
 	    this.state.filteredModelList = [];
 	    if (this.state.targetSpeciesName !== "Overview") { this.state.filteredModelData = [];}
-	    
+	 	    
 	    //extract the new array of filtered Phentoypes
 	    //also update the axis
 	    //also update the modeldata
-
-	    var tempFilteredModelData = [];
 	    var axis_idx = 0;
     	    for (var idx=startModelIdx;idx<self.state.currModelIdx;idx++) {
     		self.state.filteredModelList.push(modelList[idx]);
     	    }
+	    console.log("pushed # of models..."+self.state.filteredModelList.length);
 	    
 	    //extract the new array of filtered Phentoypes
 	    //also update the axis
@@ -2436,7 +2433,7 @@ var url = document.URL;
 	    	this._createOverviewSpeciesLabels();
 	    }
 	    
-	    if (this.state.targetSpeciesName !== "Overview") {
+	   if (this.state.targetSpeciesName !== "Overview") {
 		//now, limit the data returned by models as well
 		for (var idx=0;idx<self.state.filteredModelList.length;idx++) {
 	    	    var tempdata = tempFilteredModelData.filter(function(d) {
@@ -2444,6 +2441,15 @@ var url = document.URL;
 	    	    });
 	    	    self.state.filteredModelData = self.state.filteredModelData.concat(tempdata);   		
 		}	
+	    }
+	    
+	    console.log("DRAGGED TO CALL CREATE MODEL RECTS");
+
+	    // compare filteredModelData to stored...fmd
+	    if (JSON.stringify(fmd) ===JSON.stringify(self.state.filteredModelData)) {
+		console.log("filtered model data unchanged..");
+	    } else {
+		console.log("filtered model data changed...");
 	    }
 	    
 	    this._createModelRects();
