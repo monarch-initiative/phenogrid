@@ -1154,7 +1154,7 @@ var url = document.URL;
 		    for (var idx= 0; idx <specData.b.length; idx++) {
 			var item = specData.b[idx];
 			data.push( 
-			    {model_id: item.id,
+			    {model_id: this._getConceptId(item.id),
 			     model_label: item.label,
 			     model_score: item.score.score,
 			     model_rank: item.score.rank}
@@ -2378,7 +2378,8 @@ var url = document.URL;
 	    console.log("start model index is "+startModelIdx);
 
 	    this.state.filteredModelList = [];
-	    if (this.state.targetSpeciesName !== "Overview") { this.state.filteredModelData = [];}
+	    //if (this.state.targetSpeciesName !== "Overview") { this.state.filteredModelData = [];}
+	    this.state.filteredModelData=[];
 	 	    
 	    //extract the new array of filtered Phentoypes
 	    //also update the axis
@@ -2433,7 +2434,7 @@ var url = document.URL;
 	    	this._createOverviewSpeciesLabels();
 	    }
 	    
-	   if (this.state.targetSpeciesName !== "Overview") {
+	 //  if (this.state.targetSpeciesName !== "Overview") {
 		//now, limit the data returned by models as well
 		for (var idx=0;idx<self.state.filteredModelList.length;idx++) {
 	    	    var tempdata = tempFilteredModelData.filter(function(d) {
@@ -2441,7 +2442,7 @@ var url = document.URL;
 	    	    });
 	    	    self.state.filteredModelData = self.state.filteredModelData.concat(tempdata);   		
 		}	
-	    }
+	   // }
 	    
 	    console.log("DRAGGED TO CALL CREATE MODEL RECTS");
 
