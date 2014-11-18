@@ -263,7 +263,6 @@ var url = document.URL;
 
 	
 	_init: function() {
-	    //  console.time("init");
 	    this.element.empty();
 	    this._loadSpinner();
 	    this.state.phenotypeDisplayCount = this._calcPhenotypeDisplayCount();
@@ -279,9 +278,7 @@ var url = document.URL;
 	    this.state.currPhenotypeIdx = this.state.phenotypeDisplayCount-1;
 	    this.state.phenotypeLabels = this._filterPhenotypeLabels(this.state.phenotypeData);
 	    this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
-	    console.time("load");
 	    this._loadData();
-	    //	    console.timeEnd("load");
 
 	    // amont of extra space needed for overview
 	    if (this.state.targetSpeciesName == "Overview") {
@@ -293,10 +290,7 @@ var url = document.URL;
 	    this._filterData(this.state.modelData);
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
-	    console.time("reDraw");
 	    this.reDraw();
-	    //  console.timeEnd("reDraw");
-	    // console.timeEnd("init");
 	},
 
 	_loadSpinner: function() {
@@ -311,39 +305,23 @@ var url = document.URL;
 		&& this.state.filteredPhenotypeData.length != 0){
 
 		this._setComparisonType();
-		//			 console.time("initCanvas");
 		this._initCanvas();
-		// console.timeEnd("initCanvas");
 		this._addLogoImage();
 		
 		this.state.svg
 		    .attr("width", "100%")
 		    .attr("height", this.state.phenotypeDisplayCount * 18);
-		console.time("accents-color");
 		this._createRectangularContainers();				
 		this._createColorScale();
-		//			 console.timeEnd("accents-color");
-		
-		//			 console.time("model-region");
+
 		var ymax  = this._createModelRegion();
-		//			 console.timeEnd("model-region");
-		
-		//			 console.time("axes");		 
+
 		this._updateAxes();
-		//			 console.timeEnd("axes");
 		
-		//			 console.time("gridlines");
 		this._createGridlines();
-		//			 console.timeEnd("gridlines");
-		//			 console.time("modelrects");
 		this._createModelRects();
-		//			 console.timeEnd("modelrects");
-		//			 console.time("createRowLabels");
 		this._createRowLabels();
-		//			 console.timeEnd("createRowLabels");
-		//			 console.time("overview");
 		this._createOverviewSection();
-		//			 console.timeEnd("overview");
 		
 	    	ymax = ymax + 60; //gap MAGIC NUBER ALERT. DOES THIS
 		//NEED TO BE CLEANED?
@@ -464,7 +442,6 @@ var url = document.URL;
 	    // absolute coordinates
 	    var overviewX = self.state.axis_pos_list[2]+xTranslation;
 	    var overviewY = self.state.yModelRegion+yTranslation;
-	    console.log("top left corner of overview box is "+overviewX+", "+overviewY);
 
 	    // size of the entire region - it is a square
 	    var overviewRegionSize = self.state.globalViewSize;
@@ -511,13 +488,6 @@ var url = document.URL;
 	    var selectRectHeight = self.state.smallYScale(lastId);
 	    var selectRectWidth = self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id);
 
-	    console.log("overview Box Dim is "+overviewBoxDim);
-	    console.log("select rect width is "+selectRectWidth);
-	    console.log("select rect height is "+selectRectHeight);
-
-	    
-	    
-	    console.log("setting up select rect..."+overviewY);
 	    self.state.highlightRect = self.state.svg.append("rect")
 	        .attr("x",overviewX)
 	        .attr("y",overviewY)
@@ -526,22 +496,14 @@ var url = document.URL;
 		.attr("height", selectRectHeight)
 		.attr("width", selectRectWidth)
 		.call(d3.behavior.drag()
-		      /*.origin(function() {
-			  var current = d3.select(this);
-			  var res ={x: current.attr("x"), y: current.attr("y") };
-			  console.log("origin.... "+JSON.stringify(res));
-			  return  res;
-		      })*/ 
 		      .on("drag", function(d) {
             		  // drag the highlight in the overview window
             		  //notes: account for the width of the rectangle in my x and y calculations
             		  //do not use the event x and y, they will be out of range at times.  use the converted values instead.
 
-			  console.log("drag delta is ..."+d3.event.dx+","+d3.event.dy);
 			  var current = d3.select(this);
 			  var curX = parseFloat(current.attr("x"));
 			  var curY = parseFloat(current.attr("y"));
-	//		  console.log("current location is..."+curX+","+curY);
 			 
             		  var rect = self.state.svg.select("#selectionrect");
 			  rect.attr("transform","translate(0,0)");
@@ -569,7 +531,6 @@ var url = document.URL;
 			      newY = overviewY+overviewBoxDim-selectRectHeight;
 			  }
 			      
-			 // console.log("dragging overview at..."+newX+", "+newY);
 			  rect.attr("x", newX);
        			  //This changes for vertical positioning
        			  rect.attr("y", newY); //self.state.yoffset+yTranslation); 
@@ -655,13 +616,11 @@ var url = document.URL;
 	_createSmallScales: function(overviewRegionSize) {
 	    var  sortDataList = [];
 	    var self=this;
-	    console.log("createSmallScales..."+self.state.phenotypeSortData.length);
 	    for (i=0; i<self.state.phenotypeSortData.length; i++) {
 	    	sortDataList.push(self.state.phenotypeSortData[i][0].id_a);  //rowid
 	    }
 	    var mods = self.state.modelList;
 	    var modData = self.state.modelData;
-	    console.log("phenotype sorted is..."+JSON.stringify(sortDataList));
 	    
 	    this.state.smallYScale = d3.scale.ordinal()
 		.domain(sortDataList.map(function (d) {return d; }))				    
@@ -735,7 +694,6 @@ var url = document.URL;
 	_processSelectedPhenotypeSort: function(){
 	    var self = this;
 	    
-	    console.time("Start processSelectedPhenotypeSort");
 	    
 	    //Select phenotype sort method based on options in #sortphenotypes dropdown
 	    this._filterPhenotypes(); 
@@ -743,20 +701,17 @@ var url = document.URL;
 	    this.element.empty();
 	    this.reDraw();   
 	    
-	    //	    console.timeEnd("End processSelectedPhenotypeSort");
 	},
 	
 	_processSelectedCalculation: function(){
 	    var self = this;
 	    
-	    console.time("Start processSelectedCalculation");
 	    
 	    this._filterCalculations(); 
 	    this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 	    this.element.empty();
 	    this.reDraw();   
 	    
-	    //   console.timeEnd("End processSelectedCalculation");
 	},
 
 	//given the full dataset, return a filtered dataset containing the
@@ -1120,7 +1075,6 @@ var url = document.URL;
 		this._loadSpeciesData(species,limit);
 		if (species === this.state.refSpecies && typeof([species]) !== 'undefined') { // if it's the one we're reffering to
 		    this.state.maxICScore = this.state.data[species].metadata.maxMaxIC;
-		    console.log("got max score as "+ this.state.maxICScore);
 		}
 		else {
 		    var data = this.state.data[species];
@@ -1365,17 +1319,13 @@ var url = document.URL;
 	    
 	    switch(calcMethod){
 	    case 2: nic = lIC;
-	    	//console.log("#Uniqueness-NIC: " + nic);
 		break;
 	    case 1: nic = ((lIC/aIC) * 100);
-	    	//console.log("#RatioQ-NIC: " + nic);
 		break;
 	    case 0: nic = Math.sqrt((Math.pow(aIC-lIC,2)) + (Math.pow(bIC-lIC,2)));
 		nic = (1 - (nic/+this.state.maxICScore)) * 100;					
-		//console.log("#Similarity-NIC: " + nic);
 		break;
 	    case 3: nic = ((lIC/bIC) * 100);
-	    	//console.log("#RatioT-NIC: " + nic);
 	    	break;
 	    default: nic = lIC;
 	    }				
@@ -1999,7 +1949,6 @@ var url = document.URL;
 	    
 	    if (coords.x > wdt) { wv = coords.x -w - 20;}
 	    else {wv = coords.x + 20;}
-	    console.log("final x pos is "+wv);
 
 	    this.state.svg.append("foreignObject")
 		.attr("width", w)
@@ -2112,7 +2061,6 @@ var url = document.URL;
 	    var self = this;
 	    var data = this.state.filteredModelData;
 
-	    console.time("mod-rects-basics");
 	    var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + ","
 		+ (self.state.yoffsetOver + 15)+   ")";
 	    var model_rects = this.state.svg.selectAll(".models")
@@ -2175,13 +2123,9 @@ var url = document.URL;
 		.style('opacity', '1.0')
 		.attr("fill", function(d,i) { return self._setRectFill(self,d,i)});
 
-	    //	    console.timeEnd("mod-rects-basics");
-	    //	    console.time("highlightspec");
 	    if (self.state.targetSpeciesName == "Overview") {
 	    	this._highlightSpecies();
 	    }
-	    //	    console.timeEnd("highlightspec");
-	    //	    console.time("modrects-trans");
 	    model_rects.transition()
 		.delay(20)
 		.style('opacity', '1.0')
@@ -2193,7 +2137,6 @@ var url = document.URL;
 	    model_rects.exit().transition()
 		.style('opacity', '0.0')
 		.remove();
-	    //	    console.timeEnd("modrects-trans");	    
 	},
 	
 	_highlightSpecies : function () {
@@ -2345,9 +2288,7 @@ var url = document.URL;
 		modelList = [];
 	    modelData = this.state.modelData;
 	    modelList = this.state.modelList;
-	    console.log("updating model to .model, phenotype.."+modelIdx+","+phenotypeIdx);
 
-	    console.log("phenotype data length is "+this.state.phenotypeData.length);
 	    //check to see if the phenotypeIdx is greater than the number of items in the list
 	    if (phenotypeIdx > this.state.phenotypeData.length) {
 		this.state.currPhenotypeIdx = this.state.phenotypeSortData.length;
@@ -2357,9 +2298,7 @@ var url = document.URL;
 	    } else {
 		this.state.currPhenotypeIdx = phenotypeIdx;
 	    }
-	    console.log("curr phenotype index is"+this.state.currPhenotypeIdx);
 	    var startPhenotypeIdx = this.state.currPhenotypeIdx - this.state.phenotypeDisplayCount;
-	    console.log("start phenotype index is.."+startPhenotypeIdx);
 	    
 	    this.state.filteredPhenotypeData = [];
 	    this.state.yAxis = [];
@@ -2375,7 +2314,6 @@ var url = document.URL;
 		this.state.currModelIdx = modelIdx;
 	    }
 	    var startModelIdx = this.state.currModelIdx - this.state.modelDisplayCount;
-	    console.log("start model index is "+startModelIdx);
 
 	    this.state.filteredModelList = [];
 	    //if (this.state.targetSpeciesName !== "Overview") { this.state.filteredModelData = [];}
@@ -2388,7 +2326,6 @@ var url = document.URL;
     	    for (var idx=startModelIdx;idx<self.state.currModelIdx;idx++) {
     		self.state.filteredModelList.push(modelList[idx]);
     	    }
-	    console.log("pushed # of models..."+self.state.filteredModelList.length);
 	    
 	    //extract the new array of filtered Phentoypes
 	    //also update the axis
@@ -2444,14 +2381,7 @@ var url = document.URL;
 		}	
 	   // }
 	    
-	    console.log("DRAGGED TO CALL CREATE MODEL RECTS");
 
-	    // compare filteredModelData to stored...fmd
-	    if (JSON.stringify(fmd) ===JSON.stringify(self.state.filteredModelData)) {
-		console.log("filtered model data unchanged..");
-	    } else {
-		console.log("filtered model data changed...");
-	    }
 	    
 	    this._createModelRects();
 	    this._createRowLabels();
@@ -2664,41 +2594,23 @@ var url = document.URL;
 	    	list = this.state.filteredModelList;
 	    }
 
-	    console.time("rangerounds");
 	    this.state.xScale = d3.scale.ordinal()
 		.domain(list.map(function (d) {
 		    return d.model_id; })).rangeRoundBands([0,this.state.modelWidth]);
-	    //	    console.timeEnd("rangerounds");	    
 
-	    //	    console.time("modellabels");
 	    this._createModelLabels(self);
-	    //	    console.timeEnd("modellabels");
-
-	    //	    console.time("modellines");
 	    this._createModelLines();
-	    //	    console.timeEnd("modellines");
-	    
-	    //	    console.time("textscores");
 	    this._createTextScores(list);
-	    //	    console.timeEnd("textscores");
-
-	    //	    console.time("col");
 	    if (self.state.targetSpeciesName == "Overview") {
 	        this._createOverviewSpeciesLabels();		
 	    }
-	    //	    console.timeEnd("col");
 	    
-	    //var modData = [];
-	    
-	    //modData =this.state.modelData.slice();
 	    var modData = this.state.modelData;
 
-	    //	    console.time("moddiff");
 	    var temp_data = modData.map(function(d) { 
 	    	return d.value;}
 				       );
 	    var diff = d3.max(temp_data) - d3.min(temp_data);
-	    //	    console.timeEnd("moddiff");
 
 	    // indicator for bottom of gradients
 	    var ymax = 0;
@@ -2717,11 +2629,9 @@ var url = document.URL;
 		this._buildGradientTexts(y1);
 	    }					
 
-	    //	    console.time("pgcontrols");
 	    var phenogridControls = $('<div id="phenogrid_controls"></div>');
 	    this.element.append(phenogridControls);
 	    this._createSelectionControls(phenogridControls); 
-	    //	    console.timeEnd("pgcontrols");
 
 	    return ymax;
 	},
@@ -2732,7 +2642,6 @@ var url = document.URL;
 	_buildGradientDisplays: function(y1) {
 	    var ymax = 0;
 
-	    console.time("creategrads");
 	    //If this is the Overview, get gradients for all species with an index
 	    if (this.state.targetSpeciesName == "Overview" || 
 	    	this.state.targetSpeciesName == "All") {
@@ -2752,7 +2661,6 @@ var url = document.URL;
 		    ymax = y;
 		}
 	    }
-	    console.log("ymax is "+ymax);
 	    return ymax;
 	},
 
@@ -2771,7 +2679,6 @@ var url = document.URL;
 	    var y;
 	    var gradientHeight=20;
 	    
-	    console.time("gradientappend");
 	    var gradient = this.state.svg.append("svg:linearGradient")
 		.attr("id",  "gradient_" + i)
 		.attr("x1", "0")
@@ -2785,9 +2692,6 @@ var url = document.URL;
 		    .style("stop-color", this.state.colorRanges[i][j])
 		    .style("stop-opacity", 1);				
 	    }
-	    //	    console.timeEnd("gradientappend");
-
-	    //	    console.time("gradientlabs");
 	    /* gradient + gap is 20 pixels */
 	    var y = y1 + (gradientHeight * i) +  self.state.yoffset;
 	    var  x = self.state.axis_pos_list[2] + 12;
@@ -2816,7 +2720,6 @@ var url = document.URL;
 		.attr("x", x)
 		.style("font-size", "11px")
 		.text(specName);
-	    //	    console.timeEnd("gradientlabs");
 	    
 	    y = y+gradientHeight;
 	    
@@ -2840,7 +2743,6 @@ var url = document.URL;
 	    else if (calc == 3) {text1 = "Less Similar"; text2 = "Ratio (t)"; text3 = "More Similar";}
 	    else if (calc == 0) {text1 = "Min"; text2 = "Similarity"; text3 = "Max";}
 	    
-	    console.time("mrtexts");
 	    var ytext1 =  y1  + self.state.yoffset-5;
 	    var xtext1= self.state.axis_pos_list[2] + 10;
 	    var div_text1 = self.state.svg.append("svg:text")
@@ -2867,7 +2769,6 @@ var url = document.URL;
 		.attr("x", xtext3)
 		.style("font-size", "10px")
 		.text(text3);
-	    //	    console.timeEnd("mrtexts");
 	    
 	    //Position the max more carefully	
 	    if (text3 == "Max") {
