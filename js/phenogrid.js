@@ -590,7 +590,7 @@ var url = document.URL;
 	        .attr("x",self.state.axis_pos_list[2]+explXOffset)
 	        .attr("y",scoreTipY+explYOffset)
 	        .attr("class","tip")
-	        .text("ordered by model similarity");
+	        .text("best matches left to right.");
 	},
 
 	_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
