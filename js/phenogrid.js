@@ -482,7 +482,7 @@ var url = document.URL;
 		.attr("x", function(d) { return self.state.smallXScale(d.model_id);})
 		.attr("width", 2)
 		.attr("height", 2)
-		.attr("fill", function(d,i) { return self._setRectFill(self,d,i)});
+		.attr("fill", function(d) { return self._setRectFill(self,d.species,d.value)});
 	    
 	    var lastId = self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a; //rowid
 	    var selectRectHeight = self.state.smallYScale(lastId);
@@ -553,12 +553,12 @@ var url = document.URL;
 	},
 
 	/* we only have 3 color,s but that will do for now */
-	_setRectFill: function(self,d,i) {
+	_setRectFill: function(self,species,score) {
 	    //This is for the new "Overview" target option
 	    var selectedScale;
-	    var scaleIndex  = this._getTargetSpeciesIndexByName(self,d.species);
+	    var scaleIndex  = this._getTargetSpeciesIndexByName(self,species);
 	    var selectedScale = self.state.colorScale[scaleIndex];
-	    return selectedScale(d.value);
+	    return selectedScale(score);
 	},
 
 	_createModelScoresLegend: function() {
@@ -566,6 +566,8 @@ var url = document.URL;
 	    var scoreTipY = self.state.yoffset;
 	    var faqY = scoreTipY-faqOffset
 	    var tipTextLength =92;
+	    var explYOffset=15;
+	    var explXOffset=10;
 	    var scoretip = self.state.svg.append("text")
 		.attr("transform","translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY+ ")")
     	        .attr("x", 0)
@@ -586,6 +588,11 @@ var url = document.URL;
 		    var name = "modelscores";					
 		    self._showDialog(name);
 		});
+	    var expl = self.state.svg.append("text")
+	        .attr("x",self.state.axis_pos_list[2]+explXOffset)
+	        .attr("y",scoreTipY+explYOffset)
+	        .attr("class","tip")
+	        .text("ordered by model similarity");
 	},
 
 	_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
@@ -851,7 +858,8 @@ var url = document.URL;
 		this._finishOverviewLoad();
 	    }
 	    else {
-		this._finishLoad(this.state.data[this.state.targetSpeciesName]);
+		//this._finishLoad(this.state.data[this.state.targetSpeciesName]);
+		this._finishLoad();
 	    }
 	    
 	},
@@ -1051,7 +1059,8 @@ var url = document.URL;
 	    }
 	    else {
 		this._loadSpeciesData(this.state.targetSpeciesName);
-		this._finishLoad(this.state.data[this.state.targetSpeciesName]);
+		//this._finishLoad(this.state.data[this.state.targetSpeciesName]);
+		this._finishLoad();
 	    }
 	},
 
@@ -1111,6 +1120,7 @@ var url = document.URL;
 			    {model_id: this._getConceptId(item.id),
 			     model_label: item.label,
 			     model_score: item.score.score,
+			     species: species,
 			     model_rank: item.score.rank}
 			);
 			this._loadDataForModel(item);
@@ -1213,8 +1223,10 @@ var url = document.URL;
 	//Finish the data load after the ajax request
 	//Create the modelList array: model_id, model_label, model_score, model_rank
 	//Call _loadDataForModel to put the matches in an array
-	_finishLoad: function(data) {
-	    var retData = data;
+	_finishLoad: function() {
+	    var species = this.state.targetSpeciesName;
+	    var retData  = this.state.data[species];
+	 //   var retData = data;
 	    //extract the maxIC score
 	    if (typeof (retData.metadata) !== 'undefined') {
 	    	this.state.maxICScore = retData.metadata.maxMaxIC;
@@ -1230,6 +1242,7 @@ var url = document.URL;
 			{model_id: self._getConceptId(retData.b[idx].id), 
 			 model_label: retData.b[idx].label, 
 			 model_score: retData.b[idx].score.score, 
+			 species: species,
 			 model_rank: retData.b[idx].score.rank}
 		    );
 		    this._loadDataForModel(retData.b[idx]);
@@ -2121,7 +2134,7 @@ var url = document.URL;
 			self._deselectData(self.state.selectedRow);}
 		})
 		.style('opacity', '1.0')
-		.attr("fill", function(d,i) { return self._setRectFill(self,d,i)});
+		.attr("fill", function(d) { return self._setRectFill(self,d.species,d.value)});
 
 	    if (self.state.targetSpeciesName == "Overview") {
 	    	this._highlightSpecies();
@@ -2424,6 +2437,7 @@ var url = document.URL;
 
 	_createTextScores: function(list) {
 	    var self =this;
+	    
 	    var translation ="translate(" + (this.state.textWidth + 34) +"," 
 		+ this.state.yoffset + ")"; // was yoffset -3
 	    this.state.svg.selectAll("text.scores")
@@ -2437,7 +2451,11 @@ var url = document.URL;
 		.attr("width", 18)
     	        .attr("height", 10)
 		.attr("class", "scores")
-		.text(function (d,i){return self.state.filteredModelList[i].model_score;});
+		.text(function (d){return d.model_score;})
+	        .style("font-weight","bold")
+	        .style("fill",function(d) { console.log("doing a label.."+JSON.stringify(d)); var c = self._setRectFill(self,d.species,d.model_score); console.log(JSON.stringify(c)); return c});
+		//.text(function (d,i){return self.state.filteredModelList[i].model_score;});
+
 	},
 
 	//Add species labels to top of Overview
