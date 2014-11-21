@@ -482,7 +482,7 @@ var url = document.URL;
 		.attr("x", function(d) { return self.state.smallXScale(d.model_id);})
 		.attr("width", 2)
 		.attr("height", 2)
-		.attr("fill", function(d) { return self._setRectFill(self,d.species,d.value)});
+		.attr("fill", function(d) { return self._getColorForModelValue(self,d.species,d.value)});
 	    
 	    var lastId = self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a; //rowid
 	    var selectRectHeight = self.state.smallYScale(lastId);
@@ -553,7 +553,7 @@ var url = document.URL;
 	},
 
 	/* we only have 3 color,s but that will do for now */
-	_setRectFill: function(self,species,score) {
+	_getColorForModelValue: function(self,species,score) {
 	    //This is for the new "Overview" target option
 	    var selectedScale;
 	    var scaleIndex  = this._getTargetSpeciesIndexByName(self,species);
@@ -2134,7 +2134,7 @@ var url = document.URL;
 			self._deselectData(self.state.selectedRow);}
 		})
 		.style('opacity', '1.0')
-		.attr("fill", function(d) { return self._setRectFill(self,d.species,d.value)});
+		.attr("fill", function(d) { return self._getColorForModelValue(self,d.species,d.value)});
 
 	    if (self.state.targetSpeciesName == "Overview") {
 	    	this._highlightSpecies();
@@ -2453,9 +2453,7 @@ var url = document.URL;
 		.attr("class", "scores")
 		.text(function (d){return d.model_score;})
 	        .style("font-weight","bold")
-	        .style("fill",function(d) { console.log("doing a label.."+JSON.stringify(d)); var c = self._setRectFill(self,d.species,d.model_score); console.log(JSON.stringify(c)); return c});
-		//.text(function (d,i){return self.state.filteredModelList[i].model_score;});
-
+	        .style("fill",function(d) { return self._getColorForModelValue(self,d.species,d.model_score);});
 	},
 
 	//Add species labels to top of Overview
