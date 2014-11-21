@@ -555,9 +555,7 @@ var url = document.URL;
 	/* we only have 3 color,s but that will do for now */
 	_getColorForModelValue: function(self,species,score) {
 	    //This is for the new "Overview" target option
-	    var selectedScale;
-	    var scaleIndex  = this._getTargetSpeciesIndexByName(self,species);
-	    var selectedScale = self.state.colorScale[scaleIndex];
+	    var selectedScale = self.state.colorScale[species];
 	    return selectedScale(score);
 	},
 
@@ -1403,15 +1401,9 @@ var url = document.URL;
     	    this.state.colorScale={};
 	    
 	    for(var i = 0; i < this.state.targetSpeciesList.length; i++) {	
-		var speciesindex;
-		if (typeof(this.state.colorRanges[i]) === 'undefined') {
-		    speciesindex = -1;
-		}
-		else  {
-		    speciesindex = i;
-		}  
-		if (speciesindex != -1) {
-		    this.state.colorScale[speciesindex] = this._getColorScale(speciesindex, maxScore);
+		if (typeof(this.state.colorRanges[i]) !== 'undefined') {
+		    var species = this.state.targetSpeciesList[i].name;
+		    this.state.colorScale[species] = this._getColorScale(i, maxScore);
 		}
 	    }
 	},
