@@ -300,16 +300,22 @@ var url = document.URL;
 	        this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 
 	    
-	    // target species name might be provided as a name or as taxon. Make sure that we translate to name
-	    this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.targetSpeciesName);
+	    // target species name might be provided as a name or as
+	    // taxon. Make sure that we translate to name  
+	    this.state.targetSpeciesName = 
+		this._getTargetSpeciesNameByTaxon(this,this.state.targetSpeciesName);
 
 	    
 		this._loadData();
 
 		// shorthand for top of model region
-		this.state.yModelRegion = this.state.yoffsetOver+this.state.yoffset;
+		this.state.yModelRegion =this.state.yoffsetOver+this.state.yoffset;
 
 		this._filterData(this.state.modelData);
+	        this._initializePhenotypeSortData();
+
+
+
 		this._filterSelected("sortphenotypes");
 		this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 		this.element.empty();
@@ -858,64 +864,56 @@ var url = document.URL;
 		return 0;
 	},
 
+	_initializePhenotypeSortData: function() {
+	    var self = this;
+	    self.state.phenotypeSortData = [];
+	    var modData = self.state.modelData;
+	    
+	    //1. Get all unique phenotypes in an array
+	    //console.log("at start of sorting models..."+self.state.modelData.length);
+	    for (var idx in self.state.phenotypeData) {
+		var tempdata = [];
+		for (var midx in modData) {
+		    if (modData[midx].id_a == self.state.phenotypeData[idx].id_a) {
+			tempdata.push(modData[midx]);
+		    }
+		}
+		
+		// now, have all of the models that match
+		// phenotypeData[idx].
+		// must set up the atrtributes of this array needed
+		// for sorting.
+
+		var sortVal;
+		// first alphabetic
+		sortVal = tempdata[0].label_a;
+		tempdata["label"]=sortVal;
+
+		///then for frequency and freq/rarity, iterate over 
+		var freq=0;
+		var num =0;
+		for (var i in tempdata) {
+		    freq +=1;
+		    num +=tempdata[i].subsumer_IC;
+		}
+		tempdata["count"] = freq;
+		tempdata["sum"]=num;
+
+		// finally, push onto phenotypeSortData
+		self.state.phenotypeSortData.push(tempdata);
+	    }
+	},
+
 	_sortingPhenotypes: function() {
-		var self = this;
+	       var self = this;
 		var sortType = self.state.selectedSort;
-		var modelDataForSorting = [];
-		var modData = self.state.modelData;
-		var sortFunc, sortSet;
+		var sortFunc;
 		if (sortType == 'Frequency') {
 			sortFunc = self._sortPhenotypesModel;
-			sortSet = "count";
 		} else if (sortType == 'Frequency and Rarity') {
 			sortFunc = self._sortPhenotypesRank;
-			sortSet = "sum";
 		} else if (sortType == 'Alphabetic') {
 			sortFunc = self._sortPhenotypesAlphabetic;
-			sortSet = "label";
-		}
-
-		//1. Get all unique phenotypes in an array
-		//console.log("at start of sorting models..."+self.state.modelData.length);
-		for (var idx in self.state.phenotypeData) {
-			var tempdata = [];
-			for (var midx in modData) {
-				if (modData[midx].id_a == self.state.phenotypeData[idx].id_a) {
-					tempdata.push(modData[midx]);
-				}
-			}
-			modelDataForSorting.push(tempdata);
-		}
-		//console.log("modelDataForSorting..."+modelDataForSorting.length);
-		//console.log("filtered model data..."+this.state.filteredModelData.length);
-
-		//2. Sort the array by source phenotype name 
-		modelDataForSorting.sort(function(a,b) { 
-			return a.id_a-b.id_a;
-		});
-
-		self.state.phenotypeData.sort(function(a,b) {
-			return a.id_a-b.id_a;
-		});
-
-		//3. Get the sum of all of this phenotype's LCS scores and add to array
-		for (var k in modelDataForSorting) {
-			var num = 0;
-			var d = modelDataForSorting[k];
-			var sortVal;
-			if (d[0].id_a === self.state.phenotypeData[k].id_a){
-				if (sortType == 'Alphabetic'){
-					sortVal = d[0].label_a;
-				}else{
-					for (var i in d){
-						if (sortType == 'Frequency'){num+= 1;}
-						else {num+= d[i].subsumer_IC;}
-					}
-					sortVal = num;
-				}
-				d[sortSet] = sortVal;
-				self.state.phenotypeSortData.push(d);
-			}
 		}
 
 		if (typeof(sortFunc) !== 'undefined') {
