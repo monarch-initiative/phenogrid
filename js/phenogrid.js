@@ -309,10 +309,18 @@ var url = document.URL;
 		this._loadData();
 
 		// shorthand for top of model region
-		this.state.yModelRegion =this.state.yoffsetOver+this.state.yoffset;
+	    this.state.yModelRegion =this.state.yoffsetOver+this.state.yoffset;
 
-		this._filterData(this.state.modelData);
-	        this._initializePhenotypeSortData();
+		var phenotypeArray = this._uniquifyPhenotypes(this.state.modelData);
+		//copy the phenotypeArray to phenotypeData array - now instead of ALL phenotypes, it will be limited to unique phenotypes for this disease
+		//do not alter this array: this.state.phenotypeData
+		this.state.phenotypeData = phenotypeArray;
+	    
+
+	    this._adjustPhenotypeCount(this.state.modelData);
+	    console.log("about to call initialiephenotypeSortData");
+	    this._initializePhenotypeSortData();
+	    console.log("done calling initialiephenotypeSortData");
 
 
 
@@ -337,7 +345,8 @@ var url = document.URL;
 			this.state.svg
 				.attr("width", "100%")
 				.attr("height", this.state.phenotypeDisplayCount * this.state.widthOfSingleModel);
-			var rectHeight = this._createRectangularContainers();
+		    var rectHeight = this._createRectangularContainers();
+		    console.log("rect height returned by createRectangularContainers is..."+rectHeight);
 			this._createColorScale();
 
 			this._createModelRegion();
@@ -717,9 +726,9 @@ var url = document.URL;
 		self.state.selectedSort = type;
 	},
 
-	_processSelected: function(processType){
+       _processSelected: function(processType){
+		this._adjustPhenotypeCount(this.state.modelData);
 		this._filterSelected(processType);
-		this._filterData(this.state.modelData);
 		this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 		this.element.empty();
 		this.reDraw();
@@ -727,13 +736,10 @@ var url = document.URL;
 
 	//given the full dataset, return a filtered dataset containing the
 	//subset of data bounded by the phenotype display count and the model display count
-	_filterData: function(fulldataset) {
-		var phenotypeArray = this._uniquifyPhenotypes(fulldataset);
-		//copy the phenotypeArray to phenotypeData array - now instead of ALL phenotypes, it will be limited to unique phenotypes for this disease
-		//do not alter this array: this.state.phenotypeData
-		this.state.phenotypeData = phenotypeArray;
+	_adjustPhenotypeCount: function(fulldataset) {
 
-		//we need to adjust the display counts and indexing if there are fewer phenotypes than the default phenotypeDisplayCount
+	    //we need to adjust the display counts and indexing if there are fewer phenotypes than the
+	    // default phenotypeDisplayCount  
 		if (this.state.phenotypeData.length < this.state.phenotypeDisplayCount) {
 			this.state.currPhenotypeIdx = this.state.phenotypeData.length-1;
 			this.state.phenotypeDisplayCount = this.state.phenotypeData.length;
@@ -744,7 +750,6 @@ var url = document.URL;
 		var self = this;
 		if (filterType == "sortphenotypes"){
 			//Sort the phenotypes based on what value is currently held in self.state.selectedSort
-			self.state.phenotypeSortData = [];
 			this._sortingPhenotypes();
 		}else if (filterType == "calculation"){
 			//If not here, changing the calculations will remove everything from phenogrid.  Find a way to move or remove some point
@@ -872,6 +877,7 @@ var url = document.URL;
 	    //1. Get all unique phenotypes in an array
 	    //console.log("at start of sorting models..."+self.state.modelData.length);
 	    for (var idx in self.state.phenotypeData) {
+		console.log("looking at phenotype # "+idx);
 		var tempdata = [];
 		for (var midx in modData) {
 		    if (modData[midx].id_a == self.state.phenotypeData[idx].id_a) {
@@ -2290,12 +2296,19 @@ var url = document.URL;
 		var self=this;
 		this._buildAxisPositionList();
 
-		var gridHeight = self.state.phenotypeDisplayCount * self.state.heightOfSingleModel + 10;
+	    var gridHeight = self.state.phenotypeDisplayCount * self.state.heightOfSingleModel + 10;
+    	    console.log(" create rectangular containers");
+	    console.log("phenotypes...."+self.state.phenotypeDisplayCount+"..min..."+self.state.minHeight);
+	    console.log("grid height..."+gridHeight);
 		if (gridHeight < self.state.minHeight) {
-			gridHeight = self.state.minHeight;
+		    gridHeight = self.state.minHeight;
+		    console.log("adjusted grid height..."+gridHeight);
 		}
 
-		var y = self.state.yModelRegion;
+
+
+	    var y = self.state.yModelRegion;
+	    console.log(" y is ..."+self.state.yModelRegion);
 		//create accent boxes
 		var rect_accents = this.state.svg.selectAll("#rect.accent")
 			.data([0,1,2], function(d) { return d;});
