@@ -136,7 +136,7 @@ var url = document.URL;
 	
 	//reset state values that must be cleared before reloading data
 	_reset: function(type) {
-		if (type !== 'sortphenotypes') {
+		if (type == 'organism' || typeof(type) == 'undefined') { // was != sort_Phenotypes
 			this.state.modelData = [];
 			this.state.modelList = [];
 			this.state.filteredModelData = [];
@@ -161,7 +161,7 @@ var url = document.URL;
 		// must reset height explicitly
 		this.state.h = this.config.h;
 
-		this.data = {};
+
 	},
 
 	//this function will use the desired height to determine how many phenotype rows to display
@@ -333,15 +333,12 @@ var url = document.URL;
 		this.state.phenotypeData = phenotypeArray;
 	    
 	    this._adjustPhenotypeCount(this.state.modelData);
-	    console.log("about to call initialiephenotypeSortData");
 	    this._initializePhenotypeSortData();
-	    console.log("done calling initialiephenotypeSortData");
-
-
-
 		this._filterSelected("sortphenotypes");
 		this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 		this.element.empty();
+	    this._createColorScale();
+
 		this.reDraw();
 	},
 
@@ -361,8 +358,6 @@ var url = document.URL;
 				.attr("width", "100%")
 				.attr("height", this.state.phenotypeDisplayCount * this.state.widthOfSingleModel);
 		    var rectHeight = this._createRectangularContainers();
-		    console.log("rect height returned by createRectangularContainers is..."+rectHeight);
-			this._createColorScale();
 
 			this._createModelRegion();
 
@@ -611,7 +606,7 @@ var url = document.URL;
 	/* we only have 3 color,s but that will do for now */
 	_getColorForModelValue: function(self,species,score) {
 	    //This is for the new "Overview" target option
-	    var selectedScale = self.state.colorScale[species];
+	    var selectedScale = self.state.colorScale[species][self.state.selectedCalculation];
 	    return selectedScale(score);
 	},
 
@@ -768,7 +763,7 @@ var url = document.URL;
 		if (filterType == "sortphenotypes"){
 			//Sort the phenotypes based on what value is currently held in self.state.selectedSort
 			this._sortingPhenotypes();
-		}else if (filterType == "calculation"){
+		}/*else if (filterType == "calculation"){
 			//If not here, changing the calculations will remove everything from phenogrid.  Find a way to move or remove some point
 			if (this.state.targetSpeciesName === "Overview") {
 				this._finishOverviewLoad();
@@ -776,7 +771,7 @@ var url = document.URL;
 			else {
 				this._finishLoad();
 			}
-		}
+		}*/
 
 		//Step 2: Filter for the next n phenotypes based on phenotypeDisplayCount and update the y-axis
 		this.state.filteredModelData = [];
@@ -787,16 +782,6 @@ var url = document.URL;
 		var startIdx = 0;
 		var displayLimiter = this.state.phenotypeDisplayCount;
 
-		//This code down here needs fixing if navigation methods are changed in the future
-		//var startIdx = this.state.currPhenotypeIdx - (this.state.phenotypeDisplayCount -1);
-		//var displayLimiter = self.state.currPhenotypeIdx;
-		//if (startIdx > 0){
-			//Hack.  StartIDX at any point after init is 1 value too high and will show values 1 off.  Can crash as well
-			//startIdx--;
-		//} else{
-			//Only on init or on the top, currPhenotypeIdx can be 1 short, so it wont display values on the last row
-			//displayLimiter++;
-		//}
 
 		//extract the new array of filtered Phentoypes
 		//also update the axis
@@ -894,7 +879,6 @@ var url = document.URL;
 	    //1. Get all unique phenotypes in an array
 	    //console.log("at start of sorting models..."+self.state.modelData.length);
 	    for (var idx in self.state.phenotypeData) {
-		console.log("looking at phenotype # "+idx);
 		var tempdata = [];
 		for (var midx in modData) {
 		    if (modData[midx].id_a == self.state.phenotypeData[idx].id_a) {
@@ -1240,7 +1224,8 @@ var url = document.URL;
 	    // 3: ratio(t)
 	    nic = ((lIC/bIC) * 100);
 	    ics[3] = nic;
-
+	    
+	    console.log("ics are..."+JSON.stringify(ics));
 	    return ics;
 	},
 
@@ -1300,10 +1285,17 @@ var url = document.URL;
 		this.state.colorScale={};
 
 		for (var i in this.state.targetSpeciesList) {
-			if (typeof(this.state.colorRanges[i]) !== 'undefined') {
-			    var species = this.state.targetSpeciesList[i].name;
-				this.state.colorScale[species] = this._getColorScale(i, maxScore);
+		    var species = this.state.targetSpeciesList[i].name;
+		    this.state.colorScale[species] = new Array(4);
+		    for (var j = 0; j <4; j++) {
+			var maxScore = 100;
+			if (j == 2) {
+			    maxScore = this.state.maxICScore;
 			}
+			if (typeof(this.state.colorRanges[i][j]) !== 'undefined') {
+			    this.state.colorScale[species][j] = this._getColorScale(i, maxScore);
+			}
+		    }
 		}
 	},
 
@@ -2322,18 +2314,13 @@ var url = document.URL;
 		this._buildAxisPositionList();
 
 	    var gridHeight = self.state.phenotypeDisplayCount * self.state.heightOfSingleModel + 10;
-    	    console.log(" create rectangular containers");
-	    console.log("phenotypes...."+self.state.phenotypeDisplayCount+"..min..."+self.state.minHeight);
-	    console.log("grid height..."+gridHeight);
 		if (gridHeight < self.state.minHeight) {
 		    gridHeight = self.state.minHeight;
-		    console.log("adjusted grid height..."+gridHeight);
 		}
 
 
 
 	    var y = self.state.yModelRegion;
-	    console.log(" y is ..."+self.state.yModelRegion);
 		//create accent boxes
 		var rect_accents = this.state.svg.selectAll("#rect.accent")
 			.data([0,1,2], function(d) { return d;});
