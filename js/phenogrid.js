@@ -295,7 +295,6 @@ var url = document.URL;
 	_getResourceUrl: function(name,type) {
 		var prefix;
 	    prefix =this.state.serverURL+'/widgets/phenogrid/js/';
-	    console.log("prefix is "+prefix);
 	    return prefix+'res/'+name+'.'+type;
 	},
 
@@ -1225,7 +1224,6 @@ var url = document.URL;
 	    nic = ((lIC/bIC) * 100);
 	    ics[3] = nic;
 	    
-	    console.log("ics are..."+JSON.stringify(ics));
 	    return ics;
 	},
 
@@ -2566,11 +2564,13 @@ var url = document.URL;
 		$( "#organism" ).change(function(d) {
 			//msg =  "Handler for .change()
 			//called." );
+		       console.log("changed organism");
 			self.state.targetSpeciesName = self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
 			self._resetSelections("organism");
 		});
 
 		$( "#calculation" ).change(function(d) {
+		       console.log("changed calculation");
 			self.state.selectedCalculation = self.state.similarityCalculation[d.target.selectedIndex].calc;
 			self._resetSelections("calculation");
 			self._processSelected("calculation");
@@ -2578,6 +2578,7 @@ var url = document.URL;
 
 		//add the handler for the select control
 		$( "#sortphenotypes" ).change(function(d) {
+		    console.log("changed sort");
 			self.state.selectedSort = self.state.phenotypeSort[d.target.selectedIndex];
 			self._resetSelections("sortphenotypes");
 			self._processSelected("sortphenotypes");
