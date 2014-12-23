@@ -326,12 +326,12 @@ var url = document.URL;
 		// shorthand for top of model region
 	    this.state.yModelRegion =this.state.yoffsetOver+this.state.yoffset;
 
+
 		var phenotypeArray = this._uniquifyPhenotypes(this.state.modelData);
 		//copy the phenotypeArray to phenotypeData array - now instead of ALL phenotypes, it will be limited to unique phenotypes for this disease
 		//do not alter this array: this.state.phenotypeData
 		this.state.phenotypeData = phenotypeArray;
 	    
-
 	    this._adjustPhenotypeCount(this.state.modelData);
 	    console.log("about to call initialiephenotypeSortData");
 	    this._initializePhenotypeSortData();
@@ -894,6 +894,7 @@ var url = document.URL;
 	    //1. Get all unique phenotypes in an array
 	    //console.log("at start of sorting models..."+self.state.modelData.length);
 	    for (var idx in self.state.phenotypeData) {
+		console.log("looking at phenotype # "+idx);
 		var tempdata = [];
 		for (var midx in modData) {
 		    if (modData[midx].id_a == self.state.phenotypeData[idx].id_a) {
