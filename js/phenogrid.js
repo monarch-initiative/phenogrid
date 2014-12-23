@@ -371,7 +371,7 @@ var url = document.URL;
 			this._createGridlines();
 			this._createModelRects();
 			this._createRowLabels();
-			//this._createOverviewSection();
+			this._createOverviewSection();
 
 			var height = rectHeight + 40;
 
@@ -534,7 +534,6 @@ var url = document.URL;
 			.attr("width", linePad)
 			.attr("height", linePad)
 		.attr("fill", function(d) {
-		    console.log("create overview section... selected calculation is "+self.state.selectedCalculation+", value is "+d.value[self.state.selectedCalcluation]);
 		    return self._getColorForModelValue(self,d.species,
 						       d.value[self.state.selectedCalculation]);});
 
@@ -895,7 +894,6 @@ var url = document.URL;
 	    //1. Get all unique phenotypes in an array
 	    //console.log("at start of sorting models..."+self.state.modelData.length);
 	    for (var idx in self.state.phenotypeData) {
-		console.log("looking at phenotype # "+idx);
 		var tempdata = [];
 		for (var midx in modData) {
 		    if (modData[midx].id_a == self.state.phenotypeData[idx].id_a) {
@@ -1938,14 +1936,8 @@ var url = document.URL;
 			})
 			.style('opacity', '1.0')
 		.attr("fill", function(d) {
-    		    console.log("create modelRects... selected calculation is "+self.state.selectedCalculation+", d is .."
-				+JSON.stringify(d));
-		    console.log("selected calculation is ..."+self.state.selectedCalculation);
-		    console.log("d value is..."+JSON.stringify(d.value));
 		    var score = d.value[self.state.selectedCalculation];
-		    console.log(" score is.."+score);
-		    var color = self._getColorForModelValue(self,d.species,d.value[self.state.selectedCalcluation]);
-		    console.log("color is..."+color);
+		    var color = self._getColorForModelValue(self,d.species,score);
 		    return color;
 		});
 
