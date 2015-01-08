@@ -782,9 +782,11 @@ var url = document.URL;
 		//also update the modeldata
 		var axis_idx = 0;
 		var tempFilteredModelData = [];
+		var filteredData;
 		//get phenotype[startIdx] up to phenotype[currPhenotypeIdx] from the array of sorted phenotypes
 		for (var i = startIdx; i < displayLimiter; i++) {
-			self.state.filteredPhenotypeData.push(self.state.phenotypeSortData[i]);
+			filteredData = {"id_a": self.state.phenotypeSortData[i][0].id_a,"id": self.state.phenotypeSortData[i][0].id,"label_a": self.state.phenotypeSortData[i][0].label_a};
+			self.state.filteredPhenotypeData.push(filteredData);
 			//update the YAxis
 			//the height of each row
 			var size = 10;
@@ -1449,9 +1451,10 @@ var url = document.URL;
 		var alabels = this.state.svg.selectAll("text");
 		for (var i in curr_data){
 			var label = curr_data[i].model_label;
+			var mod_id = curr_data[i].model_id;
 			for (var j in alabels[0]){
 				var shortTxt = self._getShortLabel(label,self.state.labelCharDisplayCount);
-				if(alabels[0][j].innerHTML == shortTxt){
+				if(alabels[0][j].id == mod_id){
 					alabels[0][j].style.fill = "blue";
 					alabels[0][j].innerHTML = label;
 				}
@@ -1475,7 +1478,6 @@ var url = document.URL;
 
 	_selectModel: function(modelData, obj) {
 		var self = this;
-
 		//create the related model rectangles
 		var highlight_rect = self.state.svg.append("svg:rect")
 			.attr("transform","translate(" + (self.state.textWidth + 32) + "," + self.state.yoffsetOver+ ")")
@@ -1530,8 +1532,8 @@ var url = document.URL;
 	_clearModelData: function(modelData,obj) {
 		this.state.svg.selectAll("#detail_content").remove();
 		this.state.svg.selectAll(".model_accent").remove();
-		var model_text = "",
-		mod_id = "";
+		var model_text = "";
+		var mod_id = "";
 		if (modelData !== null && typeof modelData != 'object') {
 			mod_id = this._getConceptId(modelData);   
 		} else if (typeof (modelData.model_id) !== 'undefined') {
@@ -1556,42 +1558,58 @@ var url = document.URL;
 		var highlight_rect = self.state.svg.append("svg:rect")
 			.attr("transform","translate(" + (self.state.axis_pos_list[1]) +"," + (self.state.yoffsetOver + 4)  + ")")
 			.attr("x", 12)
-			.attr("y", function(d) {return self._getYPosition(curr_data[0].id_a) ;}) //rowid
+			.attr("y", function(d) {return self._getYPosition(curr_data.id_a) ;}) //rowid
 			.attr("class", "row_accent")
 			.attr("width", this.state.modelWidth - 4)
 			.attr("height", 12);
 
 		this._resetLinks();
-		var alabels = this.state.svg.selectAll("text.a_text." + curr_data[0].id);//this._getConceptId(curr_data[0].id));
-		var txt = curr_data[0].label_a;
+		var alabels = this.state.svg.selectAll("text.a_text." + curr_data.id_a);//this._getConceptId(curr_data[0].id));
+		var txt = curr_data.label_a;
 		if (txt === undefined) {
-			txt = curr_data[0].id_a;
+			txt = curr_data.id_a;
 		}
 		alabels.text(txt)
 			.style("font-weight", "bold")
 			.style("fill", "blue")
 			.on("click",function(d){
-				self._clickPhenotype(self.state.serverURL,curr_data[0].id_a);
+				self._clickPhenotype(self.state.serverURL,curr_data.id_a);
 			});
-
-		this._highlightMatchingModels(curr_data);
+		var model_row;
+		for (var phenotypeRow in self.state.phenotypeSortData)
+		{
+			if (self.state.phenotypeSortData[phenotypeRow][0].id_a == curr_data.id_a)
+			{
+				model_row = self.state.phenotypeSortData[phenotypeRow];
+				break;
+			}
+		}
+		this._highlightMatchingModels(model_row);
 	},
 
 	_deselectData: function (curr_data) {
 		this.state.svg.selectAll(".row_accent").remove();
 		this._resetLinks();
 		var row;
-		if (curr_data[0] === undefined) {row = curr_data;}
-		else {row = curr_data[0];}
+		if (curr_data === undefined) {row = curr_data;}
+		else {row = curr_data;}
 
-		//var alabels = this.state.svg.selectAll("text.a_text." + row.id); //this._getConceptId(row.id));
-		var alabels = this.state.svg.selectAll("text.a_text." + this._getConceptId(row.id));
+		var alabels = this.state.svg.selectAll("text.a_text." + row.id_a);
 		alabels.text(this._getShortLabel(row.label_a));
 		var data_text = this.state.svg.selectAll("text.a_text");
 		data_text.style("text-decoration", "none");
 		data_text.style("fill", "black");    
 
-		this._deselectMatchingModels(curr_data);
+		var model_row;
+		for (var phenotypeRow in self.state.phenotypeSortData)
+		{
+			if (self.state.phenotypeSortData[phenotypeRow][0].id_a == curr_data.id_a)
+			{
+				model_row = self.state.phenotypeSortData[phenotypeRow];
+				break;
+			}
+		}
+		this._deselectMatchingModels(model_row);
 	},
 
 	_highlightMatchingPhenotypes: function(curr_data){
@@ -1903,7 +1921,7 @@ var url = document.URL;
 						// ???this.parentNode.appendChild(this);
 						self._enableRowColumnRects(this);
 						//set the current selected rectangle
-						self.state.currSelectedRect = this;  
+						self.state.currSelectedRect = this;
 					}
 				} else {
 					self._highlightIntersection(d, d3.mouse(this));
@@ -2020,8 +2038,8 @@ var url = document.URL;
 		// that is in the 0th position in the grid. No labels exist with the curr_data.id except for the first column
 		//For the overview, there will be a 0th position for each species so we need to get the right model_id
 
-		var mid = this._getFirstModelId(curr_data.id_a);
-		var phen_label = this.state.svg.selectAll("text.a_text." + this._getConceptId(mid));
+		//var mid = this._getFirstModelId(curr_data.id_a);
+		var phen_label = this.state.svg.selectAll("text.a_text." + curr_data.id_a);
 		var txt = curr_data.label_a;
 		if (txt === undefined) {
 			txt = curr_data.id_a;
@@ -2619,20 +2637,20 @@ var url = document.URL;
 		var self=this;
 		var rect_text = this.state.svg
 			.selectAll(".a_text")
-			.data(self.state.filteredPhenotypeData, function(d, i) {  return d[0].id_a; });//rowid
+			.data(self.state.filteredPhenotypeData, function(d, i) {  return d.id_a; });//rowid
 		rect_text.enter()
 			.append("text")
 			.attr("class", function(d) {
-				return "a_text data_text " + d[0].id;//self._getConceptId(d[0].id);
+				return "a_text data_text " + d.id_a;
 			})
 		//store the id for this item.  This will be used on click events
 			.attr("ontology_id", function(d) {
-				return d[0].id_a; //self._getConceptId(d[0].id_a);   
+				return d.id_a;
 			})
 			.attr("x", 208)
 			.attr("y", function(d,i) {
 			//return i;
-				return self._getYPosition(d[0].id_a)+10;
+				return self._getYPosition(d.id_a)+10;
 			})
 			.on("mouseover", function(d) {
 				self._selectData(d, d3.mouse(this));
@@ -2643,9 +2661,9 @@ var url = document.URL;
 			.attr("width", self.state.textWidth)
 			.attr("height", 50)
 			.text(function(d) {
-				var txt = d[0].label_a;
+				var txt = d.label_a;
 				if (txt === undefined) {
-					txt = d[0].id_a;
+					txt = d.id_a;
 				}
 				return self._getShortLabel(txt);
 			});
@@ -2654,7 +2672,7 @@ var url = document.URL;
 
 		//   if (this.state.targetSpeciesName == "Overview") {var pad = 14;}
 		// else { var pad = 10;}
-		var pad =14;
+		var pad = 14;
 
 		rect_text.transition()
 			.style('opacity', '1.0')
@@ -2662,7 +2680,7 @@ var url = document.URL;
 			.attr("y", function(d) {
 				var newy;
 				//controls position of phenotype list
-				newy = self._getYPosition(d[0].id_a) + (self.state.yoffsetOver) + pad;
+				newy = self._getYPosition(d.id_a) + (self.state.yoffsetOver) + pad;
 				return newy;
 			});
 		rect_text.exit()
