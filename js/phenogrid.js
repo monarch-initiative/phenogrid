@@ -50,6 +50,22 @@
  */
 var url = document.URL;
 
+//Creation of modelDataPoint object
+function modelDataPoint(x,y) {
+	this.xID = x;
+	this.yID = y;
+}
+
+//Makes sure that matches are when both the X & Y values are the same
+function modelDataPointEquals(point1,point2) {
+	return point1.xID === point2.xID && point1.yID === point2.yID;
+}
+
+//Prints the point in a easy to understand way
+function modelDataPointPrint(point) {
+	return "X:" + point.xID + ", Y:" + point.yID;
+}
+
 (function($) {
 	$.widget("ui.phenogrid", {
 		// core commit. Not changeable by options. 
@@ -69,8 +85,8 @@ var url = document.URL;
 		detailRectStrokeWidth: 3,
 		globalViewSize : 110,
 		reducedGlobalViewSize: 50,
-		minHeight: 225,
-		h : 526,
+		minHeight: 310,
+		h : 578,
 		m :[ 30, 10, 10, 10 ],
 		multiOrganismCt: 10,
 		multiOrgModelLimit: 750,
@@ -92,10 +108,8 @@ var url = document.URL;
 			{ abbrev: "ZP", label: "Zebrafish"},
 			{ abbrev: "FB", label: "Fly"},
 			{ abbrev: "GO", label: "Gene Ontology"}],
-		modelDisplayCount : 30,
-		phenotypeDisplayCount : 26,
+		dataDisplayCount: 30,
 		labelCharDisplayCount : 20,
-		defaultPhenotypeDisplayCount: 26,
 		apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
 			{prefix: "OMIM", apifragment: "disease"}],
 		defaultApiEntity: "gene",
@@ -108,15 +122,18 @@ var url = document.URL;
 		nonOverviewGridTitleXOffset: 220,
 		nonOverviewGridTitleFaqOffset: 570,
 		gridTitleYOffset: 20,
+		xOffsetOver: 20,
 		baseYOffset: 150,
 		faqImgSize: 15,
-		dummyModelName: "dummy"
+		dummyModelName: "dummy",
+		getAxisError: false
 	},
 
 	internalOptions: {
 		/// good - legit options
 		serverURL: "",
 		selectedCalculation: 0,
+		invertAxis: false,
 		selectedSort: "Frequency",
 		targetSpeciesName : "Overview",
 		refSpecies: "Homo sapiens",
@@ -128,11 +145,11 @@ var url = document.URL;
 	
 	//reset state values that must be cleared before reloading data
 	_reset: function(type) {
-		if (type == 'organism' || typeof(type) == 'undefined') { // was != sort_Phenotypes
+		//LEAVE UNTIL OR MOVING HASH CONSTRUCTION EARLIER
+		if (type == 'organism' || type == 'axisflip' || typeof(type) == 'undefined') {
 			this.state.modelData = [];
 			this.state.modelList = [];
 			this.state.filteredModelData = [];
-			this.state.filteredModelList = [];
 		}
 
 		// target species name might be provided as a name or as taxon. Make sure that we translate to name
@@ -280,38 +297,42 @@ var url = document.URL;
 	_init: function() {
 		this.element.empty();
 		this._loadSpinner();
-		this.state.phenotypeDisplayCount = this._calcPhenotypeDisplayCount();
+		this.state.phenoDisplayCount = this._calcPhenotypeDisplayCount();
 		//save a copy of the original phenotype data
 		this.state.origPhenotypeData = this.state.phenotypeData.slice();
 
 		this._setSelectedCalculation(this.state.selectedCalculation);
 		this._setSelectedSort(this.state.selectedSort);
-		//this.state.yTranslation = 0;
-		this.state.w = this.state.m[1]-this.state.m[3];
 
-		this.state.currModelIdx = this.state.modelDisplayCount-1;
-		this.state.currPhenotypeIdx = this.state.phenotypeDisplayCount-1;
+		this.state.w = this.state.m[1] - this.state.m[3];
+
+		this.state.currXIdx = this.state.dataDisplayCount;
+		this.state.currYIdx = this.state.dataDisplayCount;
+		this.state.modelDisplayCount = this.state.dataDisplayCount;
+		this.state.phenoDisplayCount = this.state.dataDisplayCount;
 		this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 
-		// target species name might be provided as a name or as
-		// taxon. Make sure that we translate to name
-		this.state.targetSpeciesName = 
-		this._getTargetSpeciesNameByTaxon(this,this.state.targetSpeciesName);
+		// target species name might be provided as a name or as taxon. Make sure that we translate to name
+		this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.targetSpeciesName);
 
 		this._loadData();
 
-		// shorthand for top of model region
-		this.state.yModelRegion =this.state.yoffsetOver+this.state.yoffset;
+		this.state.phenoLength = this.state.phenotypeListHash.size();
+		this.state.modelLength = this.state.modelListHash.size();
+		this._setAxisValues();
 
-		var phenotypeArray = this._uniquifyPhenotypes(this.state.modelData);
+		// shorthand for top of model region
+		this.state.yModelRegion = this.state.yoffsetOver + this.state.yoffset;
+		
 		//copy the phenotypeArray to phenotypeData array - now instead of ALL phenotypes, it will be limited to unique phenotypes for this disease
 		//do not alter this array: this.state.phenotypeData
-		this.state.phenotypeData = phenotypeArray;
-		this.state.phenoLength = this.state.phenotypeData.length;
 
-		this._adjustPhenotypeCount(this.state.modelData);
-		this._initializePhenotypeSortData();
-		this._filterSelected("sortphenotypes");
+		this._adjustPhenotypeCount();
+		this._adjustModelCount();
+		this.state.currXIdx = this._getXLimit();
+		this.state.currYIdx = this._getYLimit();
+		this._sortPhenotypeHash();
+		this._filterDisplay();
 		this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 		this.element.empty();
 		this._createColorScale();
@@ -326,17 +347,18 @@ var url = document.URL;
 	},
 
 	reDraw: function() {
-		if (this.state.modelData.length !== 0 && this.state.phenoLength !== 0 && this.state.filteredPhenotypeData.length !== 0){
+		if (this.state.phenoLength !== 0 && this.state.filteredModelDataHash.length !== 0){
+			var displayCount = this._getYLimit();
 			this._setComparisonType();
 			this._initCanvas();
 			this._addLogoImage();
 
 			this.state.svg
 				.attr("width", "100%")
-				.attr("height", this.state.phenotypeDisplayCount * this.state.widthOfSingleModel);
+				.attr("height", displayCount * this.state.widthOfSingleModel);
 			var rectHeight = this._createRectangularContainers();
 
-			this._createModelRegion();
+			this._createXRegion();
 			this._addGradients();
 
 			this._addPhenogridControls();
@@ -346,7 +368,7 @@ var url = document.URL;
 			this._createGridlines();
 			this._createModelRects();
 			this._highlightSpecies();
-			this._createRowLabels();
+			this._createYRegion();
 			this._createOverviewSection();
 
 			var height = rectHeight + 40;
@@ -368,9 +390,22 @@ var url = document.URL;
 		}
 	},
 
-	_resetIndicies: function() {
-		this.state.currModelIdx = this.state.modelDisplayCount-1;
-		this.state.currPhenotypeIdx = this.state.phenotypeDisplayCount-1;
+	//Returns the correct limit amount for the X axis based on axis position
+	_getXLimit: function () {
+		if (this.state.invertAxis){
+			return this.state.phenoDisplayCount;
+		} else {
+			return this.state.modelDisplayCount;
+		}
+	},
+
+	//Returns the correct limit amount for the Y axis based on axis position
+	_getYLimit: function () {
+		if (this.state.invertAxis){
+			return this.state.modelDisplayCount;
+		} else {
+			return this.state.phenoDisplayCount;
+		}
 	},
 
 	/* dummy option procedures as per 
@@ -428,15 +463,12 @@ var url = document.URL;
 		var mWidth = self.state.widthOfSingleModel;
 		var mHeight = self.state.heightOfSingleModel;
 		//create a blank grid to match the size of the phenogrid grid
-		var data = [],
-		modelCt = 0;
-
-		//This is for the new "Overview" target option 		
-		//if (this.state.targetSpeciesName == "Overview"){ modelCt = self.state.multiOrganismCt * 3;}
-		//else { modelCt = self.state.modelDisplayCount;}
-		modelCt = self.state.modelDisplayCount;
-		for (var k = 0; k < self.state.phenotypeDisplayCount; k++){
-			for (var l = 0; l < modelCt; l++) {
+		var data = [];
+		var rowCt = self._getYLimit();
+		var colCt = self._getXLimit();
+		
+		for (var k = 0; k < rowCt; k++){
+			for (var l = 0; l < colCt; l++) {
 				var r = [];
 				r.push(k);
 				r.push(l);
@@ -448,7 +480,7 @@ var url = document.URL;
 			.enter()
 			.append("rect")
 			.attr("id","gridline")
-			.attr("transform","translate(232, " + (this.state.yModelRegion + 5) +")")
+			.attr("transform","translate(252, " + (this.state.yModelRegion + 5) +")")
 			.attr("x", function(d,i) { return d[1] * mWidth;})
 			.attr("y", function(d,i) { return d[0] * mHeight;})
 			.attr("class", "hour bordered deselected")
@@ -456,13 +488,34 @@ var url = document.URL;
 			.attr("height", 11.5);
 	},
 
+	//Sets the X & Y axis hash datastructures correctly based on axis position
+	_setAxisValues: function() {
+		//By default, X = Models and Y = Phenotypes.  Same goes for xID and yID in the modelData structures
+		//This is reversed for when invertAxis is true
+		if (this.state.invertAxis){
+			this.state.xAxis = this.state.phenotypeListHash;
+			this.state.yAxis = this.state.modelListHash;
+
+		} else {
+			this.state.xAxis = this.state.modelListHash;
+			this.state.yAxis = this.state.phenotypeListHash;
+		}
+	},
+
 	//for the selection area, see if you can convert the selection to the idx of the x and y
 	//then redraw the bigger grid 
 	_createOverviewSection: function() {
 		var self = this;
+		var axisStatus = this.state.invertAxis;
+		var yCount = self._getYLimit();
+		var xCount = self._getXLimit();
+
+		var startYIdx = this.state.currYIdx - yCount;
+		var startXIdx = this.state.currXIdx - xCount;
+
 		// add-ons for stroke size on view box. Preferably even numbers
 		var linePad = 2;
-		var viewPadding = linePad*2+2;
+		var viewPadding = linePad * 2 + 2;
 
 		// overview region is offset by xTranslation, yTranslation
 		var xTranslation = 42;
@@ -470,21 +523,22 @@ var url = document.URL;
 
 		// these translations from the top-left of the rectangular region give the
 		// absolute coordinates
-		var overviewX = self.state.axis_pos_list[2]+xTranslation;
-		var overviewY = self.state.yModelRegion+yTranslation;
+		var overviewX = self.state.axis_pos_list[2] + xTranslation;
+		var overviewY = self.state.yModelRegion + yTranslation;
 
 		// size of the entire region - it is a square
 		var overviewRegionSize = self.state.globalViewSize;
-		if (this.state.phenoLength < this.state.defaultPhenotypeDisplayCount) {
+		if (this.state.yAxis.size() < yCount) {
 			overviewRegionSize = self.state.reducedGlobalViewSize;
 		}
 
 		// create the legend for the modelScores
-		self._createModelScoresLegend();
+		if (!this.state.invertAxis){
+			self._createModelScoresLegend();
+		}
 
 		// make it a bit bigger to ccont for widths
-		// MAGIC NUMBER ALERT
-		var overviewBoxDim = overviewRegionSize+viewPadding;
+		var overviewBoxDim = overviewRegionSize + viewPadding;
 
 		// create the main box and the instruction labels.
 		self._initializeOverviewRegion(overviewBoxDim,overviewX,overviewY);
@@ -493,36 +547,48 @@ var url = document.URL;
 		self._createSmallScales(overviewRegionSize);
 
 		//add the items using smaller rects
-		var mods = self.state.modelList;
-		var modData = self.state.modelData;
+		var modData = self._mergeHashEntries(self.state.modelDataHash);
 
 		var model_rects = this.state.svg.selectAll(".mini_models")
-			.data(modData, function(d) {return d.id;});
+			.data(modData, function(d) {return d.yID + d.xID;});
 		overviewX++;	//Corrects the gapping on the sides
 		overviewY++;
 		var modelRectTransform = "translate(" + overviewX +	"," + overviewY + ")";
+
 		model_rects.enter()
 			.append("rect")
 			.attr("transform",modelRectTransform)
 			.attr("class", "mini_model")
-			.attr("y", function(d, i) { return self.state.smallYScale(d.id_a)+linePad/2;})
-			.attr("x", function(d) { return self.state.smallXScale(d.model_id)+linePad/2;})
+			.attr("y", function(d, i) { return self.state.smallYScale(d.yID) + linePad / 2;})
+			.attr("x", function(d) { return self.state.smallXScale(d.xID) + linePad / 2;})
 			.attr("width", linePad)
 			.attr("height", linePad)
 			.attr("fill", function(d) {
-				return self._getColorForModelValue(self,d.species,
-					d.value[self.state.selectedCalculation]);
+				var colorID;
+				if (axisStatus){
+					colorID = d.yID;
+				} else {
+					colorID = d.xID;
+				} 
+				return self._getColorForModelValue(self,self._getAxisData(colorID).species,d.value[self.state.selectedCalculation]);
 			});
 
-		var lastId = self.state.phenotypeSortData[self.state.phenotypeDisplayCount-1][0].id_a; //rowid
-		var selectRectHeight = self.state.smallYScale(lastId);
-		var selectRectWidth = self.state.smallXScale(mods[self.state.modelDisplayCount-1].model_id);
+		var lastYId = self._returnYID(yCount - 1);
+		var lastXId = self._returnXID(xCount - 1);
+		var startYId = self._returnYID(startYIdx);
+		var startXId = self._returnXID(startXIdx);
+
+		var selectRectX = self.state.smallXScale(startXId);
+		var selectRectY = self.state.smallYScale(startYId);
+		var selectRectHeight = self.state.smallYScale(lastYId);
+		var selectRectWidth = self.state.smallXScale(lastXId);
+
 		self.state.highlightRect = self.state.svg.append("rect")
-			.attr("x",overviewX)
-			.attr("y",overviewY)
+			.attr("x",overviewX + selectRectX)
+			.attr("y",overviewY + selectRectY)
 			.attr("id", "selectionrect")
-			.attr("height", selectRectHeight+4)
-			.attr("width", selectRectWidth+4)
+			.attr("height", selectRectHeight + 4)
+			.attr("width", selectRectWidth + 4)
 			.attr("class", "draggable")
 			.call(d3.behavior.drag()
 				.on("drag", function(d) {
@@ -538,8 +604,8 @@ var url = document.URL;
 					rect.attr("transform","translate(0,0)");
 
 					//limit the range of the x value
-					var newX = curX+d3.event.dx;
-					var newY = curY+d3.event.dy;
+					var newX = curX + d3.event.dx;
+					var newY = curY + d3.event.dy;
 
 					// Restrict Movement if no need to move map
 					if (selectRectHeight == overviewRegionSize) {
@@ -558,13 +624,13 @@ var url = document.URL;
 						newY = overviewY;
 					}
 					// right
-					if (newX + selectRectWidth > overviewX+overviewRegionSize) {
-						newX = overviewX+overviewRegionSize-selectRectWidth;
+					if (newX + selectRectWidth > overviewX + overviewRegionSize) {
+						newX = overviewX + overviewRegionSize - selectRectWidth;
 					}
 
 					// bottom
-					if (newY + selectRectHeight > overviewY+overviewRegionSize) {
-						newY = overviewY+overviewRegionSize-selectRectHeight;
+					if (newY + selectRectHeight > overviewY + overviewRegionSize) {
+						newY = overviewY + overviewRegionSize - selectRectHeight;
 					}
 					rect.attr("x", newX);
 					//This changes for vertical positioning
@@ -576,13 +642,71 @@ var url = document.URL;
 
 					// invert newX and newY into posiions in the model and phenotype lists.
 					var j = self._invertOverviewDragPosition(self.state.smallXScale,newX);
-					var newModelPos = j + self.state.modelDisplayCount;
+					var newXPos = j + xCount;
 
 					var jj = self._invertOverviewDragPosition(self.state.smallYScale,newY);
-					var newPhenotypePos = jj + self.state.phenotypeDisplayCount;
-					self._updateModel(newModelPos, newPhenotypePos);
+					var newYPos = jj + yCount;
+
+					self._updateModel(newXPos, newYPos);
 		}));
 		//set this back to 0 so it doesn't affect other rendering
+	},
+
+	//Returns the ID of the value on the Y Axis based on current position provided
+	_returnYID: function(position){
+		var searchArray = this.state.yAxis.entries();
+		var results = false;
+		for (var i in searchArray){
+			if (this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+				if (searchArray[i][1].opos == position){
+					results = searchArray[i][0];
+					break;
+				}
+			} else {
+				if (searchArray[i][1].pos == position){
+					results = searchArray[i][0];
+					break;
+				}
+			}
+		}
+		return results;
+	},
+
+	//Returns the ID of the value on the X Axis based on current position provided
+	_returnXID: function(position){
+		var searchArray = this.state.xAxis.entries();
+		var results = false;
+		for (var i in searchArray){
+			if (!this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+				if (searchArray[i][1].opos == position){
+					results = searchArray[i][0];
+					break;
+				}
+			} else {
+				if (searchArray[i][1].pos == position){
+					results = searchArray[i][0];
+					break;
+				}
+			}
+		}
+		return results;
+	},
+
+	//When a hashtable is pass through, it will merge the key into the values and return an array with all needed info.
+	//Mainly used for D3 and it's unabilty to read non-native data structures
+	_mergeHashEntries: function(hashT){
+		var premerged = hashT.entries();
+		var merged = [];
+		for (var i in premerged){
+			if (typeof(premerged[i][0].yID) !== 'undefined'){
+				premerged[i][1].yID = premerged[i][0].yID;
+				premerged[i][1].xID = premerged[i][0].xID;
+			} else {
+				premerged[i][1].id = premerged[i][0];
+			}
+			merged[i] = premerged[i][1];
+		}
+		return merged;
 	},
 
 	/* we only have 3 color,s but that will do for now */
@@ -679,33 +803,71 @@ var url = document.URL;
 	},
 
 	_createSmallScales: function(overviewRegionSize) {
+		var self = this;
 		var sortDataList = [];
-		var self=this;
-		for (var i in self.state.phenotypeSortData) {
-			sortDataList.push(self.state.phenotypeSortData[i][0].id_a);	//rowid
+		var mods = [];
+		if (this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+			sortDataList = self._getSortedOverviewIDList(self.state.yAxis.entries());
+		} else {
+			sortDataList = self._getSortedIDList(self.state.yAxis.entries());
 		}
-		var mods = self.state.modelList;
+
+		if (!this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+			mods = self._getSortedOverviewIDList(self.state.xAxis.entries());
+		} else {
+			mods = self._getSortedIDList(self.state.xAxis.entries());
+		}
 
 		this.state.smallYScale = d3.scale.ordinal()
 			.domain(sortDataList.map(function (d) {return d; }))
 			.rangePoints([0,overviewRegionSize]);
 
-		var modids = mods.map(function (d) {return d.model_id; });
+		var modids = mods.map(function (d) {return d; });
 		this.state.smallXScale = d3.scale.ordinal()
-			//.domain(mods.map(function (d) {return d.model_id; }))
 			.domain(modids)
 			.rangePoints([0,overviewRegionSize]);
+	},
+
+	//Returns an sorted array of IDs from an arrayed Hashtable, but meant for overview display based off opos
+	_getSortedOverviewIDList: function(hashArray){
+		var resultArray = [];
+		var position;
+		for (var j in hashArray) {
+			position = hashArray[j][1].opos;
+			resultArray[hashArray[j][1].opos] = hashArray[j][0];
+		}
+		return resultArray;
+	},
+
+	//Returns an sorted array of IDs from an arrayed Hashtable, but meant for non-overview display based off pos
+	_getSortedIDList: function(hashArray){
+		var resultArray = [];
+		for (var j in hashArray) {
+			resultArray[hashArray[j][1].pos] = hashArray[j][0];
+		}
+		return resultArray;
+	},
+
+	//Returns an sorted array of IDs from an arrayed Hashtable, but meant for non-overview display based off an previous sort
+	//Best for filtered display, as it sets the lowest value to 0 and increases from there
+	_getSortedIDListStrict: function (hashArray){
+		var firstSort = this._getSortedIDList(hashArray);
+		var resultArray = [];
+		for (var j in firstSort) {
+			resultArray.push(firstSort[j]);
+		}
+		return resultArray;
 	},
 
 	_invertOverviewDragPosition: function(scale,value) {
 		var leftEdges = scale.range();
 		var size = scale.rangeBand();
 		var j;
-		for (j = 0; value > (leftEdges[j]+size); j++) {} // iterate until leftEdges[j]+size is past value
+		for (j = 0; value > (leftEdges[j] + size); j++) {} // iterate until leftEdges[j]+size is past value
 		return j;
 	},
 
-	_getComparisonType : function(organism){
+	_getComparisonType: function(organism){
 		var label = "";
 
 		for (var i in this.state.comparisonTypes) {
@@ -719,7 +881,7 @@ var url = document.URL;
 		return label;
 	}, 
 
-	_setComparisonType : function(){
+	_setComparisonType: function(){
 		var comp = this.state.defaultComparisonType;
 		for (var i in this.state.comparisonTypes) {
 			if (this.state.targetSpeciesName === this.state.comparisonTypes[i].organism) {
@@ -743,9 +905,10 @@ var url = document.URL;
 		self.state.selectedSort = type;
 	},
 
-	_processSelected: function(processType){
-		this._adjustPhenotypeCount(this.state.modelData);
-		this._filterSelected(processType);
+	//Previously processSelected
+	_processDisplay: function(){
+		this._sortPhenotypeHash();
+		this._filterDisplay();
 		this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
 		this.element.empty();
 		this.reDraw();
@@ -753,45 +916,46 @@ var url = document.URL;
 
 	//given the full dataset, return a filtered dataset containing the
 	//subset of data bounded by the phenotype display count and the model display count
-	_adjustPhenotypeCount: function(fulldataset) {
-		//we need to adjust the display counts and indexing if there are fewer phenotypes than the
-		// default phenotypeDisplayCount
-		if (this.state.phenoLength < this.state.phenotypeDisplayCount) {
-			this.state.currPhenotypeIdx = this.state.phenoLength-1;
-			this.state.phenotypeDisplayCount = this.state.phenoLength;
+	_adjustPhenotypeCount: function() {
+		//we need to adjust the display counts and indexing if there are fewer phenotypes than the default
+		if (this.state.phenoLength < this.state.phenoDisplayCount) {
+			this.state.phenoDisplayCount = this.state.phenoLength;
 		}
 	},
 
-	_filterSelected: function(filterType){
+	_adjustModelCount: function() {
+		//we need to adjust the display counts and indexing if there are fewer models
+		if (this.state.modelLength < this.state.modelDisplayCount) {
+			this.state.modelDisplayCount = this.state.modelLength;
+		}
+	},
+
+	//Previously filterSelected
+	_filterDisplay: function(){
 		var self = this;
-		if (filterType == "sortphenotypes"){
-			//Sort the phenotypes based on what value is currently held in self.state.selectedSort
-			this._sortingPhenotypes();
-		}
-
-		//Step 2: Filter for the next n phenotypes based on phenotypeDisplayCount and update the y-axis
-		this.state.filteredModelData = [];
-		this.state.filteredPhenotypeData = [];
-		this.state.yAxis = [];
-
-		//Force Reset to Origin when changing Species, Sort or Display
-		var startIdx = 0;
-		var displayLimiter = this.state.phenotypeDisplayCount;
-		if (filterType == 'updateModel') {
-			startIdx = this.state.currPhenotypeIdx - this.state.phenotypeDisplayCount;
-			displayLimiter = this.state.currPhenotypeIdx;
-		}
-
-		//extract the new array of filtered Phentoypes
-		//also update the axis
-		//also update the modeldata
 		var axis_idx = 0;
-		var tempFilteredModelData = [];
-		var filteredData;
-		//get phenotype[startIdx] up to phenotype[currPhenotypeIdx] from the array of sorted phenotypes
-		for (var i = startIdx; i < displayLimiter; i++) {
-			filteredData = {"id_a": self.state.phenotypeSortData[i][0].id_a,"id": self.state.phenotypeSortData[i][0].id,"label_a": self.state.phenotypeSortData[i][0].label_a};
-			self.state.filteredPhenotypeData.push(filteredData);
+		var sortedYArray = [];
+
+		var	startYIdx = this.state.currYIdx - this._getYLimit();
+		var	displayYLimiter = this.state.currYIdx;
+		var	startXIdx = this.state.currXIdx - this._getXLimit();
+		var	displayXLimiter = this.state.currXIdx;
+
+		if (this.state.invertAxis){
+			self._filterPhenotypeHash(startXIdx,displayXLimiter);
+			self._filterModelListHash(startYIdx,displayYLimiter);
+		} else {
+			self._filterPhenotypeHash(startYIdx,displayYLimiter);
+			self._filterModelListHash(startXIdx,displayXLimiter);
+		}
+
+		if (this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+			sortedYArray = self._getSortedOverviewIDList(self.state.filteredYAxis.entries());
+		} else {
+			sortedYArray = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
+		}
+
+		for (var i in sortedYArray) {
 			//update the YAxis
 			//the height of each row
 			var size = 10;
@@ -799,136 +963,12 @@ var url = document.URL;
 			var gap = 3;
 			//push the rowid and ypos onto the yaxis array
 			//so now the yaxis will be in the order of the ranked phenotypes
-			var stuff = {"id": self.state.phenotypeSortData[i][0].id_a, "ypos" : ((axis_idx * (size+gap)) + self.state.yoffset)};
-			self.state.yAxis.push(stuff); 
+			var ypos = (axis_idx * (size + gap)) + self.state.yoffset;
+			self._setYPosHash(sortedYArray[i], ypos); 
 			axis_idx++;
-			//update the ModelData			
-			//find the rowid in the original ModelData (list of models and their matching phenotypes) and write it to tempdata if it matches this phenotypeSortData rowid.
-			//In this case, the rowid is just the id_a value in the model data
-			for (var midx in this.state.modelData) {
-				var mod = this.state.modelData[midx];
-				if (mod.id_a == self.state.phenotypeSortData[i][0].id_a) {
-					tempFilteredModelData.push(mod);
-				}
-			}
-		}
-		//console.log(JSON.stringify(self.state.filteredPhenotypeData));
-
-
-		for (var idx in self.state.filteredModelList) {
-			for (var tdx in tempFilteredModelData) {
-				if (tempFilteredModelData[tdx].model_id == self._getConceptId(self.state.filteredModelList[idx].model_id)) {
-					self.state.filteredModelData.push(tempFilteredModelData[tdx]);
-				}
-			}
-		}
-	},
-
-	_uniquifyPhenotypes: function(fulldataset) {
-		var phenotypeArray = [];
-		//Step 1: Filter data so only unique phenotypes are represented (if a source phenotype matches two
-		// different targets, only keep one of them. 
-		//Input: array of all data returned by query
-		//Output: array of the unique phentypes for this disease
-		//phenotypeArray: we should end up with an array with unique matched phenotypes, each with the highest value
-		// seen for that phenotype 
-		for (var idx in fulldataset) {
-			var match = null;
-			for (var pidx in phenotypeArray) {
-				if (phenotypeArray[pidx].label_a == fulldataset[idx].label_a) {
-					match = phenotypeArray[pidx];
-					break;
-				}
-			}
-			//	var result = $.grep(phenotypeArray, function(e){ return e.label_a == fulldataset[idx].label_a; });
-			//	if (result.length == 0) {
-			if (match === null) {
-				phenotypeArray.push(fulldataset[idx]);
-			}
-			else {
-				if (fulldataset[idx].value > match.value) {
-					match.value = fulldataset[idx].value;
-				}
-			}
-		}
-		return phenotypeArray;
-	},
-
-	_sortPhenotypesModel: function(a,b) {
-		var diff = b.count-a.count;
-		if (diff === 0) {
-			diff = a[0].id_a.localeCompare(b[0].id_a);
-		}
-		return diff;
-	},
-
-	_sortPhenotypesRank: function(a,b) {
-		return b.sum-a.sum;
-	},
-
-	_sortPhenotypesAlphabetic: function(a,b) {
-		var labelA = a.label.toLowerCase(), 
-		labelB = b.label.toLowerCase();
-		if (labelA < labelB) {return -1;}
-		if (labelA > labelB) {return 1;}
-		return 0;
-	},
-
-	_initializePhenotypeSortData: function() {
-		var self = this;
-		self.state.phenotypeSortData = [];
-		var modData = self.state.modelData;
-
-		//1. Get all unique phenotypes in an array
-		//console.log("at start of sorting models..."+self.state.modelData.length);
-		for (var idx in self.state.phenotypeData) {
-			var tempdata = [];
-			for (var midx in modData) {
-				if (modData[midx].id_a == self.state.phenotypeData[idx].id_a) {
-					tempdata.push(modData[midx]);
-				}
-			}
-
-			// now, have all of the models that match
-			// phenotypeData[idx].
-			// must set up the atrtributes of this array needed
-			// for sorting.
-
-			var sortVal;
-			// first alphabetic
-			sortVal = tempdata[0].label_a;
-			tempdata.label = sortVal;
-
-			///then for frequency and freq/rarity, iterate over 
-			var freq=0;
-			var num =0;
-			for (var i in tempdata) {
-				freq +=1;
-				num +=tempdata[i].subsumer_IC;
-			}
-			tempdata.count = freq;
-			tempdata.sum = num;
-
-			// finally, push onto phenotypeSortData
-			self.state.phenotypeSortData.push(tempdata);
-		}
-	},
-
-	_sortingPhenotypes: function() {
-		var self = this;
-		var sortType = self.state.selectedSort;
-		var sortFunc;
-		if (sortType == 'Frequency') {
-			sortFunc = self._sortPhenotypesModel;
-		} else if (sortType == 'Frequency and Rarity') {
-			sortFunc = self._sortPhenotypesRank;
-		} else if (sortType == 'Alphabetic') {
-			sortFunc = self._sortPhenotypesAlphabetic;
 		}
 
-		if (typeof(sortFunc) !== 'undefined') {
-			self.state.phenotypeSortData.sort(sortFunc);
-		}
+		self._filterHashTables();
 	},
 
 	//given a list of phenotypes, find the top n models
@@ -936,19 +976,20 @@ var url = document.URL;
 	_loadData: function() {
 		if (this.state.targetSpeciesName === "Overview") {
 			this._loadOverviewData();
+			this._finishOverviewLoad();
 		} else {
 			this._loadSpeciesData(this.state.targetSpeciesName);
 			this._finishLoad();
 		}
+		this._loadHashTables();
 	},
 
 	_loadSpeciesData: function(speciesName,limit) {
 		var phenotypeList = this.state.phenotypeData;
 		var taxon = this._getTargetSpeciesTaxonByName(this,speciesName);
-		var url = this.state.serverURL+"/simsearch/phenotype?input_items="+phenotypeList.join(",")+
-		"&target_species="+taxon;
+		var url = this.state.serverURL + "/simsearch/phenotype?input_items=" + phenotypeList.join(",") + "&target_species=" + taxon;
 		if (typeof(limit) !== 'undefined') {
-			url = url +"&limit="+limit;
+			url += "&limit=" + limit;
 		}
 
 		var res = this._ajaxLoadData(speciesName,url);
@@ -957,7 +998,7 @@ var url = document.URL;
 				res = this._padSpeciesData(res,speciesName,limit);
 			}
 		}
-		this.state.data[speciesName]= res;
+		this.state.data[speciesName] = res;
 	},
 
 	// make sure there are limit items in res --
@@ -966,9 +1007,9 @@ var url = document.URL;
 	// up some of the x axis space. Later, we will make sure not to show the 
 	// labels for these dummies.
 	_padSpeciesData: function(res,species,limit) {
-		var toadd = limit-res.b.length;
+		var toadd = limit - res.b.length;
 		for (var i = 0; i < toadd; i++) {
-			var dummyId = "dummy"+species+i;
+			var dummyId = "dummy" + species + i;
 			var newItem = { id: dummyId,
 				label: this.state.dummyModelName,
 				score: {score: 0, rank: Number.MAX_VALUE},
@@ -995,15 +1036,9 @@ var url = document.URL;
 				}
 			}
 		}
-		//Now we have top 10 model matches for Human data in humandata, 
-		//Top n model matches for Mouse data in mousedata
-		//Top n model matches for zebrashish data in zfishdata
-		//Top n model matches for flies in flydata
-		//Concat all species data and process matches
-		this._finishOverviewLoad();
 	},
 
-	_finishOverviewLoad : function () {
+	_finishOverviewLoad: function () {
 		var speciesList = [];
 		var modList = [];
 		var orgCtr = 0;
@@ -1023,7 +1058,7 @@ var url = document.URL;
 					data.push(newItem);
 					this._loadDataForModel(item);
 				}
-				this.state.multiOrganismCt=specData.b.length;
+				this.state.multiOrganismCt = specData.b.length;
 				speciesList.push(species);
 				orgCtr++;
 				data.sort(function(a,b) { return a.model_rank - b.model_rank;});
@@ -1037,24 +1072,234 @@ var url = document.URL;
 
 		this.state.modelList = modList;
 		this.state.speciesList = speciesList;
-		if (this.state.modelList.length < this.state.modelDisplayCount) {
-			this.state.currModelIdx = this.state.modelList.length-1;
-			this.state.modelDisplayCount = this.state.modelList.length;
-		}
-
-		this._getFilteredModelList(0,this.state.modelDisplayCount);
 	},
 
-	_getFilteredModelList: function(start,max) {
-		this.state.filteredModelList=[];
-
-		for (var i = start; i <max; i++) {
-			this.state.filteredModelList.push(this.state.modelList[i]);
+	//Returns values from a point on the grid
+	_getCellData: function(point) {
+		if (this.state.modelDataHash.containsKey(point)){
+			return this.state.modelDataHash.get(point);
+		} else {
+			return false;
 		}
+	},
+
+	//Returns axis data from a ID of models or phenotypes
+	_getAxisData: function(key) {
+		if (typeof(key) === 'undefined'  && this.state.getAxisError){
+			console.log("UNDEFINED AXIS CALL");
+			return false;
+		}
+
+		if (this.state.yAxis.containsKey(key)){
+			return this.state.yAxis.get(key);
+		}
+		else if (this.state.xAxis.containsKey(key)){
+			return this.state.xAxis.get(key);
+		}
+		else { return false; }
+	},
+
+	//Determines if an ID belongs to the Model or Phenotype hashtable
+	_getIDType: function(key) {
+		if (this.state.modelListHash.containsKey(key)){
+			return "Model";
+		}
+		else if (this.state.phenotypeListHash.containsKey(key)){
+			return "Phenotype";
+		}
+		else { return false; }
+	},
+
+	//Creates the Hashtables used by the whole program
+	_loadHashTables: function() {
+		//CHANGE LATER TO CUT DOWN ON INFO FROM _finishLoad & _finishOverviewLoad
+		this.state.phenotypeListHash = new Hashtable();
+		this.state.modelListHash = new Hashtable();
+		this.state.modelDataHash = new Hashtable({hashCode: modelDataPointPrint, equals: modelDataPointEquals});
+		var modelPoint, hashData, concept, type, score, x, z;
+		var y = 0;
+
+		for (var i in this.state.modelData)
+		{
+			//Setting phenotypeListHash
+			if (typeof(this.state.modelData[i].id_a) !== 'undefined' && !this.state.phenotypeListHash.containsKey(this.state.modelData[i].id_a)){
+				hashData = {"label": this.state.modelData[i].label_a, "IC": this.state.modelData[i].IC_a, "pos": parseInt(y), "count": 0, "sum": 0};
+				this.state.phenotypeListHash.put(this.state.modelData[i].id_a, hashData);
+				y++;
+			}
+
+			//Setting modelListHash
+			type = this.state.defaultApiEntity;
+			if (typeof(this.state.modelData[i].model_id) !== 'undefined' && !this.state.modelListHash.containsKey(this.state.modelData[i].model_id)){
+
+				concept = this._getConceptId(this.state.modelData[i].model_id);
+				for (var j in this.state.apiEntityMap) {
+					if (concept.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
+						type = this.state.apiEntityMap[j].apifragment;
+					}
+				}
+
+				for (var m in this.state.modelList){
+					if (this.state.modelList[m].model_id == this.state.modelData[i].model_id){
+						x = parseInt(this.state.modelList[m].model_rank);
+						score = this.state.modelList[m].model_score;
+					}
+				}
+
+				z = x;
+				for (var k in this.state.targetSpeciesList){
+					if (this.state.modelData[i].species == this.state.targetSpeciesList[k].name){
+						z = x + (k * 10);
+					}
+				}
+
+				hashData = {"label": this.state.modelData[i].model_label, "species": this.state.modelData[i].species, "taxon": this.state.modelData[i].taxon, "type": type, "pos": x, "opos": z, "rank": x, "score": score};
+				this.state.modelListHash.put(this.state.modelData[i].model_id, hashData);
+			}
+
+			//Setting modelDataHash
+			if (this.state.invertAxis){
+				modelPoint = new modelDataPoint(this.state.modelData[i].id_a, this.state.modelData[i].model_id);
+				this._updateSortVals(this.state.modelData[i].model_id, this.state.modelData[i].subsumer_IC);
+			} else {
+				modelPoint = new modelDataPoint(this.state.modelData[i].model_id, this.state.modelData[i].id_a);
+				this._updateSortVals(this.state.modelData[i].id_a, this.state.modelData[i].subsumer_IC);
+			}
+			hashData = {"value": this.state.modelData[i].value, "subsumer_label": this.state.modelData[i].subsumer_label, "subsumer_id": this.state.modelData[i].subsumer_id, "subsumer_IC": this.state.modelData[i].subsumer_IC, "b_label": this.state.modelData[i].label_b, "b_id": this.state.modelData[i].id_b, "b_IC": this.state.modelData[i].IC_b};
+			this.state.modelDataHash.put(modelPoint, hashData);
+		}
+	},
+
+	//Will update the position of the phenotype based on sort
+	_updatePhenoPos: function(key,rank) {
+		var values = this.state.phenotypeListHash.get(key);
+		values.pos = rank;
+		this.state.phenotypeListHash.put(key,values);
+	},
+
+	//Sets the correct position for the value on the yAxis on where it belongs in the grid/axis
+	_setYPosHash: function(key,ypos) {
+		var values = this.state.yAxis.get(key);
+		values.ypos = ypos;
+		this.state.yAxis.put(key,values);
+	},
+
+	//Updates the count & sum values used for sorting
+	_updateSortVals: function(key,subIC) {
+		var values;
+		if (this.state.invertAxis){
+			values = this.state.modelListHash.get(key);
+			values.count += 1;
+			values.sum += subIC;
+			this.state.modelListHash.put(key,values);
+		} else {
+			values = this.state.phenotypeListHash.get(key);
+			values.count += 1;
+			values.sum += subIC;
+			this.state.phenotypeListHash.put(key,values);
+		}
+	},
+
+	//Creates the filterModelDataHash data structure
+	_filterHashTables: function () {
+		var newFilteredModel = [];
+		//NOT A HASH ACTUALLY.  RENAME AFTER ADOPTION
+		var currentModelData = this.state.modelDataHash.entries();
+
+		for (var i in currentModelData){
+			if (this.state.filteredXAxis.containsKey(currentModelData[i][0].xID) && this.state.filteredYAxis.containsKey(currentModelData[i][0].yID)){
+				currentModelData[i][1].yID = currentModelData[i][0].yID;
+				currentModelData[i][1].xID = currentModelData[i][0].xID;
+				newFilteredModel.push(currentModelData[i][1]);
+			}
+		}
+		this.state.filteredModelDataHash = newFilteredModel;
+	},
+
+	//Filters the phenotype datastructure based on start & end points provided
+	_filterPhenotypeHash: function (start,end) {
+		this.state.filteredPhenotypeListHash = new Hashtable();
+		var oldHash = this.state.phenotypeListHash.entries();
+
+		for (var i in oldHash){
+			if (oldHash[i][1].pos >= start && oldHash[i][1].pos < end){
+				this.state.filteredPhenotypeListHash.put(oldHash[i][0],oldHash[i][1]);
+			}
+		}
+
+		if (this.state.invertAxis){
+			this.state.filteredXAxis = this.state.filteredPhenotypeListHash;
+		} else {
+			this.state.filteredYAxis = this.state.filteredPhenotypeListHash;
+		}
+	},
+
+	//Filters the model datastructure based on start & end points provided
+	_filterModelListHash: function (start,end) {
+		this.state.filteredModelListHash = new Hashtable();
+		var oldHash = this.state.modelListHash.entries();
+
+		for (var i in oldHash){
+			if (oldHash[i][1].pos >= start && oldHash[i][1].pos < end){
+				this.state.filteredModelListHash.put(oldHash[i][0],oldHash[i][1]);
+			}
+		}
+
+		if (this.state.invertAxis){
+			this.state.filteredYAxis = this.state.filteredModelListHash;
+		} else {
+			this.state.filteredXAxis = this.state.filteredModelListHash;
+		}
+	},
+
+	//Sorts the phenotypes
+	_sortPhenotypeHash: function () {
+		var self = this;
+		var sortType = self.state.selectedSort;
+		var sortFunc;
+		var newHash = [];
+		var origHash = self.state.phenotypeListHash.entries();
+		for (var i in origHash){
+			newHash.push({"id": origHash[i][0], "label": origHash[i][1].label.toLowerCase(), "count": origHash[i][1].count, "sum": origHash[i][1].sum});
+		}
+		if (sortType == 'Frequency') {
+			sortFunc = self._sortPhenotypesModelHash;
+		} else if (sortType == 'Frequency and Rarity') {
+			sortFunc = self._sortPhenotypesRankHash;
+		} else if (sortType == 'Alphabetic') {
+			sortFunc = self._sortPhenotypesAlphabeticHash;
+		}
+
+		if (typeof(sortFunc) !== 'undefined') {
+			newHash.sort(sortFunc);
+			for (var j in newHash){
+				self._updatePhenoPos(newHash[j].id,j);
+			}
+		}
+	},
+
+	_sortPhenotypesModelHash: function(a,b) {
+		var diff = b.count - a.count;
+		if (diff === 0) {
+			diff = a.id.localeCompare(b.id);
+		}
+		return diff;
+	},
+
+	_sortPhenotypesRankHash: function(a,b) {
+		return b.sum-a.sum;
+	},
+
+	_sortPhenotypesAlphabeticHash: function(a,b) {
+		var labelA = a.label, 
+		labelB = b.label;
+		if (labelA < labelB) {return -1;}
+		if (labelA > labelB) {return 1;}
+		return 0;
 	},
 
 	//generic ajax call for all queries
-	_ajaxLoadData : function (target, url) {
+	_ajaxLoadData: function (target, url) {
 		var self = this;
 		var res;
 		jQuery.ajax({
@@ -1071,7 +1316,7 @@ var url = document.URL;
 		return res;
 	},
 
-	_displayResult : function(xhr, errorType, exception){
+	_displayResult: function(xhr, errorType, exception){
 		var msg;
 
 		switch(xhr.status){
@@ -1152,14 +1397,6 @@ var url = document.URL;
 			for (var dmx in this.state.modelData) {
 				this.state.filteredModelData.push(this.state.modelData[dmx]);
 			}
-
-			//we need to adjust the display counts and indexing if there are fewer models
-			if (this.state.modelList.length < this.state.modelDisplayCount) {
-				this.state.currModelIdx = this.state.modelList.length-1;
-				this.state.modelDisplayCount = this.state.modelList.length;
-			}
-
-			this._getFilteredModelList(0,this.state.modelDisplayCount);
 		}
 	},
 
@@ -1169,12 +1406,13 @@ var url = document.URL;
 	_loadDataForModel: function(newModelData) {
 		//data is an array of all model matches
 		var data = newModelData.matches;
+		var curr_row, lcs, new_row, species;
 		if (typeof(data) !== 'undefined' && data.length > 0) {
-			var species = newModelData.taxon;
+			species = newModelData.taxon;
 
 			for (var idx in data) {
-				var curr_row = data[idx],
-				lcs = this._normalizeIC(curr_row),
+				curr_row = data[idx];
+				lcs = this._normalizeIC(curr_row);
 				new_row = {"id": this._getConceptId(curr_row.a.id) + "_" + this._getConceptId(curr_row.b.id) + "_" + this._getConceptId(newModelData.id), 
 					"label_a" : curr_row.a.label, 
 					"id_a" : this._getConceptId(curr_row.a.id), 
@@ -1196,10 +1434,6 @@ var url = document.URL;
 		}
 	},
 
-	//we may use this when normalization and ranking have been determined
-	_rankLCSScores : function () {
-	},
-
 	//Different methods of based on the selectedCalculationMethod
 	_normalizeIC: function(datarow){
 		var aIC = datarow.a.IC;
@@ -1207,16 +1441,15 @@ var url = document.URL;
 		var lIC = datarow.lcs.IC;
 		var nic;
 
-		var calcMethod = this.state.selectedCalculation;
 		var ics = new Array(3);
 
 		// get 0: similarity
-		nic = Math.sqrt((Math.pow(aIC-lIC,2)) + (Math.pow(bIC-lIC,2)));
-		nic = (1 - (nic/+this.state.maxICScore)) * 100;
+		nic = Math.sqrt((Math.pow(aIC - lIC, 2)) + (Math.pow(bIC - lIC, 2)));
+		nic = (1 - (nic / + this.state.maxICScore)) * 100;
 		ics[0] = nic;
 
 		// 1 - ratio(q)
-		nic = ((lIC/aIC) * 100);
+		nic = ((lIC / aIC) * 100);
 		ics[1] = nic;
 
 		// 2 - uniquenss
@@ -1224,45 +1457,10 @@ var url = document.URL;
 		ics[2] = nic;
 
 		// 3: ratio(t)
-		nic = ((lIC/bIC) * 100);
+		nic = ((lIC / bIC) * 100);
 		ics[3] = nic;
 
 		return ics;
-	},
-
-	//create a y-axis from the model data
-	//for each item in the data model, push the rowid
-	//and calculate the y position
-	_createYAxis: function() {
-		var self = this;
-		//the height of each row
-		var size = 10;
-		//the spacing you want between rows
-		var gap = 3;
-
-		//use the max phenotype size to limit the number of phenotypes shown 
-		var yLength = self.state.phenotypeSortData.length > this.state.phenotypeDisplayCount ?
-			this.state.phenotypeDisplayCount : self.state.phenotypeSortData.length;
-		for (var idx = 0; idx < yLength; idx++) {
-			var stuff = {"id": self.state.phenotypeSortData[idx][0].id_a,
-				"ypos" : ((idx * (size+gap)) + this.state.yoffset + 10)};
-			this.state.yAxis.push(stuff);
-			if (((idx * (size+gap)) + this.state.yoffset) > this.state.yAxisMax) {
-				this.state.yAxisMax = (idx * (size+gap)) + this.state.yoffset;
-			}
-		}
-	},
-
-	//given a rowid, return the y-axis position
-	_getYPosition: function(newRowId) {
-		var retValue = this.state.yoffset;
-
-		for (var i in this.state.yAxis) {
-			if (this.state.yAxis[i].id == newRowId) {
-				retValue = this.state.yAxis[i].ypos;
-			}
-		}
-		return retValue;
 	},
 
 	_createColorScale: function() {
@@ -1283,7 +1481,7 @@ var url = document.URL;
 		}	
 		/** 3 september 2014 still a bit clunky in handling many organisms, 
 		but much less hardbound. */
-		this.state.colorScale={};
+		this.state.colorScale = {};
 
 		for (var i in this.state.targetSpeciesList) {
 			var species = this.state.targetSpeciesList[i].name;
@@ -1308,7 +1506,7 @@ var url = document.URL;
 		return cs;
 	},
 
-	_initCanvas : function() {
+	_initCanvas: function() {
 		this._createSvgContainer();
 		var svgContainer = this.state.svgContainer;
 		svgContainer.append("<svg id='svg_area'></svg>");
@@ -1317,7 +1515,7 @@ var url = document.URL;
 		this._createDiseaseTitleBox();
 	},
 
-	_createSvgContainer : function() {
+	_createSvgContainer: function() {
 		var svgContainer = $('<div id="svg_container"></div>');
 		this.state.svgContainer = svgContainer;
 		this.element.append(svgContainer);
@@ -1375,7 +1573,7 @@ var url = document.URL;
 			});
 	},
 
-	_resetSelections : function(type) {
+	_resetSelections: function(type) {
 		var self = this;
 		$("#unmatchedlabel").remove();
 		$("#unmatchedlabelhide").remove();
@@ -1390,19 +1588,20 @@ var url = document.URL;
 
 		if (type === "organism"){
 			self.state.phenotypeData = self.state.origPhenotypeData.slice();
-			self.state.phenotypeSortData = [];
 			self._reset("organism");
 			self._init();
-		}
-		else if (type === "calculation"){
+		} else if (type === "calculation"){
 			self._reset("calculation");
-		}
-		else if (type === "sortphenotypes"){
+		} else if (type === "sortphenotypes"){
 			self._reset("sortphenotypes");
+		} else if (type === "axisflip"){
+			self.state.phenotypeData = self.state.origPhenotypeData.slice();
+			self._reset("axisflip");
+			self._init();
 		}
 	},
 
-	_addLogoImage :	 function() { 
+	_addLogoImage:	 function() { 
 		var start = 0;
 		if(this.state.filteredModelData.length < 30){
 			//Magic Nums
@@ -1422,28 +1621,70 @@ var url = document.URL;
 	},
 
 	_resetLinks: function() {
-		//don't put these styles in css file - these stuyles change depending on state
+		//don't put these styles in css file - these styles change depending on state
 		this.state.svg.selectAll("#detail_content").remove();
 		var link_lines = d3.selectAll(".data_text");
 			link_lines.style("font-weight", "normal");
 			link_lines.style("text-decoration", "none");
 			link_lines.style("fill", "black");
 			link_lines.style("text-anchor", "end");
+
 		var link_labels = d3.selectAll(".model_label");
 			link_labels.style("font-weight", "normal");
 			link_labels.style("text-decoration", "none");
 			link_labels.style("fill", "black");
 	},
 
-	_highlightMatchingModels : function(curr_data){
+	//Will return all partial matches in the modelDataHash structure.  Good for finding rows/columns of data
+	_getMatchingModels: function (key) {
+		var modelKeys = this.state.modelDataHash.keys();
+		var matchingKeys = [];
+		for (var i in modelKeys){
+			if (key == modelKeys[i].yID || key == modelKeys[i].xID){
+				matchingKeys.push(modelKeys[i]);
+			}
+		}
+		return matchingKeys;
+	},
+
+	//Merging of both Highlight model and phenotype functions
+	_highlightMatching: function(curr_data){
 		var self = this;
-		var alabels = this.state.svg.selectAll("text");
-		for (var i in curr_data){
-			var label = curr_data[i].model_label;
-			var mod_id = curr_data[i].model_id;
+		var alabels, label, ID;
+		var dataType = self._getIDType(curr_data);
+		var models = self._getMatchingModels(curr_data);
+		var highlightX = false;
+
+		if (dataType === "Phenotype"){
+			if (this.state.invertAxis){
+				alabels = this.state.svg.selectAll("text.a_text");
+				highlightX = true;
+			} else {
+				alabels = this.state.svg.selectAll("text.model_label");
+			}
+		} else if (dataType === "Model"){
+			if (this.state.invertAxis){
+				alabels = this.state.svg.selectAll("text.model_label");
+			} else {
+				alabels = this.state.svg.selectAll("text.a_text");
+				highlightX = true;
+			}
+		}
+
+		for (var i in models){
+			if (highlightX){
+				ID = models[i].yID;
+			} else {
+				ID = models[i].xID;
+			}
+
+			label = self._getAxisData(ID).label;
+			if (label === undefined){
+				label = ID;
+			}
+
 			for (var j in alabels[0]){
-				var shortTxt = self._getShortLabel(label,self.state.labelCharDisplayCount);
-				if(alabels[0][j].id == mod_id){
+				if (alabels[0][j].id == ID){
 					alabels[0][j].style.fill = "blue";
 					alabels[0][j].innerHTML = label;
 				}
@@ -1451,41 +1692,86 @@ var url = document.URL;
 		}
 	},
 
-	_deselectMatchingModels : function(curr_data){
-		var alabels = this.state.svg.selectAll("text");
-		for (var i in curr_data){
-			var label = curr_data[i].model_label;
-			for (var j in alabels[0]){
-				var shortTxt = this._getShortLabel(label,self.state.labelCharDisplayCount);
-				if(alabels[0][j].innerHTML == label){
-					alabels[0][j].style.fill = "black";
-					alabels[0][j].innerHTML = shortTxt;
+	//Merging of both deselect model and phenotype functions
+	_deselectMatching: function(curr_data){
+		var self = this;
+		var dataType = self._getIDType(curr_data);
+		var alabels, label, shortTxt, shrinkSize;
+
+		if (dataType === "Phenotype"){
+			if (this.state.invertAxis){
+				alabels = this.state.svg.selectAll("text.a_text");
+				shrinkSize = self.state.textLength;
+			} else {
+				alabels = this.state.svg.selectAll("text.model_label");
+				shrinkSize = self.state.labelCharDisplayCount;
+			}
+		} else if (dataType === "Model"){
+			if (this.state.invertAxis){
+				alabels = this.state.svg.selectAll("text.model_label");
+				shrinkSize = self.state.labelCharDisplayCount;
+			} else {
+				alabels = this.state.svg.selectAll("text.a_text");
+				shrinkSize = self.state.textLength;
+			}
+		} else {
+			alabels = this.state.svg.selectAll("text.a_text");
+			shrinkSize = self.state.textLength;
+
+			//Clear both axis.  One here, one below
+			var blabels = this.state.svg.selectAll("text.model_label");
+			for (var j in blabels[0]){
+				label = this._getAxisData(blabels[0][j].id).label;
+				shortTxt = this._getShortLabel(label,self.state.labelCharDisplayCount);
+				if (blabels[0][j].innerHTML == label){
+					blabels[0][j].style.fill = "black";
+					blabels[0][j].innerHTML = shortTxt;
 				}
+			}
+		}
+
+		for (var j in alabels[0]){
+			label = this._getAxisData(alabels[0][j].id).label;
+			shortTxt = this._getShortLabel(label,shrinkSize);
+			if (alabels[0][j].innerHTML == label){
+				alabels[0][j].style.fill = "black";
+				alabels[0][j].innerHTML = shortTxt;
 			}
 		}
 	},
 
-	_selectModel: function(modelData, obj) {
+	//Will capitalize words passed or send back undefined incase error
+	_capitalizeString: function(word){
+		if (word === undefined) {
+			return "Undefined";
+		} else {
+			return word.charAt(0).toUpperCase() + word.slice(1);
+		}
+	},
+
+	_selectXItem: function(data, obj) {
 		var self = this;
+		var info = self._getAxisData(data);
+		var displayCount = self._getYLimit();
 		//create the related model rectangles
 		var highlight_rect = self.state.svg.append("svg:rect")
-			.attr("transform","translate(" + (self.state.textWidth + 32) + "," + self.state.yoffsetOver+ ")")
-			.attr("x", function(d) { return (self.state.xScale(modelData.model_id)-1);})
+			.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 32) + "," + self.state.yoffsetOver + ")")
+			.attr("x", function(d) { return (self.state.xScale(data) - 1);})
 			.attr("y", self.state.yoffset + 2)
 			.attr("class", "model_accent")
 			.attr("width", 14)
-			.attr("height", (self.state.phenotypeDisplayCount * self.state.heightOfSingleModel));
+			.attr("height", (displayCount * self.state.heightOfSingleModel));
 
 		// I don't know why I'm still seeing the un-processed concept id
 		// var classlabel = "text#" +this._getConceptId(modelData.model_id);
 
 		//Show that model label is selected. Change styles to bold, blue and full-length label
-		var model_label = self.state.svg.selectAll("text#" + this._getConceptId(modelData.model_id))
+		var model_label = self.state.svg.selectAll("text#" + this._getConceptId(data))
 			.style("font-weight", "bold")
 			.style("fill", "blue")
-			.html(modelData.model_label);
+			.html(info.label);
 
-		var concept = self._getConceptId(modelData.model_id),
+		var concept = self._getConceptId(data),
 		type = this.state.defaultApiEntity;
 
 		for (var i in this.state.apiEntityMap) {
@@ -1494,10 +1780,14 @@ var url = document.URL;
 			}
 		}
 
-		var width = (type === this.state.defaultApiEntity)?80:200;
-		var height = (type === this.state.defaultApiEntity)?50:60;
-
-		var retData = "<strong>" + self._toProperCase(type).substring(0, type.length) + ": </strong> " + modelData.model_label + "<br/><strong>Rank:</strong> " + (parseInt(modelData.model_rank) );
+		var width = (type === this.state.defaultApiEntity) ? 80 : 200;
+		var height = (type === this.state.defaultApiEntity) ? 50 : 60;
+		var retData;
+		if (this.state.invertAxis){
+			retData = "<strong> Phenotype: </strong> " + info.label + "<br/><strong>IC:</strong> " + info.IC.toFixed(2);
+		} else {
+			retData = "<strong>" + self._capitalizeString(info.type) + ": </strong> " + info.label + "<br/><strong>Rank:</strong> " + info.rank;
+		}
 
 		//obj is try creating an ojbect with an attributes array including "attributes", but I may need to define
 		//getAttrbitues
@@ -1505,7 +1795,7 @@ var url = document.URL;
 		obj = {
 			attributes: [],
 			getAttribute: function(keystring) {
-				var ret = self.state.xScale(modelData.model_id) + 15;
+				var ret = self.state.xScale(data) + 15;
 				if (keystring == "y") {
 					ret = Number(self.state.yoffset - 100);
 				}
@@ -1514,29 +1804,26 @@ var url = document.URL;
 		};
 		obj.attributes.transform = {value: highlight_rect.attr("transform")};
 		this._updateDetailSection(retData, this._getXYPos(obj), width, height);
-		self._highlightMatchingPhenotypes(modelData);
+		self._highlightMatching(data);
 	},
 
 	//I need to check to see if the modelData is an object. If so, get the model_id
-	_clearModelData: function(modelData,obj) {
+	_clearModelData: function(data,obj) {
 		this.state.svg.selectAll("#detail_content").remove();
 		this.state.svg.selectAll(".model_accent").remove();
-		var model_text = "";
-		var mod_id = "";
-		if (modelData !== null && typeof modelData != 'object') {
-			mod_id = this._getConceptId(modelData);
-		} else if (typeof (modelData.model_id) !== 'undefined') {
-			mod_id = this._getConceptId(modelData.model_id);
-		}
+		var text = "";
+		var id = this._getConceptId(data);
+		var label = self._getAxisData(data).label;
 
 		//Show that model label is no longer selected. Change styles to normal weight, black and short label
-		if (mod_id !== "") {
-			model_text = this.state.svg.selectAll("text#" + mod_id);
-			model_text.style("font-weight","normal");
-			model_text.style("text-decoration", "none");
-			model_text.style("fill", "black");
-			model_text.html(this._getShortLabel(modelData.model_label,self.state.labelCharDisplayCount));
-			this._deselectMatchingPhenotypes(modelData);
+		if (id !== "") {
+			text = this.state.svg.selectAll("text#" + id);
+			text.style("font-weight","normal");
+			text.style("text-decoration", "none");
+			text.style("fill", "black");
+
+			text.html(this._getShortLabel(label,self.state.labelCharDisplayCount));
+			this._deselectMatching(data);
 		}
 	},
 
@@ -1545,106 +1832,59 @@ var url = document.URL;
 		var self = this;
 		//create the related row rectangle
 		var highlight_rect = self.state.svg.append("svg:rect")
-			.attr("transform","translate(" + (self.state.axis_pos_list[1]) +"," + (self.state.yoffsetOver + 4) + ")")
+			.attr("transform","translate(" + (self.state.axis_pos_list[1]) + "," + (self.state.yoffsetOver + 4) + ")")
 			.attr("x", 12)
-			.attr("y", function(d) {return self._getYPosition(curr_data.id_a) ;}) //rowid
+			.attr("y", function(d) {return self._getAxisData(curr_data).ypos; }) //rowid
 			.attr("class", "row_accent")
 			.attr("width", this.state.modelWidth - 4)
 			.attr("height", 12);
 
 		this._resetLinks();
-		var alabels = this.state.svg.selectAll("text.a_text." + curr_data.id_a);
-		var txt = curr_data.label_a;
+		var alabels = this.state.svg.selectAll("text.a_text." + curr_data);
+
+		var txt = this._getAxisData(curr_data).label;
 		if (txt === undefined) {
-			txt = curr_data.id_a;
+			txt = curr_data;
 		}
 		alabels.text(txt)
 			.style("font-weight", "bold")
 			.style("fill", "blue")
 			.on("click",function(d){
-				self._clickPhenotype(self.state.serverURL,curr_data.id_a);
+				self._clickItem(self.state.serverURL,curr_data);
 			});
-		var model_row;
-		for (var phenotypeRow in self.state.phenotypeSortData)
-		{
-			if (self.state.phenotypeSortData[phenotypeRow][0].id_a == curr_data.id_a)
-			{
-				model_row = self.state.phenotypeSortData[phenotypeRow];
-				break;
-			}
-		}
-		this._highlightMatchingModels(model_row);
+		this._highlightMatching(curr_data);
 	},
 
 	_deselectData: function (curr_data) {
 		this.state.svg.selectAll(".row_accent").remove();
 		this._resetLinks();
-		var row;
-		if (curr_data === undefined) {row = curr_data;}
-		else {row = curr_data;}
-
-		var alabels = this.state.svg.selectAll("text.a_text." + row.id_a);
-		alabels.text(this._getShortLabel(row.label_a));
+		var axisLabel = this._getAxisData(curr_data).label;
+		var alabels = this.state.svg.selectAll("text.a_text." + curr_data);
+		alabels.text(this._getShortLabel(axisLabel));
 		var data_text = this.state.svg.selectAll("text.a_text");
 		data_text.style("text-decoration", "none");
 		data_text.style("fill", "black");
 
-		var model_row;
-		for (var phenotypeRow in self.state.phenotypeSortData)
-		{
-			if (self.state.phenotypeSortData[phenotypeRow][0].id_a == curr_data.id_a)
-			{
-				model_row = self.state.phenotypeSortData[phenotypeRow];
-				break;
-			}
-		}
-		this._deselectMatchingModels(model_row);
+		this._deselectMatching(curr_data);
 	},
 
-	_highlightMatchingPhenotypes: function(curr_data){
-		var self = this;
-		var models = self.state.modelData;
-		var curModel = this._getConceptId(curr_data.model_id);
-		for (var i in models){
-			//models[i] is the matching model that contains all phenotypes
-			if (models[i].model_id == curModel){
-				var alabels = this.state.svg.selectAll("text.a_text");
-				var mtxt = models[i].label_a;
-				if (mtxt === undefined) {
-					mtxt = models[i].id_a;
-				}
-				var shortTxt = self._getShortLabel(mtxt);
-				for (var j in alabels[0]){
-					if (alabels[0][j].innerHTML == shortTxt){
-						alabels[0][j].style.fill = "blue";
-						break;
-					}
-				}
-			}
-		}
-	},
 
-	_deselectMatchingPhenotypes : function(curr_data){
-		var self = this;
-		self.state.svg.selectAll("text.a_text")
-			.style("fill","black");
-	},
-
-	_clickPhenotype: function(url_origin,data) {
-		var url = url_origin + "/phenotype/" + data;
-		var win = window.open(url, '_blank');
-	},
-
-	_clickModel: function(url_origin,data) {
-		var concept = self._getConceptId(data.model_id);
-		// hardwire check
+	_clickItem: function(url_origin,data) {
+		var url;
+		var concept = self._getConceptId(data);
 		var apientity = this.state.defaultApiEntity;
-		for (var i in this.state.apiEntityMap) {
-			if (concept.indexOf(this.state.apiEntityMap[i].prefix) === 0) {
-				apientity = this.state.apiEntityMap[i].apifragment;
+		if (this._getIDType(data) == "Phenotype"){
+			url = url_origin + "/phenotype/" + (data.replace("_", ":"));
+		} else if (this._getIDType(data) == "Model"){
+			for (var i in this.state.apiEntityMap) {
+				if (concept.indexOf(this.state.apiEntityMap[i].prefix) === 0) {
+					apientity = this.state.apiEntityMap[i].apifragment;
+				}
 			}
+			url = url_origin + "/" + apientity + "/" + (concept.replace("_", ":"));
+		} else {
+			console.log ("URL CLICK ERROR");
 		}
-		var url = url_origin + "/" + apientity + "/" + concept;
 		var win = window.open(url, '_blank');
 	},
 
@@ -1663,15 +1903,6 @@ var url = document.URL;
 		}else {
 			return "Unknown";
 		}
-	},
-
-	//return a useful label to use for visualizing the rectangles
-	_getCleanLabel: function (uri, label) {
-		if (label && label !== "" && label != "null") {
-			return label;
-		} 
-		var temp = this._getConceptId(uri);
-		return temp;
 	},
 
 	//This method extracts the unique id from a given URI
@@ -1713,17 +1944,17 @@ var url = document.URL;
 			.attr('x', x + 15)
 			.attr('y', y)
 			.attr("width", width)
-			.attr("id", this._getConceptId(data.model_id))
-			.attr("model_id", data.model_id)
+			.attr("id", this._getConceptId(data))
+			.attr("model_id", data)
 			.attr("height", 60)
 			.attr("transform", function(d) {
 				return "rotate(-45)";
 			})
 			.on("click", function(d) {
-				self._clickModel(self.state.serverURL,data);
+				self._clickItem(self.state.serverURL,data);
 			})
 			.on("mouseover", function(d) {
-				self._selectModel(data, this);
+				self._selectXItem(data, this);
 			})
 			.on("mouseout", function(d) {
 				self._clearModelData(data, d3.mouse(this));
@@ -1731,7 +1962,7 @@ var url = document.URL;
 					self._deselectData(self.state.selectedRow);
 				}
 			})
-			.attr("class", this._getConceptId(data.model_id) + " model_label")
+			.attr("class", this._getConceptId(data) + " model_label")
 			.style("font-size", "12px")
 			//don't show the label if it is a dummy.
 			.text( function(d) {if (label == self.state.dummyModelName) return ""; else return label;});
@@ -1742,8 +1973,8 @@ var url = document.URL;
 	_updateDetailSection: function(htmltext, coords, width, height) {
 		this.state.svg.selectAll("#detail_content").remove();
 
-		var w = this.state.detailRectWidth-(this.state.detailRectStrokeWidth*2);
-		var h = this.state.detailRectHeight-(this.state.detailRectStrokeWidth*2);
+		var w = this.state.detailRectWidth - (this.state.detailRectStrokeWidth * 2);
+		var h = this.state.detailRectHeight - (this.state.detailRectStrokeWidth * 2);
 		if (width !== undefined) {
 			w = width;
 		}
@@ -1751,7 +1982,8 @@ var url = document.URL;
 			h = height;
 		}
 		var wdt = this.state.axis_pos_list[1] + ((this.state.axis_pos_list[2] - this.state.axis_pos_list[1])/2);
-		var hgt = this.state.phenotypeDisplayCount*10 + this.state.yoffset;
+		var displayCount = this._getYLimit();
+		var hgt = displayCount * 10 + this.state.yoffset;
 		var yv, wv;
 
 		if (coords.y > hgt) { yv = coords.y - this.state.detailRectHeight - 10;}
@@ -1773,16 +2005,16 @@ var url = document.URL;
 	},
 
 	_showModelData: function(d, obj) {
-		var retData;
-		/* we aren't currently using these, but we might later.*/
-		//var aSpecies = this._(d.id_a);
-		//var subSpecies = this._getSpeciesLabel(d.subsumer_id);
-		//var bSpecies = this._(d.id_b);
-
-		var species = d.species;
-		var taxon = d.taxon;
-		var prefix;
-		var type = this._getComparisonType(species);
+		var retData, modelInfo, phenoInfo, prefix;
+		if (this.state.invertAxis){
+			modelInfo = this._getAxisData(d.yID);
+			phenoInfo = this._getAxisData(d.xID);
+		} else {
+			modelInfo = this._getAxisData(d.xID);
+			phenoInfo = this._getAxisData(d.yID);
+		}
+		var species = modelInfo.species;
+		var taxon = modelInfo.taxon;
 
 		if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
 			if (taxon.indexOf("NCBITaxon:") != -1) {
@@ -1801,12 +2033,12 @@ var url = document.URL;
 		//If the selected calculation isn't percentage based (aka similarity) make it a percentage
 		if (this.state.selectedCalculation != 2) {suffix = '%';}
 
-		retData = "<strong>Query: </strong> " + d.label_a + " (IC: " + d.IC_a.toFixed(2) + ")" +
-			"<br/><strong>Match: </strong> " + d.label_b + " (IC: " + d.IC_b.toFixed(2) +")" +
+		retData = "<strong>Query: </strong> " + phenoInfo.label + " (IC: " + phenoInfo.IC.toFixed(2) + ")" +
+			"<br/><strong>Match: </strong> " + d.b_label + " (IC: " + d.b_IC.toFixed(2) +")" +
 			"<br/><strong>Common: </strong> " + d.subsumer_label + " (IC: " + d.subsumer_IC.toFixed(2) +")" +
-			"<br/><strong>" + this._toProperCase(type).substring(0, type.length-1) +": </strong> " + d.model_label +
+			"<br/><strong>" + this._capitalizeString(modelInfo.type)+": </strong> " + modelInfo.label +
 			"<br/><strong>" + prefix + ":</strong> " + d.value[this.state.selectedCalculation].toFixed(2) + suffix +
-			"<br/><strong>Species: </strong> " + d.species + " (" + taxon + ")";
+			"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
 		this._updateDetailSection(retData, this._getXYPos(obj));
 	},
 
@@ -1814,7 +2046,7 @@ var url = document.URL;
 		this.state.svg.selectAll("#detail_content").remove();
 		this.state.svg.append("svg:text")
 			.attr("id", "detail_content")
-			.attr("y", (26+this.state.detailRectStrokeWidth))
+			.attr("y", (26 + this.state.detailRectStrokeWidth))
 			.attr("x", (440+this.state.detailRectStrokeWidth))
 			.style("font-size", "12px")
 			.text("Searching for data");
@@ -1822,8 +2054,8 @@ var url = document.URL;
 			.attr("width", 16)
 			.attr("height", 16)
 			.attr("id", "detail_content")
-			.attr("y", (16+this.state.detailRectStrokeWidth))
-			.attr("x", (545+this.state.detailRectStrokeWidth))
+			.attr("y", (16 + this.state.detailRectStrokeWidth))
+			.attr("x", (545 + this.state.detailRectStrokeWidth))
 			.attr("xlink:href","/widgets/phenogrid/image/throbber.gif");
 	},
 
@@ -1850,36 +2082,25 @@ var url = document.URL;
 		return {x: Number(obj.getAttribute("x")) + tform.x, y: Number(obj.getAttribute("y")) + tform.y};
 	},
 
-	_getSpeciesLabel: function(idstring) {
-		var label;
-		for (var i in this.state.speciesLabels) {
-			var labinfo = this.state.speciesLabels[i];
-			if (idstring.indexOf(labinfo.abbrev) > -1) {
-				label = labinfo.label;
-				break;
-			}
-		}
-		return label;
-	},
-
 	//NOTE: I need to find a way to either add the model class to the phenotypes when they load OR
 	//select the rect objects related to the model and append the class to them.
 	//something like this: $( "p" ).addClass( "myClass yourClass" );
 	_createModelRects: function() {
 		var self = this;
-		var data = this.state.filteredModelData;
+		var data = this.state.filteredModelDataHash;
+		var axisStatus = this.state.invertAxis;
 
-		var rectTranslation = "translate(" + ((this.state.textWidth + 30) + 4) + "," + (self.state.yoffsetOver + 15)+ ")";
+		var rectTranslation = "translate(" + ((this.state.textWidth + this.state.xOffsetOver + 30) + 4) + "," + (self.state.yoffsetOver + 15)+ ")";
 		var model_rects = this.state.svg.selectAll(".models")
 			.data( data, function(d) {
-				return d.id;
+				return d.xID + d.yID;
 			});
 		model_rects.enter()
 			.append("rect")
 			.attr("transform",rectTranslation)
 			.attr("class", function(d) { 
-				var dConcept = self._getConceptId(d.id);
-				var modelConcept = self._getConceptId(d.model_id);
+				var dConcept = (d.xID + d.yID);
+				var modelConcept = self._getConceptId(d.xID);
 				//append the model id to all related items
 				if (d.value[self.state.selectedCalculation] > 0) {
 					var bla = self.state.svg.selectAll(".data_text." + dConcept);
@@ -1887,10 +2108,10 @@ var url = document.URL;
 				}
 				return "models " + " " + modelConcept + " " + dConcept;
 			})
-			.attr("y", function(d, i) { 
-				return self._getYPosition(d.id_a) + self.state.yoffsetOver;
+			.attr("y", function(d, i) {
+				return self._getAxisData(d.yID).ypos + self.state.yoffsetOver;
 			})
-			.attr("x", function(d) { return self.state.xScale(d.model_id);})
+			.attr("x", function(d) { return self.state.xScale(d.xID);})
 			.attr("width", 10)
 			.attr("height", 10)
 			.attr("rx", "3")
@@ -1927,69 +2148,100 @@ var url = document.URL;
 			})
 			.style('opacity', '1.0')
 		.attr("fill", function(d) {
-			var score = d.value[self.state.selectedCalculation];
-			var color = self._getColorForModelValue(self,d.species,score);
-			return color;
+			var colorID;
+			if (axisStatus){
+				colorID = d.yID;
+			} else {
+				colorID = d.xID;
+			} 
+			return self._getColorForModelValue(self,self._getAxisData(colorID).species,d.value[self.state.selectedCalculation]);
 		});
 
 		model_rects.transition()
 			.delay(20)
 			.style('opacity', '1.0')
 			.attr("y", function(d) {
-				return self._getYPosition(d.id_a)-10; //rowid
+				return self._getAxisData(d.yID).ypos - 10; //rowid
 			})
 			.attr("x", function(d) { 
-				return self.state.xScale(d.model_id);
+				return self.state.xScale(d.xID);
 			});
 		model_rects.exit().transition()
 			.style('opacity', '0.0')
 			.remove();
 	},
 
-	_highlightSpecies : function () {
+	_highlightSpecies: function () {
 		//create the related model rectangles
 		var self = this;
 		var list = [];
-		var ct;
-		if (self.state.targetSpeciesName == "Overview"){
-			list = self.state.speciesList;
-			ct = self.state.multiOrganismCt;
-		} else {
-			list.push(self.state.targetSpeciesName);
-			ct = self.state.modelDisplayCount;
-		}
-
+		var ct, width, height, borderStroke;
 		var vwidthAndGap = self.state.heightOfSingleModel;
 		var hwidthAndGap = self.state.widthOfSingleModel;
-		var borderStroke = self.state.detailRectStrokeWidth;
 		var totCt = 0;
 		var parCt = 0;
+		var displayCount = self._getYLimit();
+		var displayCountX = self._getXLimit();
+
+		//Have temporarly until fix for below during Axis Flip
+		if (self.state.targetSpeciesName == "Overview"){
+			if (this.state.invertAxis) {
+				list = self.state.speciesList;
+				ct = self.state.multiOrganismCt;
+				borderStroke = self.state.detailRectStrokeWidth / 2;
+				width = hwidthAndGap * displayCountX;
+				height = vwidthAndGap * ct + borderStroke;
+			} else {
+				list = self.state.speciesList;
+				ct = self.state.multiOrganismCt;
+				borderStroke = self.state.detailRectStrokeWidth;
+				width = hwidthAndGap * ct;
+				height = vwidthAndGap * displayCount + borderStroke * 2;
+			}
+		} else {
+			list.push(self.state.targetSpeciesName);
+			ct = displayCountX;
+			borderStroke = self.state.detailRectStrokeWidth;
+			width = hwidthAndGap * ct;
+			height = vwidthAndGap * displayCount + borderStroke * 2;
+		}
 
 		var border_rect = self.state.svg.selectAll(".species_accent")
 			.data(list)
 			.enter()
 			.append("rect")
-			.attr("transform","translate(" + (self.state.textWidth + 30) + "," +(self.state.yoffsetOver)+ ")")
-			.attr("x", function(d,i) { 
-				totCt += ct;
-				if (i === 0) { return 0; }
-				else {
-					parCt = totCt - ct;
-					return hwidthAndGap * parCt;
-				}
-			})
-			.attr("y", self.state.yoffset+1)
+			.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 30) + "," + (self.state.yoffsetOver) + ")")
 			.attr("class", "species_accent")
-			.attr("width", function(d,i) {
-				return hwidthAndGap * ct;
-			})
-			.attr("height", vwidthAndGap * self.state.phenotypeDisplayCount + borderStroke*2)
+			.attr("width", width)
+			.attr("height", height)
 			.attr("stroke", "black")
 			.attr("stroke-width", borderStroke)
 			.attr("fill", "none");
+
+			if (self.state.targetSpeciesName == "Overview" && this.state.invertAxis){
+				border_rect.attr("x", 0);
+				border_rect.attr("y", function(d,i) { 
+					totCt += ct;
+					if (i === 0) { return (self.state.yoffset + borderStroke); }
+					else {
+						parCt = totCt - ct;
+						return (self.state.yoffset + borderStroke) + ((vwidthAndGap) * parCt + i);
+					}
+				});
+			} else {
+				border_rect.attr("x", function(d,i) { 
+					totCt += ct;
+					if (i === 0) { return 0; }
+					else {
+						parCt = totCt - ct;
+						return hwidthAndGap * parCt;
+					}
+				});
+				border_rect.attr("y", self.state.yoffset + 1);
+			}
 	},
 
-	_enableRowColumnRects : function(curr_rect){
+	_enableRowColumnRects: function(curr_rect){
 		var self = this;
 
 		var model_rects = self.state.svg.selectAll("rect.models")
@@ -2004,60 +2256,48 @@ var url = document.URL;
 		}
 	},
 
-	_getFirstModelId : function(phenotype){
-		var firstModel=""; 
-		for (var i in this.state.filteredModelData){
-			if (this.state.filteredModelData[i].id_a === phenotype){
-				firstModel = this.state.filteredModelData[i].id;
-				break;
-			}
-		}
-		return firstModel;
-	},
-
-	_highlightIntersection : function(curr_data, obj){
-		var self=this;
-
+	_highlightIntersection: function(curr_data, obj){
+		var self = this;
+		var displayCount = self._getYLimit();
 		//Highlight Row
 		var highlight_rect = self.state.svg.append("svg:rect")
-			.attr("transform","translate(" + self.state.axis_pos_list[1] + ","+ (self.state.yoffsetOver + 4 ) + ")")
+			.attr("transform","translate(" + (self.state.axis_pos_list[1]) + ","+ (self.state.yoffsetOver + 4 ) + ")")
 			.attr("x", 12)
-			.attr("y", function(d) {return self._getYPosition(curr_data.id_a) ;}) //rowid
+			.attr("y", function(d) {return self._getAxisData(curr_data.yID).ypos; }) //rowid
 			.attr("class", "row_accent")
 			.attr("width", this.state.modelWidth - 4)
 			.attr("height", 12);
 
-		this.state.selectedRow = curr_data;
-		this.state.selectedColumn = curr_data;
+		this.state.selectedRow = curr_data.yID;
+		this.state.selectedColumn = curr_data.xID;
 		this._resetLinks();
 
 		//To get the phenotype label from the selected rect data, we need to concat the phenotype ids to the model id 
 		// that is in the 0th position in the grid. No labels exist with the curr_data.id except for the first column
 		//For the overview, there will be a 0th position for each species so we need to get the right model_id
 
-		//var mid = this._getFirstModelId(curr_data.id_a);
-		var phen_label = this.state.svg.selectAll("text.a_text." + curr_data.id_a);
-		var txt = curr_data.label_a;
+		var phen_label = this.state.svg.selectAll("text.a_text." + curr_data.yID);
+		var txt = self._getAxisData(curr_data.yID).label;
 		if (txt === undefined) {
-			txt = curr_data.id_a;
+			txt = curr_data.yID;
 		}
 		phen_label.text(txt)
 			.style("font-weight", "bold")
 			.style("fill", "blue");
 
 		//Highlight Column
-		var model_label = self.state.svg.selectAll("text#" + this._getConceptId(curr_data.model_id));
+		var model_label = self.state.svg.selectAll("text#" + this._getConceptId(curr_data.xID));
 		model_label.style("font-weight", "bold");
 		model_label.style("fill", "blue");
 
 		//create the related model rectangles
 		var highlight_rect2 = self.state.svg.append("svg:rect")
-			.attr("transform","translate(" + (self.state.textWidth + 34) + "," +self.state.yoffsetOver+ ")")
-			.attr("x", function(d) { return (self.state.xScale(curr_data.model_id) - 1);})
+			.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 34) + "," +self.state.yoffsetOver+ ")")
+			.attr("x", function(d) { return (self.state.xScale(curr_data.xID) - 1);})
 			.attr("y", self.state.yoffset + 2 )
 			.attr("class", "model_accent")
 			.attr("width", 12)
-			.attr("height", (self.state.phenotypeDisplayCount * self.state.heightOfSingleModel));
+			.attr("height", (displayCount * self.state.heightOfSingleModel));
 	},
 
 	_updateAxes: function() {
@@ -2066,101 +2306,81 @@ var url = document.URL;
 
 		//This is for the new "Overview" target option 
 		if (this.state.targetSpeciesName == "Overview"){
-			data = this.state.modelData;
+			data = this.state.modelDataHash.keys();
 		} else {
-			data = self.state.filteredModelData;
+			data = self.state.filteredModelDataHash;
 		}
-		this.state.h = (data.length*2.5);
+		this.state.h = (data.length * 2.5);
 
 		self.state.yScale = d3.scale.ordinal()
-			.domain(data.map(function (d) {return d.id_a; }))
+			.domain(data.map(function (d) { return d.yID; }))
 			.range([0,data.length])
-			.rangePoints([ self.state.yModelRegion,self.state.yModelRegion +this.state.h ]);
+			.rangePoints([self.state.yModelRegion,self.state.yModelRegion + this.state.h]);
 
 		//update accent boxes
 		self.state.svg.selectAll("#rect.accent").attr("height", self.state.h);
 	},
 
-	//NOTE: FOR FILTERING IT MAY BE FASTER TO CONCATENATE THE PHENOTYPE and MODEL into an attribute
-
 	//change the list of phenotypes and filter the models accordingly. The 
 	//movecount is an integer and can be either positive or negative
-	_updateModel: function(modelIdx, phenotypeIdx) {
+	_updateModel: function(newXPos, newYPos){
 		var self = this;
-		var tempdata;
-		//This is for the new "Overview" target option 
-		var modelData = this.state.modelData;
-		var modelList = this.state.modelList;
+		var xSize = this.state.xAxis.size();
+		var ySize = this.state.yAxis.size();
 
-		//check to see if the phenotypeIdx is greater than the number of items in the list
-		if (phenotypeIdx > this.state.phenoLength) {
-			this.state.currPhenotypeIdx = this.state.phenotypeSortData.length;
-		} else if (phenotypeIdx - (this.state.phenotypeDisplayCount -1) < 0) {
-			//check to see if the min of the slider is less than the 0
-			this.state.currPhenotypeIdx = (this.state.phenotypeDisplayCount -1);
+		if (newXPos > xSize){
+			this.state.currXIdx = xSize;
 		} else {
-			this.state.currPhenotypeIdx = phenotypeIdx;
+			this.state.currXIdx = newXPos;
 		}
-		var startPhenotypeIdx = this.state.currPhenotypeIdx - this.state.phenotypeDisplayCount;
-
-		//this.state.yAxis = [];
-
-		//fix model list
-		//check to see if the max of the slider is greater than the number of items in the list
-		if (modelIdx > modelList.length) {
-			this.state.currModelIdx = modelList.length;
-		} else if (modelIdx - (this.state.modelDisplayCount -1) < 0) {
-			//check to see if the min of the slider is less than the 0
-			this.state.currModelIdx = (this.state.modelDisplayCount -1);
+		
+		if (newYPos > ySize){
+			this.state.currYIdx = ySize;
 		} else {
-			this.state.currModelIdx = modelIdx;
+			this.state.currYIdx = newYPos;
 		}
-		var startModelIdx = this.state.currModelIdx - this.state.modelDisplayCount;
 
-		//extract the new array of filtered Phentoypes
-		//also update the axis
-		//also update the modeldata
-		var axis_idx = 0;
-		this._getFilteredModelList(startModelIdx,self.state.currModelIdx);
+		this._filterDisplay();
+		this._clearXLabels();
 
-		this._filterSelected('updateModel');
-		this._clearModelLabels();
-
-		this._createModelRegion();
+		this._createXRegion();
 		this._createModelRects();
 		this._highlightSpecies();
-		this._createRowLabels();
+		this._createYRegion();
 	},
 
-	_createModelLabels: function(self) {
+	//Previously _createModelLabels
+	_createXLabels: function(self, models) {
 		var model_x_axis = d3.svg.axis().scale(self.state.xScale).orient("top");
-
 		self.state.svg.append("g")
-			.attr("transform","translate(" + (self.state.textWidth +28) +"," + self.state.yoffset + ")")
+			.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 28) + "," + self.state.yoffset + ")")
 			.attr("class", "x axis")
 			.call(model_x_axis)
 			//this be some voodoo...
 			//to rotate the text, I need to select it as it was added by the axis
 			.selectAll("text") 
 			.each(function(d,i) { 
-				self._convertLabelHTML(self, this, self._getShortLabel(self.state.filteredModelList[i].model_label,self.state.labelCharDisplayCount),self.state.filteredModelList[i]);
+				var labelM = self._getAxisData(d).label;
+				self._convertLabelHTML(self, this, self._getShortLabel(labelM,self.state.labelCharDisplayCount),d);
 			});
 	},
 
-	_clearModelLabels: function() {
+	//Previously _clearModelLabels
+	_clearXLabels: function() {
 		this.state.svg.selectAll("g .x.axis").remove();
 		this.state.svg.selectAll("g .tick.major").remove();
 	},
 
-	_createModelLines: function() {
+	//Previously _createModelLines
+	_createXLines: function() {
 		var modelLineGap = 10;
-		var lineY = this.state.yoffset-modelLineGap;
+		var lineY = this.state.yoffset - modelLineGap;
 		this.state.svg.selectAll("path.domain").remove();
 		this.state.svg.selectAll("text.scores").remove();
 		this.state.svg.selectAll("#specieslist").remove();
 
 		this.state.svg.append("line")
-			.attr("transform","translate(" + (this.state.textWidth + 30) +"," + lineY + ")")
+			.attr("transform","translate(" + (this.state.textWidth + this.state.xOffsetOver + 30) + "," + lineY + ")")
 			.attr("x1", 0)
 			.attr("y1", 0)
 			.attr("x2", this.state.modelWidth)
@@ -2169,43 +2389,88 @@ var url = document.URL;
 			.attr("stroke-width", 1);
 	},
 
-	_createTextScores: function(list) {
+	_createYLines: function() {
+		var modelLineGap = 30;
+		var lineY = this.state.yoffset + modelLineGap;
+		var displayCount = self._getYLimit();
+		//this.state.svg.selectAll("path.domain").remove();
+		//this.state.svg.selectAll("text.scores").remove();
+		//this.state.svg.selectAll("#specieslist").remove();
+
+		var gridHeight = displayCount * self.state.heightOfSingleModel + 10;
+		if (gridHeight < self.state.minHeight) {
+			gridHeight = self.state.minHeight;
+		}
+
+		this.state.svg.append("line")
+			.attr("transform","translate(" + (this.state.textWidth + 15) + "," + lineY + ")")
+			.attr("x1", 0)
+			.attr("y1", 0)
+			.attr("x2", 0)
+			.attr("y2", gridHeight)
+			.attr("stroke", "#0F473E")
+			.attr("stroke-width", 1);
+	},
+
+	_createTextScores: function() {
 		var self = this;
+		var list = [];
 		var xWidth = self.state.widthOfSingleModel;
 
-		var translation ="translate(" + (this.state.textWidth + 34) +"," + this.state.yoffset + ")"; // was yoffset -3
+		if (!this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+			list = self._getSortedOverviewIDList(this.state.xAxis.entries());
+		} else if (!this.state.invertAxis && this.state.targetSpeciesName !== "Overview") {
+			list = self._getSortedIDListStrict(this.state.filteredXAxis.entries());
+		} else if (this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+			list = self._getSortedOverviewIDList(this.state.yAxis.entries());
+		} else if (this.state.invertAxis && this.state.targetSpeciesName !== "Overview") {
+			list = self._getSortedIDListStrict(this.state.filteredYAxis.entries());
+		}
+		
 		this.state.svg.selectAll("text.scores")
 			.data(list)
 			.enter()
 			.append("text")
-			.attr("transform",translation)
-			.attr("id", "scorelist")
-			.attr("x",function(d,i){return i * xWidth;})
-			.attr("y", 0)
-			.attr("width", xWidth)
 			.attr("height", 10)
+			.attr("id", "scorelist")
+			.attr("width", xWidth)
 			.attr("class", "scores")
 			// don't show score if it is a dummy model.
 			.text(function (d){ 
-				if (d.model_label === self.state.dummyModelName) {
+				if (d === self.state.dummyModelName) {
 					return "";
 				} else {
-					return d.model_score;
+					return self._getAxisData(d).score;
 				}})
 			.style("font-weight","bold")
-			.style("fill",function(d) { return self._getColorForModelValue(self,d.species,d.model_score);});
+			.style("fill",function(d) {
+				return self._getColorForModelValue(self,self._getAxisData(d).species,self._getAxisData(d).score);
+			});
+
+			if (this.state.invertAxis){
+				this.state.svg.selectAll("text.scores").attr("y", function(d) {
+					return self._getAxisData(d).ypos + 5;
+				});
+				this.state.svg.selectAll("text.scores").attr("x", 0);
+				this.state.svg.selectAll("text.scores").attr("transform", "translate(" + (this.state.textWidth + 20) + "," + 40 + ")");
+			} else {
+				this.state.svg.selectAll("text.scores").attr("x",function(d,i){return i * xWidth;});
+				this.state.svg.selectAll("text.scores").attr("y", 0);
+				this.state.svg.selectAll("text.scores").attr("transform", "translate(" + (this.state.textWidth + 54) + "," + this.state.yoffset + ")");
+			}
 	},
 
 	//Add species labels to top of Overview
 	_createOverviewSpeciesLabels: function () {
 		var self = this;
 		var speciesList = [];
-		if (self.state.targetSpeciesName == "Overview") {
+		//Temporarly until fix for positioning on Axis Flip
+		if (!this.state.invertAxis && self.state.targetSpeciesName == "Overview") {
 			speciesList = self.state.speciesList;
 		} else{
 			speciesList.push(self.state.targetSpeciesName);
 		}
-		var translation = "translate(" + (self.state.textWidth + 30) +"," + (self.state.yoffset + 10) + ")";
+		var translation = "translate(" + (self.state.textWidth + self.state.xOffsetOver + 30) +"," + (self.state.yoffset + 10) + ")";
 
 		var xPerModel = self.state.modelWidth/speciesList.length;
 		var species = self.state.svg.selectAll("#specieslist")
@@ -2213,7 +2478,7 @@ var url = document.URL;
 			.enter()
 			.append("text")
 			.attr("transform",translation)
-			.attr("x", function(d,i){ return (i+1/2)*xPerModel;})
+			.attr("x", function(d,i){ return (i + 1 / 2 ) * xPerModel;})
 			.attr("id", "specieslist")
 			.attr("y", 10)
 			.attr("width", xPerModel)
@@ -2225,7 +2490,7 @@ var url = document.URL;
 	},
 
 	// we might want to modify this to do a dynamic http retrieval to grab the dialog components...
-	_showDialog : function(name){
+	_showDialog: function(name){
 		var self = this;
 		var url = this._getResourceUrl(name,'html');
 		if (typeof(self.state.tooltips[name]) === 'undefined') {
@@ -2271,10 +2536,11 @@ var url = document.URL;
 	 *
 	 */
 	_createRectangularContainers: function() {
-		var self=this;
+		var self = this;
 		this._buildAxisPositionList();
+		var displayCount = self._getYLimit();
 
-		var gridHeight = self.state.phenotypeDisplayCount * self.state.heightOfSingleModel + 10;
+		var gridHeight = displayCount * self.state.heightOfSingleModel + 10;
 		if (gridHeight < self.state.minHeight) {
 			gridHeight = self.state.minHeight;
 		}
@@ -2288,7 +2554,7 @@ var url = document.URL;
 			.attr("class", "accent")
 			.attr("x", function(d, i) { return self.state.axis_pos_list[i];})
 			.attr("y", y)
-			.attr("width", self.state.textWidth+5)
+			.attr("width", self.state.textWidth + 5)
 			.attr("height", gridHeight)
 			.attr("id", function(d, i) {
 				if(i === 0) {return "leftrect";}
@@ -2300,18 +2566,16 @@ var url = document.URL;
 				return i != 1 ? d3.rgb("#e5e5e5") : "white";
 			});
 
-		return gridHeight+self.state.yModelRegion;
+		return gridHeight + self.state.yModelRegion;
 	},
 
 	/* Build out the positions of the 3 boxes */
-
 	_buildAxisPositionList: function() {
 		//For Overview of Organisms 0 width = ((multiOrganismCt*2)+2) *this.state.widthOfSingleModel	
 		//Add two extra columns as separators
 		this.state.axis_pos_list = [];
-
 		//calculate width of model section
-		this.state.modelWidth = this.state.filteredModelList.length * this.state.widthOfSingleModel;
+		this.state.modelWidth = this.state.filteredXAxis.size() * this.state.widthOfSingleModel;
 		//add an axis for each ordinal scale found in the data
 		for (var i = 0; i < 3; i++) {
 			//move the last accent over a bit for the scrollbar
@@ -2321,33 +2585,47 @@ var url = document.URL;
 				if(w < this.state.smallestModelWidth) {
 					w = this.state.smallestModelWidth;
 				}
-				this.state.axis_pos_list.push((this.state.textWidth + 30) + this.state.colStartingPos + w);
+				this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
+			} else if (i == 1 ){
+				this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
 			} else {
-				this.state.axis_pos_list.push((i*(this.state.textWidth + 10)) + this.state.colStartingPos);
+				this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
 			}
 		}	
 	},
 
-	//this code creates the labels for the models, the lines, scores, etc..
-	_createModelRegion: function () {
+	//this code creates the labels for the x-axis, the lines, scores, etc..
+	//Previously _createModelRegion
+	_createXRegion: function () {
 		var self = this;
-		var list = [];
+		var mods = [];
 
-		//This is for the new "Overview" target option 
-		if (this.state.targetSpeciesName == "Overview"){
-			list = this.state.modelList;
+		if (!this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+			mods = self._getSortedOverviewIDList(this.state.xAxis.entries());
 		} else {
-			list = this.state.filteredModelList;
+			mods = self._getSortedIDListStrict(this.state.filteredXAxis.entries());
 		}
 
 		this.state.xScale = d3.scale.ordinal()
-			.domain(list.map(function (d) {return d.model_id; }))
+			.domain(mods.map(function (d) {return d; }))
 			.rangeRoundBands([0,this.state.modelWidth]);
 
-		this._createModelLabels(self);
-		this._createModelLines();
-		this._createTextScores(list);
+		this._createXLabels(self,mods);
+		this._createXLines();
+		if (!this.state.invertAxis) {
+			this._createTextScores();
+		}
 		this._createOverviewSpeciesLabels();
+	},
+
+	//this code creates the labels for the y-axis, the lines, scores, etc..
+	_createYRegion: function () {
+		this._createYLabels();
+
+		this._createYLines();
+		if (this.state.invertAxis) {
+			this._createTextScores();
+		}
 	},
 
 	_addPhenogridControls: function() {
@@ -2358,7 +2636,7 @@ var url = document.URL;
  
 	_addGradients: function() {
 		var self = this;
-		var modData = this.state.modelData;
+		var modData = this.state.modelDataHash.values();
 		var temp_data = modData.map(function(d) { return d.value[self.state.selectedCalculation];} );
 		var diff = d3.max(temp_data) - d3.min(temp_data);
 		var y1;
@@ -2367,7 +2645,7 @@ var url = document.URL;
 		//in the scale
 		if (diff > 0) {
 			// baseline for gradient positioning
-			if (this.state.phenoLength < this.state.defaultPhenotypeDisplayCount) {
+			if (this.state.phenoLength < this.state.phenoDisplayCount) {
 				y1 = 172;
 			} else {
 				y1 = 262;
@@ -2376,6 +2654,7 @@ var url = document.URL;
 			this._buildGradientTexts(y1);
 		}
 	},
+
 	/**
 	 * build the gradient displays used to show the range of colors
 	 */
@@ -2518,27 +2797,32 @@ var url = document.URL;
 		options.append(sortSel);
 		var calcSel = this._createCalculationSelection();
 		options.append(calcSel);
+		var axisSel = this._createAxisSelection();
+		options.append(axisSel);
+
 		container.append(options);
 		//add the handler for the select control
 		$( "#organism" ).change(function(d) {
-			console.log("changed organism");
 			self.state.targetSpeciesName = self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
 			self._resetSelections("organism");
 		});
 
 		$( "#calculation" ).change(function(d) {
-			console.log("changed calculation");
 			self.state.selectedCalculation = self.state.similarityCalculation[d.target.selectedIndex].calc;
 			self._resetSelections("calculation");
-			self._processSelected("calculation");
+			self._processDisplay();
 		});
 
 		//add the handler for the select control
 		$( "#sortphenotypes" ).change(function(d) {
-			console.log("changed sort");
 			self.state.selectedSort = self.state.phenotypeSort[d.target.selectedIndex];
 			self._resetSelections("sortphenotypes");
-			self._processSelected("sortphenotypes");
+			self._processDisplay();
+		});
+
+		$( "#axisflip" ).click(function(d) {
+			self.state.invertAxis = !self.state.invertAxis;
+			self._resetSelections("axisflip");
 		});
 
 		self._configureFaqs();
@@ -2611,34 +2895,47 @@ var url = document.URL;
 		return $(optionhtml);
 	},
 
-	//this code creates the text and rectangles containing the text 
-	//on either side of the model data
-	_createRowLabels: function() {
-		// this takes some 'splaining
-		//the raw dataset contains repeats of data within the
-		//A,subsumer, and B columns.
-		//If d3 sees the same label 4 times (ex: Abnormality of the
-		//pharynx) then it will 
-		//create a rectangle and text for it 4 times. Therefore, I
-		//need to create a unique set of
-		//labels per axis (because the labels can repeat across axes)
+	/** 
+	* create the html necessary for selecting the axis flip
+	*/
+	_createAxisSelection: function () {
+		var selectedItem;
+		var optionhtml = "<div id='axis_div'><span id='axlabel'>Axis Flip</span><br>" +
+		"<span id='org_sel'><button type='button' id='axisflip'>Flip Axis</button></span></div>";
+		return $(optionhtml);
+	},
+
+	//this code creates the text and rectangles containing the text on either side of the y-axis data
+	//Previously _createRowLabels
+	_createYLabels: function() {
 		var self = this;
+		var pad = 14;
+		var list = [];
+
+		if (this.state.invertAxis && this.state.targetSpeciesName === "Overview") {
+			list = self._getSortedOverviewIDList(self.state.filteredYAxis.entries());
+		} else {
+			list = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
+		}
+
 		var rect_text = this.state.svg
 			.selectAll(".a_text")
-			.data(self.state.filteredPhenotypeData, function(d, i) { return d.id_a; });//rowid
+			.data(list, function(d) { return d; });
 		rect_text.enter()
 			.append("text")
 			.attr("class", function(d) {
-				return "a_text data_text " + d.id_a;
+				return "a_text data_text " + d;
 			})
 		//store the id for this item. This will be used on click events
 			.attr("ontology_id", function(d) {
-				return d.id_a;
+				return d;
+			})
+			.attr("id", function(d) {
+				return d;
 			})
 			.attr("x", 208)
-			.attr("y", function(d,i) {
-			//return i;
-				return self._getYPosition(d.id_a)+10;
+			.attr("y", function(d) {
+				return self._getAxisData(d).ypos + 10;
 			})
 			.on("mouseover", function(d) {
 				self._selectData(d, d3.mouse(this));
@@ -2649,25 +2946,20 @@ var url = document.URL;
 			.attr("width", self.state.textWidth)
 			.attr("height", 50)
 			.text(function(d) {
-				var txt = d.label_a;
+				var txt = self._getAxisData(d).label;
 				if (txt === undefined) {
-					txt = d.id_a;
+					txt = d;
 				}
 				return self._getShortLabel(txt);
 			});
 
 		this._buildUnmatchedPhenotypeDisplay();
 
-		var pad = 14;
-
 		rect_text.transition()
 			.style('opacity', '1.0')
 			.delay(5)
 			.attr("y", function(d) {
-				var newy;
-				//controls position of phenotype list
-				newy = self._getYPosition(d.id_a) + (self.state.yoffsetOver) + pad;
-				return newy;
+				return self._getAxisData(d).ypos + self.state.yoffsetOver + pad;
 			});
 		rect_text.exit()
 			.transition()
@@ -2676,19 +2968,21 @@ var url = document.URL;
 			.remove();
 	},
 
-	_getUnmatchedPhenotypes : function(){
-		var fullset = this.state.origPhenotypeData,
-		partialset = this.state.phenotypeSortData,
-		full = [],
-		partial = [],
-		unmatchedset = [];
+	_getUnmatchedPhenotypes: function(){
+		var fullset = this.state.origPhenotypeData;
+		var partialset = this.state.phenotypeListHash.keys();
+		var full = [];
+		var partial = [];
+		var unmatchedset = [];
 
 		for (var i in fullset) {
 			full.push(fullset[i]);
 		}
-		for (var j in partialset) {
-			partial.push((partialset[j][0].id_a).replace("_", ":"));
+
+		for (var j in partialset){
+			partial.push(partialset[j].replace("_", ":"));
 		}
+
 		for (var k in full) {
 			//if no match in fullset
 			if (partial.indexOf(full[k].id) < 0) {
@@ -2734,19 +3028,6 @@ var url = document.URL;
 		}
 		return unmatchedLabels;
 	},
-
-	_getPhenotypeLabel : function(id){
-		var label = "";
-
-		for (var i in this.state.phenotypeSortData){
-			if(id == this.state.phenotypeSortData[i][0].id_a.replace("_",":"))
-			{ 
-				label = this.state.phenotypeSortData[i][0].label_a;
-				break;
-			}
-		}
-		return label;
-	}, 
 
 	_buildUnmatchedPhenotypeDisplay: function() {
 		var optionhtml;
@@ -2836,7 +3117,7 @@ var url = document.URL;
 		this._updateDetailSection(retData, this._getXYPos(data));
 	},
 
-	_toProperCase : function (oldstring) {
+	_toProperCase: function (oldstring) {
 		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	},
 
@@ -2846,8 +3127,7 @@ var url = document.URL;
 	// or they are objects of the form
 	// { "id": <id>, "observed": <obs>} .
 	// in that case take id if "observed" is "positive"
-	_filterPhenotypeResults : function(phenotypelist) {
-		//this.state.phenotypeData = phenotypelist.slice();
+	_filterPhenotypeResults: function(phenotypelist) {
 		var newlist = [];
 		var pheno;
 		for (var i in phenotypelist) {
@@ -2859,17 +3139,6 @@ var url = document.URL;
 				newlist.push(pheno.id);
 			}
 		}
-		return newlist;
-	},
-
-	//given an array of phenotype objects 
-	//Create a new array for only id and label 
-	_filterPhenotypeLabels : function(phenotypelist) {
-		var newlist = [];
-		for (var i in phenotypelist) {
-			newlist.push({ "id" : phenotypelist[i].id, "label" : phenotypelist[i].label});
-		}
-		//copy the list of ids and labels to phenotypeLabels array
 		return newlist;
 	}
 
