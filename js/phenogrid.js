@@ -77,7 +77,7 @@ function modelDataPointPrint(point) {
 			['rgb(230,209,178)','rgb(210,173,116)','rgb(148,114,60)','rgb(68,162,147)','rgb(31,128,113)','rgb(3,82,70)'],
 			['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)']],
 		emptySvgX: 1100,
-		emptySvgY: 70,
+		emptySvgY: 200,
 		overviewCount: 3,
 		colStartingPos: 10,
 		detailRectWidth: 300,
@@ -107,7 +107,8 @@ function modelDataPointPrint(point) {
 			{ abbrev: "ZFIN", label: "Zebrafish"},
 			{ abbrev: "ZP", label: "Zebrafish"},
 			{ abbrev: "FB", label: "Fly"},
-			{ abbrev: "GO", label: "Gene Ontology"}],
+			{ abbrev: "GO", label: "Gene Ontology"},
+			{ abbrev: "UDPICS", label: "UDP Patients"}],
 		dataDisplayCount: 30,
 		labelCharDisplayCount : 20,
 		apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
@@ -126,23 +127,31 @@ function modelDataPointPrint(point) {
 		baseYOffset: 150,
 		faqImgSize: 15,
 		dummyModelName: "dummy",
-		getAxisError: false
+	        simServerURL: "",  // URL of the server for similarity searches
+		preloadHPO: false	//Boolean value that allows for preloading of all HPO data at start.  If false, the user will have to manually select what HPO relations to load via hoverbox.
 	},
 
 	internalOptions: {
 		/// good - legit options
 		serverURL: "",
+	        simServerURL: "",  // URL of the server for similarity searches
+	        simSearchQuery: "/simsearch/phenotype?input_items=",
 		selectedCalculation: 0,
 		invertAxis: false,
+		hpoDepth: 10,	//Numerical value that determines how far to go up the tree in relations.
+		hpoDirection: "out",	//String that determines what direction to go in relations.  Default is "out".
+		hpoTreeAmounts: 1,	//Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
+							//DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
 		selectedSort: "Frequency",
 		targetSpeciesName : "Overview",
 		refSpecies: "Homo sapiens",
-		genotypeExpandLimit: 10, // sets the limit for the number of genotype expanded on grid
+		genotypeExpandLimit: 20, // sets the limit for the number of genotype expanded on grid
 		phenoCompareLimit: 10, // sets the limit for the number of phenotypes used for genotype expansion
 		targetSpeciesList : [{ name: "Homo sapiens", taxon: "9606"},
 			{ name: "Mus musculus", taxon: "10090" },
 			{ name: "Danio rerio", taxon: "7955"},
-			{ name: "Drosophila melanogaster", taxon: "7227"}]
+			{ name: "Drosophila melanogaster", taxon: "7227"},
+	                { name: "UDPICS", taxon: "UDPICS"}]
 	},
 	
 	//reset state values that must be cleared before reloading data
@@ -263,6 +272,11 @@ function modelDataPointPrint(point) {
 		// important that config options (from the file) and this. options (from
 		// the initializer) come last
 		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
+	        // default simServerURL value..
+	        if (typeof(this.state.simServerURL) == 'undefined' ||
+		    this.state.simServerURL ==="") {
+		    this.state.simServerURL=this.state.serverURL;
+		}
 		this.state.data = {};
 		// will this work?
 		this.configoptions = undefined;
@@ -327,9 +341,26 @@ function modelDataPointPrint(point) {
 		// target species name might be provided as a name or as taxon. Make sure that we translate to name
 		this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.targetSpeciesName);
 
+
+	    // set the owlsimFunction
+	    // there are three possibilities
+	    // 'undefined' is the basic, traditional simsearch
+	    // 'compare' goes against specific subsets genes/genoetypes
+	    // 'exomiser' calls the exomiser for the input data.
+        if (typeof this.state.owlSimFunction === 'undefined'){
+            this.state.owlSimFunction = 'search';
+        } else if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction == 'exomiser'){
+            this.state.targetSpeciesName = "Homo sapiens";
+        }
+
+		//TEMP UNTIL _loadData is refactored
+		if (!this.state.hpoCacheBuilt){
+			this.state.hpoCacheHash = new Hashtable();
+			this.state.hpoCacheLabels = new Hashtable();
+			console.log("HPOCache Built");
+		}
+
 		this._loadData();
-		this.state.hpoCacheHash = new Hashtable();
-		this.state.hpoCacheLabels = new Hashtable();
 
 		this.state.phenoLength = this.state.phenotypeListHash.size();
 		this.state.modelLength = this.state.modelListHash.size();
@@ -397,7 +428,7 @@ function modelDataPointPrint(point) {
 						
 		} else {
 			var msg;
-			if (this.state.targetSpeciesName == "Overview"){
+			if (this.state.targetSpeciesName == "Overview" || this.state.owlSimFunction === 'compare'){
 				msg = "There are no models available.";
 				this._createSvgContainer();
 				this._createEmptyVisualization(msg);
@@ -407,6 +438,12 @@ function modelDataPointPrint(point) {
 				this._createEmptyVisualization(msg);
 			}
 		}
+
+        // no organism selector if we are doing the 'compare' function
+        if (this.state.owlSimFunction === 'compare'){
+            this.state.svg.select("#specieslist").remove();
+            $("#org_div").remove();
+        }
 	},
 
 	//Returns the correct limit amount for the X axis based on axis position
@@ -444,21 +481,21 @@ function modelDataPointPrint(point) {
 		var self = this;
 		var html;
 		d3.select("#svg_area").remove();
-		this.state.svgContainer.append("<svg id='svg_area'></svg>");
-		this.state.svg = d3.select("#svg_area");
+		//this.state.svgContainer.append("<svg id='svg_area'></svg>");
+		//this.state.svg = d3.select("#svg_area");
 
 		var svgContainer = this.state.svgContainer;
-		svgContainer.append("<svg id='svg_area'></svg>");
+		/*svgContainer.append("<svg id='svg_area'></svg>");
 		this.state.svg = d3.select("#svg_area")
 			.attr("width", this.state.emptySvgX)
-			.attr("height", this.state.emptySvgY);
+			.attr("height", this.state.emptySvgY);*/
 
 		//var error = "<br /><div id='err'><h4>" + msg + "</h4></div><br /><div id='return'><button id='button' type='button'>Return</button></div>";
 		//this.element.append(error);
 		if (this.state.targetSpeciesName != "Overview"){
-			html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><button id='button' type='button'>Return</button></div>";
-			this.element.append(html);
-
+			html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><p><button id='button' type='button'>Return</button></p><br/></div>";
+			//this.element.append(html);
+		        this.state.svgContainer.append(html);
 			var btn = d3.selectAll("#button")
 				.on("click", function(d,i){
 					$("#return").remove();
@@ -472,7 +509,8 @@ function modelDataPointPrint(point) {
 				});
 		}else{
 			html = "<h4 id='err'>" + msg + "</h4><br />";
-			this.element.append(html);
+			//this.element.append(html);
+		        this.state.svgContainer.append(html);
 		}
 	},
 
@@ -736,6 +774,7 @@ function modelDataPointPrint(point) {
 	},
 
 	_createModelScoresLegend: function() {
+	    var self = this;
 		var scoreTipY = self.state.yoffset;
 		var faqY = scoreTipY - self.state.gridTitleYOffset;
 		var tipTextLength = 92;
@@ -794,6 +833,7 @@ function modelDataPointPrint(point) {
 	},
 
 	_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
+	    var self = this;
 		//rectangular border for overview
 		var globalview = self.state.svg.append("rect")
 			.attr("x", overviewX)
@@ -1001,23 +1041,42 @@ function modelDataPointPrint(point) {
 			this._finishLoad();
 		}
 		this._loadHashTables();
+
+		this.state.hpoCacheBuilt = true;
 	},
 
 	_loadSpeciesData: function(speciesName,limit) {
 		var phenotypeList = this.state.phenotypeData;
 		var taxon = this._getTargetSpeciesTaxonByName(this,speciesName);
-		var url = this.state.serverURL + "/simsearch/phenotype?input_items=" + phenotypeList.join(",") + "&target_species=" + taxon;
-		if (typeof(limit) !== 'undefined') {
-			url += "&limit=" + limit;
-		}
+	    console.log("this.state.simServerURL is..."+this.state.simServerURL);
 
-		var res = this._ajaxLoadData(speciesName,url);
-		if (res !== null) {
-			if (typeof(limit) !== 'undefined' && typeof(res.b) !== 'undefined' && res.b !== null && res.b.length < limit) {
-				res = this._padSpeciesData(res,speciesName,limit);
-			}
+	    var url = this._getLoadDataURL(phenotypeList,taxon,limit);
+	    
+	    var res = this._ajaxLoadData(speciesName,url);
+	    if (typeof (res) !=='undefined' && res !== null) {
+		if (typeof(limit) !== 'undefined' && typeof(res.b) !== 'undefined' && res.b !== null && res.b.length < limit) {
+		    res = this._padSpeciesData(res,speciesName,limit);
 		}
-		this.state.data[speciesName] = res;
+	    }
+	    this.state.data[speciesName] = res;
+	},
+
+
+	_getLoadDataURL : function(phenotypeList,taxon,limit) {
+
+	    var url = this.state.simServerURL;
+        switch(this.state.owlSimFunction) {
+            case ('compare'):
+                url = url+'/compare/'+ phenotypeList.join(",") + "/" + this.state.geneList.join('+');
+                break;
+            default:
+                url = url+ this.state.simSearchQuery + phenotypeList.join(",") + "&target_species=" + taxon;
+                if (typeof(limit) !== 'undefined') {
+                    url += "&limit=" + limit;
+                }
+                break;
+        }
+        return url;
 	},
 
 	// make sure there are limit items in res --
@@ -1092,6 +1151,7 @@ function modelDataPointPrint(point) {
 
 		this.state.modelList = modList;
 		this.state.speciesList = speciesList;
+
 	},
 
 	//Returns values from a point on the grid
@@ -1105,11 +1165,6 @@ function modelDataPointPrint(point) {
 
 	//Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
-		if (typeof(key) === 'undefined'  && this.state.getAxisError){
-			console.log("UNDEFINED AXIS CALL");
-			return false;
-		}
-
 		if (this.state.yAxis.containsKey(key)){
 			return this.state.yAxis.get(key);
 		}
@@ -1152,6 +1207,9 @@ function modelDataPointPrint(point) {
 			if (typeof(this.state.modelData[i].id_a) !== 'undefined' && !this.state.phenotypeListHash.containsKey(this.state.modelData[i].id_a)){
 				hashData = {"label": this.state.modelData[i].label_a, "IC": this.state.modelData[i].IC_a, "pos": parseInt(y), "count": 0, "sum": 0};
 				this.state.phenotypeListHash.put(this.state.modelData[i].id_a, hashData);
+				if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
+					this._getHPO(this.state.modelData[i].id_a);
+				}
 				y++;
 			}
 
@@ -1173,6 +1231,7 @@ function modelDataPointPrint(point) {
 					}
 				}
 
+				//OPOS is used for overview positioning.  Z is mapped to this
 				z = x;
 				for (var k in this.state.targetSpeciesList){
 					if (this.state.modelData[i].species == this.state.targetSpeciesList[k].name){
@@ -1403,6 +1462,9 @@ function modelDataPointPrint(point) {
 	_finishLoad: function() {
 		var species = this.state.targetSpeciesName;
 		var retData = this.state.data[species];
+	        if (typeof(retData) ==='undefined'  || retData === null) {
+		    return;
+		}
 		//extract the maxIC score
 		if (typeof (retData.metadata) !== 'undefined') {
 			this.state.maxICScore = retData.metadata.maxMaxIC;
@@ -1418,7 +1480,7 @@ function modelDataPointPrint(point) {
 					model_label: retData.b[idx].label, 
 					model_score: retData.b[idx].score.score, 
 					species: species,
-					 model_rank: idx,
+					model_rank: idx,
 					score_rank: retData.b[idx].score.rank}
 				);
 				this._loadDataForModel(retData.b[idx]);
@@ -1601,6 +1663,10 @@ function modelDataPointPrint(point) {
 			var comp = this._getComparisonType(species);
 			titleText = "Phenotype Comparison (grouped by " + species + " " + comp + ")";
 		}
+		
+        if (this.state.owlSimFunction === 'compare'){
+            titleText = "Phenotype Comparison";
+        }
 
 		var mtitle = this.state.svg.append("svg:text")
 			.attr("class","gridtitle")
@@ -1826,7 +1892,6 @@ function modelDataPointPrint(point) {
 		var self = this;
 		var info = self._getAxisData(data);
 		var displayCount = self._getYLimit();
-		var highlightOffset = 1;
 		var concept = self._getConceptId(data);
 		var appearanceOverrides;   
 
@@ -1905,7 +1970,9 @@ function modelDataPointPrint(point) {
 		if (type === undefined){
 			type = this._getIDType(data);
 		}
+
 		var concept = this._getConceptId(data);
+
 		var hrefLink = "<a href=\"" + this.state.serverURL+"/" + type +"/"+ concept.replace("_", ":") + "\" target=\"_blank\">" + info.label + "</a>";
 		var retData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
 		
@@ -1915,29 +1982,40 @@ function modelDataPointPrint(point) {
 			if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
 				var parentInfo = this.state.modelListHash.get(info.parent);
 				if (parentInfo !== null) {
-					var genehrefLink = "<a href=\"" + this.state.serverURL+"/" + parentInfo.type +"/"+ info.parent.replace("_", ":")+ "\" target=\"_blank\">" +  
-					parentInfo.label + "</a>";					
+					var genehrefLink = "<a href=\"" + this.state.serverURL + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
 					retData += "<br/><strong>Gene:</strong> " + genehrefLink;
 				}
-			}			
+			}
 		} else if (type == 'Phenotype'){
 			retData += "<strong>IC:</strong> " + info.IC.toFixed(2);
 			var hpoExpand = false;
-			var hpoCached = this.state.hpoCacheHash.get(concept);
-			if (hpoCached !== null){
+			var hpoData = "<br/><br/>";
+			var hpoCached = this.state.hpoCacheHash.get(concept.replace("_", ":"));
+			if (hpoCached !== null && hpoCached.active == 1){
 				hpoExpand = true;
-				hpoData = "<br/><br/><strong>HPO Structure:</strong>";
-				//for (var j in hpoCached){
-					//hpoData += "<br>" + hpoCached[j][1].
-				//}
+
+				//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
+				this.state.hpoTreesDone = 0;
+				this.state.hpoTreeHeight = 0;
+				var hpoTree = "<div id='hpoDiv'>" + this._buildHPOTree(concept.replace("_", ":"), hpoCached.edges, 0) + "</div>";
+				if (hpoTree == "<br/>"){
+					hpoData += "<em>No HPO Data Found</em>";
+				} else {
+					hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
+				}
 			}
-			if (hpoExpand){
-				retData += "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
-				retData += "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapseHPO('" + concept + "')\"></button>";
+			if (!this.state.preloadHPO){
+				if (hpoExpand){
+					retData += "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
+					retData += "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapseHPO('" + concept + "')\"></button>";
+					retData += hpoData;
+				} else {
+					retData += "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
+					retData += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expandHPO('" + concept + "')\"></button>";
+				}
+			}
+			else {
 				retData += hpoData;
-			} else {
-				retData += "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
-				retData += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expandHPO('" + concept + "')\"></button>";
 			}
 		} else if (type == 'gene'){
 			retData += "<strong>Rank:</strong> " + info.rank;
@@ -1947,24 +2025,23 @@ function modelDataPointPrint(point) {
 				var gtCached = this.state.loadedGenoTypesHash.get(concept);
 				if (gtCached !== null) { isExpanded = gtCached.expanded;}
 
-				//if found just return genotypes scores		
+				//if found just return genotypes scores
 				if (isExpanded) {
-					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.30));   // magic numbers for extending the highlight
-					var href = "<a href=\"" + this.state.serverURL+"/gene/" + concept + "\" target=\"_blank\">" +  
-					gtCached.totalAssocCount + "</a>";
-					retData +=  
+					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
+					var href = "<a href=\"" + this.state.serverURL+"/gene/" + concept + "\" target=\"_blank\">" + gtCached.totalAssocCount + "</a>";
+					/*retData +=  
 					 	"<br/>Overall total associated genotypes: " + href + 
 					 	"<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
 						"<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
-						"<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapseGenoTypes('" + concept + "')\">" +
-						"</button>";
+						"<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapseGenotypes('" + concept + "')\">" +
+						"</button>";*/
 				} else {
 					if (gtCached !== null) {
-						retData += "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
+						//retData += "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
 					} else {
-						retData += "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
+						//retData += "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
 					}
-					retData += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expandGenotypes('" + concept + "')\"></button>";				
+					//retData += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expandGenotypes('" + concept + "')\"></button>";
 				}
 			}
 		} else if (type == 'disease'){
@@ -1978,8 +2055,57 @@ function modelDataPointPrint(point) {
 		return appearanceOverrides;
 	},
 
+	//This builds the string to show the relations of the HPO nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
+	_buildHPOTree: function(id, edges, level) {
+		var mark = "";
+		var results = "";
+		var nextResult;
+		var nextLevel = level + 1;
+
+		for (var j in edges){
+			//Currently only allows subClassOf relations.  When new relations are introducted, it should be simple to implement
+			if (edges[j].pred == "subClassOf" && this.state.hpoTreesDone != this.state.hpoTreeAmounts){
+				if (edges[j].sub == id){
+					if (this.state.hpoTreeHeight < nextLevel){
+						this.state.hpoTreeHeight++;
+					}
+					nextResult = this._buildHPOTree(edges[j].obj, edges, nextLevel);
+					if (nextResult == ""){
+						//Bolds the 'top of the line' to see what is the root or closet to the root.  It will hit this point either when it reaches the hpoDepth or there is no parents
+						results += "<br/>" + this._buildIndentMark(this.state.hpoTreeHeight - nextLevel) + "<strong>" + this._buildHPOHyperLink(edges[j].obj) + "</strong>";
+						this.state.hpoTreesDone++;
+					} else {
+						results += nextResult + "<br/>" + this._buildIndentMark(this.state.hpoTreeHeight - nextLevel) + this._buildHPOHyperLink(edges[j].obj);
+					}
+					
+					if (level === 0){
+						results += "<br/>" + this._buildIndentMark(this.state.hpoTreeHeight) + this.state.hpoCacheLabels.get(id) + "<br/>";
+						this.state.hpoTreeHeight = 0;
+					}
+				}
+			}
+		}
+		return results;
+	},
+
+	_buildIndentMark: function (times){
+		var mark = "";
+		for (var i = 0; i < times; i++){
+			mark += "----";
+		}
+		return mark;
+	},
+
+	//Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
+	_buildHPOHyperLink: function(id){
+		var label = this.state.hpoCacheLabels.get(id);
+		var link = "<a href=\"" + this.state.serverURL + "/Phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
+		return link;
+	},
+
 	//Previously _deselectData + _clearModelData
 	_deselectData: function (data) {
+	    var self = this;
 		this.state.svg.selectAll(".row_accent").remove();
 		this.state.svg.selectAll("#detail_content").remove();
 		this.state.svg.selectAll(".model_accent").remove();
@@ -2001,7 +2127,7 @@ function modelDataPointPrint(point) {
 
 				alabels.style("font-weight","normal");
 				alabels.style("text-decoration", "none");
-				//alabels.style("fill", "black");		
+				//alabels.style("fill", "black");
 				alabels.style("fill", this._getExpandStyling(data));
 				
 				this._deselectMatching(data);
@@ -2017,17 +2143,16 @@ function modelDataPointPrint(point) {
 			var win = window.open(url, '_blank');
 
 		} else if (this._getIDType(data) == "Model"){
-
-			var expand = false ;
 			apientity = this._getIDTypeDetail(data);
 
 			// if it's overview, then just allow view of the model clicked
 			if (this.state.targetSpeciesName != "Overview" && apientity == 'gene') {
-
-				this._collapseGenoTypes(data);
-
-				// expand genotypes
-				//expand = this._expandGenotypes(data);
+				var expanded = this._isExpanded(data);
+				if (expanded !== null && expanded) {
+					this._collapseGenotypes(data);
+				} else if (expanded !== null && !expanded){
+					this._expandGenotypes(data);
+				}
 			}
 		} else {
 			console.log ("URL CLICK ERROR");
@@ -2111,28 +2236,31 @@ function modelDataPointPrint(point) {
 			.attr("class", this._getConceptId(data) + " model_label")
 			.attr("data-tooltip", "sticky1")   //this activates the stickytool tip
 			.style("font-size", "12px")
-//			.style("font-weight", "bold")
+			//.style("font-weight", "bold")
 			.style("fill", this._getExpandStyling(data))
 			//don't show the label if it is a dummy.
-			.text( function(d) {if (label == self.state.dummyModelName) 
-										return ""; 
-								else return label;});
+			.text( function(d) {
+				if (label == self.state.dummyModelName){
+					return ""; 
+				} else {
+					return label;
+				}});
 
-		// put a little icon indicator in front of the gene if it is expanded
-		if (this._isGeneExpanded(data)) {
+		// put a little icon indicator in front of the label
+		if (this._hasChildrenForExpansion(data)) {
 			p.append("image")
 			.attr('x', x-3)
 			.attr('y', y-10)
 			.attr('width', 9)
 			.attr('height', 9)
-			.attr('xlink:href', '/widgets/phenogrid/image/downarrow.png');  //downarrow.png');
+			.attr('xlink:href', '/widgets/phenogrid/image/downarrow.png');  
 		} else if (this._isGenoType(data) ){
 			p.append("image")
 			.attr('x', x-3)
 			.attr('y', y-10)
 			.attr('width', 9)
 			.attr('height', 9)
-			.attr('xlink:href', '/widgets/phenogrid/image/small-bracket.png');
+			.attr('xlink:href', '/widgets/phenogrid/image/checkmark-drk.png'); //small-bracket.png');
 		}
 
 		el.remove();
@@ -2483,7 +2611,6 @@ function modelDataPointPrint(point) {
 	//change the list of phenotypes and filter the models accordingly. The 
 	//movecount is an integer and can be either positive or negative
 	_updateModel: function(newXPos, newYPos){
-		var self = this;
 		var xSize = this.state.xAxis.size();
 		var ySize = this.state.yAxis.size();
 
@@ -2492,7 +2619,7 @@ function modelDataPointPrint(point) {
 		} else {
 			this.state.currXIdx = newXPos;
 		}
-		
+
 		if (newYPos > ySize){
 			this.state.currYIdx = ySize;
 		} else {
@@ -2510,7 +2637,6 @@ function modelDataPointPrint(point) {
 		// this must be initialized here after the _createModelLabels, or the mouse events don't get
 		// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
 		stickytooltip.init("*[data-tooltip]", "mystickytooltip");
-						
 	},
 
 	//Previously _createModelLabels
@@ -2554,6 +2680,7 @@ function modelDataPointPrint(point) {
 	},
 
 	_createYLines: function() {
+	    var self = this;
 		var modelLineGap = 30;
 		var lineY = this.state.yoffset + modelLineGap;
 		var displayCount = self._getYLimit();
@@ -2590,7 +2717,7 @@ function modelDataPointPrint(point) {
 		} else if (this.state.invertAxis && this.state.targetSpeciesName !== "Overview") {
 			list = self._getSortedIDListStrict(this.state.filteredYAxis.entries());
 		}
-		
+
 		this.state.svg.selectAll("text.scores")
 			.data(list)
 			.enter()
@@ -2954,6 +3081,7 @@ function modelDataPointPrint(point) {
 	 * 
 	 */
 	_createSelectionControls: function(container) {
+	    var self = this;
 		var optionhtml ='<div id="selects"></div>';
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
@@ -3206,7 +3334,6 @@ function modelDataPointPrint(point) {
 		return unmatchedLabels;
 	},
 
-
 	_buildUnmatchedPhenotypeDisplay: function() {
 		var optionhtml;
 		var prebl = $("#prebl");
@@ -3217,11 +3344,11 @@ function modelDataPointPrint(point) {
 		}
 		prebl.empty();
 
-		if (this.state.unmatchedPhenotypes !== undefined && this.state.unmatchedPhenotypes.length > 0){	
+		if (this.state.unmatchedPhenotypes !== undefined && this.state.unmatchedPhenotypes.length > 0){
 			optionhtml = "<div class='clearfix'><form id='matches'><input type='checkbox' name='unmatched' value='unmatched' >&nbsp;&nbsp;View Unmatched Phenotypes<br /><form><div id='clear'></div>";
 			var phenohtml = this._buildUnmatchedPhenotypeTable();
 			optionhtml = optionhtml + "<div id='unmatched' style='display:none;'>" + phenohtml + "</div></div>";
-			prebl.append(optionhtml);	
+			prebl.append(optionhtml);
 		} else { // no unmatched phenotypes
 			optionhtml = "<div id='unmatchedlabel' style='display:block;'>No Unmatched Phenotypes</div>";
 			prebl.append(optionhtml);
@@ -3322,38 +3449,55 @@ function modelDataPointPrint(point) {
 			}
 		}
 		return newlist;
-	}, 
-	
+	},
+
+	//Will call the getHPO function to either load the HPO info or to make it visible if it was previously hidden.  Not available if preloading
 	_expandHPO: function(id){
-		var results = self._getHPO(id);
-		console.log("Recieved HPO Info for " + id);
-	},
-
-	_collapseHPO: function(id){
-		this.state.hpoCacheHash.remove(id);
+		self._getHPO(id);
 		stickytooltip.closetooltip();
-		console.log("Deleted HPO Info for " + id);
+		console.log("Loaded HPO Info for " + id);
 	},
 
+	//Will hide the hpo info, not delete it.  This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
+	_collapseHPO: function(id){
+		var idClean = id.replace("_", ":");
+		var HPOInfo = this.state.hpoCacheHash.get(idClean);
+		HPOInfo.active = 0;
+		this.state.hpoCacheHash.put(idClean,HPOInfo);
+		stickytooltip.closetooltip();
+		console.log("Hid HPO Info for " + id);
+	},
+
+	//When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored, and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash, it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
 	_getHPO: function(id) {
 		// check cached hashtable first 
-		var HPOInfo = this.state.hpoCacheHash.get(id);
-		var direction = "out";
+		var idClean = id.replace("_", ":");
+		var HPOInfo = this.state.hpoCacheHash.get(idClean);
+		var direction = this.state.hpoDirection;
 		var relationship = "subClassOf";
-		var depth = 2;
-		var nodes;
+		var depth = this.state.hpoDepth;
+		var nodes, edges;
 		///neighborhood/HP_0003273/2/out/subClassOf.json
-		//if null then go find genotypes
 		if (HPOInfo === null) {
+			HPOInfo = [];
 			var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
+		        console.log("getting hpo data .. url is ..."+url);
 			var taxon = this._getTargetSpeciesTaxonByName(this,this.state.targetSpeciesName);
 			var results = this._ajaxLoadData(taxon,url);
-			if (typeof (results)  !== 'undefined') {
-				HPOInfo = results.edges;
+			if (typeof (results) !== 'undefined') {
+				edges = results.edges;
 				nodes = results.nodes;
+				//Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
 				for (var i in nodes){
-					if (!this.state.hpoCacheLabels.containsKey(nodes[i].id)){
-						this.state.hpoCacheLabels.put(nodes[i].id,nodes[i].lbl);
+					if (!this.state.hpoCacheLabels.containsKey(nodes[i].id) && (nodes[i].id != "MP:0000001" && nodes[i].id != "UPHENO_0001001" && nodes[i].id != "UPHENO_0001002" && nodes[i].id != "HP:0000118" && nodes[i].id != "HP:0000001")){
+						this.state.hpoCacheLabels.put(nodes[i].id,this._capitalizeString(nodes[i].lbl));
+					}
+				}
+
+				//Used to prevent breaking objects
+				for (var j in edges){
+					if (edges[j].obj != "MP:0000001" && edges[j].obj != "UPHENO_0001001" && edges[j].obj != "UPHENO_0001002" && edges[j].obj != "HP:0000118" && edges[j].obj != "HP:0000001"){
+						HPOInfo.push(edges[j]);
 					}
 				}
 			}
@@ -3362,13 +3506,14 @@ function modelDataPointPrint(point) {
 			// this is for later so we don't have to lookup concept again
 			if (HPOInfo === null) {HPOInfo = {};}
 
-			// save the genotypes in hastable for later
-			this.state.hpoCacheHash.put(id,HPOInfo);
+			// save the HPO in cache for later
+			var hashData = {"edges": HPOInfo, "active": 1};
+			this.state.hpoCacheHash.put(idClean,hashData);
+		} else {
+			//If it does exist, make sure its set to visible
+			HPOInfo.active = 1;
+			this.state.hpoCacheHash.put(idClean,HPOInfo);
 		}
-		stickytooltip.closetooltip();
-		console.log(this.state.hpoCacheHash.entries());
-		console.log(this.state.hpoCacheLabels.entries());
-		return HPOInfo;
 	},
 
 	// expand the model with the associated genotypes
@@ -3385,11 +3530,13 @@ function modelDataPointPrint(point) {
 
 		//if cached info not found need to try and get genotypes and scores
 		if (cache === null) {
-			console.log("Getting Gene " + modelInfo.id);
-
-			// go get the assocated genotypes	
-			var url = this.state.serverURL + "/gene/ "+ modelInfo.id + ".json";
+			// go get the assocated genotypes
+			var url = this.state.serverURL+"/gene/"+ modelInfo.id.replace('_', ':') + ".json";
+			
+			console.log("Getting Gene " + url);
+			console.profile("gene call");
 			var res = this._ajaxLoadData(modelInfo.d.species,url);
+			console.profileEnd();
 
 			if (typeof (res) == 'undefined') { 
 				stickytooltip.closetooltip();
@@ -3439,7 +3586,11 @@ function modelDataPointPrint(point) {
 
 			// call compare
 			url = this.state.serverURL + "/compare/" + phenotypeIds + "/" + genotypeIds;
+			console.log("Comparing " + url);
+			console.profile("compare call");
 			compareScores = this._ajaxLoadData(modelInfo.d.species,url);
+			console.profileEnd();
+			console.log("Done with ajaxLoadData...");
 		} else {
 			compareScores = cache;
 		} // cache == null
@@ -3509,7 +3660,7 @@ function modelDataPointPrint(point) {
 	},
 
 	// collapse the expanded genotypes for the current selected model
-	_collapseGenoTypes: function(curModel) {
+	_collapseGenotypes: function(curModel) {
 		var modelInfo = {id: curModel, d: this.state.modelListHash.get(curModel)};
 
 		// check cached hashtable first 
@@ -3711,7 +3862,7 @@ function modelDataPointPrint(point) {
 		if (info == 'gene') {
 			var g = this.state.loadedGenoTypesHash.get(concept);
 			if (g !== null && g.expanded) {
-				return "#428076";
+				return "#08594B";
 			}
 		}
 		else if (info == 'genotype') {
@@ -3720,15 +3871,31 @@ function modelDataPointPrint(point) {
 		return "#000000";
 	},
 
-	// check to see object is a gene and whether it's expanded
-	_isGeneExpanded: function(data) {
+	// check to see object is expanded
+	_isExpanded: function(data) {
 		var concept = this._getConceptId(data);
 		var info = this._getIDTypeDetail(concept);
 
 		if (info == 'gene') {
 			var g = this.state.loadedGenoTypesHash.get(concept);
-			if (g !== null && g.expanded) {
-				return true;
+			// if it was ever expanded
+			if (g !== null){
+				return g.expanded;  
+			}
+		}
+		return null;
+	}, 
+
+	// check to see object has children
+	_hasChildrenForExpansion: function(data) {
+		var concept = this._getConceptId(data);
+		var info = this._getIDTypeDetail(concept);
+
+		if (info == 'gene') {
+			var g = this.state.loadedGenoTypesHash.get(concept);
+			// if it was ever expanded it will have children
+			if (g !== null) {
+				return true;  
 			}
 		}
 		return false;
