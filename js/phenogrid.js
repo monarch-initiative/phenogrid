@@ -344,6 +344,7 @@ function modelDataPointPrint(point) {
 			this.state.stickyInitialized = true;
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");
 		}
+		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
 
 		if (this.state.owlSimFunction == 'exomiser') {
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
@@ -549,7 +550,6 @@ function modelDataPointPrint(point) {
 		if (this.state.invertAxis){
 			this.state.xAxis = this.state.phenotypeListHash;
 			this.state.yAxis = this.state.modelListHash;
-
 		} else {
 			this.state.xAxis = this.state.modelListHash;
 			this.state.yAxis = this.state.phenotypeListHash;
@@ -582,12 +582,6 @@ function modelDataPointPrint(point) {
 		var overviewRegionSize = self.state.globalViewSize;
 		if (this.state.yAxis.size() < yCount) {
 			overviewRegionSize = self.state.reducedGlobalViewSize;
-		}
-
-		// create the legend for the modelScores
-		// [vaa12] This should be tried to move out.  No real need for it to be in this function
-		if (!this.state.invertAxis){
-			self._createModelScoresLegend();
 		}
 
 		// make it a bit bigger to ccont for widths
@@ -977,6 +971,7 @@ function modelDataPointPrint(point) {
 	// given a list of phenotypes, find the top n models
 	// I may need to rename this method "getModelData". It should extract the models and reformat the data 
 	_loadData: function() {
+
 		/*
 		 * set the owlsimFunction
 		 * there are three possibilities
@@ -991,7 +986,7 @@ function modelDataPointPrint(point) {
 		} else if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction == 'exomiser'){
 			this.state.targetSpeciesName = "Homo sapiens";
 		} 
-		
+
 		if (!this.state.hpoCacheBuilt){
 			this.state.hpoCacheHash = new Hashtable();
 			this.state.hpoCacheLabels = new Hashtable();
@@ -1011,7 +1006,7 @@ function modelDataPointPrint(point) {
 			this._finishOverviewLoad();
 		} else {
 			this._loadSpeciesData(this.state.targetSpeciesName);
-			//this._loadSpeciesData(this.state.targetSpeciesName,150);
+			//this._loadSpeciesData(this.state.targetSpeciesName,20);
 			this._finishLoad();
 		}
 
@@ -1197,7 +1192,7 @@ function modelDataPointPrint(point) {
 				lcs = this._normalizeIC(curr_row);
 
 				if (!this.state.phenotypeListHash.containsKey(this._getConceptId(curr_row.a.id))){
-					hashData = {"label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), "pos": 0, "count": 0, "sum": 0};
+					hashData = {"label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), "pos": 0, "count": 0, "sum": 0, "type": "phenotype"};
 					this.state.phenotypeListHash.put(this._getConceptId(curr_row.a.id), hashData);
 					if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
 						this._getHPO(this._getConceptId(curr_row.a.id));
@@ -1509,30 +1504,30 @@ function modelDataPointPrint(point) {
 
 	// NEW - add a sticky tooltip div stub, this is used to dynamically set a tooltip for gene info and expansion
 	_addStickyTooltipAreaStub: function() {
-		var sticky = $("<div></div>")
+		var sticky = $("<div>")
 						.attr("id", "mystickytooltip")
 						.attr("class", "stickytooltip");
 					
-		var inner1 = $("<div></div>")
+		var inner1 = $("<div>")
 						.attr("style", "padding:5px");
 
-		var atip =  $("<div></div>")
+		var atip =  $("<div>")
 						.attr("id", "sticky1")
 						.attr("class", "atip");
 		
-		var img = $("<img></img>")
+		var img = $("<img>")
 				.attr("id", "img-spinner")
 				.attr("src", this.state.scriptpath + "../image/waiting_ac.gif")
 				.attr("alt", "Loading, please wait...");
 
-		var wait = $("<div></div>")
+		var wait = $("<div>")
 			.attr("id", "wait")
 			//.attr("class", "spinner")
 			.attr("style", "display:none")
 			.text("Searching for data...");
 
 			wait.append(img);
-		var status = $("<div></div>")
+		var status = $("<div>")
 			.attr("class", "stickystatus");
 
 		inner1.append(wait).append(atip);
@@ -1784,7 +1779,7 @@ function modelDataPointPrint(point) {
 		}
 	},
 
-	_selectXItem: function(data, obj, evt) {
+	_selectXItem: function(data, obj) {
 		// HACK: this temporarily 'disables' the mouseover when the stickytooltip is docked
 		// that way the user doesn't accidently hover another label which caused tooltip to be refreshed
 		if (stickytooltip.isdocked){ return; }
@@ -1869,80 +1864,8 @@ function modelDataPointPrint(point) {
 
 		var concept = this._getConceptId(data);
 
-		var hrefLink = "<a href=\"" + this.state.serverURL+"/" + type +"/"+ concept.replace("_", ":") + "\" target=\"_blank\">" + info.label + "</a>";
-		var retData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
-
-		// for genotypes show the parent
-		if (type == 'genotype') {
-			retData += "<strong>Rank:</strong> " + info.rank;
-			if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
-				var parentInfo = this.state.modelListHash.get(info.parent);
-				if (parentInfo !== null) {
-					var genehrefLink = "<a href=\"" + this.state.serverURL + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
-					retData += "<br/><strong>Gene:</strong> " + genehrefLink;
-				}
-			}
-		} else if (type == 'Phenotype'){
-			retData += "<strong>IC:</strong> " + info.IC.toFixed(2);
-			var hpoExpand = false;
-			var hpoData = "<br/><br/>";
-			var hpoCached = this.state.hpoCacheHash.get(concept.replace("_", ":"));
-			if (hpoCached !== null && hpoCached.active == 1){
-				hpoExpand = true;
-
-				// [vaa12] HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
-				this.state.hpoTreesDone = 0;
-				this.state.hpoTreeHeight = 0;
-				var hpoTree = "<div id='hpoDiv'>" + this._buildHPOTree(concept.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-				if (hpoTree == "<br/>"){
-					hpoData += "<em>No HPO Data Found</em>";
-				} else {
-					hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
-				}
-			}
-			if (!this.state.preloadHPO){
-				if (hpoExpand){
-					retData += "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
-					retData += "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapseHPO('" + concept + "')\"></button>";
-					retData += hpoData;
-				} else {
-					retData += "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
-					retData += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expandHPO('" + concept + "')\"></button>";
-				}
-			}
-			else {
-				retData += hpoData;
-			}
-		} else if (type == 'gene'){
-			retData += "<strong>Rank:</strong> " + info.rank;
-			// for gene and species mode only, show genotype link
-			if (this.state.targetSpeciesName != "Overview"){
-				var isExpanded = false;
-				var gtCached = this.state.expandedHash.get(concept);
-				if (gtCached !== null) { isExpanded = gtCached.expanded;}
-
-				// if found just return genotypes scores
-				if (isExpanded) {
-					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
-					//var href = "<a href=\"" + this.state.serverURL+"/gene/" + concept + "\" target=\"_blank\">" + gtCached.totalAssocCount + "</a>";
-					//retData +=  
-					//	"<br/>Overall total associated genotypes: " + href + 
-					// 	"<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
-					//	"<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
-					//	"<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapseGenotypes('" + concept + "')\">" +
-					//	"</button>";
-				} else {
-					if (gtCached !== null) {
-						//retData += "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
-					} else {
-						//retData += "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
-					}
-					//retData += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expandGenotypes('" + concept + "')\"></button>";
-				}
-			}
-		} else if (type == 'disease'){
-			retData += "<strong>Rank:</strong> " + info.rank;
-		}
+		// format data for rendering in a tooltip
+		var retData = this.state.tooltipRender.html({parent: this, id:concept, data: info});   
 
 		// update the stub stickytool div dynamically to display
 		$("#sticky1").empty();
@@ -1953,7 +1876,7 @@ function modelDataPointPrint(point) {
 	},
 
 	// This builds the string to show the relations of the HPO nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
-	_buildHPOTree: function(id, edges, level) {
+	buildHPOTree: function(id, edges, level) {
 		var results = "";
 		var nextResult;
 		var nextLevel = level + 1;
@@ -1965,7 +1888,7 @@ function modelDataPointPrint(point) {
 					if (this.state.hpoTreeHeight < nextLevel){
 						this.state.hpoTreeHeight++;
 					}
-					nextResult = this._buildHPOTree(edges[j].obj, edges, nextLevel);
+					nextResult = this.buildHPOTree(edges[j].obj, edges, nextLevel);
 					if (nextResult === ""){
 						// Bolds the 'top of the line' to see what is the root or closet to the root.  It will hit this point either when it reaches the hpoDepth or there is no parents
 						results += "<br/>" + this._buildIndentMark(this.state.hpoTreeHeight - nextLevel) + "<strong>" + this._buildHPOHyperLink(edges[j].obj) + "</strong>";
@@ -1995,7 +1918,7 @@ function modelDataPointPrint(point) {
 	// Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 	_buildHPOHyperLink: function(id){
 		var label = this.state.hpoCacheLabels.get(id);
-		var link = "<a href=\"" + this.state.serverURL + "/Phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
+		var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
 		return link;
 	},
 
@@ -2113,7 +2036,7 @@ function modelDataPointPrint(point) {
 
 		// this fixes the labels that are html encoded 
 		label = this._decodeHtmlEntity(label);
-		
+
 		p.append("text")
 			.attr('x', x + 15)
 			.attr('y', y)
@@ -2130,7 +2053,7 @@ function modelDataPointPrint(point) {
 			.on("mouseover", function(d, event) {  
 				var evt = event || window.event;
 				//console.log(evt);
-				self._selectXItem(data, this, evt);
+				self._selectXItem(data, this);
 			})
 			.on("mouseout", function(d) {
 				self._deselectData(data);
@@ -2204,7 +2127,7 @@ function modelDataPointPrint(point) {
 	},
 
 	_showModelData: function(d, obj) {
-		var retData, modelInfo, phenoInfo, prefix, modelLabel, phenoLabel;
+		var retData, prefix, modelLabel, phenoLabel;
 
 		var yInfo = this._getAxisData(d.yID); 
 		var xInfo = this._getAxisData(d.xID);
@@ -2830,8 +2753,10 @@ function modelDataPointPrint(point) {
 
 		this._createXLabels(self,mods);
 		this._createXLines();
+		//[vaa12] These now darken when mini-map is moved
 		if (!this.state.invertAxis) {
 			this._createTextScores();
+			this._createModelScoresLegend();
 		}
 		if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
 			this._createOverviewSpeciesLabels();
@@ -3359,7 +3284,7 @@ function modelDataPointPrint(point) {
 			var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype" + type +"/"+ id.replace("_", ":") + "\" target=\"_blank\">" + info.label + "</a>";
 			var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
 			hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
-			var hpoTree = "<div id='hpoDiv'>" + this._buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
+			var hpoTree = "<div id='hpoDiv'>" + this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
 			if (hpoTree == "<br/>"){
 				hpoData += "<em>No HPO Data Found</em>";
 			} else {
@@ -3528,29 +3453,29 @@ function modelDataPointPrint(point) {
 			var iPosition = 1;
 			// rebuild the model list with genotypes
 			for (var idx in compareScores.b) {
-			var newGtLabel = genotypeLabelHashtable.get(compareScores.b[idx].id); 
-			var gt = {
-			parent: modelInfo.id,
-			label: (newGtLabel !== null?newGtLabel:compareScores.b[idx].label), 
+				var newGtLabel = genotypeLabelHashtable.get(compareScores.b[idx].id); 
+				var gt = {
+				parent: modelInfo.id,
+				label: (newGtLabel !== null?newGtLabel:compareScores.b[idx].label), // if label was null, then use previous fixed label
 			// if label was null, then use previous fixed label
-			score: compareScores.b[idx].score.score, 
-			species: modelInfo.d.species,
-			rank: compareScores.b[idx].score.rank,
-			type: "genotype",
-			taxon: compareScores.b[idx].taxon.id,
-			pos: (modelInfo.d.pos + iPosition),
-			count: modelInfo.d.count,
-			sum: modelInfo.d.sum
+				score: compareScores.b[idx].score.score, 
+				species: modelInfo.d.species,
+				rank: compareScores.b[idx].score.rank,
+				type: "genotype",
+				taxon: compareScores.b[idx].taxon.id,
+				pos: (modelInfo.d.pos + iPosition),
+				count: modelInfo.d.count,
+				sum: modelInfo.d.sum
 			};
 
-			genoTypeList.put( this._getConceptId(compareScores.b[idx].id), gt);
+				genoTypeList.put( this._getConceptId(compareScores.b[idx].id), gt);
 
-			// Hack: need to fix the label because genotypes have IDs as labels
-			compareScores.b[idx].label = genotypeLabelHashtable.get(compareScores.b[idx].id);
+				// Hack: need to fix the label because genotypes have IDs as labels
+				compareScores.b[idx].label = genotypeLabelHashtable.get(compareScores.b[idx].id);
 
-			// load these into model data
-			this._loadDataForModel(compareScores.b[idx]);
-			iPosition++;
+				// load these into model data
+				this._loadDataForModel(compareScores.b[idx]);
+				iPosition++;
 			}
 
 			// if the cache was originally null, then add 
@@ -3720,7 +3645,7 @@ function modelDataPointPrint(point) {
 		for (var i in this.state.modelData) {
 			// Setting phenotypeListHash
 			if (typeof(this.state.modelData[i].id_a) !== 'undefined' && !this.state.phenotypeListHash.containsKey(this.state.modelData[i].id_a)){
-				hashData = {"label": this.state.modelData[i].label_a, "IC": this.state.modelData[i].IC_a, "pos": y, "count": 0, "sum": 0};
+				hashData = {"label": this.state.modelData[i].label_a, "IC": this.state.modelData[i].IC_a, "pos": y, "count": 0, "sum": 0, "type": "phenotype"};
 				this.state.phenotypeListHash.put(this.state.modelData[i].id_a, hashData);
 				y++;
 			}
