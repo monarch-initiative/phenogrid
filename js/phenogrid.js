@@ -70,7 +70,7 @@ function modelDataPointPrint(point) {
 	$.widget("ui.phenogrid", {
 		// core commit. Not changeable by options. 
 	config: {
-		scriptpath : $('script[src]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/',
+		scriptpath : $('script[src*="phenogrid"]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/',
 		colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
 		colorRanges: [['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'],
 			['rgb(252,248,227)','rgb(249,205,184)','rgb(234,118,59)','rgb(221,56,53)','rgb(181,92,85)','rgb(70,19,19)'],
@@ -243,6 +243,7 @@ function modelDataPointPrint(point) {
 		 */
 
 		for (var sname in self.state.targetSpeciesByName) {
+			if(!self.state.targetSpeciesByName.hasOwnProperty(sname)){break;}
 			// we've found a matching name.
 			if (name == sname) {
 				found = true;
@@ -292,6 +293,7 @@ function modelDataPointPrint(point) {
 	_createTargetSpeciesIndices: function() {
 		this.state.targetSpeciesByName = {};
 		for (var j in this.state.targetSpeciesList) {
+			if(!this.state.targetSpeciesList.hasOwnProperty(j)){break;}
 			// list starts as name, taxon pairs
 			var name = this.state.targetSpeciesList[j].name;
 			var taxon = this.state.targetSpeciesList[j].taxon;
@@ -708,6 +710,7 @@ function modelDataPointPrint(point) {
 		var searchArray = hashtable.entries();
 		var results = false;
 		for (var i in searchArray){
+			if(!searchArray.hasOwnProperty(i)){break;}
 			if (searchArray[i][1].pos == position){
 				results = searchArray[i][0];
 				break;
@@ -722,6 +725,7 @@ function modelDataPointPrint(point) {
 		var premerged = hashT.entries();
 		var merged = [];
 		for (var i in premerged){
+			if(!premerged.hasOwnProperty(i)){break;}
 			if (typeof(premerged[i][0].yID) !== 'undefined'){
 				premerged[i][1].yID = premerged[i][0].yID;
 				premerged[i][1].xID = premerged[i][0].xID;
@@ -852,6 +856,7 @@ function modelDataPointPrint(point) {
 	_getSortedIDList: function(hashArray){
 		var resultArray = [];
 		for (var j in hashArray) {
+			if(!hashArray.hasOwnProperty(j)){break;}
 			resultArray[hashArray[j][1].pos] = hashArray[j][0];
 		}
 		return resultArray;
@@ -863,6 +868,7 @@ function modelDataPointPrint(point) {
 		var firstSort = this._getSortedIDList(hashArray);
 		var resultArray = [];
 		for (var j in firstSort) {
+			if(!firstSort.hasOwnProperty(j)){break;}
 			resultArray.push(firstSort[j]);
 		}
 		return resultArray;
@@ -889,11 +895,12 @@ function modelDataPointPrint(point) {
 			label = this.state.defaultComparisonType.comparison;
 		}
 		return label;
-	}, 
+	},
 
 	_setComparisonType: function(){
 		var comp = this.state.defaultComparisonType;
 		for (var i in this.state.comparisonTypes) {
+			if(!this.state.comparisonTypes.hasOwnProperty(i)){break;}
 			if (this.state.targetSpeciesName === this.state.comparisonTypes[i].organism) {
 				comp = this.state.comparisonTypes[i];
 			}
@@ -957,6 +964,7 @@ function modelDataPointPrint(point) {
 		sortedYArray = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
 
 		for (var i in sortedYArray) {
+			if(!sortedYArray.hasOwnProperty(i)){break;}
 			// update the YAxis
 			// the height of each row
 			var size = 10;
@@ -1080,6 +1088,7 @@ function modelDataPointPrint(point) {
 	_loadOverviewData: function() {
 		var limit = this.state.multiOrganismCt;
 		for (var i in this.state.targetSpeciesList) {
+			if(!this.state.targetSpeciesList.hasOwnProperty(i)){break;}
 			var species = this.state.targetSpeciesList[i].name;
 			this._loadSpeciesData(species,limit);
 			if (species === this.state.refSpecies && typeof(species) !== 'undefined') { 
@@ -1104,10 +1113,12 @@ function modelDataPointPrint(point) {
 		var variantNum = 0;
 
 		for (var i in this.state.targetSpeciesList) {
+			if(!this.state.targetSpeciesList.hasOwnProperty(i)){break;}
 			var species = this.state.targetSpeciesList[i].name;
 			var specData = this.state.data[species];
 			if (specData !== null && typeof(specData.b) !== 'undefined' && specData.b.length > 0) {
 				for (var idx in specData.b) {
+					if(!specData.b.hasOwnProperty(i)){break;}
 					var item = specData.b[idx];
 					ID = this._getConceptId(item.id);
 
@@ -1120,6 +1131,7 @@ function modelDataPointPrint(point) {
 
 					type = this.state.defaultApiEntity;
 					for (var j in this.state.apiEntityMap) {
+						if(!this.state.apiEntityMap.hasOwnProperty(i)){break;}
 						if (ID.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
 							type = this.state.apiEntityMap[j].apifragment;
 						}
@@ -1159,6 +1171,7 @@ function modelDataPointPrint(point) {
 
 		if (typeof (retData.b) !== 'undefined') {
 			for (var idx in retData.b) {
+				if(!retData.b.hasOwnProperty(idx)){break;}
 				var item = retData.b[idx];
 				ID = this._getConceptId(item.id);
 
@@ -1171,6 +1184,7 @@ function modelDataPointPrint(point) {
 
 				type = this.state.defaultApiEntity;
 				for (var j in this.state.apiEntityMap) {
+					if(!this.state.apiEntityMap.hasOwnProperty(j)){break;}
 					if (ID.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
 						type = this.state.apiEntityMap[j].apifragment;
 					}
@@ -1194,6 +1208,7 @@ function modelDataPointPrint(point) {
 		if (typeof(data) !== 'undefined' && data.length > 0) {
 
 			for (var idx in data) {
+				if(!data.hasOwnProperty(idx)){break;}
 				curr_row = data[idx];
 				lcs = this._normalizeIC(curr_row);
 
@@ -1314,6 +1329,7 @@ function modelDataPointPrint(point) {
 		var currentModelData = this.state.modelDataHash.entries();
 
 		for (var i in currentModelData){
+			if(!currentModelData.hasOwnProperty(i)){break;}
 			if (this.state.filteredXAxis.containsKey(currentModelData[i][0].xID) && this.state.filteredYAxis.containsKey(currentModelData[i][0].yID)){
 				currentModelData[i][1].yID = currentModelData[i][0].yID;
 				currentModelData[i][1].xID = currentModelData[i][0].xID;
@@ -1329,6 +1345,7 @@ function modelDataPointPrint(point) {
 		var oldHash = hash.entries();
 
 		for (var i in oldHash){
+			if(!oldHash.hasOwnProperty(i)){break;}
 			if (oldHash[i][1].pos >= start && oldHash[i][1].pos < end){
 				filteredHash.put(oldHash[i][0],oldHash[i][1]);
 			}
@@ -1345,6 +1362,7 @@ function modelDataPointPrint(point) {
 		var newHash = [];
 		var origHash = self.state.phenotypeListHash.entries();
 		for (var i in origHash){
+			if(!origHash.hasOwnProperty(i)){break;}
 			newHash.push({"id": origHash[i][0], "label": origHash[i][1].label.toLowerCase(), "count": origHash[i][1].count, "sum": origHash[i][1].sum});
 		}
 		if (sortType == 'Frequency') {
@@ -1358,6 +1376,7 @@ function modelDataPointPrint(point) {
 		if (typeof(sortFunc) !== 'undefined') {
 			newHash.sort(sortFunc);
 			for (var j in newHash){
+				if(!newHash.hasOwnProperty(j)){break;}
 				self._updatePhenoPos(newHash[j].id,j);
 			}
 		}
@@ -1470,6 +1489,7 @@ function modelDataPointPrint(point) {
 		this.state.colorScale = {};
 
 		for (var i in this.state.targetSpeciesList) {
+			if(!this.state.targetSpeciesList.hasOwnProperty(i)){break;}
 			var species = this.state.targetSpeciesList[i].name;
 			this.state.colorScale[species] = new Array(4);
 			for (var j = 0; j <4; j++) {
@@ -1661,6 +1681,7 @@ function modelDataPointPrint(point) {
 
 		var link_lines = d3.selectAll(".data_text");
 		for (var i in link_lines[0]){
+			if(!link_lines[0].hasOwnProperty(i)){break;}
 			link_lines[0][i].style.fill = this._getExpandStyling(link_lines[0][i].id);
 		}
 		link_lines.style("font-weight", "normal");
@@ -1669,6 +1690,7 @@ function modelDataPointPrint(point) {
 
 		var link_labels = d3.selectAll(".model_label");
 		for (var j in link_labels[0]){
+			if(!link_lines[0].hasOwnProperty(j)){break;}
 			link_labels[0][j].style.fill = this._getExpandStyling(link_labels[0][j].id);
 		}
 		link_labels.style("font-weight", "normal");
@@ -1680,6 +1702,7 @@ function modelDataPointPrint(point) {
 		var modelKeys = this.state.modelDataHash.keys();
 		var matchingKeys = [];
 		for (var i in modelKeys){
+			if(!modelKeys.hasOwnProperty(i)){break;}
 			if (key == modelKeys[i].yID || key == modelKeys[i].xID){
 				matchingKeys.push(modelKeys[i]);
 			}
@@ -1712,6 +1735,7 @@ function modelDataPointPrint(point) {
 		}
 
 		for (var i in models){
+			if(!models.hasOwnProperty(i)){break;}
 			if (highlightX){
 				ID = models[i].yID;
 			} else {
@@ -1724,6 +1748,7 @@ function modelDataPointPrint(point) {
 			}
 
 			for (var j in alabels[0]){
+				if(!alabels[0].hasOwnProperty(j)){break;}
 				if (alabels[0][j].id == ID){
 					alabels[0][j].style.fill = "blue";
 				}
@@ -1759,6 +1784,7 @@ function modelDataPointPrint(point) {
 			// Clear both axis.  One here, one below
 			var blabels = this.state.svg.selectAll("text.model_label");
 			for (var i in blabels[0]){
+				if(!blabels[0].hasOwnProperty(i)){break;}
 				label = this._getAxisData(blabels[0][i].id).label;
 				shortTxt = this._getShortLabel(label,self.state.labelCharDisplayCount);
 				if (blabels[0][i].innerHTML == shortTxt){
@@ -1768,6 +1794,7 @@ function modelDataPointPrint(point) {
 		}
 
 		for (var j in alabels[0]){
+			if(!alabels[0].hasOwnProperty(j)){break;}
 			label = this._getAxisData(alabels[0][j].id).label;
 			shortTxt = this._getShortLabel(label,shrinkSize);
 			if (alabels[0][j].innerHTML == shortTxt){	
@@ -1888,6 +1915,7 @@ function modelDataPointPrint(point) {
 		var nextLevel = level + 1;
 
 		for (var j in edges){
+			if(!edges.hasOwnProperty(j)){break;}
 			// Currently only allows subClassOf relations.  When new relations are introducted, it should be simple to implement
 			if (edges[j].pred == "subClassOf" && this.state.hpoTreesDone != this.state.hpoTreeAmounts){
 				if (edges[j].sub == id){
@@ -2163,7 +2191,8 @@ function modelDataPointPrint(point) {
 			}
 		}
 
-		for (var idx in this.state.similarityCalculation) {	
+		for (var idx in this.state.similarityCalculation) {
+			if(!this.state.similarityCalculation.hasOwnProperty(idx)){break;}
 			if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
 				prefix = this.state.similarityCalculation[idx].label;
 				break;
@@ -2397,11 +2426,13 @@ function modelDataPointPrint(point) {
 		var model_rects = self.state.svg.selectAll("rect.models")
 			.filter(function (d) { return d.rowid == curr_rect.__data__.rowid;});
 		for (var i in model_rects[0]){
+			if(!model_rects[0].hasOwnProperty(i)){break;}
 			model_rects[0][i].parentNode.appendChild(model_rects[0][i]);
 		}
 		var data_rects = self.state.svg.selectAll("rect.models")
 			.filter(function (d) { return d.model_id == curr_rect.__data__.model_id;});
 		for (var j in data_rects[0]){
+			if(!data_rects[0].hasOwnProperty(j)){break;}
 			data_rects[0][j].parentNode.appendChild(data_rects[0][j]);
 		}
 	},
@@ -2849,6 +2880,7 @@ function modelDataPointPrint(point) {
 			.attr("y1", "0%")
 			.attr("y2", "0%");
 		for (var j in this.state.colorDomains){
+			if(!this.state.colorDomains.hasOwnProperty(j)){break;}
 			gradient.append("svg:stop")
 				.attr("offset", this.state.colorDomains[j])
 				.style("stop-color", this.state.colorRanges[i][j])
@@ -2893,7 +2925,8 @@ function modelDataPointPrint(point) {
 	 */
 	_buildGradientTexts: function(y1) {
 		var lowText, highText, labelText;
-		for (var idx in this.state.similarityCalculation) {	
+		for (var idx in this.state.similarityCalculation) {
+			if(!this.state.similarityCalculation.hasOwnProperty(idx)){break;}
 			if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
 				lowText = this.state.similarityCalculation[idx].low;
 				highText = this.state.similarityCalculation[idx].high;
@@ -2983,6 +3016,7 @@ function modelDataPointPrint(point) {
 		"<span id='org_sel'><select id='pg_organism'>";
 
 		for (var idx in this.state.targetSpeciesList) {
+			if(!this.state.targetSpeciesList.hasOwnProperty(idx)){break;}
 			selectedItem = "";
 			if (this.state.targetSpeciesList[idx].name === this.state.targetSpeciesName) {
 				selectedItem = "selected";
@@ -3009,6 +3043,7 @@ function modelDataPointPrint(point) {
 			"<span id='calc_sel'><select id='pg_calculation'>";
 
 		for (var idx in this.state.similarityCalculation) {
+			if(!this.state.similarityCalculation.hasOwnProperty(idx)){break;}
 			var selecteditem = "";
 			if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
 				selecteditem = "selected";
@@ -3027,6 +3062,7 @@ function modelDataPointPrint(point) {
 			"<span><select id='pg_sortphenotypes'>";
 
 		for (var idx in this.state.phenotypeSort) {
+			if(!this.state.phenotypeSort.hasOwnProperty(idx)){break;}
 			var selecteditem = "";
 			if (this.state.phenotypeSort[idx] === this.state.selectedSort) {
 				selecteditem = "selected";
@@ -3117,6 +3153,7 @@ function modelDataPointPrint(point) {
 		var tempObject = {"id": 0, "observed": "positive"};
 
 		for (var i in fullset) {
+			if(!fullset.hasOwnProperty(i)){break;}
 			if (typeof(fullset[i].id) === 'undefined'){
 				tempObject.id = fullset[i];
 				full.push(tempObject);
@@ -3126,10 +3163,12 @@ function modelDataPointPrint(point) {
 		}
 
 		for (var j in partialset){
+			if(!partialset.hasOwnProperty(j)){break;}
 			partial.push(partialset[j].replace("_", ":"));
 		}
 
 		for (var k in full) {
+			if(!full.hasOwnProperty(k)){break;}
 			// if no match in fullset
 			if (partial.indexOf(full[k].id) < 0) {
 				// if there unmatched set is empty, add this umatched phenotype
@@ -3141,8 +3180,10 @@ function modelDataPointPrint(point) {
 		dupArray.push(unmatchedset[0]);	
 		// check for dups
 		for (var l in unmatchedset){
+			if(!unmatchedset.hasOwnProperty(l)){break;}
 			var found = false;
 			for (var m in dupArray) {
+				if(!dupArray.hasOwnProperty(m)){break;}
 				if (dupArray[m].id == unmatchedset[l].id) {
 					found = true;
 				}
@@ -3178,7 +3219,7 @@ function modelDataPointPrint(point) {
 			prebl.append(optionhtml);
 		}
 
-		$('#pg_matches :checkbox').click(function() {
+		$("#pg_matches[type=checkbox]").click(function() {
 			var $this = $(this);
 			// $this will contain a reference to the checkbox 
 			if ($this.is(':checked')) {
@@ -3265,6 +3306,7 @@ function modelDataPointPrint(point) {
 		var newlist = [];
 		var pheno;
 		for (var i in phenotypelist) {
+			if(!phenotypelist.hasOwnProperty(i)){break;}
 			pheno = phenotypelist[i];
 			if (typeof pheno === 'string') {
 				newlist.push(pheno);
@@ -3333,6 +3375,7 @@ function modelDataPointPrint(point) {
 				nodes = results.nodes;
 				// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
 				for (var i in nodes){
+					if(!nodes.hasOwnProperty(i)){break;}
 					if (!this.state.hpoCacheLabels.containsKey(nodes[i].id) && (nodes[i].id != "MP:0000001" && nodes[i].id != "UPHENO_0001001" && nodes[i].id != "UPHENO_0001002" && nodes[i].id != "HP:0000118" && nodes[i].id != "HP:0000001")){
 						this.state.hpoCacheLabels.put(nodes[i].id,this._capitalizeString(nodes[i].lbl));
 					}
@@ -3340,6 +3383,7 @@ function modelDataPointPrint(point) {
 
 				// Used to prevent breaking objects
 				for (var j in edges){
+					if(!edges.hasOwnProperty(j)){break;}
 					if (edges[j].obj != "MP:0000001" && edges[j].obj != "UPHENO_0001001" && edges[j].obj != "UPHENO_0001002" && edges[j].obj != "HP:0000118" && edges[j].obj != "HP:0000001"){
 						HPOInfo.push(edges[j]);
 					}
@@ -3410,6 +3454,7 @@ function modelDataPointPrint(point) {
 
 			// assemble the phenotype ids 
 			for (var p in assocPhenotypes) {
+				if(!assocPhenotypes.hasOwnProperty(p)){break;}
 				phenotypeIds += assocPhenotypes[p].id + "+";
 				ctr++;
 
@@ -3424,6 +3469,7 @@ function modelDataPointPrint(point) {
 			ctr = 0;
 			// assemble a list of genotypes
 			for (var g in genoTypeAssociations) {
+				if(!genoTypeAssociations.hasOwnProperty(g)){break;}
 				//	_genotypeIds = _genotypeIds + genoTypeAssociations[g].genotype.id + "+";
 				genotypeIds += genoTypeAssociations[g].id + "+";
 				// fill a hashtable with the labels so we can quickly get back to them later
@@ -3459,7 +3505,8 @@ function modelDataPointPrint(point) {
 			var iPosition = 1;
 			// rebuild the model list with genotypes
 			for (var idx in compareScores.b) {
-				var newGtLabel = genotypeLabelHashtable.get(compareScores.b[idx].id); 
+				if(!compareScores.b.hasOwnProperty(idx)){break;}
+				var newGtLabel = genotypeLabelHashtable.get(compareScores.b[idx].id);
 				var gt = {
 				parent: modelInfo.id,
 				label: (newGtLabel !== null?newGtLabel:compareScores.b[idx].label), // if label was null, then use previous fixed label
@@ -3550,13 +3597,14 @@ function modelDataPointPrint(point) {
 		var models = self.state.modelData;
 		var phenoTypes = [];
 		for (var i in models){
+			if(!models.hasOwnProperty(i)){break;}
 			// models[i] is the matching model that contains all phenotypes
 			if (models[i].model_id == curModelId){
 				phenoTypes.push({id: models[i].id_a, label: models[i].label_a});
 			}
 		}
 		return phenoTypes;
-	}, 
+	},
 
 	// insert into the model list
 	_insertionModelList: function (insertPoint, insertions) {
@@ -3566,6 +3614,7 @@ function modelDataPointPrint(point) {
 		var insertionOccurred = false;
 
 		for (var i in sortedModelList){
+			if(!sortedModelList.hasOwnProperty(i)){break;}
 			var entry = this.state.modelListHash.get(sortedModelList[i]);
 			if (entry.pos == insertPoint) {
 				// add the entry, or gene in this case	
@@ -3599,6 +3648,7 @@ function modelDataPointPrint(point) {
 		// get the max position that was inserted
 		var maxInsertedPosition = 0;
 		for (var x in removeEntries){
+			if(!removeEntries.hasOwnProperty(x)){break;}
 			var obj = removeEntries[x][1];
 			if (obj.pos > maxInsertedPosition) {
 				maxInsertedPosition = obj.pos;
@@ -3606,6 +3656,7 @@ function modelDataPointPrint(point) {
 		}
 
 		for (var i in sortedModelList){
+			if(!sortedModelList.hasOwnProperty(i)){break;}
 			var entry = this.state.modelListHash.get(sortedModelList[i]);
 			var found = false, cnt = 0;
 
@@ -3649,6 +3700,7 @@ function modelDataPointPrint(point) {
 
 		// need to rebuild the pheno hash and the modelData hash
 		for (var i in this.state.modelData) {
+			if(!this.state.modelData.hasOwnProperty(i)){break;}
 			// Setting phenotypeListHash
 			if (typeof(this.state.modelData[i].id_a) !== 'undefined' && !this.state.phenotypeListHash.containsKey(this.state.modelData[i].id_a)){
 				hashData = {"label": this.state.modelData[i].label_a, "IC": this.state.modelData[i].IC_a, "pos": y, "count": 0, "sum": 0, "type": "phenotype"};
@@ -3777,6 +3829,7 @@ function modelDataPointPrint(point) {
 		var filteredList = [];
 
 		for (var n in nodes) {
+			if(!nodes.hasOwnProperty(n)){break;}
 			if (nodes[n].id.substring(0, 5) != 'genid' ) {
 				filteredList.push(nodes[n]);
 			}
