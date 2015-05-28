@@ -1,0 +1,39 @@
+{
+    "name": "phenogrid",
+  "version": "0.0.1",
+  "description": "Monarch PhenoGrid widget",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/monarch-initiative/phenogrid.git"
+  },
+  "keywords": [
+    "monarch",
+    "phenogrid",
+    "widget",
+    "visualization"
+  ],
+  "author": "University of Pittsburgh, Department of Biomedical Informatics",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/monarch-initiative/phenogrid/issues"
+  },
+  "homepage": "https://github.com/monarch-initiative/phenogrid",
+  "dependencies": {
+    "d3": "^3.5.5",
+    "jquery": "^2.1.4",
+    "jquery-ui": "^1.10.5",
+    "jshashtable": "^0.1.0"
+  },
+  "browser": {
+    "jquery": "./node_modules/jquery/src/jquery.js",
+    "jquery-ui": "./node_modules/jquery-ui/jquery-ui.js",
+    "d3": "./node_modules/d3/d3.min.js"
+  },
+  "style": [
+    "./css/phenogrid.css",
+    "./css/stickytooltip.css"
+  ]
+}

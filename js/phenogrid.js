@@ -49,25 +49,33 @@
  *	META NOTE (HSH - 8/25/2014): Can we remove this note, or at least clarify?
  */
 
-var url = document.URL;
+//var url = document.URL;
 
-// Creation of modelDataPoint object
-function modelDataPoint(x,y) {
-	this.xID = x;
-	this.yID = y;
-}
+require('model');
+require('render');
+require('tooltip.js');
 
-// Makes sure that matches are when both the X & Y values are the same
-function modelDataPointEquals(point1,point2) {
-	return point1.xID === point2.xID && point1.yID === point2.yID;
-}
 
-// Prints the point in a easy to understand way
-function modelDataPointPrint(point) {
-	return "X:" + point.xID + ", Y:" + point.yID;
-}
+var modelDataPoint = model.modelDataPoint;
+var modelDataPointEquals = model.modelDataPointEquals;
+var modelDataPointPrint = model.modelDataPointPrint;
+var ToolTipRender = render.ToolTipRender;
+var stickytooltip = tooltip.stickytooltip;
 
-(function($) {
+(function (factory) {
+  // If there is a variable named module and it has an exports property,
+  // then we're working in a Node-like environment. Use require to load
+  // the jQuery object that the module system is using and pass it in.
+  if(typeof module === "object" && typeof module.exports === "object") {
+     module_exports=factory(require("jquery"), window, document);
+  }
+  // Otherwise, we're working in a browser, so just pass in the global
+  // jQuery object.
+  else {
+    factory(jQuery, window, document);
+  }
+})    
+(function($,window,document,undefined) {
 	$.widget("ui.phenogrid", {
 		// core commit. Not changeable by options.
 	config: {
@@ -3845,4 +3853,4 @@ function modelDataPointPrint(point) {
 	}
 
 	}); // end of widget code
-})(jQuery);
+});

@@ -10,3 +10,5 @@ var configoptions = {
 			   { "name": "Danio rerio", "taxon": "7955"}
 			]
 };
+
+module.exports = configoptions;

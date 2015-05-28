@@ -146,3 +146,5 @@ genotype: function(tooltip) {
 }
 
 };
+
+module.exports = ToolTipRender;
