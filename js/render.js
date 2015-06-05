@@ -147,4 +147,4 @@ genotype: function(tooltip) {
 
 };
 
-module.exports = ToolTipRender;
+module.exports = TooltipRender;

@@ -11,4 +11,3 @@ var configoptions = {
 			]
 };
 
-module.exports = configoptions;

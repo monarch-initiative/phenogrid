@@ -9,5 +9,5 @@ ringojs-0.9
 *~
 .emacs.*
 log
-
+bundle.*
 node_modules

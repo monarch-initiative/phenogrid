@@ -1,5 +1,5 @@
 {
-    "name": "phenogrid",
+  "name": "phenogrid",
   "version": "0.0.1",
   "description": "Monarch PhenoGrid widget",
   "scripts": {
@@ -23,9 +23,11 @@
   "homepage": "https://github.com/monarch-initiative/phenogrid",
   "dependencies": {
     "d3": "^3.5.5",
+    "gulp-rename": "^1.2.2",
     "jquery": "^2.1.4",
     "jquery-ui": "^1.10.5",
-    "jshashtable": "^0.1.0"
+    "jshashtable": "^0.1.0",
+    "vinyl-source-stream": "^1.1.0"
   },
   "browser": {
     "jquery": "./node_modules/jquery/src/jquery.js",
@@ -35,5 +37,15 @@
   "style": [
     "./css/phenogrid.css",
     "./css/stickytooltip.css"
-  ]
+  ],
+  "devDependencies": {
+    "browserify": "^10.2.1",
+    "browserify-shim": "^3.8.7",
+    "gulp": "^3.8.11"
+  },
+  "browserify-shim": {
+    "jquery": {
+      "exports": "jQuery"
+    }
+  }
 }

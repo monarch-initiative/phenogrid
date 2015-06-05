@@ -135,4 +135,4 @@ var stickytooltip={
 //stickytooltip.init("*[data-tooltip]", "mystickytooltip")
 
 
-module.exports=stickytoolitip;
+module.exports=stickytooltip;

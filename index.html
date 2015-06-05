@@ -17,15 +17,8 @@
 <html>
   <head>
     <title>Monarch Phenotype Grid Widget</title>
-    <script src="js/jquery-1.11.0.min.js"></script>
-    <script src="js/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="js/d3.min.js"></script>
-    <script src="js/jshashtable.js"></script>
-    <script src="js/stickytooltip.js"></script>
+    <script src="bundle.js"></script>
     <script src="js/phenogrid_config.js"></script>
-    <script src="js/phenogrid.js"></script>
-    <script src="js/render.js"></script>
-    <link rel="stylesheet" type="text/css" href="css/jquery-ui.css"/>
 	<link rel="stylesheet" type="text/css" href="css/instructions.css"/>
 	<link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
 	<link rel="stylesheet" type="text/css" href="css/stickytooltip.css"/>
@@ -54,9 +47,9 @@
 	function(){
 	$("#phen_vis").phenogrid({serverURL :
 	"http://beta.monarchinitiative.org", phenotypeData:	phenotypes,targetSpeciesName: "Mus musculus" });
-	   });
+	   }); 
 	
-	</script>
+	</script> 
 	
   </head>
   <body id="phenogrid">

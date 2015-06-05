@@ -51,9 +51,11 @@
 
 //var url = document.URL;
 
-require('model');
-require('render');
-require('tooltip.js');
+var model = require('./model.js');
+var render = require('./render.js');
+var tooltip = require('./tooltip.js');
+var d3 = require('d3');
+require('jquery-ui');
 
 
 var modelDataPoint = model.modelDataPoint;
