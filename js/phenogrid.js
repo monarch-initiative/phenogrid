@@ -55,14 +55,13 @@ var model = require('./model.js');
 var render = require('./render.js');
 var tooltip = require('./tooltip.js');
 var d3 = require('d3');
-
-
+var Hashtable = require('jshashtable');
 
 var modelDataPoint = model.modelDataPoint;
 var modelDataPointEquals = model.modelDataPointEquals;
 var modelDataPointPrint = model.modelDataPointPrint;
-var ToolTipRender = render.ToolTipRender;
-var stickytooltip = tooltip.stickytooltip;
+var TooltipRender = render;
+var stickytooltip = tooltip;
 
 (function (factory) {
   // If there is a variable named module and it has an exports property,
@@ -74,14 +73,25 @@ var stickytooltip = tooltip.stickytooltip;
   // Otherwise, we're working in a browser, so just pass in the global
   // jQuery object.
   else {
-    factory(jQuery, window, document);
+    factory($, window, document);
   }
 })    
 (function($,window,document,undefined) {
+
+    // Attempt to figure out where certain scripts are...which is odd,
+    // but here we are trying to make this work. If we cannot, try to
+    // assume as little as possible.
+    var spath = "";
+    try {
+	spath = $('script[src*="phenogrid"]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/';
+    }catch (e) {
+	// TODO: Apparently not that kind of environment.
+    }
+
 	$.widget("ui.phenogrid", {
 		// core commit. Not changeable by options.
 	config: {
-		scriptpath : $('script[src*="phenogrid"]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/',
+		scriptpath : spath,
 		colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
 		colorRanges: [['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'],
 			['rgb(252,248,227)','rgb(249,205,184)','rgb(234,118,59)','rgb(221,56,53)','rgb(181,92,85)','rgb(70,19,19)'],
