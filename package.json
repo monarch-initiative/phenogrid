@@ -32,8 +32,8 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "browser": {
-    "jquery": "./node_modules/jquery/src/jquery.js",
-    "jquery-ui": "./node_modules/jquery-ui/jquery-ui.js",
+    "jquery": "./node_modules/jquery/dist/jquery.min.js",
+    "jquery-ui": "./external_js/jquery-ui-1.10.3.custom.min.js",
     "d3": "./node_modules/d3/d3.min.js"
   },
   "style": [
@@ -51,6 +51,13 @@
     ]
   },
   "browserify-shim": {
-    "jquery": "$"
+      "jquery": {
+          "exports": "global:$"
+      },
+      "jquery-ui": {
+          "depends": [
+              "jquery"
+          ]
+      }
   }
 }
