@@ -19,11 +19,13 @@
     <title>Monarch Phenotype Grid Widget</title>
     <script src="bundle.js"></script>
     <script src="js/phenogrid_config.js"></script>
+    <link rel="stylesheet" type="text/css" href="bundle.css"/>
 	<link rel="stylesheet" type="text/css" href="css/instructions.css"/>
 	<link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
-	<link rel="stylesheet" type="text/css" href="css/stickytooltip.css"/>
+	<link rel="stylesheet" type="text/css"
+	href="css/stickytooltip.css"/> 
 
-    <script>
+<!--    <script>
 	var phenotypes = [
 	   	{ id:"HP:0000726", observed:"positive"},
 	   	{ id:"HP:0000746", observed:"positive"},
@@ -43,13 +45,13 @@
 
    
 	// jQuery gets to bootstrap everything.
-	jQuery(document).ready(
+	$(document).ready(
 	function(){
 	$("#phen_vis").phenogrid({serverURL :
 	"http://beta.monarchinitiative.org", phenotypeData:	phenotypes,targetSpeciesName: "Mus musculus" });
 	   }); 
 	
-	</script> 
+	</script>  -->
 	
   </head>
   <body id="phenogrid">
