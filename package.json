@@ -32,7 +32,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "browser": {
-    "jquery": "./node_modules/jquery/dist/jquery.min.js",
+    "jquery": "./node_modules/jquery/dist/jquery.js",
       "jquery-ui": "./node_modules/jquery-ui/jquery-ui.js",
     "d3": "./node_modules/d3/d3.min.js"
   },

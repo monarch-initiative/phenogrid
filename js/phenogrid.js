@@ -78,7 +78,7 @@ var stickytooltip = tooltip;
 })    
 (function($,window,document,__undefined__) {
 
-    // Attempt to figure out where certain scripts are...which is odd,
+    /* // Attempt to figure out where certain scripts are...which is odd,
     // but here we are trying to make this work. If we cannot, try to
     // assume as little as possible.
     var spath = "";
@@ -86,12 +86,12 @@ var stickytooltip = tooltip;
 	spath = $('script[src*="phenogrid"]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/';
     }catch (e) {
 	// TODO: Apparently not that kind of environment.
-    }
+    }*/
 
 	$.widget("ui.phenogrid", {
 		// core commit. Not changeable by options.
-	config: {
-		scriptpath : spath,
+	    config: {
+		scriptpath : "",
 		colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
 		colorRanges: [['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'],
 			['rgb(252,248,227)','rgb(249,205,184)','rgb(234,118,59)','rgb(221,56,53)','rgb(181,92,85)','rgb(70,19,19)'],
@@ -765,7 +765,7 @@ var stickytooltip = tooltip;
 		return selectedScale(score);
 	},
 
-	_createModelScoresLegend: function() {
+	    _createModelScoresLegend: function() {
 		var self = this;
 		var scoreTipY = self.state.yoffset;
 		var faqY = scoreTipY - self.state.gridTitleYOffset;
@@ -781,7 +781,7 @@ var stickytooltip = tooltip;
 
 		var tip	= self.state.svg
 			.append("svg:image")
-			.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
+			.attr("xlink:href", this.state.scriptpath + "./image/greeninfo30.png")
 			.attr("transform","translate(" + (self.state.axis_pos_list[2] + tipTextLength) + "," + faqY + ")")
 			.attr("id","modelscores")
 			.attr("x", 0)
@@ -1688,7 +1688,7 @@ var stickytooltip = tooltip;
 		//var imgs = this.state.svg.selectAll("image").data([0]);
 		//imgs.enter()
 		this.state.svg.append("svg:image")
-			.attr("xlink:href", this.state.scriptpath + "../image/logo.png")
+			.attr("xlink:href", this.state.scriptpath + "./image/logo.png")
 			.attr("x", start)
 			.attr("y",0)
 			.attr("id", "pg_logo")
@@ -3060,7 +3060,7 @@ var stickytooltip = tooltip;
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
 		var optionhtml = "<span id='pg_calc_div'>Display"+
-			"<span id='pg_calcs'> <img class='pg_faq_img' src='" + this.state.scriptpath + "../image/greeninfo30.png'></span>" +
+			"<span id='pg_calcs'> <img class='pg_faq_img' src='" + this.state.scriptpath + "./image/greeninfo30.png'></span>" +
 			"<span id='calc_sel'><select id='pg_calculation'>";
 
 		for (var idx in this.state.similarityCalculation) {
@@ -3079,7 +3079,7 @@ var stickytooltip = tooltip;
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
 		var optionhtml ="<span id='pg_sort_div'>Sort Phenotypes" +
-			"<span id='pg_sorts'> <img class='pg_faq_img' src='" + this.state.scriptpath + "../image/greeninfo30.png'></span>" +
+			"<span id='pg_sorts'> <img class='pg_faq_img' src='" + this.state.scriptpath + "./image/greeninfo30.png'></span>" +
 			"<span><select id='pg_sortphenotypes'>";
 
 		for (var idx in this.state.phenotypeSort) {
