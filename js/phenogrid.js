@@ -76,7 +76,7 @@ var stickytooltip = tooltip;
     factory($, window, document);
   }
 })    
-(function($,window,document,undefined) {
+(function($,window,document,__undefined__) {
 
     // Attempt to figure out where certain scripts are...which is odd,
     // but here we are trying to make this work. If we cannot, try to
