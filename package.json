@@ -50,7 +50,7 @@
       "browserify-shim"
     ]
   },
-  "browserify-shim": {
+    "browserify-shim": {
       "jquery": {
           "exports": "global:$"
       },
