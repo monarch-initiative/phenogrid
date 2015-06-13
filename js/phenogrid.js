@@ -1,4 +1,4 @@
-/*
+/**
  *
  *	Phenogrid - the Phenogrid widget.
  *
@@ -47,7 +47,12 @@
  *	as a separate call in the init function.
  *
  *	META NOTE (HSH - 8/25/2014): Can we remove this note, or at least clarify?
+ * @module
  */
+
+var $ = require('jquery');
+require('jquery-ui');
+//require('./js/phenogrid');
 
 //var url = document.URL;
 

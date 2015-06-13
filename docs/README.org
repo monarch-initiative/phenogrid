@@ -1,0 +1,2 @@
+Directory for JSDoc, not saved on this branch. See the gh-pages branch
+of the repo or http://monarchinitiative.github.io/phenogrid .

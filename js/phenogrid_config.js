@@ -8,6 +8,6 @@ var configoptions = {
     "targetSpeciesList" : [{ "name": "Homo sapiens", "taxon": "9606"},
 			   { "name": "Mus musculus", "taxon": "10090" },
 			   { "name": "Danio rerio", "taxon": "7955"}
-			]
+			  ]
 };
 
