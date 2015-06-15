@@ -1,21 +1,45 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-
-
+/** 
+ * Simple data point.
+ * 
+ * @see module:phenogrid
+ * @module model
+ */
 module.exports = {
 
-
+    /**
+     * Data point.
+     * 
+     * @constructor
+     * @param {Number} x - x cordinate.
+     * @param {Number} y - y cordinate.
+     * @returns {this} new instance
+     */
     modelDataPoint: function(x,y) {
 	this.xID = x;
 	this.yID = y;
     },
 
-    // Makes sure that matches are when both the X & Y values are the same
+    /**
+     * Makes sure that matches are when both the X & Y values are the
+     * same.
+     * 
+     * @static
+     * @param {modelDataPoint} point1 - A point.
+     * @param {modelDataPoint} point2 - A point.
+     * @returns {Boolean} data equality
+     */
     modelDataPointEquals: function(point1,point2) {
 	return point1.xID === point2.xID && point1.yID === point2.yID;
     },
 
-    
-    // Prints the point in a easy to understand way
+    /**
+     * Prints the point in an easy to understand way.
+     * 
+     * @static
+     * @param {modelDataPoint} point1 - A point.
+     * @returns {String} printable version on point.
+     */
     modelDataPointPrint: function(point) {
 	return "X:" + point.xID + ", Y:" + point.yID;
     }
