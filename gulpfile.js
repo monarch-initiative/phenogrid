@@ -4,6 +4,9 @@
 ////  - bundle: create the distribution files
 ////  - docs: create the API documentation and put it into docs/
 ////  - tests: run the unit tests
+//// Watch targets:
+////  - watch-tests: run tests on changes to source files
+////  - watch-docs: build doc on changes to source files
 ////
 
 var gulp = require('gulp');
