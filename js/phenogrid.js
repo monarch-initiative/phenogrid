@@ -61,22 +61,6 @@
 
 
 
-// Creation of modelDataPoint object
-function modelDataPoint(x, y) {
-	this.xID = x;
-	this.yID = y;
-}
-
-// Makes sure that matches are when both the X & Y values are the same
-function modelDataPointEquals(point1, point2) {
-	return point1.xID === point2.xID && point1.yID === point2.yID;
-}
-
-// Prints the point in a easy to understand way
-function modelDataPointPrint(point) {
-	return "X:" + point.xID + ", Y:" + point.yID;
-}
-
 
 
 
@@ -90,7 +74,24 @@ function modelDataPointPrint(point) {
 	// Widget factory API documentation https://api.jqueryui.com/jquery.widget/ - Joe
 	$.widget("ui.phenogrid", {
 		
+		// Moved into the widget instead of creating another object module - Joe
 		
+		
+		// Creation of modelDataPoint object
+		modelDataPoint: function(x, y) {
+			this.xID = x;
+			this.yID = y;
+		},
+
+		// Makes sure that matches are when both the X & Y values are the same
+		modelDataPointEquals: function(point1, point2) {
+			return point1.xID === point2.xID && point1.yID === point2.yID;
+		},
+
+		// Prints the point in a easy to understand way
+		modelDataPointPrint: function(point) {
+			return "X:" + point.xID + ", Y:" + point.yID;
+		},
 		
 		// Why not prefixed with underscore? - Joe
 		
@@ -1134,7 +1135,7 @@ function modelDataPointPrint(point) {
 			// Create a new empty hash table with supplied options, Hashtable(Object options) - Joe
 			// hashCode: A function that provides hash codes for keys placed in the hash table. 
 			// equals: A function that checks for equality between two keys with the same hash code. 
-			this.state.modelDataHash = new Hashtable({hashCode: modelDataPointPrint, equals: modelDataPointEquals});
+			this.state.modelDataHash = new Hashtable({hashCode: self.modelDataPointPrint, equals: self.modelDataPointEquals});
 
 			// [vaa12] determine if is wise to preload datasets for the three species and then build overview from this
 			// At time being, overview is made up of three calls, which it repeats these calls with a larger limit if you decided to view single species
@@ -1358,9 +1359,9 @@ function modelDataPointPrint(point) {
 
 					// Setting modelDataHash
 					if (this.state.invertAxis){
-						modelPoint = new modelDataPoint(this._getConceptId(curr_row.a.id), this._getConceptId(modelID));
+						modelPoint = self.modelDataPoint(this._getConceptId(curr_row.a.id), this._getConceptId(modelID));
 					} else {
-						modelPoint = new modelDataPoint(this._getConceptId(modelID), this._getConceptId(curr_row.a.id));
+						modelPoint = self.modelDataPoint(this._getConceptId(modelID), this._getConceptId(curr_row.a.id));
 					}
 					this._updateSortVals(this._getConceptId(curr_row.a.id), parseFloat(curr_row.lcs.IC));
 					
@@ -3865,7 +3866,7 @@ function modelDataPointPrint(point) {
 			this.state.phenotypeListHash = new Hashtable();
 			
 			// Create a new empty hash table with supplied options, Hashtable(Object options) - Joe
-			this.state.modelDataHash = new Hashtable({hashCode: modelDataPointPrint, equals: modelDataPointEquals});
+			this.state.modelDataHash = new Hashtable({hashCode: self.modelDataPointPrint, equals: self.modelDataPointEquals});
 			var modelPoint, hashData;
 			var y = 0;
 
@@ -3881,9 +3882,9 @@ function modelDataPointPrint(point) {
 
 				// Setting modelDataHash
 				if (this.state.invertAxis){
-					modelPoint = new modelDataPoint(this.state.modelData[i].id_a, this.state.modelData[i].model_id);
+					modelPoint = self.modelDataPoint(this.state.modelData[i].id_a, this.state.modelData[i].model_id);
 				} else {
-					modelPoint = new modelDataPoint(this.state.modelData[i].model_id, this.state.modelData[i].id_a);
+					modelPoint = self.modelDataPoint(this.state.modelData[i].model_id, this.state.modelData[i].id_a);
 				}
 				this._updateSortVals(this.state.modelData[i].id_a, this.state.modelData[i].subsumer_IC);
 				hashData = {"value": this.state.modelData[i].value, "subsumer_label": this.state.modelData[i].subsumer_label, "subsumer_id": this.state.modelData[i].subsumer_id, "subsumer_IC": this.state.modelData[i].subsumer_IC, "b_label": this.state.modelData[i].label_b, "b_id": this.state.modelData[i].id_b, "b_IC": this.state.modelData[i].IC_b};
