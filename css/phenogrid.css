@@ -30,8 +30,8 @@
 	/*stroke:#ea763b;*/
 	stroke:#4CA092;
 	stroke-width: 2;
-	fill: #4CA092;   //#ffffff;
-	fill-opacity: 0.1;    //0.05;
+	fill: #4CA092;   /*#ffffff;*/
+	fill-opacity: 0.1;    /*0.05;*/
 }
 
 /*.pg_gene_accent {
