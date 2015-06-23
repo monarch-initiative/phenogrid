@@ -55,7 +55,7 @@
 // npm install jquery jquery-ui d3 jshashtable
  
 // NPM installed packages, you will find them in /node_modules - Joe
-var $ = window.jQuery = require("jquery");
+var $ = require("jquery");
 
 
 require('jquery-ui');
