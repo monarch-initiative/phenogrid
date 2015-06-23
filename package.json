@@ -18,5 +18,11 @@
     "url": "https://github.com/monarch-initiative/phenogrid/issues"
   },
   "homepage": "https://github.com/monarch-initiative/phenogrid",
-  "main": "js/phenogrid.js"
+  "main": "js/phenogrid.js",
+  "dependencies": {
+    "d3": "^3.5.5",
+    "jquery": "^2.1.4",
+    "jquery-ui": "^1.10.5",
+    "jshashtable": "^0.1.0"
+  }
 }
