@@ -146,3 +146,6 @@ genotype: function(tooltip) {
 }
 
 };
+
+// CommonJS format - Joe
+module.exports = TooltipRender;

@@ -49,12 +49,30 @@
  *	META NOTE (HSH - 8/25/2014): Can we remove this note, or at least clarify?
  */
 
+
+// Will need to install jquery, jquery-ui, jshashtable first via npm - Joe
+// Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
+// npm install jquery jquery-ui d3 jshashtable
  
+// NPM installed packages, you will find them in /node_modules - Joe
+var $ = window.jQuery = require("jquery");
+
+
+require('jquery-ui');
+var d3 = require('d3');
+var Hashtable = require('jshashtable');
+
+
+// load other non-npm dependencies - Joe
+// need to specify the relative path ./ and .js extension
+var model = require('./model.js');
+var stickytooltip = require('./stickytooltip.js');
+var TooltipRender = require('./render.js');
 
 
 
 // Self-executing anonymous function with jQuery object passed into via $ alias - Joe
-(function($) {
+(function($){
 	// Use widget factory to define the UI plugin - Joe
 	// Can aslo be ns.phenogrid (ns can be anything else - namespace) - Joe
 	// Later can be called using $().phenogrid(); - Joe
@@ -308,8 +326,13 @@
 		_create: function() {
 			
 			
+			
+			
+			
+			
+			
 			// local model.js into local scope - Joe
-			this.model = model; 
+			//this.model = model; 
 			
 			
 			
@@ -1118,9 +1141,9 @@
 			// Create a new empty hash table with supplied options, Hashtable(Object options) - Joe
 			// hashCode: A function that provides hash codes for keys placed in the hash table. 
 			// equals: A function that checks for equality between two keys with the same hash code. 
-			this.state.modelDataHash = new Hashtable({hashCode: this.model.modelDataPointPrint, equals: this.model.modelDataPointEquals});
+			//this.state.modelDataHash = new Hashtable({hashCode: this.model.modelDataPointPrint, equals: this.model.modelDataPointEquals});
+			this.state.modelDataHash = new Hashtable({hashCode: model.modelDataPointPrint, equals: model.modelDataPointEquals});
 
-			console.log(this.model.modelDataPoint); // testing - Joe
 			
 			// [vaa12] determine if is wise to preload datasets for the three species and then build overview from this
 			// At time being, overview is made up of three calls, which it repeats these calls with a larger limit if you decided to view single species
@@ -1146,7 +1169,7 @@
 			var res;
 			//console.log("this.state.simServerURL is..."+this.state.simServerURL);
 			// COMPARE CALL HACK - REFACTOR OUT
-			if(jQuery.isEmptyObject(this.state.providedData)) {
+			if($.isEmptyObject(this.state.providedData)) {
 				var url = this._getLoadDataURL(phenotypeList, taxon, limit);
 				res = this._ajaxLoadData(speciesName, url);
 			} else {
@@ -1344,9 +1367,9 @@
 
 					// Setting modelDataHash
 					if (this.state.invertAxis){
-						modelPoint = new this.model.modelDataPoint(this._getConceptId(curr_row.a.id), this._getConceptId(modelID));
+						modelPoint = new model.modelDataPoint(this._getConceptId(curr_row.a.id), this._getConceptId(modelID));
 					} else {
-						modelPoint = new this.model.modelDataPoint(this._getConceptId(modelID), this._getConceptId(curr_row.a.id));
+						modelPoint = new model.modelDataPoint(this._getConceptId(modelID), this._getConceptId(curr_row.a.id));
 					}
 					this._updateSortVals(this._getConceptId(curr_row.a.id), parseFloat(curr_row.lcs.IC));
 					
@@ -1546,7 +1569,7 @@
 		_ajaxLoadData: function(target, url) { // removed space between function and the ( - Joe
 			var self = this;
 			var res;
-			jQuery.ajax({
+			$.ajax({
 				url: url,
 				async : false,
 				dataType : 'json',
@@ -3431,7 +3454,7 @@
 		_rectClick: function(data) {
 			var retData;
 			this._showThrobber();
-			jQuery.ajax({
+			$.ajax({
 				url : this.state.serverURL + "/phenotype/" + data.attributes.ontology_id.value + ".json",
 				async : false,
 				dataType : 'json',
@@ -3851,7 +3874,7 @@
 			this.state.phenotypeListHash = new Hashtable();
 			
 			// Create a new empty hash table with supplied options, Hashtable(Object options) - Joe
-			this.state.modelDataHash = new Hashtable({hashCode: this.model.modelDataPointPrint, equals: this.model.modelDataPointEquals});
+			this.state.modelDataHash = new Hashtable({hashCode: model.modelDataPointPrint, equals: model.modelDataPointEquals});
 			var modelPoint, hashData;
 			var y = 0;
 
@@ -3867,9 +3890,9 @@
 
 				// Setting modelDataHash
 				if (this.state.invertAxis){
-					modelPoint = new this.model.modelDataPoint(this.state.modelData[i].id_a, this.state.modelData[i].model_id);
+					modelPoint = new model.modelDataPoint(this.state.modelData[i].id_a, this.state.modelData[i].model_id);
 				} else {
-					modelPoint = new this.model.modelDataPoint(this.state.modelData[i].model_id, this.state.modelData[i].id_a);
+					modelPoint = new model.modelDataPoint(this.state.modelData[i].model_id, this.state.modelData[i].id_a);
 				}
 				this._updateSortVals(this.state.modelData[i].id_a, this.state.modelData[i].subsumer_IC);
 				hashData = {"value": this.state.modelData[i].value, "subsumer_label": this.state.modelData[i].subsumer_label, "subsumer_id": this.state.modelData[i].subsumer_id, "subsumer_IC": this.state.modelData[i].subsumer_IC, "b_label": this.state.modelData[i].label_b, "b_id": this.state.modelData[i].id_b, "b_IC": this.state.modelData[i].IC_b};
@@ -4002,4 +4025,4 @@
 		}
 
 	}); // end of widget code
-})(jQuery);
+});

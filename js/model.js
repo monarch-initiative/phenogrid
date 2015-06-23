@@ -1,4 +1,5 @@
-var model = {
+// CommonJS format
+module.exports = {
 	// In JavaScript, a function is an object, and can be used to construct objects with the new operator - Joe
 	// Creation of modelDataPoint object
 	modelDataPoint: function(x, y) {

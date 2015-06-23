@@ -1,17 +1,11 @@
 <html>
 <head>
 <title>Monarch Phenotype Grid Widget</title>
-<script src="js/jquery-1.11.0.min.js"></script>
-<script src="js/jquery-ui-1.10.3.custom.min.js"></script>
-<script src="js/d3.min.js"></script>
-<script src="js/jshashtable.js"></script>
-<script src="js/stickytooltip.js"></script>
-<script src="js/model.js"></script>
-<script src="js/phenogrid_config.js"></script>
-<script src="js/phenogrid.js"></script>
-<script src="js/render.js"></script>
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.css"/>
 
+<script src="js/bundle.js"></script>
+<script src="js/phenogrid_config.js"></script>
+
+<link rel="stylesheet" type="text/css" href="css/jquery-ui.css"/>
 <link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
 <link rel="stylesheet" type="text/css" href="css/stickytooltip.css"/>
 
@@ -34,10 +28,9 @@ var phenotypes = [
 	{ id:"HP:0007159", observed:"positive"}
 ];	
 
-
-// jQuery gets to bootstrap everything.
-jQuery(document).ready(function(){
-	$("#phen_vis").phenogrid({
+// $ is not defined - Error
+$(document).ready(function(){
+	$("#phenogrid_container").phenogrid({
 		serverURL :"http://beta.monarchinitiative.org", 
 		phenotypeData: phenotypes,
 		targetSpeciesName: "Mus musculus" 
@@ -50,7 +43,7 @@ jQuery(document).ready(function(){
 
 <body>
 
-<div id="phen_vis"></div>
+<div id="phenogrid_container"></div>
 
 </body>
 </html>
