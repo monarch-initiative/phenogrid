@@ -11,6 +11,9 @@ yum install -y nodejs
 
 npm install -g browserify
 
+#Install NPM packages
+
+npm install jquery jquery-ui d3 jshashtable
 
 #Run browserify
 In the ./js directory, run
