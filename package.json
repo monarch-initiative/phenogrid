@@ -20,11 +20,27 @@
 	"homepage": "https://github.com/monarch-initiative/phenogrid",
 	"main": "js/phenogrid.js",
 	"dependencies": {
+		"browserify-shim": "^3.8.8",
 		"d3": "^3.5.5",
 		"jquery": "^2.1.4",
 		"jquery-ui": "^1.10.5",
 		"jshashtable": "^0.1.0"
 	},
+    "browserify": {
+        "transform": [
+            "browserify-shim"
+        ]
+    },
+	"browserify-shim": {
+		"jquery": {
+			"exports": "global:$"
+		},
+		"jquery-ui": {
+			"depends": [
+				"jquery"
+			]
+	}
+    },
 	"browser": {
 		"jquery": "./node_modules/jquery/dist/jquery.js",
 		"jquery-ui": "./node_modules/jquery-ui/jquery-ui.js",
