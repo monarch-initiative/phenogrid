@@ -25,25 +25,5 @@
 		"jquery": "^2.1.4",
 		"jquery-ui": "^1.10.5",
 		"jshashtable": "^0.1.0"
-	},
-    "browserify": {
-        "transform": [
-            "browserify-shim"
-        ]
-    },
-	"browserify-shim": {
-		"jquery": {
-			"exports": "global:$"
-		},
-		"jquery-ui": {
-			"depends": [
-				"jquery"
-			]
-	}
-    },
-	"browser": {
-		"jquery": "./node_modules/jquery/dist/jquery.js",
-		"jquery-ui": "./node_modules/jquery-ui/jquery-ui.js",
-		"d3": "./node_modules/d3/d3.min.js"
 	}
 }
