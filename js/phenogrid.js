@@ -55,9 +55,10 @@
 // npm install jquery jquery-ui d3 jshashtable
  
 // NPM installed packages, you will find them in /node_modules - Joe
-var $ = require("jquery");
 
+// jquery  is commonsJS compliant as of 2.1.0 - Joe
 
+var $ = require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
 require('jquery-ui');
 var d3 = require('d3');
 var Hashtable = require('jshashtable');
@@ -68,8 +69,6 @@ var Hashtable = require('jshashtable');
 var model = require('./model.js');
 var stickytooltip = require('./stickytooltip.js');
 var TooltipRender = require('./render.js');
-
-
 
 // Self-executing anonymous function with jQuery object passed into via $ alias - Joe
 (function($){
