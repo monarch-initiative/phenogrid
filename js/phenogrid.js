@@ -886,7 +886,7 @@ var TooltipRender = require('./render.js');
 		},
 
 		// We only have 3 colors but that will do for now
-		_getColorForModelValue: function(self,species,score) {
+		_getColorForModelValue: function(self, species, score) {
 			// This is for the new "Overview" target option
 			var selectedScale = self.state.colorScale[species][self.state.selectedCalculation];
 			return selectedScale(score);
@@ -900,7 +900,7 @@ var TooltipRender = require('./render.js');
 			var explYOffset = 15;
 			var explXOffset = 10;
 			var scoretip = self.state.svg.append("text")
-				.attr("transform","translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY + ")")
+				.attr("transform", "translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY + ")")
 				.attr("x", 0)
 				.attr("y", 0)
 				.attr("class", "pg_tip")
@@ -909,7 +909,7 @@ var TooltipRender = require('./render.js');
 			var tip	= self.state.svg
 				.append("svg:image")
 				.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-				.attr("transform","translate(" + (self.state.axis_pos_list[2] + tipTextLength) + "," + faqY + ")")
+				.attr("transform", "translate(" + (self.state.axis_pos_list[2] + tipTextLength) + "," + faqY + ")")
 				.attr("id","modelscores")
 				.attr("x", 0)
 				.attr("y", 0)
@@ -935,7 +935,7 @@ var TooltipRender = require('./render.js');
 			var title = document.getElementsByTagName("title")[0].innerHTML;
 			var dtitle = title.replace("Monarch Disease:", "");
 
-			// place it at yoffset - the top of the rectangles with the phenotypes
+			// place it at offset - the top of the rectangles with the phenotypes
 			var disease = dtitle.replace(/ *\([^)]*\) */g,"");
 			var shortDis = self._getShortLabel(disease, 60);	// [vaa12] magic number needs removed
 
@@ -2792,15 +2792,15 @@ var TooltipRender = require('./render.js');
 		_createXLabels: function(self, models) {
 			var model_x_axis = d3.svg.axis().scale(self.state.xScale).orient("top");
 			self.state.svg.append("g")
-				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 28) + "," + self.state.yoffset + ")")
+				.attr("transform", "translate(" + (self.state.textWidth + self.state.xOffsetOver + 28) + "," + self.state.yoffset + ")")
 				.attr("class", "x axis")
 				.call(model_x_axis)
 				// this be some voodoo...
 				// to rotate the text, I need to select it as it was added by the axis
 				.selectAll("text")
-				.each(function(d,i) {
+				.each(function(d, i) {
 					var labelM = self._getAxisData(d).label;
-					self._convertLabelHTML(self, this, self._getShortLabel(labelM,self.state.labelCharDisplayCount),d);
+					self._convertLabelHTML(self, this, self._getShortLabel(labelM, self.state.labelCharDisplayCount), d);
 				});
 		},
 
@@ -2843,7 +2843,7 @@ var TooltipRender = require('./render.js');
 			}
 
 			this.state.svg.append("line")
-				.attr("transform","translate(" + (this.state.textWidth + 15) + "," + lineY + ")")
+				.attr("transform", "translate(" + (this.state.textWidth + 15) + "," + lineY + ")")
 				.attr("x1", 0)
 				.attr("y1", 0)
 				.attr("x2", 0)
@@ -2880,7 +2880,7 @@ var TooltipRender = require('./render.js');
 					}})
 				.style("font-weight","bold")
 				.style("fill",function(d) {
-					return self._getColorForModelValue(self,self._getAxisData(d).species,self._getAxisData(d).score);
+					return self._getColorForModelValue(self, self._getAxisData(d).species,self._getAxisData(d).score);
 				});
 
 				if (this.state.invertAxis) {
@@ -2890,14 +2890,16 @@ var TooltipRender = require('./render.js');
 					this.state.svg.selectAll("text.scores").attr("x", 0);
 					this.state.svg.selectAll("text.scores").attr("transform", "translate(" + (this.state.textWidth + 20) + "," + 40 + ")");
 				} else {
-					this.state.svg.selectAll("text.scores").attr("x",function(d,i){return i * xWidth;});
+					this.state.svg.selectAll("text.scores").attr("x", function(d,i) {
+						return i * xWidth;
+					});
 					this.state.svg.selectAll("text.scores").attr("y", 0);
 					this.state.svg.selectAll("text.scores").attr("transform", "translate(" + (this.state.textWidth + 54) + "," + this.state.yoffset + ")");
 				}
 		},
 
 		// Add species labels to top of Overview
-		_createOverviewSpeciesLabels: function () {
+		_createOverviewSpeciesLabels: function() {
 			var self = this;
 			var speciesList = [];
 
@@ -2926,7 +2928,7 @@ var TooltipRender = require('./render.js');
 		},
 
 		// we might want to modify this to do a dynamic http retrieval to grab the dialog components...
-		_showDialog: function(name){
+		_showDialog: function(name) {
 			var self = this;
 			var url = this._getResourceUrl(name,'html');
 			if (typeof(self.state.tooltips[name]) === 'undefined') {
@@ -3046,13 +3048,15 @@ var TooltipRender = require('./render.js');
 			mods = self._getSortedIDListStrict(this.state.filteredXAxis.entries());
 
 			this.state.xScale = d3.scale.ordinal()
-				.domain(mods.map(function (d) {return d; }))
+				.domain(mods.map(function (d) {
+					return d; 
+				}))
 				.rangeRoundBands([0,this.state.modelWidth]);
 
-			this._createXLabels(self,mods);
+			this._createXLabels(self, mods);
 			this._createXLines();
 			//[vaa12] These now darken when mini-map is moved
-			if (!this.state.invertAxis) {
+			if ( ! this.state.invertAxis) {
 				this._createTextScores();
 				this._createModelScoresLegend();
 			}
@@ -4088,7 +4092,9 @@ var TooltipRender = require('./render.js');
 		_getExpandStyling: function(data) {
 			var concept = this._getConceptId(data);
 
-			if(typeof(concept) === 'undefined' ) return "#000000";
+			if (typeof(concept) === 'undefined' ) {
+				return "#000000";
+			}
 			var info = this._getIDTypeDetail(concept);
 
 			if (info == 'gene') {
