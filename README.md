@@ -30,7 +30,7 @@ This command will use browserify to bundle up phenogrid core and its dependencie
 gulp create-bundle
 ```
 
-Now the phenogrid-bundle.js will be created and put into the same `dist` folder.
+Now the `phenogrid-bundle.js` will be created and put into the same `dist` folder.
 
 #4. Use of phenogrid in your HTML
 
