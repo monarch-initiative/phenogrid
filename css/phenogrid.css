@@ -4,7 +4,7 @@
 }
 
 #phenogrid_container .a_text {
-	text-anchor:end;
+	text-anchor:end; /* If removed, Y legend will overlap to the grid */
 	opacity: 1.0;
 	font-size: 12px;
 }
@@ -17,15 +17,15 @@
 }
 
 #pg_gridline {
-	fill: #ffffff;
+	fill: #fff;
 	fill-opacity: 0;
 	stroke: #e5e5e5;
 	stroke-width: 1;
 }
 
 #pg_globalview {
-	fill: #ffffff;
-	stroke: #000000;
+	fill: #fff;
+	stroke: #000;
 	stroke-width: 2;
 }
 
@@ -35,7 +35,7 @@
 	/*stroke:#ea763b;*/
 	stroke:#4CA092;
 	stroke-width: 2;
-	fill: #4CA092;   /*#ffffff;*/
+	fill: #4CA092;   /*#fff;*/
 	fill-opacity: 0.1;    /*0.05;*/
 }
 
@@ -173,13 +173,13 @@
 /** jQDialog styles */
 .ui-dialog-titlebar {
 	background-color:#253494;
-	color:#FFFFFF;
+	color:#fff;
 }
 
 .ui-dialog-content {
 	font-size:11px;
 	font-family: arial;
-	color:#000000;
+	color:#000;
 }
 
 .ui-dialog-content a {
@@ -322,7 +322,7 @@
 .expandbtn {
     padding: 0;
     border: none;
-    background: transparent url('./widgets/phenogrid/image/ExpandAllIcon.png') no-repeat;
+    background: transparent url('../image/ExpandAllIcon.png') no-repeat;
     margin-left: auto;
     margin-right: auto;
     width: 18px;
@@ -334,7 +334,7 @@
 .collapsebtn {
     padding: 0;
     border: none;
-    background: transparent url('/widgets/phenogrid/image/CollapseAllIcon.png') no-repeat;
+    background: transparent url('../image/CollapseAllIcon.png') no-repeat;
     margin-left: auto;
     margin-right: auto;    
     width: 18px;
@@ -348,7 +348,7 @@
 }
 
 /*.spinner {
-	background: url('/widgets/phenogrid/image/throbber.gif') no-repeat;
+	background: url('../image/throbber.gif') no-repeat;
 	top: 10px;
 	left: 100px;
 	position: absolute;
