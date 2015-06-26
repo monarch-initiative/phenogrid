@@ -79,13 +79,6 @@
 	text-align:left;
 }
 
-#pg_svg_area {
-	float:left;
-	margin-top: -35px;
-	padding-top: 35px;
-	/*height:500px;  !important;*/
-}
-
 #pg_selectionrect {
 	fill: grey;
 	opacity: 0.5
@@ -235,9 +228,6 @@
 }
 
 #phenogrid_controls {
-	float:left;
-	clear:both;
-	margin-top:-50px;
 	margin-left:10px;
 }
 

@@ -935,7 +935,7 @@ var TooltipRender = require('./render.js');
 			var title = document.getElementsByTagName("title")[0].innerHTML;
 			var dtitle = title.replace("Monarch Disease:", "");
 
-			// place it at offset - the top of the rectangles with the phenotypes
+			// place it at yoffset - the top of the rectangles with the phenotypes
 			var disease = dtitle.replace(/ *\([^)]*\) */g,"");
 			var shortDis = self._getShortLabel(disease, 60);	// [vaa12] magic number needs removed
 
@@ -2819,7 +2819,7 @@ var TooltipRender = require('./render.js');
 			this.state.svg.selectAll("#pg_specieslist").remove();
 
 			this.state.svg.append("line")
-				.attr("transform","translate(" + (this.state.textWidth + this.state.xOffsetOver + 30) + "," + lineY + ")")
+				.attr("transform", "translate(" + (this.state.textWidth + this.state.xOffsetOver + 30) + "," + lineY + ")")
 				.attr("x1", 0)
 				.attr("y1", 0)
 				.attr("x2", this.state.modelWidth)
