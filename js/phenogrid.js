@@ -1258,7 +1258,7 @@ var TooltipRender = require('./render.js');
 					break;
 				}
 				var species = this.state.targetSpeciesList[i].name;
-				this._loadSpeciesData(species,limit);
+				this._loadSpeciesData(species, limit);
 				if (species === this.state.refSpecies && typeof(species) !== 'undefined') {
 				// if it's the one we're reffering to
 					if (typeof(this.state.data[species].metadata) !== 'undefined') {
@@ -2614,7 +2614,7 @@ var TooltipRender = require('./render.js');
 			var displayCountX = self._getXLimit();
 
 			// Have temporarly until fix for below during Axis Flip
-			if (self.state.targetSpeciesName == "Overview"){
+			if (self.state.targetSpeciesName == 'Overview'){
 				if (this.state.invertAxis) {
 					list = self.state.speciesList;
 					ct = self.state.multiOrganismCt;
@@ -2640,7 +2640,7 @@ var TooltipRender = require('./render.js');
 				.data(list)
 				.enter()
 				.append("rect")
-				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 30) + "," + (self.state.yoffsetOver) + ")")
+				.attr("transform", "translate(" + (self.state.textWidth + self.state.xOffsetOver + 30) + "," + (self.state.yoffsetOver) + ")")
 				.attr("class", "species_accent")
 				.attr("width", width)
 				.attr("height", height)
