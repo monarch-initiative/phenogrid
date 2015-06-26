@@ -2121,9 +2121,11 @@ var TooltipRender = require('./render.js');
 			var nextLevel = level + 1;
 
 			for (var j in edges){
-				if(!edges.hasOwnProperty(j)){break;}
+				if ( ! edges.hasOwnProperty(j)) {
+					break;
+				}
 				// Currently only allows subClassOf relations.  When new relations are introducted, it should be simple to implement
-				if (edges[j].pred == "subClassOf" && this.state.hpoTreesDone != this.state.hpoTreeAmounts){
+				if (edges[j].pred == "subClassOf" && this.state.hpoTreesDone != this.state.hpoTreeAmounts) {
 					if (edges[j].sub == id){
 						if (this.state.hpoTreeHeight < nextLevel){
 							this.state.hpoTreeHeight++;
@@ -2320,7 +2322,7 @@ var TooltipRender = require('./render.js');
 				.attr('width', 9)
 				.attr('height', 9)
 				.attr('xlink:href', '/widgets/phenogrid/image/downarrow.png');
-			} else if (this._isGenoType(data) ){
+			} else if (this._isGenoType(data)) {
 				p.append("image")
 				.attr('x', x-3)
 				.attr('y', y-10)
@@ -2348,11 +2350,17 @@ var TooltipRender = require('./render.js');
 			var hgt = displayCount * 10 + this.state.yoffset;
 			var yv, wv;
 
-			if (coords.y > hgt) { yv = coords.y - this.state.detailRectHeight - 10;}
-			else {yv = coords.y + 20;}
+			if (coords.y > hgt) { 
+				yv = coords.y - this.state.detailRectHeight - 10;
+			} else {
+				yv = coords.y + 20;
+			}
 
-			if (coords.x > wdt) { wv = coords.x - w - 20;}
-			else {wv = coords.x + 20;}
+			if (coords.x > wdt) { 
+				wv = coords.x - w - 20;
+			} else {
+				wv = coords.x + 20;
+			}
 
 			this.state.svg.append("foreignObject")
 				.attr("width", w)
@@ -2376,16 +2384,16 @@ var TooltipRender = require('./render.js');
 			var taxon = fullInfo.taxon;
 
 			//[vaa12] Could be done in a more sophisticated function, but this works and removed dependancy on invertAxis
-			if (this.state.phenotypeListHash.containsKey(d.xID)){
+			if (this.state.phenotypeListHash.containsKey(d.xID)) {
 				phenoLabel = this.state.phenotypeListHash.get(d.xID).label;
-			} else if (this.state.phenotypeListHash.containsKey(d.yID)){
+			} else if (this.state.phenotypeListHash.containsKey(d.yID)) {
 				phenoLabel = this.state.phenotypeListHash.get(d.yID).label;
 			} else {
 				phenoLabel = null;
 			}
-			if (this.state.modelListHash.containsKey(d.xID)){
+			if (this.state.modelListHash.containsKey(d.xID)) {
 				modelLabel = this.state.modelListHash.get(d.xID).label;
-			} else if (this.state.modelListHash.containsKey(d.yID)){
+			} else if (this.state.modelListHash.containsKey(d.yID)) {
 				modelLabel = this.state.modelListHash.get(d.yID).label;
 			} else {
 				modelLabel = null;
@@ -2398,7 +2406,9 @@ var TooltipRender = require('./render.js');
 			}
 
 			for (var idx in this.state.similarityCalculation) {
-				if(!this.state.similarityCalculation.hasOwnProperty(idx)){break;}
+				if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
+					break;
+				}
 				if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
 					prefix = this.state.similarityCalculation[idx].label;
 					break;
@@ -2603,12 +2613,13 @@ var TooltipRender = require('./render.js');
 				.attr("stroke-width", borderStroke)
 				.attr("fill", "none");
 
-				if (self.state.targetSpeciesName == "Overview" && this.state.invertAxis){
+				if (self.state.targetSpeciesName == "Overview" && this.state.invertAxis) {
 					border_rect.attr("x", 0);
 					border_rect.attr("y", function(d,i) {
 						totCt += ct;
-						if (i === 0) { return (self.state.yoffset + borderStroke); }
-						else {
+						if (i === 0) { 
+							return (self.state.yoffset + borderStroke); 
+						} else {
 							parCt = totCt - ct;
 							return (self.state.yoffset + borderStroke) + ((vwidthAndGap) * parCt + i);
 						}
@@ -2689,7 +2700,7 @@ var TooltipRender = require('./render.js');
 			var data = [];
 
 			// This is for the new "Overview" target option
-			if (this.state.targetSpeciesName == "Overview"){
+			if (this.state.targetSpeciesName == 'Overview') {
 				data = this.state.modelDataHash.keys();
 			} else {
 				data = self.state.filteredModelData;
@@ -2713,13 +2724,13 @@ var TooltipRender = require('./render.js');
 			var xSize = this.state.xAxis.size();
 			var ySize = this.state.yAxis.size();
 
-			if (newXPos > xSize){
+			if (newXPos > xSize) {
 				this.state.currXIdx = xSize;
 			} else {
 				this.state.currXIdx = newXPos;
 			}
 
-			if (newYPos > ySize){
+			if (newYPos > ySize) {
 				this.state.currYIdx = ySize;
 			} else {
 				this.state.currYIdx = newYPos;
@@ -2853,9 +2864,9 @@ var TooltipRender = require('./render.js');
 			var self = this;
 			var speciesList = [];
 
-			if (!this.state.invertAxis && self.state.targetSpeciesName == "Overview") {
+			if ( ! this.state.invertAxis && self.state.targetSpeciesName == 'Overview') {
 				speciesList = self.state.speciesList;
-			} else{
+			} else {
 				speciesList.push(self.state.targetSpeciesName);
 			}
 			var translation = "translate(" + (self.state.textWidth + self.state.xOffsetOver + 30) + "," + (self.state.yoffset + 10) + ")";
@@ -3001,7 +3012,7 @@ var TooltipRender = require('./render.js');
 				this._createTextScores();
 				this._createModelScoresLegend();
 			}
-			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
+			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser') {
 				this._createOverviewSpeciesLabels();
 			}
 		},
@@ -3136,7 +3147,9 @@ var TooltipRender = require('./render.js');
 		_buildGradientTexts: function(y1) {
 			var lowText, highText, labelText;
 			for (var idx in this.state.similarityCalculation) {
-				if(!this.state.similarityCalculation.hasOwnProperty(idx)){break;}
+				if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
+					break;
+				}
 				if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
 					lowText = this.state.similarityCalculation[idx].low;
 					highText = this.state.similarityCalculation[idx].high;
@@ -3170,7 +3183,7 @@ var TooltipRender = require('./render.js');
 				.attr("y", yhighText)
 				.style("font-size", "10px")
 				.text(highText);
-			if (highText == "Max" || highText == "Highest"){
+			if (highText == 'Max' || highText == 'Highest') {
 				div_text3.attr("x", xhighText + 25);
 			} else {
 				div_text3.attr("x", xhighText);
@@ -3239,7 +3252,7 @@ var TooltipRender = require('./render.js');
 			
 			// Overview is not a proper name, change it later - Joe
 			
-			if (this.state.targetSpeciesName === "Overview") {
+			if (this.state.targetSpeciesName === 'Overview') {
 				selectedItem = "selected";
 			} else {
 				selectedItem = "";
@@ -3367,8 +3380,10 @@ var TooltipRender = require('./render.js');
 			var tempObject = {"id": 0, "observed": "positive"};
 
 			for (var i in fullset) {
-				if(!fullset.hasOwnProperty(i)){break;}
-				if (typeof(fullset[i].id) === 'undefined'){
+				if ( ! fullset.hasOwnProperty(i)) { 
+					break;
+				}
+				if (typeof(fullset[i].id) === 'undefined') {
 					tempObject.id = fullset[i];
 					full.push(tempObject);
 				} else {
@@ -3376,13 +3391,17 @@ var TooltipRender = require('./render.js');
 				}
 			}
 
-			for (var j in partialset){
-				if(!partialset.hasOwnProperty(j)){break;}
+			for (var j in partialset) {
+				if ( ! partialset.hasOwnProperty(j)) {
+					break;
+				}
 				partial.push(partialset[j].replace("_", ":"));
 			}
 
 			for (var k in full) {
-				if(!full.hasOwnProperty(k)){break;}
+				if ( ! full.hasOwnProperty(k)) {
+					break;
+				}
 				// if no match in fullset
 				if (partial.indexOf(full[k].id) < 0) {
 					// if there unmatched set is empty, add this umatched phenotype
@@ -3394,7 +3413,9 @@ var TooltipRender = require('./render.js');
 			dupArray.push(unmatchedset[0]);
 			// check for dups
 			for (var l in unmatchedset){
-				if(!unmatchedset.hasOwnProperty(l)){break;}
+				if ( ! unmatchedset.hasOwnProperty(l)) {
+					break;
+				}
 				var found = false;
 				for (var m in dupArray) {
 					if(!dupArray.hasOwnProperty(m)){break;}
@@ -3462,7 +3483,7 @@ var TooltipRender = require('./render.js');
 				text = "";
 				for (var j = 0; j < columns; j++){
 					id = self._getConceptId(unmatched[i++].id);
-					if (unmatched[i - 1].label !== undefined){
+					if (unmatched[i - 1].label !== undefined) {
 						label = unmatched[i - 1].label;
 					} else {
 						label = unmatched[i - 1].id;
@@ -3520,7 +3541,9 @@ var TooltipRender = require('./render.js');
 			var newlist = [];
 			var pheno;
 			for (var i in phenotypelist) {
-				if(!phenotypelist.hasOwnProperty(i)){break;}
+				if(!phenotypelist.hasOwnProperty(i)) {
+					break;
+				}
 				pheno = phenotypelist[i];
 				if (typeof pheno === 'string') {
 					newlist.push(pheno);
@@ -3538,7 +3561,7 @@ var TooltipRender = require('./render.js');
 
 			// this code refreshes the stickytooltip so that tree appears instantly
 			var hpoCached = this.state.hpoCacheHash.get(id.replace("_", ":"));
-			if (hpoCached !== null){
+			if (hpoCached !== null) {
 				this.state.hpoTreesDone = 0;
 				this.state.hpoTreeHeight = 0;
 				var info = this._getAxisData(id);
@@ -3547,7 +3570,7 @@ var TooltipRender = require('./render.js');
 				var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
 				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
 				var hpoTree = "<div id='pg_hpoDiv'>" + this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-				if (hpoTree == "<br/>"){
+				if (hpoTree == "<br/>") {
 					hpoData += "<em>No HPO Data Found</em>";
 				} else {
 					hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
@@ -3589,8 +3612,10 @@ var TooltipRender = require('./render.js');
 					nodes = results.nodes;
 					// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
 					for (var i in nodes){
-						if(!nodes.hasOwnProperty(i)){break;}
-						if (!this.state.hpoCacheLabels.containsKey(nodes[i].id) && (nodes[i].id != "MP:0000001" && nodes[i].id != "UPHENO_0001001" && nodes[i].id != "UPHENO_0001002" && nodes[i].id != "HP:0000118" && nodes[i].id != "HP:0000001")){
+						if ( ! nodes.hasOwnProperty(i)) {
+							break;
+						}
+						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id) && (nodes[i].id != "MP:0000001" && nodes[i].id != "UPHENO_0001001" && nodes[i].id != "UPHENO_0001002" && nodes[i].id != "HP:0000118" && nodes[i].id != "HP:0000001")){
 							this.state.hpoCacheLabels.put(nodes[i].id,this._capitalizeString(nodes[i].lbl));
 						}
 					}
@@ -3724,7 +3749,9 @@ var TooltipRender = require('./render.js');
 				var iPosition = 1;
 				// rebuild the model list with genotypes
 				for (var idx in compareScores.b) {
-					if(!compareScores.b.hasOwnProperty(idx)){break;}
+					if ( ! compareScores.b.hasOwnProperty(idx)) {
+						break;
+					}
 					var newGtLabel = genotypeLabelHashtable.get(compareScores.b[idx].id);
 					var gt = {
 					parent: modelInfo.id,
@@ -3778,7 +3805,7 @@ var TooltipRender = require('./render.js');
 
 				success = true;
 			} else {
-					alert('No compare scores found');
+				alert('No compare scores found');
 			}
 			$('#wait').hide();
 			stickytooltip.closetooltip();
@@ -3816,9 +3843,11 @@ var TooltipRender = require('./render.js');
 			var models = self.state.modelData;
 			var phenoTypes = [];
 			for (var i in models){
-				if(!models.hasOwnProperty(i)){break;}
+				if ( ! models.hasOwnProperty(i)) {
+					break;
+				}
 				// models[i] is the matching model that contains all phenotypes
-				if (models[i].model_id == curModelId){
+				if (models[i].model_id == curModelId) {
 					phenoTypes.push({id: models[i].id_a, label: models[i].label_a});
 				}
 			}
@@ -3832,8 +3861,10 @@ var TooltipRender = require('./render.js');
 			var reorderPointOffset = insertions.size();
 			var insertionOccurred = false;
 
-			for (var i in sortedModelList){
-				if(!sortedModelList.hasOwnProperty(i)){break;}
+			for (var i in sortedModelList) {
+				if ( ! sortedModelList.hasOwnProperty(i)) {
+					break;
+				}
 				var entry = this.state.modelListHash.get(sortedModelList[i]);
 				if (entry.pos == insertPoint) {
 					// add the entry, or gene in this case
@@ -3867,7 +3898,9 @@ var TooltipRender = require('./render.js');
 			// get the max position that was inserted
 			var maxInsertedPosition = 0;
 			for (var x in removeEntries){
-				if(!removeEntries.hasOwnProperty(x)){break;}
+				if ( ! removeEntries.hasOwnProperty(x)) {
+					break;
+				}
 				var obj = removeEntries[x][1];
 				if (obj.pos > maxInsertedPosition) {
 					maxInsertedPosition = obj.pos;
@@ -3875,7 +3908,9 @@ var TooltipRender = require('./render.js');
 			}
 
 			for (var i in sortedModelList){
-				if(!sortedModelList.hasOwnProperty(i)){break;}
+				if ( ! sortedModelList.hasOwnProperty(i)) {
+					break;
+				}
 				var entry = this.state.modelListHash.get(sortedModelList[i]);
 				var found = false, cnt = 0;
 
@@ -3921,9 +3956,11 @@ var TooltipRender = require('./render.js');
 
 			// need to rebuild the pheno hash and the modelData hash
 			for (var i in this.state.modelData) {
-				if(!this.state.modelData.hasOwnProperty(i)){break;}
+				if ( ! this.state.modelData.hasOwnProperty(i)) {
+					break;
+				}
 				// Setting phenotypeListHash
-				if (typeof(this.state.modelData[i].id_a) !== 'undefined' && !this.state.phenotypeListHash.containsKey(this.state.modelData[i].id_a)){
+				if (typeof(this.state.modelData[i].id_a) !== 'undefined' && !this.state.phenotypeListHash.containsKey(this.state.modelData[i].id_a)) {
 					hashData = {"label": this.state.modelData[i].label_a, "IC": this.state.modelData[i].IC_a, "pos": y, "count": 0, "sum": 0, "type": "phenotype"};
 					this.state.phenotypeListHash.put(this.state.modelData[i].id_a, hashData);
 					y++;
@@ -3959,7 +3996,9 @@ var TooltipRender = require('./render.js');
 
 				// HACK:if we return a null just create a zero-length array for now to add it to hashtable
 				// this is for later so we don't have to lookup concept again
-				if (gta === null) {gta = {};}
+				if (gta === null) {
+					gta = {};
+				}
 
 				// save the genotypes in hastable for later
 				this.state.expandedHash.put(curModel.model_id, gta);
