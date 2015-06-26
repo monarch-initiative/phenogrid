@@ -1897,13 +1897,16 @@ var TooltipRender = require('./render.js');
 				}
 				link_lines[0][i].style.fill = this._getExpandStyling(link_lines[0][i].id);
 			}
+			
 			link_lines.style("font-weight", "normal");
 			link_lines.style("text-decoration", "none");
 			link_lines.style("text-anchor", "end");
 
 			var link_labels = d3.selectAll(".model_label");
 			for (var j in link_labels[0]){
-				if(!link_lines[0].hasOwnProperty(j)){break;}
+				if ( ! link_lines[0].hasOwnProperty(j)) {
+					break;
+				}
 				link_labels[0][j].style.fill = this._getExpandStyling(link_labels[0][j].id);
 			}
 			link_labels.style("font-weight", "normal");
@@ -2059,7 +2062,9 @@ var TooltipRender = require('./render.js');
 			// create the related model rectangles
 			var highlight_rect = self.state.svg.append("svg:rect")
 				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 32) + "," + self.state.yoffsetOver + ")")
-				.attr("x", function(d) { return (self.state.xScale(data) - 1);})
+				.attr("x", function(d) { 
+					return (self.state.xScale(data) - 1);
+				})
 				.attr("y", self.state.yoffset +2)
 				.attr("class", "pg_col_accent")
 				.attr("width", 15 * appearanceOverrides.offset)
@@ -2071,7 +2076,7 @@ var TooltipRender = require('./render.js');
 				attributes: [],
 				getAttribute: function(keystring) {
 					var ret = self.state.xScale(data) + 15;
-					if (keystring == "y") {
+					if (keystring == 'y') {
 						ret = Number(self.state.yoffset - 100);
 					}
 					return ret;
@@ -2095,7 +2100,7 @@ var TooltipRender = require('./render.js');
 			//console.log("select y item.. "+txt);
 
 			var alabels = this.state.svg.selectAll("text.a_text." + curr_data)
-				.style("font-weight", "bold")
+				//.style("font-weight", "bold")
 				.style("fill", "blue");
 
 			appearanceOverrides = self._createHoverBox(curr_data);
@@ -2104,7 +2109,9 @@ var TooltipRender = require('./render.js');
 			var highlight_rect = self.state.svg.append("svg:rect")
 				.attr("transform","translate(" + (self.state.axis_pos_list[1]) + "," + (self.state.yoffsetOver + 4) + ")")
 				.attr("x", 12)
-				.attr("y", function(d) {return info.ypos; }) //rowid
+				.attr("y", function(d) {
+					return info.ypos; 
+				}) //rowid
 				.attr("class", "pg_row_accent")
 				.attr("width", this.state.modelWidth - 4)
 				.attr("height", 11 * appearanceOverrides.offset);
@@ -2151,7 +2158,7 @@ var TooltipRender = require('./render.js');
 				}
 				// Currently only allows subClassOf relations.  When new relations are introducted, it should be simple to implement
 				if (edges[j].pred == "subClassOf" && this.state.hpoTreesDone != this.state.hpoTreeAmounts) {
-					if (edges[j].sub == id){
+					if (edges[j].sub == id) {
 						if (this.state.hpoTreeHeight < nextLevel){
 							this.state.hpoTreeHeight++;
 						}
@@ -2203,10 +2210,10 @@ var TooltipRender = require('./render.js');
 					var id = this._getConceptId(data);
 					var label = this._getAxisData(data).label;
 
-					if ((IDType == "Phenotype" && !this.state.invertAxis) || (IDType == "Model" && this.state.invertAxis)){
+					if ((IDType == "Phenotype" && !this.state.invertAxis) || (IDType == "Model" && this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text.a_text." + id);
 						alabels.html(this._getShortLabel(label));
-					}else if ((IDType == "Phenotype" && this.state.invertAxis) || (IDType == "Model" && !this.state.invertAxis)){
+					}else if ((IDType == "Phenotype" && this.state.invertAxis) || (IDType == "Model" && !this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text#" + id);
 						alabels.html(this._getShortLabel(label,self.state.labelCharDisplayCount));
 					}
@@ -2249,9 +2256,9 @@ var TooltipRender = require('./render.js');
 
 		// return a label for use in the list. This label is shortened to fit within the space in the column
 		_getShortLabel: function(label, newlength) {
-			if (label !== undefined){
+			if (label !== undefined) {
 				var retLabel = label;
-				if (!newlength) {
+				if ( ! newlength) {
 					newlength = this.state.textLength;
 				}
 				if (label.length > newlength) {
@@ -2332,7 +2339,7 @@ var TooltipRender = require('./render.js');
 				//.style("font-weight", "bold")
 				.style("fill", this._getExpandStyling(data))
 				// don't show the label if it is a dummy.
-				.text( function(d) {
+				.text(function(d) {
 					if (label == self.state.dummyModelName){
 						return "";
 					} else {
