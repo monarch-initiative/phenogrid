@@ -1031,11 +1031,11 @@ var TooltipRender = require('./render.js');
 			return j;
 		},
 
-		_getComparisonType: function(organism){
+		_getComparisonType: function(organism) {
 			var label = "";
 
 			for (var i in this.state.comparisonTypes) {
-				if (organism === this.state.comparisonTypes[i].organism){
+				if (organism === this.state.comparisonTypes[i].organism) {
 					label = this.state.comparisonTypes[i].comparison;
 				}
 			}
@@ -1048,7 +1048,9 @@ var TooltipRender = require('./render.js');
 		_setComparisonType: function(){
 			var comp = this.state.defaultComparisonType;
 			for (var i in this.state.comparisonTypes) {
-				if(!this.state.comparisonTypes.hasOwnProperty(i)){break;}
+				if ( ! this.state.comparisonTypes.hasOwnProperty(i)) {
+					break;
+				}
 				if (this.state.targetSpeciesName === this.state.comparisonTypes[i].organism) {
 					comp = this.state.comparisonTypes[i];
 				}
@@ -1112,7 +1114,9 @@ var TooltipRender = require('./render.js');
 			sortedYArray = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
 
 			for (var i in sortedYArray) {
-				if(!sortedYArray.hasOwnProperty(i)){break;}
+				if ( ! sortedYArray.hasOwnProperty(i)) {
+					break;
+				}
 				// update the YAxis
 				// the height of each row
 				var size = 10;
@@ -1180,13 +1184,13 @@ var TooltipRender = require('./render.js');
 			this.state.hpoCacheBuilt = true;
 		},
 
-		_loadSpeciesData: function(speciesName,limit) {
+		_loadSpeciesData: function(speciesName, limit) {
 			var phenotypeList = this.state.phenotypeData;
 			var taxon = this._getTargetSpeciesTaxonByName(this,speciesName);
 			var res;
 			//console.log("this.state.simServerURL is..."+this.state.simServerURL);
 			// COMPARE CALL HACK - REFACTOR OUT
-			if($.isEmptyObject(this.state.providedData)) {
+			if ($.isEmptyObject(this.state.providedData)) {
 				var url = this._getLoadDataURL(phenotypeList, taxon, limit);
 				res = this._ajaxLoadData(speciesName, url);
 			} else {
@@ -1225,7 +1229,7 @@ var TooltipRender = require('./render.js');
 		 * This will space things out appropriately, having dummy models take
 		 * up some of the x axis space. Later, we will make sure not to show the labels for these dummies.
 		 */
-		_padSpeciesData: function(res,species,limit) {
+		_padSpeciesData: function(res, species, limit) {
 			var toadd = limit - res.b.length;
 			for (var i = 0; i < toadd; i++) {
 				var dummyId = "dummy" + species + i;
@@ -1241,12 +1245,14 @@ var TooltipRender = require('./render.js');
 		_loadOverviewData: function() {
 			var limit = this.state.multiOrganismCt;
 			for (var i in this.state.targetSpeciesList) {
-				if(!this.state.targetSpeciesList.hasOwnProperty(i)){break;}
+				if ( ! this.state.targetSpeciesList.hasOwnProperty(i)) {
+					break;
+				}
 				var species = this.state.targetSpeciesList[i].name;
 				this._loadSpeciesData(species,limit);
 				if (species === this.state.refSpecies && typeof(species) !== 'undefined') {
 				// if it's the one we're reffering to
-					if (typeof(this.state.data[species].metadata) !== 'undefined'){
+					if (typeof(this.state.data[species].metadata) !== 'undefined') {
 						this.state.maxICScore = this.state.data[species].metadata.maxMaxIC;
 					}
 				}
@@ -1266,7 +1272,9 @@ var TooltipRender = require('./render.js');
 			var variantNum = 0;
 
 			for (var i in this.state.targetSpeciesList) {
-				if ( ! this.state.targetSpeciesList.hasOwnProperty(i)){break;}
+				if ( ! this.state.targetSpeciesList.hasOwnProperty(i)) {
+					break;
+				}
 				var species = this.state.targetSpeciesList[i].name;
 				var specData = this.state.data[species];
 				if (specData !== null && typeof(specData.b) !== 'undefined' && specData.b.length > 0) {
@@ -1284,7 +1292,7 @@ var TooltipRender = require('./render.js');
 
 						type = this.state.defaultApiEntity;
 						for (var j in this.state.apiEntityMap) {
-							if(!this.state.apiEntityMap.hasOwnProperty(i)) {
+							if ( ! this.state.apiEntityMap.hasOwnProperty(i)) {
 								break;
 							}
 							if (ID.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
@@ -1335,7 +1343,9 @@ var TooltipRender = require('./render.js');
 
 			if (typeof (retData.b) !== 'undefined') {
 				for (var idx in retData.b) {
-					if(!retData.b.hasOwnProperty(idx)){break;}
+					if(!retData.b.hasOwnProperty(idx)) {
+						break;
+					}
 					var item = retData.b[idx];
 					ID = this._getConceptId(item.id);
 
@@ -1372,20 +1382,22 @@ var TooltipRender = require('./render.js');
 			if (typeof(data) !== 'undefined' && data.length > 0) {
 
 				for (var idx in data) {
-					if( ! data.hasOwnProperty(idx)){break;}
+					if( ! data.hasOwnProperty(idx)) {
+						break;
+					}
 					curr_row = data[idx];
 					lcs = this._normalizeIC(curr_row);
 
 					if ( ! this.state.phenotypeListHash.containsKey(this._getConceptId(curr_row.a.id))) {
 						hashData = {"label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), "pos": 0, "count": 0, "sum": 0, "type": "phenotype"};
 						this.state.phenotypeListHash.put(this._getConceptId(curr_row.a.id), hashData);
-						if ( ! this.state.hpoCacheBuilt && this.state.preloadHPO){
+						if ( ! this.state.hpoCacheBuilt && this.state.preloadHPO) {
 							this._getHPO(this._getConceptId(curr_row.a.id));
 						}
 					}
 
 					// Setting modelDataHash
-					if (this.state.invertAxis){
+					if (this.state.invertAxis) {
 						modelPoint = new model.modelDataPoint(this._getConceptId(curr_row.a.id), this._getConceptId(modelID));
 					} else {
 						modelPoint = new model.modelDataPoint(this._getConceptId(modelID), this._getConceptId(curr_row.a.id));
@@ -1450,7 +1462,7 @@ var TooltipRender = require('./render.js');
 		_setYPosHash: function(key,ypos) {
 			var values = this.state.yAxis.get(key);
 			values.ypos = ypos;
-			this.state.yAxis.put(key,values);
+			this.state.yAxis.put(key, values);
 		},
 
 		// Updates the count & sum values used for sorting
@@ -1459,7 +1471,7 @@ var TooltipRender = require('./render.js');
 			values = this.state.phenotypeListHash.get(key);
 			values.count += 1;
 			values.sum += subIC;
-			this.state.phenotypeListHash.put(key,values);
+			this.state.phenotypeListHash.put(key, values);
 		},
 
 		// Returns values from a point on the grid
@@ -1473,10 +1485,10 @@ var TooltipRender = require('./render.js');
 
 		// Returns axis data from a ID of models or phenotypes
 		_getAxisData: function(key) {
-			if (this.state.yAxis.containsKey(key)){
+			if (this.state.yAxis.containsKey(key)) {
 				return this.state.yAxis.get(key);
 			}
-			else if (this.state.xAxis.containsKey(key)){
+			else if (this.state.xAxis.containsKey(key)) {
 				return this.state.xAxis.get(key);
 			}
 			else { return false; }
@@ -1507,7 +1519,7 @@ var TooltipRender = require('./render.js');
 
 			for (var i in currentModelData){
 				if(!currentModelData.hasOwnProperty(i)){break;}
-				if (this.state.filteredXAxis.containsKey(currentModelData[i][0].xID) && this.state.filteredYAxis.containsKey(currentModelData[i][0].yID)){
+				if (this.state.filteredXAxis.containsKey(currentModelData[i][0].xID) && this.state.filteredYAxis.containsKey(currentModelData[i][0].yID)) {
 					currentModelData[i][1].yID = currentModelData[i][0].yID;
 					currentModelData[i][1].xID = currentModelData[i][0].xID;
 					newFilteredModel.push(currentModelData[i][1]);
@@ -1563,7 +1575,7 @@ var TooltipRender = require('./render.js');
 					if ( ! newHash.hasOwnProperty(j)) {
 						break;
 					}
-					self._updatePhenoPos(newHash[j].id,j);
+					self._updatePhenoPos(newHash[j].id, j);
 				}
 			}
 		},
@@ -1607,7 +1619,7 @@ var TooltipRender = require('./render.js');
 			return res;
 		},
 
-		_displayResult: function(xhr, errorType, exception){
+		_displayResult: function(xhr, errorType, exception) {
 			var msg;
 
 			switch(xhr.status){
@@ -1838,7 +1850,7 @@ var TooltipRender = require('./render.js');
 				self._reset("calculation");
 			} else if (type === "sortphenotypes") {
 				self._reset("sortphenotypes");
-			} else if (type === "axisflip"){
+			} else if (type === "axisflip") {
 				self.state.phenotypeData = self.state.origPhenotypeData.slice();
 				self._reset("axisflip");
 				self._init();
@@ -1870,7 +1882,7 @@ var TooltipRender = require('./render.js');
 			this.state.svg.selectAll("#pg_detail_content").remove();
 
 			var link_lines = d3.selectAll(".data_text");
-			for (var i in link_lines[0]){
+			for (var i in link_lines[0]) {
 				if ( ! link_lines[0].hasOwnProperty(i)) {
 					break;
 				}
