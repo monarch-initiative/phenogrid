@@ -770,10 +770,10 @@ var TooltipRender = require('./render.js');
 					return self._getColorForModelValue(self,self._getAxisData(colorID).species,d.value[self.state.selectedCalculation]);
 				});
 
-			var lastYId = self._returnID(this.state.yAxis,yCount - 1);
-			var lastXId = self._returnID(this.state.xAxis,xCount - 1);
-			var startYId = self._returnID(this.state.yAxis,startYIdx);
-			var startXId = self._returnID(this.state.xAxis,startXIdx);
+			var lastYId = self._returnID(this.state.yAxis, yCount - 1);
+			var lastXId = self._returnID(this.state.xAxis, xCount - 1);
+			var startYId = self._returnID(this.state.yAxis, startYIdx);
+			var startXId = self._returnID(this.state.xAxis, startXIdx);
 
 			var selectRectX = self.state.smallXScale(startXId);
 			var selectRectY = self.state.smallYScale(startYId);
@@ -852,12 +852,14 @@ var TooltipRender = require('./render.js');
 		},
 
 		// Returns the ID of the value on the Y Axis based on current position provided
-		_returnID: function(hashtable,position){
+		_returnID: function(hashtable,position) {
 			var searchArray = hashtable.entries();
 			var results = false;
 			for (var i in searchArray){
-				if(!searchArray.hasOwnProperty(i)){break;}
-				if (searchArray[i][1].pos == position){
+				if ( ! searchArray.hasOwnProperty(i)) {
+					break;
+				}
+				if (searchArray[i][1].pos == position) {
 					results = searchArray[i][0];
 					break;
 				}
@@ -987,7 +989,9 @@ var TooltipRender = require('./render.js');
 			mods = self._getSortedIDList(self.state.xAxis.entries());
 
 			this.state.smallYScale = d3.scale.ordinal()
-				.domain(sortDataList.map(function (d) {return d; }))
+				.domain(sortDataList.map(function (d) {
+					return d; 
+				}))
 				.rangePoints([0,overviewRegionSize]);
 
 			var modids = mods.map(function (d) {return d; });
@@ -999,10 +1003,10 @@ var TooltipRender = require('./render.js');
 		// Returns an sorted array of IDs from an arrayed Hashtable, but meant for non-overview display based off pos
 		// [vaa12] the reason there are two different ones is how phenogrid prefers displays. _getSortedID can display items that have a pos
 		// between 7-37 and keep them numbered as such, where in strict, it will reset 7 to 0, so they will be numbered 0-30
-		_getSortedIDList: function(hashArray){
+		_getSortedIDList: function(hashArray) {
 			var resultArray = [];
 			for (var j in hashArray) {
-				if(!hashArray.hasOwnProperty(j)) {
+				if ( ! hashArray.hasOwnProperty(j)) {
 					break;
 				}
 				resultArray[hashArray[j][1].pos] = hashArray[j][0];
@@ -1016,13 +1020,15 @@ var TooltipRender = require('./render.js');
 			var firstSort = this._getSortedIDList(hashArray);
 			var resultArray = [];
 			for (var j in firstSort) {
-				if(!firstSort.hasOwnProperty(j)){break;}
+				if ( ! firstSort.hasOwnProperty(j)) {
+					break;
+				}
 				resultArray.push(firstSort[j]);
 			}
 			return resultArray;
 		},
 
-		_invertOverviewDragPosition: function(scale,value) {
+		_invertOverviewDragPosition: function(scale, value) {
 			var leftEdges = scale.range();
 			var size = scale.rangeBand();
 			var j;
