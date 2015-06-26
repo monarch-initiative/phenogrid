@@ -3286,7 +3286,7 @@ var TooltipRender = require('./render.js');
 		_createOrganismSelection: function() {
 			var selectedItem;
 			// In HTML tags, attributes need to use double quotes - Joe
-			var optionhtml = "<div id='pg_org_div'>Species" + // removed <br> - Joe
+			var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Species</label>" + // removed <br> - Joe
 			"<span id='org_sel'><select id='pg_organism'>"; // select is inline level element, it's fine to use <span> - Joe
 
 			for (var idx in this.state.targetSpeciesList) {
@@ -3317,7 +3317,7 @@ var TooltipRender = require('./render.js');
 
 		// create the html necessary for selecting the calculation
 		_createCalculationSelection: function () {
-			var optionhtml = "<div id='pg_calc_div'>Display"+ // changed span to div since the CSS name has "_div" - Joe
+			var optionhtml = "<div id='pg_calc_div'><label class='pg_ctrl_label'>Display</label>"+ // changed span to div since the CSS name has "_div" - Joe
 				"<span id='pg_calcs'> <img class='pg_faq_img' src='" + this.state.scriptpath + "../image/greeninfo30.png'></span>" +
 				"<span id='calc_sel'><select id='pg_calculation'>";
 
@@ -3336,7 +3336,7 @@ var TooltipRender = require('./render.js');
 
 		// create the html necessary for selecting the sort
 		_createSortPhenotypeSelection: function () {
-			var optionhtml ="<div id='pg_sort_div'>Sort Phenotypes" + // changed span to div since the CSS name has "_div" - Joe
+			var optionhtml ="<div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + // changed span to div since the CSS name has "_div" - Joe
 				"<span id='pg_sorts'> <img class='pg_faq_img' src='" + this.state.scriptpath + "../image/greeninfo30.png'></span>" + // scriptpath is 'js/' - Joe
 				"<span><select id='pg_sortphenotypes'>";
 
@@ -3354,7 +3354,7 @@ var TooltipRender = require('./render.js');
 
 		// create the html necessary for selecting the axis flip
 		_createAxisSelection: function () {
-			var optionhtml = "<div id='pg_axis_div'>Axis Flip" +
+			var optionhtml = "<div id='pg_axis_div'><label class='pg_ctrl_label'>Axis Flip</label>" +
 			"<span id='org_sel'><button type='button' id='pg_axisflip'>Flip Axis</button></span></div>"; // <button> is an inline tag - Joe
 			return $(optionhtml);
 		},

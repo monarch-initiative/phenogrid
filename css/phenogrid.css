@@ -114,29 +114,28 @@
 	font-weight:bold;
 }
 
+#pg_org_div {
+	float: left;
+	width:140px;
+}
 
 #pg_sort_div {
 	float: left;
 	width:180px;
-	font-weight:bold;
 }
 
 #pg_calc_div {
 	float: left;
 	width:120px;
-	font-weight:bold;
 }
 
-#pg_org_div {
-	float: left;
-	width:140px;
-	font-weight:bold;
+label.pg_ctrl_label{
+	font-weight:700;
 }
 
 #pg_axis_div {
 	float: left;
 	width: 120px;
-	font-weight:bold;
 }
 
 
