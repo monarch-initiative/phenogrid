@@ -58,7 +58,7 @@
 
 // jquery  is commonsJS compliant as of 2.1.0 - Joe
 
-var $ = require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
+require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
 require('jquery-ui');
 var d3 = require('d3');
 var Hashtable = require('jshashtable');
@@ -70,8 +70,20 @@ var model = require('./model.js');
 var stickytooltip = require('./stickytooltip.js');
 var TooltipRender = require('./render.js');
 
-// Self-executing anonymous function with jQuery object passed into via $ alias - Joe
-(function($){
+(function (factory) {
+  // If there is a variable named module and it has an exports property,
+  // then we're working in a Node-like environment. Use require to load
+  // the jQuery object that the module system is using and pass it in.
+  if(typeof module === "object" && typeof module.exports === "object") {
+     module_exports=factory(require("jquery"), window, document);
+  }
+  // Otherwise, we're working in a browser, so just pass in the global
+  // jQuery object.
+  else {
+    factory($, window, document);
+  }
+})    
+(function($,window,document,__undefined__) {
 	// Use widget factory to define the UI plugin - Joe
 	// Can aslo be ns.phenogrid (ns can be anything else - namespace) - Joe
 	// Later can be called using $().phenogrid(); - Joe
