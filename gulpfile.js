@@ -37,12 +37,12 @@ gulp.task('browserify-byo', function(cb) {
 	.bundle()
         .pipe(source('./js/phenogrid.js'))
 	.pipe(rename('phenogrid-byo.js'))
-	.pipe(gulp.dest('./dist/'));
-    cb(null);
+	.pipe(gulp.dest('./dist/'))
+	.on('end', cb);
 });
 
 // Cat on the used jquery to the bundle.
-gulp.task('create-bundle', function(cb) {
+gulp.task('create-bundle', ['browserify-byo'], function() {
     var pkg = require('./package.json');
     var jq_path = pkg['browser']['jquery'];
     //var jqui_path = pkg['browser']['jquery-ui'];
@@ -50,7 +50,6 @@ gulp.task('create-bundle', function(cb) {
     //gulp.src(['./dist/phenogrid-byo.js'])
 	.pipe(concat('phenogrid-bundle.js'))
 	.pipe(gulp.dest('./dist/'));
-    cb(null);
 });
 
 // Browser runtime environment construction.
