@@ -2743,7 +2743,9 @@ var TooltipRender = require('./render.js');
 			this.state.h = (data.length * 2.5);
 
 			self.state.yScale = d3.scale.ordinal()
-				.domain(data.map(function (d) { return d.yID; }))
+				.domain(data.map(function (d) { 
+					return d.yID; 
+				}))
 				.range([0,data.length])
 				.rangePoints([self.state.yModelRegion,self.state.yModelRegion + this.state.h]);
 
@@ -2994,9 +2996,13 @@ var TooltipRender = require('./render.js');
 				.attr("width", self.state.textWidth + 5)
 				.attr("height", gridHeight)
 				.attr("id", function(d, i) {
-					if(i === 0) {return "leftrect";}
-					else if(i == 1) {return "centerrect";}
-					else {return "rightrect";}
+					if (i === 0) {
+						return "leftrect";
+					} else if (i == 1) {
+						return "centerrect";
+					} else {
+						return "rightrect";
+					}
 				})
 				.style("opacity", '0.4')
 				.attr("fill", function(d, i) {
