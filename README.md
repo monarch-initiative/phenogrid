@@ -32,7 +32,9 @@ gulp create-bundle
 
 Now the phenogrid-bundle.js will be created and put into the same `dist` folder.
 
-#4. Example use of phenogrid in your HTML
+#4. Use of phenogrid in your HTML
+
+In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML.
 
 ````
 <html>
