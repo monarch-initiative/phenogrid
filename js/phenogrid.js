@@ -248,7 +248,7 @@ var TooltipRender = require('./render.js');
 		},
 
 		// Several procedures for various aspects of filtering/identifying appropriate entries in the target species list..
-		_getTargetSpeciesIndexByName: function(self,name) {
+		_getTargetSpeciesIndexByName: function(self, name) {
 			var index = -1;
 			if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
 				index = self.state.targetSpeciesByName[name].index;
@@ -266,7 +266,7 @@ var TooltipRender = require('./render.js');
 			return species;
 		},
 
-		_getTargetSpeciesTaxonByName: function(self,name) {
+		_getTargetSpeciesTaxonByName: function(self, name) {
 			var taxon;
 			// first, find something that matches by name
 			if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
@@ -286,7 +286,7 @@ var TooltipRender = require('./render.js');
 		* this might be somewhat inefficient, as we will later translate to taxon, but it will
 		* make other calls easier to be consitently talking in terms of species name
 		*/
-		_getTargetSpeciesNameByTaxon: function(self,name) {
+		_getTargetSpeciesNameByTaxon: function(self, name) {
 			// default - it actually was a species name
 			var species = name;
 			var found = false;
@@ -393,7 +393,7 @@ var TooltipRender = require('./render.js');
 			// Do we need this? - Joe
 			
 			// default simServerURL value..
-			if (typeof(this.state.simServerURL) == 'undefined' || this.state.simServerURL ==='') {
+			if (typeof(this.state.simServerURL) == 'undefined' || this.state.simServerURL === '') {
 				this.state.simServerURL=this.state.serverURL;
 			}
 			
@@ -572,7 +572,7 @@ var TooltipRender = require('./render.js');
 			}
 			// COMPARE CALL HACK - REFACTOR OUT
 			// no organism selector if we are doing the 'compare' function
-			if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser'){
+			if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser') {
 				this.state.svg.select("#pg_specieslist").remove();
 				this.state.svg.select("#faqinfo").remove();
 				$("#pg_org_div").remove();
@@ -606,11 +606,11 @@ var TooltipRender = require('./render.js');
 		 * http://learn.jquery.com/jquery-ui/widget-factory/how-to-use-the-widget-factory/
 		 * likely to have some content added as we proceed
 		 */
-		_setOption: function( key, value ) {
+		_setOption: function(key, value) {
 			this._super( key, value );
 		},
 
-		_setOptions: function( options ) {
+		_setOptions: function(options) {
 			this._super( options );
 		},
 
@@ -645,7 +645,7 @@ var TooltipRender = require('./render.js');
 				//this.element.append(html);
 				this.state.svgContainer.append(html);
 				var btn = d3.selectAll("#button") // D3 has its own selectors - Joe
-					.on("click", function(d,i) {
+					.on("click", function(d, i) {
 						$("#return").remove();
 						$("#pg_errmsg").remove();
 						d3.select("#pg_svg_area").remove();
