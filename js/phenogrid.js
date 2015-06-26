@@ -1753,7 +1753,7 @@ var TooltipRender = require('./render.js');
 
 			// always append to body
 			sticky.appendTo('body');
-				sticky.mouseleave("mouseout",function(e) {
+				sticky.mouseleave("mouseout", function(e) {
 				//console.log("sticky mouse out. of sticky.");
 				stickytooltip.closetooltip();
 			});
@@ -1767,7 +1767,7 @@ var TooltipRender = require('./render.js');
 			var foffset = this.state.overviewGridTitleFaqOffset;
 			var titleText = "Cross-Species Overview";
 
-			if (this.state.targetSpeciesName !== "Overview") {
+			if (this.state.targetSpeciesName !== 'Overview') {
 				species= this.state.targetSpeciesName;
 				xoffset = this.state.nonOverviewGridTitleXOffset;
 				foffset = this.state.nonOverviewGridTitleFaqOffset;
@@ -1830,13 +1830,13 @@ var TooltipRender = require('./render.js');
 			$("#mtitle").remove();
 			$("#pg_svg_area").remove();
 
-			if (type === 'organism'){
+			if (type === 'organism') {
 				self.state.phenotypeData = self.state.origPhenotypeData.slice();
 				self._reset("organism");
 				self._init();
-			} else if (type === "calculation"){
+			} else if (type === "calculation") {
 				self._reset("calculation");
-			} else if (type === "sortphenotypes"){
+			} else if (type === "sortphenotypes") {
 				self._reset("sortphenotypes");
 			} else if (type === "axisflip"){
 				self.state.phenotypeData = self.state.origPhenotypeData.slice();
@@ -1848,7 +1848,7 @@ var TooltipRender = require('./render.js');
 		// Monarch Logo - Joe
 		_addLogoImage:	 function() {
 			var start = 0;
-			if(this.state.filteredModelData.length < 30){
+			if (this.state.filteredModelData.length < 30) {
 				// Magic Nums
 				start = 680;
 			} else {
@@ -1871,7 +1871,9 @@ var TooltipRender = require('./render.js');
 
 			var link_lines = d3.selectAll(".data_text");
 			for (var i in link_lines[0]){
-				if(!link_lines[0].hasOwnProperty(i)){break;}
+				if ( ! link_lines[0].hasOwnProperty(i)) {
+					break;
+				}
 				link_lines[0][i].style.fill = this._getExpandStyling(link_lines[0][i].id);
 			}
 			link_lines.style("font-weight", "normal");
@@ -1892,7 +1894,9 @@ var TooltipRender = require('./render.js');
 			var modelKeys = this.state.modelDataHash.keys();
 			var matchingKeys = [];
 			for (var i in modelKeys) {
-				if ( ! modelKeys.hasOwnProperty(i)){break;}
+				if ( ! modelKeys.hasOwnProperty(i)) {
+					break;
+				}
 				if (key == modelKeys[i].yID || key == modelKeys[i].xID) {
 					matchingKeys.push(modelKeys[i]);
 				}
@@ -1901,14 +1905,14 @@ var TooltipRender = require('./render.js');
 		},
 
 		// Merging of both Highlight model and phenotype functions
-		_highlightMatching: function(curr_data){
+		_highlightMatching: function(curr_data) {
 			var self = this;
 			var alabels, label, ID;
 			var dataType = self._getIDType(curr_data);
 			var models = self._getMatchingModels(curr_data);
 			var highlightX = false;
 
-			if (dataType === "Phenotype"){
+			if (dataType === "Phenotype") {
 				if (this.state.invertAxis){
 					alabels = this.state.svg.selectAll("text.a_text");
 					highlightX = true;
