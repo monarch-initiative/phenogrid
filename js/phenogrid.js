@@ -415,7 +415,7 @@ var TooltipRender = require('./render.js');
 		_createTargetSpeciesIndices: function() {
 			this.state.targetSpeciesByName = {};
 			for (var j in this.state.targetSpeciesList) {
-				if(!this.state.targetSpeciesList.hasOwnProperty(j)){
+				if ( ! this.state.targetSpeciesList.hasOwnProperty(j)) {
 					break;
 				}
 				// list starts as name, taxon pairs
@@ -458,7 +458,7 @@ var TooltipRender = require('./render.js');
 			this.state.origPhenotypeData = this.state.phenotypeData.slice();
 
 			// target species name might be provided as a name or as taxon. Make sure that we translate to name
-			this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.targetSpeciesName);
+			this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this, this.state.targetSpeciesName);
 			this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 
 			this._loadData();
@@ -922,9 +922,9 @@ var TooltipRender = require('./render.js');
 				});
 
 			var expl = self.state.svg.append("text")
-				.attr("x",self.state.axis_pos_list[2] + explXOffset)
-				.attr("y",scoreTipY + explYOffset)
-				.attr("class","pg_tip")
+				.attr("x", self.state.axis_pos_list[2] + explXOffset)
+				.attr("y", scoreTipY + explYOffset)
+				.attr("class", "pg_tip")
 				.text("Best matches left to right."); // uppercased best - > Best - Joe
 		},
 
@@ -937,21 +937,22 @@ var TooltipRender = require('./render.js');
 
 			// place it at yoffset - the top of the rectangles with the phenotypes
 			var disease = dtitle.replace(/ *\([^)]*\) */g,"");
-			var shortDis = self._getShortLabel(disease,60);	// [vaa12] magic number needs removed
+			var shortDis = self._getShortLabel(disease, 60);	// [vaa12] magic number needs removed
 
 			// Use until SVG2. Word Wraps the Disease Title
 			this.state.svg.append("foreignObject")
 				.attr("width", 205)
 				.attr("height", 50)
-				.attr("id","pg_diseasetitle")
-				.attr("transform","translate(" + dTitleXOffset + "," + dTitleYOffset + ")")
+				.attr("id", "pg_diseasetitle")
+				.attr("transform", "translate(" + dTitleXOffset + "," + dTitleYOffset + ")")
 				.attr("x", 0)
 				.attr("y", 0)
 				.append("xhtml:div")
 				.html(shortDis);
 		},
 
-		_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
+		// Overview navigation - Joe
+		_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
 			var self = this;
 			// rectangular border for overview
 			var globalview = self.state.svg.append("rect")
@@ -994,7 +995,9 @@ var TooltipRender = require('./render.js');
 				}))
 				.rangePoints([0,overviewRegionSize]);
 
-			var modids = mods.map(function (d) {return d; });
+			var modids = mods.map(function (d) {
+				return d; 
+			});
 			this.state.smallXScale = d3.scale.ordinal()
 				.domain(modids)
 				.rangePoints([0,overviewRegionSize]);
