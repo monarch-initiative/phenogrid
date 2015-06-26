@@ -3345,7 +3345,7 @@ var TooltipRender = require('./render.js');
 		// create the html necessary for selecting the axis flip
 		_createAxisSelection: function () {
 			var optionhtml = "<div id='pg_axis_div'>Axis Flip" +
-			"<span id='org_sel'><button type='button' id='pg_axisflip'>Flip Axis</button></span></div>";
+			"<span id='org_sel'><button type='button' id='pg_axisflip'>Flip Axis</button></span></div>"; // <button> is an inline tag - Joe
 			return $(optionhtml);
 		},
 
@@ -3360,7 +3360,9 @@ var TooltipRender = require('./render.js');
 
 			var rect_text = this.state.svg
 				.selectAll(".a_text")
-				.data(list, function(d) { return d; });
+				.data(list, function(d) { 
+					return d; 
+				});
 			rect_text.enter()
 				.append("text")
 				.attr("class", function(d) {
@@ -3460,7 +3462,9 @@ var TooltipRender = require('./render.js');
 				}
 				var found = false;
 				for (var m in dupArray) {
-					if(!dupArray.hasOwnProperty(m)){break;}
+					if ( ! dupArray.hasOwnProperty(m)) {
+						break;
+					}
 					if (dupArray[m].id == unmatchedset[l].id) {
 						found = true;
 					}
@@ -3583,7 +3587,7 @@ var TooltipRender = require('./render.js');
 			var newlist = [];
 			var pheno;
 			for (var i in phenotypelist) {
-				if(!phenotypelist.hasOwnProperty(i)) {
+				if ( ! phenotypelist.hasOwnProperty(i)) {
 					break;
 				}
 				pheno = phenotypelist[i];
@@ -3664,7 +3668,9 @@ var TooltipRender = require('./render.js');
 
 					// Used to prevent breaking objects
 					for (var j in edges){
-						if(!edges.hasOwnProperty(j)){break;}
+						if ( ! edges.hasOwnProperty(j)) {
+							break;
+						}
 						if (edges[j].obj != "MP:0000001" && edges[j].obj != "UPHENO_0001001" && edges[j].obj != "UPHENO_0001002" && edges[j].obj != "HP:0000118" && edges[j].obj != "HP:0000001"){
 							HPOInfo.push(edges[j]);
 						}
@@ -3673,7 +3679,9 @@ var TooltipRender = require('./render.js');
 
 				// HACK:if we return a null just create a zero-length array for now to add it to hashtable
 				// this is for later so we don't have to lookup concept again
-				if (HPOInfo === null) {HPOInfo = {};}
+				if (HPOInfo === null) {
+					HPOInfo = {};
+				}
 
 				// save the HPO in cache for later
 				var hashData = {"edges": HPOInfo, "active": 1};
@@ -3736,7 +3744,9 @@ var TooltipRender = require('./render.js');
 
 				// assemble the phenotype ids
 				for (var p in assocPhenotypes) {
-					if(!assocPhenotypes.hasOwnProperty(p)){break;}
+					if ( ! assocPhenotypes.hasOwnProperty(p)) {
+						break;
+					}
 					phenotypeIds += assocPhenotypes[p].id + "+";
 					ctr++;
 
@@ -3767,7 +3777,9 @@ var TooltipRender = require('./render.js');
 					ctr++;
 
 					// limit number of genotypes do display based on internalOptions
-					if (ctr > this.state.genotypeExpandLimit && ctr < genoTypeAssociations.length) break;
+					if (ctr > this.state.genotypeExpandLimit && ctr < genoTypeAssociations.length) {
+						break;
+					}
 				}
 
 				// truncate the last + off, if there
