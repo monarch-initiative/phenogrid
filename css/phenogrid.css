@@ -3,6 +3,12 @@
 	font-size: 14px;
 }
 
+#phenogrid_container .a_text {
+	text-anchor:end;
+	opacity: 1.0;
+	font-size: 12px;
+}
+
 #pg_errmsg {
 	padding-top: 30px;
 	font-size:1.2em;
@@ -51,11 +57,7 @@
 	float:left;
 }
 
-#phen_vis .a_text {
-	text-anchor:end;
-	opacity: 1.0;
-	font-size: 12px;
-}
+
 
 #pg_scorelist {
 	font-size:10px;
