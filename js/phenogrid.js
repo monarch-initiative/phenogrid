@@ -3244,10 +3244,12 @@ var TooltipRender = require('./render.js');
 			"<span id='org_sel'><select id='pg_organism'>"; // select is inline level element, it's fine to use <span> - Joe
 
 			for (var idx in this.state.targetSpeciesList) {
-				if(!this.state.targetSpeciesList.hasOwnProperty(idx)){break;}
+				if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
+					break;
+				}
 				selectedItem = "";
 				if (this.state.targetSpeciesList[idx].name === this.state.targetSpeciesName) {
-					selectedItem = "selected";
+					selectedItem = 'selected';
 				}
 				optionhtml += "<option value=\"" + this.state.targetSpeciesList[idx.name] +
 				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + "</option>";
@@ -3257,9 +3259,9 @@ var TooltipRender = require('./render.js');
 			// Overview is not a proper name, change it later - Joe
 			
 			if (this.state.targetSpeciesName === 'Overview') {
-				selectedItem = "selected";
+				selectedItem = 'selected';
 			} else {
-				selectedItem = "";
+				selectedItem = '';
 			}
 			optionhtml += "<option value=\"Overview\" " + selectedItem + ">Overview</option>";
 
