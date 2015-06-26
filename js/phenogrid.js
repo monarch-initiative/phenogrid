@@ -58,7 +58,7 @@
 
 // jquery  is commonsJS compliant as of 2.1.0 - Joe
 
-require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
+//require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
 require('jquery-ui');
 var d3 = require('d3');
 var Hashtable = require('jshashtable');
