@@ -36,7 +36,7 @@ Now the `phenogrid-bundle.js` will be created and put into the same `dist` folde
 
 In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML.
 
-````
+````html
 <html>
 <head>
 <title>Monarch Phenotype Grid Widget</title>
