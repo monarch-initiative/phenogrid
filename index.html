@@ -2,9 +2,8 @@
 <head>
 <title>Monarch Phenotype Grid Widget</title>
 
-<!-- your bundled browserify module here -->
 <script src="dist/phenogrid-bundle.js"></script>
-<script src="js/phenogrid_config.js"></script>
+<script src="config/phenogrid_config.js"></script>
 
 <link rel="stylesheet" type="text/css" href="css/jquery-ui.css"/>
 <link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
@@ -29,7 +28,6 @@ var phenotypes = [
 	{ id:"HP:0007159", observed:"positive"}
 ];	
 
-// $ is not defined - Error
 $(document).ready(function(){
 	$("#phenogrid_container").phenogrid({
 		serverURL :"http://beta.monarchinitiative.org", 
