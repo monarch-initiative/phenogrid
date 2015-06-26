@@ -44,7 +44,7 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 <script src="dist/phenogrid-bundle.js"></script>
 <script src="config/phenogrid_config.js"></script>
 
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.css"/>
+<link rel="stylesheet" type="text/css" href="css/normalize.css"/>
 <link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
 <link rel="stylesheet" type="text/css" href="css/stickytooltip.css"/>
 
