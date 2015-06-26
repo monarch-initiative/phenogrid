@@ -2395,6 +2395,7 @@ var TooltipRender = require('./render.js');
 			} else {
 				phenoLabel = null;
 			}
+			
 			if (this.state.modelListHash.containsKey(d.xID)) {
 				modelLabel = this.state.modelListHash.get(d.xID).label;
 			} else if (this.state.modelListHash.containsKey(d.yID)) {
@@ -2430,7 +2431,9 @@ var TooltipRender = require('./render.js');
 
 			var suffix = "";
 			// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-			if (this.state.selectedCalculation != 2) {suffix = '%';}
+			if (this.state.selectedCalculation != 2) {
+				suffix = '%';
+			}
 
 			retData = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
 				"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
@@ -2462,7 +2465,7 @@ var TooltipRender = require('./render.js');
 		_extractTransform: function(dataString) {
 			var startIdx = dataString.indexOf("(");
 			var commaIdx = dataString.indexOf(",");
-			var x_data = Number(dataString.substring(startIdx+1,commaIdx));
+			var x_data = Number(dataString.substring(startIdx+1, commaIdx));
 			var y_data = Number(dataString.substring(commaIdx+1, dataString.length-1));
 			return { x: x_data, y: y_data};
 		},
@@ -2553,7 +2556,7 @@ var TooltipRender = require('./render.js');
 				} else {
 					colorID = d.xID;
 				}
-				return self._getColorForModelValue(self,self._getAxisData(colorID).species,d.value[self.state.selectedCalculation]);
+				return self._getColorForModelValue(self, self._getAxisData(colorID).species, d.value[self.state.selectedCalculation]);
 			});
 
 			model_rects.transition()
@@ -2617,9 +2620,9 @@ var TooltipRender = require('./render.js');
 				.attr("stroke-width", borderStroke)
 				.attr("fill", "none");
 
-				if (self.state.targetSpeciesName == "Overview" && this.state.invertAxis) {
+				if (self.state.targetSpeciesName == 'Overview' && this.state.invertAxis) {
 					border_rect.attr("x", 0);
-					border_rect.attr("y", function(d,i) {
+					border_rect.attr("y", function(d, i) {
 						totCt += ct;
 						if (i === 0) { 
 							return (self.state.yoffset + borderStroke); 
@@ -2629,7 +2632,7 @@ var TooltipRender = require('./render.js');
 						}
 					});
 				} else {
-					border_rect.attr("x", function(d,i) {
+					border_rect.attr("x", function(d, i) {
 						totCt += ct;
 						if (i === 0) { return 0; }
 						else {
@@ -2641,7 +2644,7 @@ var TooltipRender = require('./render.js');
 				}
 		},
 
-		_enableRowColumnRects: function(curr_rect){
+		_enableRowColumnRects: function(curr_rect) {
 			var self = this;
 
 			var model_rects = self.state.svg.selectAll("rect.models")
@@ -2658,7 +2661,7 @@ var TooltipRender = require('./render.js');
 			}
 		},
 
-		_highlightIntersection: function(curr_data, obj){
+		_highlightIntersection: function(curr_data, obj) {
 			var self = this;
 			var displayCount = self._getYLimit();
 			// Highlight Row
@@ -2824,7 +2827,7 @@ var TooltipRender = require('./render.js');
 			var list = [];
 			var xWidth = self.state.widthOfSingleModel;
 
-			if (!this.state.invertAxis) {
+			if ( ! this.state.invertAxis) {
 				list = self._getSortedIDListStrict(this.state.filteredXAxis.entries());
 			} else {
 				list = self._getSortedIDListStrict(this.state.filteredYAxis.entries());
@@ -2850,7 +2853,7 @@ var TooltipRender = require('./render.js');
 					return self._getColorForModelValue(self,self._getAxisData(d).species,self._getAxisData(d).score);
 				});
 
-				if (this.state.invertAxis){
+				if (this.state.invertAxis) {
 					this.state.svg.selectAll("text.scores").attr("y", function(d) {
 						return self._getAxisData(d).ypos + 5;
 					});
@@ -2897,7 +2900,8 @@ var TooltipRender = require('./render.js');
 			var self = this;
 			var url = this._getResourceUrl(name,'html');
 			if (typeof(self.state.tooltips[name]) === 'undefined') {
-				$.ajax( {url: url,
+				$.ajax({
+					url: url,
 					dataType: 'html',
 					async: 'false',
 					success: function(data) {
@@ -2914,7 +2918,7 @@ var TooltipRender = require('./render.js');
 			}
 		},
 
-		_populateDialog: function(self,name,text) {
+		_populateDialog: function(self, name, text) {
 			var SplitText = "Title";
 			var $dialog = $('<div></div>')
 				.html(SplitText )
@@ -2955,7 +2959,9 @@ var TooltipRender = require('./render.js');
 			rect_accents.enter()
 				.append("rect")
 				.attr("class", "accent")
-				.attr("x", function(d, i) { return self.state.axis_pos_list[i];})
+				.attr("x", function(d, i) { 
+				    return self.state.axis_pos_list[i];}
+				)
 				.attr("y", y)
 				.attr("width", self.state.textWidth + 5)
 				.attr("height", gridHeight)
@@ -2985,11 +2991,11 @@ var TooltipRender = require('./render.js');
 				if (i == 2) {
 					// make sure it's not too narrow i
 					var w = this.state.modelWidth;
-					if(w < this.state.smallestModelWidth) {
+					if (w < this.state.smallestModelWidth) {
 						w = this.state.smallestModelWidth;
 					}
 					this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
-				} else if (i == 1 ){
+				} else if (i == 1 ) {
 					this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
 				} else {
 					this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
@@ -3040,7 +3046,9 @@ var TooltipRender = require('./render.js');
 		_addGradients: function() {
 			var self = this;
 			var modData = this.state.modelDataHash.values();
-			var temp_data = modData.map(function(d) { return d.value[self.state.selectedCalculation];} );
+			var temp_data = modData.map(function(d) { 
+				return d.value[self.state.selectedCalculation];
+			});
 			var diff = d3.max(temp_data) - d3.min(temp_data);
 			var y1;
 
@@ -3063,7 +3071,7 @@ var TooltipRender = require('./render.js');
 			var y;
 			// If this is the Overview, get gradients for all species with an index
 			// COMPARE CALL HACK - REFACTOR OUT
-			if ((this.state.targetSpeciesName == "Overview" || this.state.targetSpeciesName == "All") 
+			if ((this.state.targetSpeciesName == 'Overview' || this.state.targetSpeciesName == 'All') 
 				|| (this.state.targetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {
 				//this.state.overviewCount tells us how many fit in the overview
 				for (var i = 0; i < this.state.overviewCount; i++) {
@@ -3102,7 +3110,7 @@ var TooltipRender = require('./render.js');
 				.attr("y1", "0%")
 				.attr("y2", "0%");
 			
-			for (var j in this.state.colorDomains){
+			for (var j in this.state.colorDomains) {
 				if ( ! this.state.colorDomains.hasOwnProperty(j)) {
 					break;
 				}
