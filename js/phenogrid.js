@@ -2547,7 +2547,9 @@ var TooltipRender = require('./render.js');
 				.attr("y", function(d, i) {
 					return self._getAxisData(d.yID).ypos + self.state.yoffsetOver;
 				})
-				.attr("x", function(d) { return self.state.xScale(d.xID);})
+				.attr("x", function(d) { 
+					return self.state.xScale(d.xID);
+				})
 				.attr("width", 10)
 				.attr("height", 10)
 				.attr("rx", "3")
@@ -3441,7 +3443,7 @@ var TooltipRender = require('./render.js');
 				.remove();
 		},
 
-		_getUnmatchedPhenotypes: function(){
+		_getUnmatchedPhenotypes: function() {
 			var fullset = this.state.origPhenotypeData;
 			var partialset = this.state.phenotypeListHash.keys();
 			var full = [];
