@@ -3581,6 +3581,7 @@ var TooltipRender = require('./render.js');
 			}
 		},
 
+		// Not used in other places? Can be removed? - Joe
 		_rectClick: function(data) {
 			var retData;
 			this._showThrobber();
