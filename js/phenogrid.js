@@ -3515,7 +3515,7 @@ var TooltipRender = require('./render.js');
 			}
 			prebl.empty();
 
-			if (this.state.unmatchedPhenotypes !== undefined && this.state.unmatchedPhenotypes.length > 0){
+			if (this.state.unmatchedPhenotypes !== undefined && this.state.unmatchedPhenotypes.length > 0) {
 				optionhtml = "<div class='clearfix'><form id='pg_matches'><input type='checkbox' name='unmatched' value='unmatched' >&nbsp;&nbsp;View Unmatched Phenotypes<br /><form><div id='clear'></div>";
 				var phenohtml = this._buildUnmatchedPhenotypeTable();
 				optionhtml = optionhtml + "<div id='pg_unmatched' style='display:none;'>" + phenohtml + "</div></div>";
@@ -3539,7 +3539,7 @@ var TooltipRender = require('./render.js');
 			});
 		},
 
-		_buildUnmatchedPhenotypeTable: function(){
+		_buildUnmatchedPhenotypeTable: function() {
 			var self = this;
 			var columns = 4;
 			var outer1 = "<table id='phentable'>";
@@ -3592,9 +3592,9 @@ var TooltipRender = require('./render.js');
 				success : function(data) {
 					retData = "<strong>Label:</strong> " + "<a href=\"" + data.url + "\">" + data.label + "</a><br/><strong>Type:</strong> " + data.category;
 				},
-				error: function ( xhr, errorType, exception ) {
+				error: function (xhr, errorType, exception) {
 					//Triggered if an error communicating with server
-					self._populateDialog(self,"Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
+					self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
 				},
 			});
 			this._updateDetailSection(retData, this._getXYPos(data));
