@@ -2849,8 +2849,8 @@ var TooltipRender = require('./render.js');
 				.attr("y1", 0)
 				.attr("x2", 0)
 				.attr("y2", gridHeight)
-				.attr("stroke", "#0F473E")
-				.attr("stroke-width", 1);
+				.attr("stroke", "#0F473E") // SVG stroke defines the color of a line, text, or outline of an element - Joe
+				.attr("stroke-width", 1); // SVG stroke-width defines the thickness of a line, text, or outline of an element - Joe
 		},
 
 		_createTextScores: function() {
