@@ -787,8 +787,7 @@ var TooltipRender = require('./render.js');
 				.attr("height", selectRectHeight + 4)
 				.attr("width", selectRectWidth + 4)
 				.attr("class", "draggable")
-				.call(d3.behavior.drag()
-					.on("drag", function(d) {
+				.call(d3.behavior.drag().on("drag", function(d) {
 						/*
 						 * drag the highlight in the overview window
 						 * notes: account for the width of the rectangle in my x and y calculations
@@ -910,7 +909,7 @@ var TooltipRender = require('./render.js');
 				.append("svg:image")
 				.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
 				.attr("transform", "translate(" + (self.state.axis_pos_list[2] + tipTextLength) + "," + faqY + ")")
-				.attr("id","modelscores")
+				.attr("id", "modelscores")
 				.attr("x", 0)
 				.attr("y", 0)
 				.attr("width", self.state.faqImgSize)
@@ -2218,7 +2217,7 @@ var TooltipRender = require('./render.js');
 						alabels.html(this._getShortLabel(label,self.state.labelCharDisplayCount));
 					}
 
-					alabels.style("font-weight","normal");
+					alabels.style("font-weight", "normal");
 					alabels.style("text-decoration", "none");
 					//alabels.style("fill", "black");
 					alabels.style("fill", this._getExpandStyling(data));
@@ -2743,7 +2742,7 @@ var TooltipRender = require('./render.js');
 			this.state.h = (data.length * 2.5);
 
 			self.state.yScale = d3.scale.ordinal()
-				.domain(data.map(function (d) { 
+				.domain(data.map(function(d) { 
 					return d.yID; 
 				}))
 				.range([0,data.length])
@@ -2757,7 +2756,7 @@ var TooltipRender = require('./render.js');
 		 * Change the list of phenotypes and filter the models accordingly. The
 		 * Movecount is an integer and can be either positive or negative
 		 */
-		_updateModel: function(newXPos, newYPos){
+		_updateModel: function(newXPos, newYPos) {
 			var xSize = this.state.xAxis.size();
 			var ySize = this.state.yAxis.size();
 
@@ -2874,13 +2873,13 @@ var TooltipRender = require('./render.js');
 				.attr("width", xWidth)
 				.attr("class", "scores")
 				// don't show score if it is a dummy model.
-				.text(function (d) {
+				.text(function(d) {
 					if (d === self.state.dummyModelName) {
 						return "";
 					} else {
 						return self._getAxisData(d).score;
 					}})
-				.style("font-weight", "bold") // normal font-weight for scores may be better? - Joe
+				//.style("font-weight", "bold") // normal font-weight for scores may be better? - Joe
 				.style("fill", function(d) {
 					return self._getColorForModelValue(self, self._getAxisData(d).species, self._getAxisData(d).score);
 				});
@@ -3054,7 +3053,7 @@ var TooltipRender = require('./render.js');
 
 		// This code creates the labels for the x-axis, the lines, scores, etc..
 		// Previously _createModelRegion
-		_createXRegion: function () {
+		_createXRegion: function() {
 			var self = this;
 			var mods = [];
 
