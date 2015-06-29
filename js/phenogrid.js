@@ -2878,7 +2878,7 @@ var TooltipRender = require('./render.js');
 					} else {
 						return self._getAxisData(d).score;
 					}})
-				.style("font-weight", "bold")
+				.style("font-weight", "bold") // normal font-weight for scores may be better? - Joe
 				.style("fill",function(d) {
 					return self._getColorForModelValue(self, self._getAxisData(d).species,self._getAxisData(d).score);
 				});
