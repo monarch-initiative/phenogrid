@@ -783,7 +783,7 @@ var TooltipRender = require('./render.js');
 			self.state.highlightRect = self.state.svg.append("rect")
 				.attr("x", overviewX + selectRectX)
 				.attr("y", overviewY + selectRectY)
-				.attr("id", "pg_selectionrect")
+				.attr("id", "pg_selectionrect") // id of the draggable shaded rect - Joe
 				.attr("height", selectRectHeight + 4)
 				.attr("width", selectRectWidth + 4)
 				.attr("class", "draggable")
@@ -793,12 +793,14 @@ var TooltipRender = require('./render.js');
 						 * notes: account for the width of the rectangle in my x and y calculations
 						 * do not use the event x and y, they will be out of range at times. Use the converted values instead.
 						 */
-
 						var current = d3.select(this);
 						var curX = parseFloat(current.attr("x"));
 						var curY = parseFloat(current.attr("y"));
 
 						var rect = self.state.svg.select("#pg_selectionrect");
+						
+						alert('dada');
+						
 						rect.attr("transform", "translate(0, 0)");
 
 						// limit the range of the x value
@@ -3073,6 +3075,7 @@ var TooltipRender = require('./render.js');
 				this._createTextScores();
 				this._createModelScoresLegend();
 			}
+
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser') {
 				this._createOverviewSpeciesLabels();
 			}
@@ -3269,25 +3272,25 @@ var TooltipRender = require('./render.js');
 
 			container.append(options);
 			// add the handler for the select control
-			$( "#pg_organism" ).change(function(d) {
+			$("#pg_organism" ).change(function(d) {
 				self.state.targetSpeciesName = self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
 				self._resetSelections("organism");
 			});
 
-			$( "#pg_calculation" ).change(function(d) {
+			$("#pg_calculation" ).change(function(d) {
 				self.state.selectedCalculation = self.state.similarityCalculation[d.target.selectedIndex].calc;
 				self._resetSelections("calculation");
 				self._processDisplay();
 			});
 
 			// add the handler for the select control
-			$( "#pg_sortphenotypes" ).change(function(d) {
+			$("#pg_sortphenotypes" ).change(function(d) {
 				self.state.selectedSort = self.state.phenotypeSort[d.target.selectedIndex];
 				self._resetSelections("sortphenotypes");
 				self._processDisplay();
 			});
 
-			$( "#pg_axisflip" ).click(function(d) {
+			$("#pg_axisflip" ).click(function(d) {
 				self.state.invertAxis = !self.state.invertAxis;
 				self._resetSelections("axisflip");
 			});
