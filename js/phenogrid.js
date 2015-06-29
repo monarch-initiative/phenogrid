@@ -799,9 +799,7 @@ var TooltipRender = require('./render.js');
 
 						var rect = self.state.svg.select("#pg_selectionrect");
 						
-						alert('dada');
-						
-						rect.attr("transform", "translate(0, 0)");
+						rect.attr("transform", "translate(0, 0)"); // May not need this - Joe
 
 						// limit the range of the x value
 						var newX = curX + d3.event.dx;
