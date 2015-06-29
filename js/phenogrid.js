@@ -781,8 +781,8 @@ var TooltipRender = require('./render.js');
 			var selectRectWidth = self.state.smallXScale(lastXId);
 
 			self.state.highlightRect = self.state.svg.append("rect")
-				.attr("x",overviewX + selectRectX)
-				.attr("y",overviewY + selectRectY)
+				.attr("x", overviewX + selectRectX)
+				.attr("y", overviewY + selectRectY)
 				.attr("id", "pg_selectionrect")
 				.attr("height", selectRectHeight + 4)
 				.attr("width", selectRectWidth + 4)
@@ -800,7 +800,7 @@ var TooltipRender = require('./render.js');
 						var curY = parseFloat(current.attr("y"));
 
 						var rect = self.state.svg.select("#pg_selectionrect");
-						rect.attr("transform","translate(0,0)");
+						rect.attr("transform", "translate(0, 0)");
 
 						// limit the range of the x value
 						var newX = curX + d3.event.dx;
@@ -840,10 +840,10 @@ var TooltipRender = require('./render.js');
 						newY = newY - overviewY;
 
 						// invert newX and newY into positions in the model and phenotype lists.
-						var j = self._invertOverviewDragPosition(self.state.smallXScale,newX);
+						var j = self._invertOverviewDragPosition(self.state.smallXScale, newX);
 						var newXPos = j + xCount;
 
-						var jj = self._invertOverviewDragPosition(self.state.smallYScale,newY);
+						var jj = self._invertOverviewDragPosition(self.state.smallYScale, newY);
 						var newYPos = jj + yCount;
 
 						self._updateModel(newXPos, newYPos);
@@ -2878,7 +2878,7 @@ var TooltipRender = require('./render.js');
 					} else {
 						return self._getAxisData(d).score;
 					}})
-				.style("font-weight","bold")
+				.style("font-weight", "bold")
 				.style("fill",function(d) {
 					return self._getColorForModelValue(self, self._getAxisData(d).species,self._getAxisData(d).score);
 				});
