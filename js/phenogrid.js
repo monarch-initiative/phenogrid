@@ -1829,13 +1829,13 @@ var TooltipRender = require('./render.js');
 
 		_configureFaqs: function() {
 			var sorts = $("#pg_sorts")
-				.on("click", function(d,i){
+				.on("click", function(d, i) {
 					self._showDialog( "sorts");
 				});
 
 			//var calcs = d3.selectAll("#calcs")
 			var calcs = $("#pg_calcs")
-				.on("click", function(d){
+				.on("click", function(d) {
 					self._showDialog( "calcs");
 				});
 		},
@@ -2234,7 +2234,7 @@ var TooltipRender = require('./render.js');
 		_clickItem: function(url_origin,data) {
 			var url;
 			var apientity = this.state.defaultApiEntity;
-			if (this._getIDType(data) == "Phenotype"){
+			if (this._getIDType(data) == "Phenotype") {
 				url = url_origin + "/phenotype/" + (data.replace("_", ":"));
 				var win = window.open(url, '_blank');
 
@@ -2324,7 +2324,7 @@ var TooltipRender = require('./render.js');
 					return "rotate(-45)";
 				})
 				.on("click", function(d) {
-					self._clickItem(self.state.serverURL,data);
+					self._clickItem(self.state.serverURL, data);
 				})
 				.on("mouseover", function(d, event) {
 					var evt = event || window.event;
@@ -2528,7 +2528,7 @@ var TooltipRender = require('./render.js');
 
 			var rectTranslation = "translate(" + ((this.state.textWidth + this.state.xOffsetOver + 30) + 4) + "," + (self.state.yoffsetOver + 15)+ ")";
 			var model_rects = this.state.svg.selectAll(".models")
-				.data( data, function(d) {
+				.data(data, function(d) {
 					return d.xID + d.yID;
 				});
 			model_rects.enter()
