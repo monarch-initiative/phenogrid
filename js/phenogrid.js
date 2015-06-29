@@ -2879,7 +2879,7 @@ var TooltipRender = require('./render.js');
 						return self._getAxisData(d).score;
 					}})
 				.style("font-weight", "bold") // normal font-weight for scores may be better? - Joe
-				.style("fill",function(d) {
+				.style("fill", function(d) {
 					return self._getColorForModelValue(self, self._getAxisData(d).species,self._getAxisData(d).score);
 				});
 
@@ -2916,37 +2916,41 @@ var TooltipRender = require('./render.js');
 				.enter()
 				.append("text")
 				.attr("transform",translation)
-				.attr("x", function(d,i){ return (i + 1 / 2 ) * xPerModel;})
+				.attr("x", function(d,i) { 
+					return (i + 1 / 2 ) * xPerModel;
+				})
 				.attr("id", "pg_specieslist")
 				.attr("y", 10)
 				.attr("width", xPerModel)
 				.attr("height", 10)
 				.attr("fill", "#0F473E")
 				.attr("stroke-width", 1)
-				.text(function (d,i){return speciesList[i];})
-				.attr("text-anchor","middle");
+				.text(function(d, i) {
+					return speciesList[i];
+				})
+				.attr("text-anchor", "middle");
 		},
 
 		// we might want to modify this to do a dynamic http retrieval to grab the dialog components...
 		_showDialog: function(name) {
 			var self = this;
-			var url = this._getResourceUrl(name,'html');
+			var url = this._getResourceUrl(name, 'html');
 			if (typeof(self.state.tooltips[name]) === 'undefined') {
 				$.ajax({
 					url: url,
 					dataType: 'html',
 					async: 'false',
 					success: function(data) {
-						self._populateDialog(self,name,data);
+						self._populateDialog(self, name, data);
 					},
-					error: function ( xhr, errorType, exception ) {
+					error: function (xhr, errorType, exception) {
 					// Triggered if an error communicating with server
 						self._populateDialog(self,"Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
 					}
 				});
 			}
 			else {
-				this._populateDialog(self,name,self.state.tooltips[name]);
+				this._populateDialog(self, name, self.state.tooltips[name]);
 			}
 		},
 
@@ -2963,8 +2967,13 @@ var TooltipRender = require('./render.js');
 					resizable: true,
 					draggable: true,
 					dialogClass: "dialogBG",
-					position: { my: "top", at: "top+25%",of: "#pg_svg_area"},
-					title: 'Phenogrid Notes'});
+					position: {
+						my: "top", 
+						at: "top+25%",
+						of: "#pg_svg_area"
+					},
+					title: 'Phenogrid Notes'
+				});
 			$dialog.html(text);
 			$dialog.dialog('open');
 			self.state.tooltips[name] = text;
@@ -2987,7 +2996,9 @@ var TooltipRender = require('./render.js');
 			var y = self.state.yModelRegion;
 			// create accent boxes
 			var rect_accents = this.state.svg.selectAll("#rect.accent")
-				.data([0,1,2], function(d) { return d;});
+				.data([0,1,2], function(d) { 
+					return d;
+				});
 			rect_accents.enter()
 				.append("rect")
 				.attr("class", "accent")
@@ -3031,7 +3042,7 @@ var TooltipRender = require('./render.js');
 						w = this.state.smallestModelWidth;
 					}
 					this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
-				} else if (i == 1 ) {
+				} else if (i == 1) {
 					this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
 				} else {
 					this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
