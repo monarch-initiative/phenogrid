@@ -891,6 +891,7 @@ var TooltipRender = require('./render.js');
 			return selectedScale(score);
 		},
 
+		// model scores legend is not created after flipping the widget - Joe
 		_createModelScoresLegend: function() {
 			var self = this;
 			var scoreTipY = self.state.yoffset;
