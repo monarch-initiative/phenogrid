@@ -2600,7 +2600,7 @@ var TooltipRender = require('./render.js');
 				.remove();
 		},
 
-		_highlightSpecies: function () {
+		_highlightSpecies: function() {
 			// create the related model rectangles
 			var self = this;
 			var list = [];
@@ -3004,8 +3004,8 @@ var TooltipRender = require('./render.js');
 				.append("rect")
 				.attr("class", "accent")
 				.attr("x", function(d, i) { 
-				    return self.state.axis_pos_list[i];}
-				)
+				    return self.state.axis_pos_list[i];
+				})
 				.attr("y", y)
 				.attr("width", self.state.textWidth + 5)
 				.attr("height", gridHeight)
