@@ -2793,7 +2793,7 @@ var TooltipRender = require('./render.js');
 			var model_x_axis = d3.svg.axis().scale(self.state.xScale).orient("top");
 			self.state.svg.append("g")
 				.attr("transform", "translate(" + (self.state.textWidth + self.state.xOffsetOver + 28) + "," + self.state.yoffset + ")")
-				.attr("class", "x axis")
+				.attr("class", "x axis") // Classes applied to the g element - Joe
 				.call(model_x_axis)
 				// this be some voodoo...
 				// to rotate the text, I need to select it as it was added by the axis
@@ -2809,7 +2809,7 @@ var TooltipRender = require('./render.js');
 			// In SVG, the g element is a container used to group objects. Transformations applied to the g element are performed on all of its child elements. 
 			// Attributes applied are inherited by child elements. - Joe
 			this.state.svg.selectAll("g.x").remove(); // Fixed x labels overlaping - Joe
-			this.state.svg.selectAll("g .tick.major").remove();
+			this.state.svg.selectAll("g .tick.major").remove(); // Can be removed? - Joe
 		},
 
 		// Previously _createModelLines
