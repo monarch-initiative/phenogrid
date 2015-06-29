@@ -2808,7 +2808,7 @@ var TooltipRender = require('./render.js');
 		_clearXLabels: function() {
 			// In SVG, the g element is a container used to group objects. Transformations applied to the g element are performed on all of its child elements. 
 			// Attributes applied are inherited by child elements. - Joe
-			this.state.svg.selectAll("g .x.axis").remove();
+			this.state.svg.selectAll("g.x").remove(); // Fixed x labels overlaping - Joe
 			this.state.svg.selectAll("g .tick.major").remove();
 		},
 
