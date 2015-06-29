@@ -1569,7 +1569,7 @@ var stickytooltip = tooltip;
 
 		var img = $("<img>")
 				.attr("id", "img-spinner")
-				.attr("src", this.state.scriptpath + "../image/waiting_ac.gif")
+				.attr("src", this.state.scriptpath + "./image/waiting_ac.gif")
 				.attr("alt", "Loading, please wait...");
 
 		var wait = $("<div>")
@@ -1630,7 +1630,7 @@ var stickytooltip = tooltip;
 		 */
 		var faq	= this.state.svg
 			.append("svg:image")
-			.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
+			.attr("xlink:href", this.state.scriptpath + "./image/greeninfo30.png")
 			.attr("x",xoffset+foffset)
 			.attr("id","pg_faqinfo")
 			.attr("width", this.state.faqImgSize)
