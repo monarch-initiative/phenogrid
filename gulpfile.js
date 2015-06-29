@@ -35,7 +35,7 @@ gulp.task('bundle', ['browserify-byo', 'create-bundle']);
 gulp.task('browserify-byo', function(cb) {
     browserify('./js/phenogrid.js')
 	.bundle()
-        .pipe(source('./js/phenogrid.js'))
+    .pipe(source('./js/phenogrid.js'))
 	.pipe(rename('phenogrid-byo.js'))
 	.pipe(gulp.dest('./dist/'))
 	.on('end', cb);
