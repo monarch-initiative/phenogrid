@@ -92,14 +92,6 @@
 	width: 80px;
 	height:10px;
 	font-size:10px;
-	font-weight:bold;
-}
-
-#pg_tip {
-	font-size: 10px;
-	margin-left:-20px;
-	stroke-width: 1px;
-	stroke:#25349A;
 }
 
 #pg_diseasetitle {

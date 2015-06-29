@@ -2874,7 +2874,7 @@ var TooltipRender = require('./render.js');
 				.attr("width", xWidth)
 				.attr("class", "scores")
 				// don't show score if it is a dummy model.
-				.text(function (d){
+				.text(function (d) {
 					if (d === self.state.dummyModelName) {
 						return "";
 					} else {
@@ -2882,7 +2882,7 @@ var TooltipRender = require('./render.js');
 					}})
 				.style("font-weight", "bold") // normal font-weight for scores may be better? - Joe
 				.style("fill", function(d) {
-					return self._getColorForModelValue(self, self._getAxisData(d).species,self._getAxisData(d).score);
+					return self._getColorForModelValue(self, self._getAxisData(d).species, self._getAxisData(d).score);
 				});
 
 				if (this.state.invertAxis) {
