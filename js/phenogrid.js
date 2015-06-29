@@ -2678,15 +2678,23 @@ var TooltipRender = require('./render.js');
 			var self = this;
 
 			var model_rects = self.state.svg.selectAll("rect.models")
-				.filter(function (d) { return d.rowid == curr_rect.__data__.rowid;});
+				.filter(function(d) { 
+					return d.rowid == curr_rect.__data__.rowid;
+				});
 			for (var i in model_rects[0]){
-				if(!model_rects[0].hasOwnProperty(i)){break;}
+				if ( ! model_rects[0].hasOwnProperty(i)) {
+					break;
+				}
 				model_rects[0][i].parentNode.appendChild(model_rects[0][i]);
 			}
 			var data_rects = self.state.svg.selectAll("rect.models")
-				.filter(function (d) { return d.model_id == curr_rect.__data__.model_id;});
+				.filter(function(d) { 
+				return d.model_id == curr_rect.__data__.model_id;
+			});
 			for (var j in data_rects[0]){
-				if(!data_rects[0].hasOwnProperty(j)){break;}
+				if ( ! data_rects[0].hasOwnProperty(j)) {
+					break;
+				}
 				data_rects[0][j].parentNode.appendChild(data_rects[0][j]);
 			}
 		},
@@ -2698,7 +2706,9 @@ var TooltipRender = require('./render.js');
 			var highlight_rect = self.state.svg.append("svg:rect")
 				.attr("transform","translate(" + (self.state.axis_pos_list[1]) + ","+ (self.state.yoffsetOver + 4 ) + ")")
 				.attr("x", 12)
-				.attr("y", function(d) {return self._getAxisData(curr_data.yID).ypos; }) //rowid
+				.attr("y", function(d) {
+					return self._getAxisData(curr_data.yID).ypos; 
+				}) //rowid
 				.attr("class", "pg_row_accent")
 				.attr("width", this.state.modelWidth - 4)
 				.attr("height", 12);
@@ -2919,7 +2929,7 @@ var TooltipRender = require('./render.js');
 				.data(speciesList)
 				.enter()
 				.append("text")
-				.attr("transform",translation)
+				.attr("transform", translation)
 				.attr("x", function(d,i) { 
 					return (i + 1 / 2 ) * xPerModel;
 				})
