@@ -901,6 +901,7 @@ var TooltipRender = require('./render.js');
 				var tipTextLength = 92;
 				var explYOffset = 15;
 				var explXOffset = 10;
+				
 				var scoretip = self.state.svg.append("text")
 					.attr("transform", "translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY + ")")
 					.attr("x", 0)
@@ -3047,9 +3048,8 @@ var TooltipRender = require('./render.js');
 						return "rightrect";
 					}
 				})
-				.style("opacity", '0.4')
 				.attr("fill", function(d, i) {
-					return i != 1 ? d3.rgb("#e5e5e5") : "white";
+					return i != 1 ? d3.rgb("#eee") : "white";
 				});
 
 			return gridHeight + self.state.yModelRegion;
