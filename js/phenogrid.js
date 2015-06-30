@@ -2583,7 +2583,6 @@ var TooltipRender = require('./render.js');
 				.on("mouseout", function(d) {
 					self._deselectData(data);
 				})
-				.style('opacity', '1.0')
 			.attr("fill", function(d) {
 				var colorID;
 				if (axisStatus){
@@ -2595,17 +2594,13 @@ var TooltipRender = require('./render.js');
 			});
 
 			model_rects.transition()
-				.delay(20)
-				.style('opacity', '1.0')
 				.attr("y", function(d) {
 					return self._getAxisData(d.yID).ypos - 10; // rowid
 				})
 				.attr("x", function(d) {
 					return self.state.xScale(d.xID);
 				});
-			model_rects.exit().transition()
-				.style('opacity', '0.0')
-				.remove();
+			model_rects.exit().transition().remove();
 		},
 
 		_highlightSpecies: function() {
