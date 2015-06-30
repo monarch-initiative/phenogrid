@@ -3446,13 +3446,13 @@ var TooltipRender = require('./render.js');
 			this._buildUnmatchedPhenotypeDisplay();
 
 
-			rect_text.transition()
+			rect_text
 				.attr("y", function(d) {
 					return self._getAxisData(d).ypos + self.state.yoffsetOver + pad;
 				});
 
 			
-			rect_text.exit().transition().remove();
+			rect_text.exit().remove();
 		},
 
 		_getUnmatchedPhenotypes: function() {
