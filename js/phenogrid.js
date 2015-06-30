@@ -927,7 +927,7 @@ var TooltipRender = require('./render.js');
 					.attr("x", self.state.axis_pos_list[2] + explXOffset)
 					.attr("y", scoreTipY + explYOffset)
 					.attr("class", "pg_tip")
-					.text("Best matches left to right."); // uppercased best - > Best - Joe
+					.text("Best matches high to low"); // uppercased best - > Best - Joe
 			}
 			
 		},
