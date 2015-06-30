@@ -2578,7 +2578,7 @@ var stickytooltip = tooltip;
 
 	// Previously _clearModelLabels
 	_clearXLabels: function() {
-		this.state.svg.selectAll("g .x.axis").remove();
+		this.state.svg.selectAll("g.x").remove();
 		this.state.svg.selectAll("g .tick.major").remove();
 	},
 
