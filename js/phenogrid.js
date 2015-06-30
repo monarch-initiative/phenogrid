@@ -3410,17 +3410,16 @@ var TooltipRender = require('./render.js');
 
 			list = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
 
-			var rect_text = this.state.svg
-				.selectAll(".a_text")
-				.data(list, function(d) { 
+			var rect_text = this.state.svg.selectAll(".a_text").data(list, function(d) { 
 					return d; 
 				});
+				
 			rect_text.enter()
 				.append("text")
 				.attr("class", function(d) {
 					return "a_text data_text " + d;
 				})
-			// store the id for this item. This will be used on click events
+			    // store the id for this item. This will be used on click events
 				.attr("ontology_id", function(d) {
 					return d;
 				})
@@ -3454,17 +3453,14 @@ var TooltipRender = require('./render.js');
 
 			this._buildUnmatchedPhenotypeDisplay();
 
+
 			rect_text.transition()
-				.style('opacity', '1.0') // can we use CSS for the opacity? - Joe
-				.delay(5)
 				.attr("y", function(d) {
 					return self._getAxisData(d).ypos + self.state.yoffsetOver + pad;
 				});
-			rect_text.exit()
-				.transition()
-				.delay(20)
-				.style('opacity', '0.0')
-				.remove();
+
+			
+			rect_text.exit().transition().remove();
 		},
 
 		_getUnmatchedPhenotypes: function() {
