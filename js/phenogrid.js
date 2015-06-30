@@ -3221,7 +3221,6 @@ var TooltipRender = require('./render.js');
 				.attr("class", gclass)
 				.attr("y", y)
 				.attr("x", x)
-				.style("font-size", "11px")
 				.text(specName);
 			y += gradientHeight;
 			return y;
