@@ -2358,14 +2358,14 @@ var TooltipRender = require('./render.js');
 				.attr('y', y-10)
 				.attr('width', 9)
 				.attr('height', 9)
-				.attr('xlink:href', '/widgets/phenogrid/image/downarrow.png');
+				.attr('xlink:href', this.state.scriptpath + '../image/downarrow.png');
 			} else if (this._isGenoType(data)) {
 				p.append("image")
 				.attr('x', x-3)
 				.attr('y', y-10)
 				.attr('width', 9)
 				.attr('height', 9)
-				.attr('xlink:href', '/widgets/phenogrid/image/checkmark-drk.png'); //small-bracket.png');
+				.attr('xlink:href', this.state.scriptpath + '../image/checkmark-drk.png'); //small-bracket.png');
 			}
 
 			el.remove();
@@ -3200,7 +3200,7 @@ var TooltipRender = require('./render.js');
 			var x = self.state.axis_pos_list[2] + 12;
 			var translate = "translate(0,10)";
 			var legend = this.state.svg.append("rect")
-				.attr("transform",translate)
+				.attr("transform", translate)
 				.attr("class", "legend_rect_" + i)
 				.attr("id","legendscale_" + i)
 				.attr("y", y)
