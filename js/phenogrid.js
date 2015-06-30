@@ -3430,10 +3430,8 @@ var TooltipRender = require('./render.js');
 				.on("mouseout", function(d) { 
 					self._deselectData(d, d3.mouse(this));
 				})
-				.attr("width", self.state.textWidth)
-				.attr("height", 50)
 				.attr("data-tooltip", "sticky1")
-				.style("fill", function(d){
+				.style("fill", function(d) {
 					return self._getExpandStyling(d);
 				})
 				.text(function(d) {
