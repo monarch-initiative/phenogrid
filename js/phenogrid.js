@@ -2539,9 +2539,10 @@ var TooltipRender = require('./render.js');
 				.data(data, function(d) {
 					return d.xID + d.yID;
 				});
+			
 			model_rects.enter()
 				.append("rect")
-				.attr("transform",rectTranslation)
+				.attr("transform", rectTranslation)
 				.attr("class", function(d) {
 					var dConcept = (d.xID + d.yID);
 					var modelConcept = self._getConceptId(d.xID);
@@ -2590,7 +2591,7 @@ var TooltipRender = require('./render.js');
 				})
 			.attr("fill", function(d) {
 				var colorID;
-				if (axisStatus){
+				if (axisStatus) {
 					colorID = d.yID;
 				} else {
 					colorID = d.xID;
@@ -2598,13 +2599,15 @@ var TooltipRender = require('./render.js');
 				return self._getColorForModelValue(self, self._getAxisData(colorID).species, d.value[self.state.selectedCalculation]);
 			});
 
-			model_rects.transition()
+			// removed transition effect for a clean animation - Joe
+			model_rects
 				.attr("y", function(d) {
 					return self._getAxisData(d.yID).ypos - 10; // rowid
 				})
 				.attr("x", function(d) {
 					return self.state.xScale(d.xID);
 				});
+			
 			model_rects.exit().transition().remove();
 		},
 
