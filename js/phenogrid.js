@@ -684,10 +684,14 @@ var TooltipRender = require('./render.js');
 				.data(data)
 				.enter()
 				.append("rect")
-				.attr("id","pg_gridline")
+				.attr("id", "pg_gridline")
 				.attr("transform","translate(252, " + (this.state.yModelRegion + 5) + ")")
-				.attr("x", function(d,i) { return d[1] * mWidth;})
-				.attr("y", function(d,i) { return d[0] * mHeight;})
+				.attr("x", function(d, i) { 
+					return d[1] * mWidth;
+				})
+				.attr("y", function(d, i) { 
+					return d[0] * mHeight;
+				})
 				.attr("class", "hour bordered deselected")
 				.attr("width", 14)
 				.attr("height", 11.5);
@@ -4065,7 +4069,7 @@ var TooltipRender = require('./render.js');
 				}
 
 				// Setting modelDataHash
-				if (this.state.invertAxis){
+				if (this.state.invertAxis) {
 					modelPoint = new model.modelDataPoint(this.state.modelData[i].id_a, this.state.modelData[i].model_id);
 				} else {
 					modelPoint = new model.modelDataPoint(this.state.modelData[i].model_id, this.state.modelData[i].id_a);
