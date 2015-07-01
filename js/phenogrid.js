@@ -165,7 +165,6 @@ var TooltipRender = require('./render.js');
 			gridTitleYOffset: 20,
 			xOffsetOver: 20,
 			baseYOffset: 150,
-			faqImgSize: 15,
 			dummyModelName: "dummy",
 			// Do we need this? - Joe
 			simServerURL: "",  // URL of the server for similarity searches
@@ -914,15 +913,15 @@ var TooltipRender = require('./render.js');
 					.text("<- Model Scores"); // changed "<" to "<-" to make it look more like an arrow pointer - Joe
 
 				var tip	= self.state.svg
-					.append("svg:image")
-					.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-					.attr("transform", "translate(" + (self.state.axis_pos_list[2] + tipTextLength) + "," + faqY + ")")
+					.append("text")
+					.attr('font-family', 'FontAwesome')
+					.text(function(d) { 
+						return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
+					})
 					.attr("id", "modelscores")
-					.attr("x", 0)
-					.attr("y", 0)
-					.attr("width", self.state.faqImgSize)
-					.attr("height", self.state.faqImgSize)
-					.attr("class", "pg_faq_img")
+					.attr("x", self.state.axis_pos_list[2] + tipTextLength)
+					.attr("y", faqY + 20) // 20 padding - Joe
+					.style('cursor', 'hand')
 					.on("click", function(d) {
 						var name = "modelscores";
 						self._showDialog(name);
@@ -1811,28 +1810,25 @@ var TooltipRender = require('./render.js');
 			}
 
 			var mtitle = this.state.svg.append("svg:text")
-				.attr("class","gridtitle")
-				.attr("id","pg_toptitle")
-				.attr("x",xoffset)
-				.attr("y",this.state.gridTitleYOffset)
+				.attr("class", "gridtitle")
+				.attr("id", "pg_toptitle")
+				.attr("x", xoffset)
+				.attr("y", this.state.gridTitleYOffset)
 				.text(titleText);
 
-			/*
-			 * foffset is the offset to place the icon at the right of the grid title.
-			 * ideally should do this by dynamically grabbing the width of mtitle,
-			 * but that doesn't seem to work.
-			 */
 			var faq	= this.state.svg
-				.append("svg:image")
-				.attr("xlink:href", this.state.scriptpath + "../image/greeninfo30.png")
-				.attr("x",xoffset+foffset)
-				.attr("id","pg_faqinfo")
-				.attr("width", this.state.faqImgSize)
-				.attr("height",this.state.faqImgSize)
-				.attr("class","pg_faq_img")
+				.append("text")
+				.attr('font-family', 'FontAwesome')
+				.text(function(d) { 
+					return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
+				})
+				.attr("x", xoffset+foffset)
+				.attr("y", this.state.gridTitleYOffset)
+				.style('cursor', 'hand')
 				.on("click", function(d) {
 					self._showDialog("faq");
 				});
+
 		},
 
 		_configureFaqs: function() {
@@ -1857,7 +1853,7 @@ var TooltipRender = require('./render.js');
 			$("#pg_org_div").remove();
 			$("#pg_calc_div").remove();
 			$("#pg_sort_div").remove();
-				$("#pg_axis_div").remove();
+			$("#pg_axis_div").remove();
 			$("#mtitle").remove();
 			$("#pg_svg_area").remove();
 
@@ -3346,12 +3342,15 @@ var TooltipRender = require('./render.js');
 
 		// create the html necessary for selecting the calculation
 		_createCalculationSelection: function () {
+
 			var optionhtml = "<div id='pg_calc_div'><label class='pg_ctrl_label'>Display</label>"+ // changed span to div since the CSS name has "_div" - Joe
-				"<span id='pg_calcs'> <img class='pg_faq_img' src='" + this.state.scriptpath + "../image/greeninfo30.png'></span>" +
+				"<span id='pg_calcs'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<span id='calc_sel'><select id='pg_calculation'>";
 
 			for (var idx in this.state.similarityCalculation) {
-				if(!this.state.similarityCalculation.hasOwnProperty(idx)){break;}
+				if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
+					break;
+				}
 				var selecteditem = "";
 				if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
 					selecteditem = "selected";
@@ -3366,11 +3365,13 @@ var TooltipRender = require('./render.js');
 		// create the html necessary for selecting the sort
 		_createSortPhenotypeSelection: function () {
 			var optionhtml ="<div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + // changed span to div since the CSS name has "_div" - Joe
-				"<span id='pg_sorts'> <img class='pg_faq_img' src='" + this.state.scriptpath + "../image/greeninfo30.png'></span>" + // scriptpath is 'js/' - Joe
+				"<span id='pg_sorts'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<span><select id='pg_sortphenotypes'>";
 
 			for (var idx in this.state.phenotypeSort) {
-				if(!this.state.phenotypeSort.hasOwnProperty(idx)){break;}
+				if ( ! this.state.phenotypeSort.hasOwnProperty(idx)) {
+					break;
+				}
 				var selecteditem = "";
 				if (this.state.phenotypeSort[idx] === this.state.selectedSort) {
 					selecteditem = "selected";

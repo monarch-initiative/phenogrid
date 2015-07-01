@@ -140,11 +140,6 @@ label.pg_ctrl_label{
 }
 
 
-.pg_faq_img {
-	height:15px;
-	margin-left: 5px;
-}
-
 #pg_detail_content {
 	z-index:500;
 }
@@ -197,6 +192,10 @@ label.pg_ctrl_label{
 
 #phenogrid_controls {
 	margin-left:10px;
+}
+
+.cursor_pointer {
+cursor:pointer;
 }
 
 #pg_svg_container {
