@@ -2367,7 +2367,7 @@ var stickytooltip = tooltip;
 			return self._getColorForModelValue(self,self._getAxisData(colorID).species,d.value[self.state.selectedCalculation]);
 		});
 
-		model_rects.transition()
+		model_rects
 			.delay(20)
 			.style('opacity', '1.0')
 			.attr("y", function(d) {
