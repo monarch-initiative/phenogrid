@@ -154,11 +154,7 @@ label.pg_ctrl_label{
 	height:90px;
 }
 
-/** jQDialog styles */
-.ui-dialog-titlebar {
-	background-color:#253494;
-	color:#fff;
-}
+/** Overwrite jquery-ui default style */
 
 .ui-dialog-content {
 	font-size:11px;
@@ -166,26 +162,7 @@ label.pg_ctrl_label{
 	color:#000;
 }
 
-.ui-dialog-content a {
-	color: #253494;
-}
-
-.ui-dialog-buttonpane {
-	background-color: #253494;
-}
-
-.ui-dialog-buttonset {
-	background-color: #25349A;
-}
-
-.ui-dialog-osx {
-	-webkit-border-radius: 0 0 8px 8px;
-	border-radius: 0 0 8px 8px; 
-	border-width: 3px;
-	-moz-border-radius: 0 0 8px 8px;
-}
-
-/** end jquery stuff*/
+/* End jquery-ui stuff*/
 
 /*#redtext,
 #bluetext,

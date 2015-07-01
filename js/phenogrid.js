@@ -2568,9 +2568,8 @@ var TooltipRender = require('./render.js');
 					this.parentNode.appendChild(this);
 					
 					self._highlightIntersection(d, d3.mouse(this));
-						self._enableRowColumnRects(this);
-						self.state.currSelectedRect = this;
-					
+					self._enableRowColumnRects(this);
+					self.state.currSelectedRect = this;
 					
 					self._showModelData(d, this);
 				})
