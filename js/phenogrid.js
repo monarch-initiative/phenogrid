@@ -2267,7 +2267,7 @@ var TooltipRender = require('./render.js');
 					newlength = this.state.textLength;
 				}
 				if (label.length > newlength) {
-					retLabel = label.substring(0,newlength-3) + "...";
+					retLabel = label.substring(0, newlength-3) + "...";
 				}
 				return retLabel;
 			}else {
@@ -2281,7 +2281,7 @@ var TooltipRender = require('./render.js');
 		 * Second, I like to use unique ids for CSS classes. This allows me to selectively manipulate related groups of items on the
 		 * screen based their relationship to a common concept (ex: HP000123). However, I can't use a URI as a class.
 		 */
-		_getConceptId: function (uri) {
+		_getConceptId: function(uri) {
 			//if (!uri) {
 			//	return "";
 			//}
@@ -2345,7 +2345,7 @@ var TooltipRender = require('./render.js');
 				.style("fill", this._getExpandStyling(data))
 				// don't show the label if it is a dummy.
 				.text(function(d) {
-					if (label == self.state.dummyModelName){
+					if (label == self.state.dummyModelName) {
 						return "";
 					} else {
 						return label;
