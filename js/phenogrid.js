@@ -1984,7 +1984,7 @@ var TooltipRender = require('./render.js');
 		},
 
 		// Merging of both deselect model and phenotype functions
-		_deselectMatching: function(curr_data){
+		_deselectMatching: function(curr_data) {
 			var self = this;
 			var dataType = self._getIDType(curr_data);
 			var label, alabels, shortTxt, shrinkSize;
@@ -1997,7 +1997,7 @@ var TooltipRender = require('./render.js');
 					shrinkSize = self.state.labelCharDisplayCount;
 				}
 			} else if (dataType === 'Model') {
-				if (this.state.invertAxis){
+				if (this.state.invertAxis) {
 					alabels = this.state.svg.selectAll("text.model_label");
 					shrinkSize = self.state.labelCharDisplayCount;
 				} else {
@@ -2015,7 +2015,7 @@ var TooltipRender = require('./render.js');
 						break;
 					}
 					label = this._getAxisData(blabels[0][i].id).label;
-					shortTxt = this._getShortLabel(label,self.state.labelCharDisplayCount);
+					shortTxt = this._getShortLabel(label, self.state.labelCharDisplayCount);
 					if (blabels[0][i].innerHTML == shortTxt) {
 						blabels[0][i].style.fill = this._getExpandStyling(blabels[0][i].id); //"black";
 					}
@@ -2023,11 +2023,11 @@ var TooltipRender = require('./render.js');
 			}
 
 			for (var j in alabels[0]) {
-				if ( ! alabels[0].hasOwnProperty(j)){
+				if ( ! alabels[0].hasOwnProperty(j)) {
 					break;
 				}
 				label = this._getAxisData(alabels[0][j].id).label;
-				shortTxt = this._getShortLabel(label,shrinkSize);
+				shortTxt = this._getShortLabel(label, shrinkSize);
 				if (alabels[0][j].innerHTML == shortTxt) {
 					alabels[0][j].style.fill = this._getExpandStyling(alabels[0][j].id); //"black";
 				}
@@ -3404,10 +3404,12 @@ var TooltipRender = require('./render.js');
 
 			list = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
 
+			// Updating nodes - Joe
 			var rect_text = this.state.svg.selectAll(".a_text").data(list, function(d) { 
 					return d; 
 				});
-				
+			
+			// Enter, create new nodes for incoming data - Joe
 			rect_text.enter()
 				.append("text")
 				.attr("class", function(d) {
@@ -3451,7 +3453,7 @@ var TooltipRender = require('./render.js');
 					return self._getAxisData(d).ypos + self.state.yoffsetOver + pad;
 				});
 
-			
+			// Exit, remove outgoing nodes that are no longer needed - Joe
 			rect_text.exit().remove();
 		},
 
