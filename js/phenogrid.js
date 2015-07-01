@@ -933,6 +933,7 @@ var TooltipRender = require('./render.js');
 			
 		},
 
+		// Error, disease title is grabbed from html ttitle tag. - Joe
 		_createDiseaseTitleBox: function() {
 			var self = this;
 			var dTitleYOffset = self.state.yoffset - self.state.gridTitleYOffset/2;
