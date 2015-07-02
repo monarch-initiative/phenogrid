@@ -2372,6 +2372,7 @@ var TooltipRender = require('./render.js');
 			el.remove();
 		},
 
+		// HTML tooptip content on mouseover grid cell - Joe
 		_updateDetailSection: function(htmltext, coords, width, height) {
 			this.state.svg.selectAll("#pg_detail_content").remove();
 
