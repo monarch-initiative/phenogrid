@@ -2557,8 +2557,6 @@ var TooltipRender = require('./render.js');
 				})
 				.attr("width", 10)
 				.attr("height", 10)
-				.attr("rx", "3")
-				.attr("ry", "3")
 				// I need to pass this into the function
 				.on("mouseover", function(d) {
 					this.parentNode.appendChild(this);
