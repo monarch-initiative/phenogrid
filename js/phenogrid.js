@@ -3192,8 +3192,6 @@ var TooltipRender = require('./render.js');
 				.attr("id","legendscale_" + i)
 				.attr("y", y)
 				.attr("x", x)
-				.attr("rx",8)
-				.attr("ry",8)
 				.attr("width", 180)
 				.attr("height", 15)
 				.attr("fill", "url(#gradient_" + i + ")");
