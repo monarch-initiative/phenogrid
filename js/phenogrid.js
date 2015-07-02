@@ -2412,12 +2412,13 @@ var TooltipRender = require('./render.js');
 				.html(htmltext);
 		},
 
+		// Model data cell tooptip content - Joe
 		_showModelData: function(d, obj) {
 			var retData, prefix, modelLabel, phenoLabel;
 
 			var yInfo = this._getAxisData(d.yID);
 			var xInfo = this._getAxisData(d.xID);
-			var fullInfo = $.extend({},xInfo,yInfo);
+			var fullInfo = $.extend({}, xInfo, yInfo);
 			var species = fullInfo.species;
 			var taxon = fullInfo.taxon;
 
