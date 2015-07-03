@@ -16,6 +16,12 @@ Now it's time to download and extract our phenogrid widget. In the phenogrid pac
 npm install
 ```
 
+Sometimes, it requires root access to for the installation, just run the following instead
+
+```
+sudo npm install
+```
+
 This will create a local `/node_modules` folder in the phenogrid root directory, and download/install all the dependencies(jquery, jquery-ui, d3, and jshashtable) and tools (gulp, browserify, etc.) into the local `/node_modules` folder.
 
 #3. Run gulp to build this widget
@@ -26,7 +32,9 @@ gulp browserify-byo
 
 This command will use browserify to bundle up phenogrid core and its dependencies except jquery. And the target file `phenogrid-byo.js` will be put into the newly created `dist` folder. Because sometimes the users may already have jquery loaded.
 
-#4. Use of phenogrid in your HTML
+#4. Add phenogrid in your target page
+
+Phenogrid widget is created based on jquery and jquery-ui, in order to give developers some flexibility, we provide two options for the actual use of phenogrid widget in your target web page.
 
 ##4.1 When jquery.js is used in your target page
 
@@ -41,9 +49,10 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 <script src="dist/phenogrid-byo.js"></script>
 <script src="config/phenogrid_config.js"></script>
 
-<link rel="stylesheet" type="text/css" href="css/normalize.css"/>
-<link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
-<link rel="stylesheet" type="text/css" href="css/stickytooltip.css"/>
+<link rel="stylesheet" type="text/css" href="css/normalize.css">
+<link rel="stylesheet" type="text/css" href="css/font-awesome.css">
+<link rel="stylesheet" type="text/css" href="css/phenogrid.css">
+<link rel="stylesheet" type="text/css" href="css/stickytooltip.css">
 
 <script>
 var phenotypes = [
@@ -102,9 +111,10 @@ Now the `phenogrid-bundle.js` will be created and put into the same `dist` folde
 <script src="dist/phenogrid-bundle.js"></script>
 <script src="config/phenogrid_config.js"></script>
 
-<link rel="stylesheet" type="text/css" href="css/normalize.css"/>
-<link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
-<link rel="stylesheet" type="text/css" href="css/stickytooltip.css"/>
+<link rel="stylesheet" type="text/css" href="css/normalize.css">
+<link rel="stylesheet" type="text/css" href="css/font-awesome.css">
+<link rel="stylesheet" type="text/css" href="css/phenogrid.css">
+<link rel="stylesheet" type="text/css" href="css/stickytooltip.css">
 
 <script>
 var phenotypes = [
