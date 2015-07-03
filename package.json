@@ -2,11 +2,6 @@
     "name":"phenogrid",
     "version":"0.0.1",
     "description":"Monarch PhenoGrid widget",
-    "scripts":{
-        "build":"browserify -d entry.js -o bundle.js",
-        "update-docs":"git checkout gh-pages && git pull && git merge master && gulp doc && git commit -a -m 'bump docs' && git push && git checkout master",
-        "test":"./node_modules/.bin/gulp test"
-    },
     "repository":{
         "type":"git",
         "url":"https://github.com/monarch-initiative/phenogrid.git"
@@ -36,11 +31,6 @@
         "jquery-ui":"./node_modules/jquery-ui/jquery-ui.js",
         "d3":"./node_modules/d3/d3.min.js"
     },
-    "style":[
-        "./css/phenogrid.css",
-        "./css/stickytooltip.css",
-        "./node_modules/jquery-ui/themes/base/jquery-ui.css"
-    ],
     "devDependencies":{
         "browserify":"^10.2.1",
         "chai":"^2.3.0",
