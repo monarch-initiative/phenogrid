@@ -3637,7 +3637,7 @@ var TooltipRender = require('./render.js');
 		},
 
 		// Will call the getHPO function to either load the HPO info or to make it visible if it was previously hidden.  Not available if preloading
-		_expandHPO: function(id){
+		_expandHPO: function(id) {
 			self._getHPO(id);
 
 			// this code refreshes the stickytooltip so that tree appears instantly
@@ -3663,8 +3663,9 @@ var TooltipRender = require('./render.js');
 			}
 		},
 
-		// Will hide the hpo info, not delete it.  This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
-		_collapseHPO: function(id){
+		// Will hide the hpo info, not delete it.  
+		// This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
+		_collapseHPO: function(id) {
 			var idClean = id.replace("_", ":");
 			var HPOInfo = this.state.hpoCacheHash.get(idClean);
 			HPOInfo.active = 0;
@@ -3702,7 +3703,7 @@ var TooltipRender = require('./render.js');
 					}
 
 					// Used to prevent breaking objects
-					for (var j in edges){
+					for (var j in edges) {
 						if ( ! edges.hasOwnProperty(j)) {
 							break;
 						}
@@ -3720,11 +3721,11 @@ var TooltipRender = require('./render.js');
 
 				// save the HPO in cache for later
 				var hashData = {"edges": HPOInfo, "active": 1};
-				this.state.hpoCacheHash.put(idClean,hashData);
+				this.state.hpoCacheHash.put(idClean, hashData);
 			} else {
 				// If it does exist, make sure its set to visible
 				HPOInfo.active = 1;
-				this.state.hpoCacheHash.put(idClean,HPOInfo);
+				this.state.hpoCacheHash.put(idClean, HPOInfo);
 			}
 		},
 
