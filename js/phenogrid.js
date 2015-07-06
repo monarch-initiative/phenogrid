@@ -3642,7 +3642,7 @@ var TooltipRender = require('./render.js');
 
 			// this code refreshes the stickytooltip so that tree appears instantly
 			var hpoCached = this.state.hpoCacheHash.get(id.replace("_", ":"));
-console.log(hpoCached);
+
 			if (hpoCached !== null) {
 				this.state.hpoTreesDone = 0;
 				this.state.hpoTreeHeight = 0;
@@ -3655,8 +3655,6 @@ console.log(hpoCached);
 				var hrefLink = "<a href=\"" + this.state.serverURL+"/" + type +"/"+ id.replace("_", ":") + "\" target=\"_blank\">" + info.label + "</a>";
 				var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
 				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
-				
-console.log(hpoData);
 
 				var hpoTree = "<div id='pg_hpoDiv'>" + this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
 				
@@ -3690,9 +3688,7 @@ console.log(hpoData);
 			// check cached hashtable first
 			var idClean = id.replace("_", ":");
 			var HPOInfo = this.state.hpoCacheHash.get(idClean);
-			
-console.log(HPOInfo);
-			
+
 			var direction = this.state.hpoDirection;
 			var relationship = "subClassOf";
 			var depth = this.state.hpoDepth;
