@@ -2591,7 +2591,7 @@ var TooltipRender = require('./render.js');
 					return self.state.xScale(d.xID);
 				});
 			
-			model_rects.exit().transition().remove();
+			model_rects.exit().remove();
 		},
 
 		_highlightSpecies: function() {
