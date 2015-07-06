@@ -2330,9 +2330,7 @@ function modelDataPointPrint(point) {
 			.attr("x", function(d) {
 				return self.state.xScale(d.xID);
 			});
-		model_rects.exit().transition()
-			.style('opacity', '0.0')
-			.remove();
+		model_rects.exit().remove();
 	},
 
 	_highlightSpecies: function () {
