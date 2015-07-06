@@ -184,7 +184,7 @@ var TooltipRender = require('./render.js');
 			selectedCalculation: 0,
 			invertAxis: false,
 			hpoDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
-			hpoDirection: "out",	// String that determines what direction to go in relations.  Default is "out".
+			hpoDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
 			hpoTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
 								// [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
 			selectedSort: "Frequency",
@@ -401,10 +401,7 @@ var TooltipRender = require('./render.js');
 			
 			// will this work?
 			this.configoptions = undefined; // Did you want to reset this variable? Why only reset configoptions? - Joe
-			
-			// Added by Joe - Joe
-			console.log(this.configoptions);
-			
+
 			this._createTargetSpeciesIndices();
 			// index species
 			this._reset();
@@ -2039,6 +2036,8 @@ var TooltipRender = require('./render.js');
 		_capitalizeString: function(word) {
 			if (word === undefined) {
 				return "Undefined";
+			} else if (word === null) {
+				return " ";
 			} else {
 				return word.charAt(0).toUpperCase() + word.slice(1);
 			}
@@ -2198,6 +2197,7 @@ var TooltipRender = require('./render.js');
 		// Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 		_buildHPOHyperLink: function(id) {
 			var label = this.state.hpoCacheLabels.get(id);
+			console.log(label);
 			var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
 			return link;
 		},
@@ -2235,7 +2235,7 @@ var TooltipRender = require('./render.js');
 			//stickytooltip.closetooltip();
 		},
 
-		_clickItem: function(url_origin,data) {
+		_clickItem: function(url_origin, data) {
 			var url;
 			var apientity = this.state.defaultApiEntity;
 			if (this._getIDType(data) == "Phenotype") {
@@ -3647,11 +3647,7 @@ var TooltipRender = require('./render.js');
 				this.state.hpoTreesDone = 0;
 				this.state.hpoTreeHeight = 0;
 				var info = this._getAxisData(id);
-				
-				console.log(info);
-				
 				var type = this._getIDType(id);
-
 				var hrefLink = "<a href=\"" + this.state.serverURL+"/" + type +"/"+ id.replace("_", ":") + "\" target=\"_blank\">" + info.label + "</a>";
 				var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
 				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
@@ -3693,13 +3689,10 @@ var TooltipRender = require('./render.js');
 			var relationship = "subClassOf";
 			var depth = this.state.hpoDepth;
 			var nodes, edges;
-			///neighborhood/HP_0003273/2/out/subClassOf.json
-			// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/out/subClassOf.json is the URL path - Joe
-			// but this URL returns HTTP 500 error - Joe
+			// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 			if (HPOInfo === null) {
 				HPOInfo = [];
 				var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
-					//console.log("getting hpo data .. url is ..."+url);
 				var taxon = this._getTargetSpeciesTaxonByName(this, this.state.targetSpeciesName);
 				var results = this._ajaxLoadData(taxon, url);
 				if (typeof (results) !== 'undefined') {
@@ -3710,8 +3703,13 @@ var TooltipRender = require('./render.js');
 						if ( ! nodes.hasOwnProperty(i)) {
 							break;
 						}
-						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id) && (nodes[i].id != "MP:0000001" && nodes[i].id != "UPHENO_0001001" && nodes[i].id != "UPHENO_0001002" && nodes[i].id != "HP:0000118" && nodes[i].id != "HP:0000001")){
-							this.state.hpoCacheLabels.put(nodes[i].id,this._capitalizeString(nodes[i].lbl));
+						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id) 
+							&& (nodes[i].id != "MP:0000001" 
+							&& nodes[i].id != "OBO:UPHENO_0001001" 
+							&& nodes[i].id != "OBO:UPHENO_0001002" 
+							&& nodes[i].id != "HP:0000118" 
+							&& nodes[i].id != "HP:0000001")) {
+							this.state.hpoCacheLabels.put(nodes[i].id, this._capitalizeString(nodes[i].lbl));
 						}
 					}
 
@@ -3720,7 +3718,11 @@ var TooltipRender = require('./render.js');
 						if ( ! edges.hasOwnProperty(j)) {
 							break;
 						}
-						if (edges[j].obj != "MP:0000001" && edges[j].obj != "UPHENO_0001001" && edges[j].obj != "UPHENO_0001002" && edges[j].obj != "HP:0000118" && edges[j].obj != "HP:0000001"){
+						if (edges[j].obj != "MP:0000001" 
+							&& edges[j].obj != "OBO:UPHENO_0001001" 
+							&& edges[j].obj != "OBO:UPHENO_0001002" 
+							&& edges[j].obj != "HP:0000118" 
+							&& edges[j].obj != "HP:0000001") {
 							HPOInfo.push(edges[j]);
 						}
 					}
