@@ -3669,11 +3669,13 @@ var TooltipRender = require('./render.js');
 			var idClean = id.replace("_", ":");
 			var HPOInfo = this.state.hpoCacheHash.get(idClean);
 			HPOInfo.active = 0;
-			this.state.hpoCacheHash.put(idClean,HPOInfo);
+			this.state.hpoCacheHash.put(idClean, HPOInfo);
 			stickytooltip.closetooltip();
 		},
 
-		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored, and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash, it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
+		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored, 
+		// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash, 
+		// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
 		_getHPO: function(id) {
 			// check cached hashtable first
 			var idClean = id.replace("_", ":");
