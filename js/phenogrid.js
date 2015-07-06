@@ -2036,8 +2036,6 @@ var TooltipRender = require('./render.js');
 		_capitalizeString: function(word) {
 			if (word === undefined) {
 				return "Undefined";
-			} else if (word === null) {
-				return " ";
 			} else {
 				return word.charAt(0).toUpperCase() + word.slice(1);
 			}
