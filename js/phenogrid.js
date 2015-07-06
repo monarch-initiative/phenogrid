@@ -184,7 +184,7 @@ var TooltipRender = require('./render.js');
 			selectedCalculation: 0,
 			invertAxis: false,
 			hpoDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
-			hpoDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
+			hpoDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "OUTGOING".
 			hpoTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
 								// [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
 			selectedSort: "Frequency",
