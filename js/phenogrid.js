@@ -1940,7 +1940,7 @@ var TooltipRender = require('./render.js');
 			var highlightX = false;
 
 			if (dataType === "Phenotype") {
-				if (this.state.invertAxis){
+				if (this.state.invertAxis) {
 					alabels = this.state.svg.selectAll("text.a_text");
 					highlightX = true;
 				} else {
@@ -2186,7 +2186,7 @@ var TooltipRender = require('./render.js');
 			return results;
 		},
 
-		_buildIndentMark: function (times){
+		_buildIndentMark: function (times) {
 			var mark = "";
 			for (var i = 0; i < times; i++){
 				mark += "----";
@@ -2209,7 +2209,7 @@ var TooltipRender = require('./render.js');
 			this.state.svg.selectAll("#pg_detail_content").remove();
 			this.state.svg.selectAll(".pg_col_accent").remove();
 			this._resetLinks();
-			if (data !== undefined){
+			if (data !== undefined) {
 				var IDType = this._getIDType(data);
 				var alabels;
 				if (IDType) {
@@ -2458,7 +2458,7 @@ var TooltipRender = require('./render.js');
 
 			// Hiding scores which are equal to 0
 			var formatScore =  function(score) {
-				if(score === 0) {
+				if (score === 0) {
 					return "";
 				} else {
 					return " (IC: " + score + ")";
