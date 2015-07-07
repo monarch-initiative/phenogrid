@@ -2655,8 +2655,9 @@ var TooltipRender = require('./render.js');
 				} else {
 					border_rect.attr("x", function(d, i) {
 						totCt += ct;
-						if (i === 0) { return 0; }
-						else {
+						if (i === 0) { 
+							return 0; 
+						} else {
 							parCt = totCt - ct;
 							return hwidthAndGap * parCt;
 						}
@@ -2680,8 +2681,8 @@ var TooltipRender = require('./render.js');
 			}
 			var data_rects = self.state.svg.selectAll("rect.models")
 				.filter(function(d) { 
-				return d.model_id == curr_rect.__data__.model_id;
-			});
+					return d.model_id == curr_rect.__data__.model_id;
+				});
 			for (var j in data_rects[0]){
 				if ( ! data_rects[0].hasOwnProperty(j)) {
 					break;
@@ -2724,7 +2725,9 @@ var TooltipRender = require('./render.js');
 			// create the related model rectangles
 			var highlight_rect2 = self.state.svg.append("svg:rect")
 				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 34) + "," +self.state.yoffsetOver+ ")")
-				.attr("x", function(d) { return (self.state.xScale(curr_data.xID) - 1);})
+				.attr("x", function(d) { 
+					return (self.state.xScale(curr_data.xID) - 1);
+				})
 				.attr("y", self.state.yoffset + 2 )
 				.attr("class", "pg_col_accent")
 				.attr("width", 12)
@@ -2905,7 +2908,7 @@ var TooltipRender = require('./render.js');
 					this.state.svg.selectAll("text.scores").attr("x", 0);
 					this.state.svg.selectAll("text.scores").attr("transform", "translate(" + (this.state.textWidth + 20) + "," + 40 + ")");
 				} else {
-					this.state.svg.selectAll("text.scores").attr("x", function(d,i) {
+					this.state.svg.selectAll("text.scores").attr("x", function(d, i) {
 						return i * xWidth;
 					});
 					this.state.svg.selectAll("text.scores").attr("y", 0);
