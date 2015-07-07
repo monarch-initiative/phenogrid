@@ -82,7 +82,7 @@ function modelDataPointPrint(point) {
 		overviewCount: 3,
 		colStartingPos: 10,
 		detailRectWidth: 300,
-		detailRectHeight: 140,
+		detailRectHeight: 100,
 		detailRectStrokeWidth: 3,
 		globalViewSize : 110,
 		reducedGlobalViewSize: 50,
@@ -2130,26 +2130,21 @@ function modelDataPointPrint(point) {
 		el.remove();
 	},
 
-	_updateDetailSection: function(htmltext, coords, width, height) {
+	_updateDetailSection: function(htmltext, coords) {
 		this.state.svg.selectAll("#pg_detail_content").remove();
 
 		var w = this.state.detailRectWidth - (this.state.detailRectStrokeWidth * 2);
 		var h = this.state.detailRectHeight - (this.state.detailRectStrokeWidth * 2);
-		if (width !== undefined) {
-			w = width;
-		}
-		if (height !== undefined) {
-			h = height;
-		}
+
 		var wdt = this.state.axis_pos_list[1] + ((this.state.axis_pos_list[2] - this.state.axis_pos_list[1])/2);
 		var displayCount = this._getYLimit();
 		var hgt = displayCount * 10 + this.state.yoffset;
 		var yv, wv;
 
-		if (coords.y > hgt) { yv = coords.y - this.state.detailRectHeight - 10;}
+		if (coords.y > hgt) { yv = coords.y - this.state.detailRectHeight - 5;}
 		else {yv = coords.y + 20;}
 
-		if (coords.x > wdt) { wv = coords.x - w - 20;}
+		if (coords.x > wdt) { wv = coords.x - w - 10;}
 		else {wv = coords.x + 20;}
 
 		this.state.svg.append("foreignObject")
