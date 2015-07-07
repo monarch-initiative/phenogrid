@@ -52,7 +52,6 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 <link rel="stylesheet" type="text/css" href="css/normalize.css">
 <link rel="stylesheet" type="text/css" href="css/font-awesome.css">
 <link rel="stylesheet" type="text/css" href="css/phenogrid.css">
-<link rel="stylesheet" type="text/css" href="css/stickytooltip.css">
 
 <script>
 var phenotypes = [
@@ -114,7 +113,6 @@ Now the `phenogrid-bundle.js` will be created and put into the same `dist` folde
 <link rel="stylesheet" type="text/css" href="css/normalize.css">
 <link rel="stylesheet" type="text/css" href="css/font-awesome.css">
 <link rel="stylesheet" type="text/css" href="css/phenogrid.css">
-<link rel="stylesheet" type="text/css" href="css/stickytooltip.css">
 
 <script>
 var phenotypes = [
