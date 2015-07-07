@@ -1113,7 +1113,7 @@ var TooltipRender = require('./render.js');
 		},
 
 		// Previously filterSelected
-		_filterDisplay: function(){
+		_filterDisplay: function() {
 			var self = this;
 			var axis_idx = 0;
 			var sortedYArray = [];
@@ -1300,7 +1300,7 @@ var TooltipRender = require('./render.js');
 
 						// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
 						// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-						if (this.state.modelListHash.containsKey(ID)){
+						if (this.state.modelListHash.containsKey(ID)) {
 							ID += "_" + variantNum;
 							variantNum++;
 						}
@@ -1366,14 +1366,16 @@ var TooltipRender = require('./render.js');
 
 					// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
 					// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-					if (this.state.modelListHash.containsKey(ID)){
+					if (this.state.modelListHash.containsKey(ID)) {
 						ID += "_" + variantNum;
 						variantNum++;
 					}
 
 					type = this.state.defaultApiEntity;
 					for (var j in this.state.apiEntityMap) {
-						if(!this.state.apiEntityMap.hasOwnProperty(j)){break;}
+						if( ! this.state.apiEntityMap.hasOwnProperty(j)) {
+							break;
+						}
 						if (ID.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
 							type = this.state.apiEntityMap[j].apifragment;
 						}
@@ -1533,7 +1535,9 @@ var TooltipRender = require('./render.js');
 			var currentModelData = this.state.modelDataHash.entries();
 
 			for (var i in currentModelData){
-				if(!currentModelData.hasOwnProperty(i)){break;}
+				if ( ! currentModelData.hasOwnProperty(i)) {
+					break;
+				}
 				if (this.state.filteredXAxis.containsKey(currentModelData[i][0].xID) && this.state.filteredYAxis.containsKey(currentModelData[i][0].yID)) {
 					currentModelData[i][1].yID = currentModelData[i][0].yID;
 					currentModelData[i][1].xID = currentModelData[i][0].xID;
@@ -1610,8 +1614,12 @@ var TooltipRender = require('./render.js');
 		_sortPhenotypesAlphabeticHash: function(a, b) {
 			var labelA = a.label,
 			labelB = b.label;
-			if (labelA < labelB) {return -1;}
-			if (labelA > labelB) {return 1;}
+			if (labelA < labelB) {
+				return -1;
+			}
+			if (labelA > labelB) {
+				return 1;
+			}
 			return 0;
 		},
 
