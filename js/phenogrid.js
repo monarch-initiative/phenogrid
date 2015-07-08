@@ -2204,9 +2204,13 @@ var TooltipRender = require('./render.js');
 		_buildIndentMark: function (times) {
 			var mark = "";
 			for (var i = 0; i < times; i++){
-				mark += "----";
+				mark += "<em class='HPO_tree_indent'></em>";
 			}
-			return mark;
+			if (times === 0) {
+				return mark;
+			} else {
+				return mark + '└─';
+			}
 		},
 
 		// Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
@@ -2724,7 +2728,7 @@ var TooltipRender = require('./render.js');
 			var displayCount = self._getYLimit();
 			// Highlight Row
 			var highlight_rect = self.state.svg.append("svg:rect")
-				.attr("transform", "translate(" + (self.state.axis_pos_list[1] + 2) + ","+ (self.state.yoffsetOver + 6 ) + ")")
+				.attr("transform", "translate(" + (self.state.axis_pos_list[1] + 2) + ","+ (self.state.yoffsetOver + 6 ) + ")") // position control -Joe
 				.attr("x", 12)
 				.attr("y", function(d) {
 					return self._getAxisData(curr_data.yID).ypos; 
@@ -2752,7 +2756,7 @@ var TooltipRender = require('./render.js');
 
 			// create the related model rectangles
 			var highlight_rect2 = self.state.svg.append("svg:rect")
-				.attr("transform", "translate(" + (self.state.textWidth + self.state.xOffsetOver + 36) + "," + (self.state.yoffsetOver + 1) +  ")")
+				.attr("transform", "translate(" + (self.state.textWidth + self.state.xOffsetOver + 36) + "," + (self.state.yoffsetOver + 1) +  ")") // position control -Joe
 				.attr("x", function(d) { 
 					return (self.state.xScale(curr_data.xID) - 1);
 				})

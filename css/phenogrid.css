@@ -221,6 +221,13 @@ cursor:pointer;
 	font-size:1.2em;
 }
 
+em.HPO_tree_indent{
+width:12px;
+float:left;
+display:inline-block;
+height:1px;
+}
+
 
 /** for spinner*/
 .cube1,
