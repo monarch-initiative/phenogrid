@@ -228,6 +228,9 @@ display:inline-block;
 height:1px;
 }
 
+.draggable{
+cursor:move;
+}
 
 /** for spinner*/
 .cube1,
