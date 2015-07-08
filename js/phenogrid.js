@@ -1916,7 +1916,6 @@ var TooltipRender = require('./render.js');
 			}
 			
 			link_lines.style("font-weight", "normal");
-			link_lines.style("text-decoration", "none");
 			link_lines.style("text-anchor", "end");
 
 			var link_labels = d3.selectAll(".model_label");
@@ -1927,7 +1926,6 @@ var TooltipRender = require('./render.js');
 				link_labels[0][j].style.fill = this._getExpandStyling(link_labels[0][j].id);
 			}
 			link_labels.style("font-weight", "normal");
-			link_labels.style("text-decoration", "none");
 		},
 
 		// Will return all partial matches in the modelDataHash structure.  Good for finding rows/columns of data
@@ -2080,11 +2078,11 @@ var TooltipRender = require('./render.js');
 
 			// create the related model rectangles
 			var highlight_rect = self.state.svg.append("svg:rect")
-				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 32) + "," + self.state.yoffsetOver + ")")
+				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 34.5) + "," + self.state.yoffsetOver + ")")
 				.attr("x", function(d) { 
 					return (self.state.xScale(data) - 1);
 				})
-				.attr("y", self.state.yoffset +2)
+				.attr("y", self.state.yoffset + 3)
 				.attr("class", "pg_col_accent")
 				.attr("width", 15 * appearanceOverrides.offset)
 				.attr("height", (displayCount * self.state.heightOfSingleModel));
@@ -2129,7 +2127,7 @@ var TooltipRender = require('./render.js');
 				.attr("transform","translate(" + (self.state.axis_pos_list[1]) + "," + (self.state.yoffsetOver + 4) + ")")
 				.attr("x", 12)
 				.attr("y", function(d) {
-					return info.ypos; 
+					return info.ypos + 2.5; // magic number - Joe
 				}) //rowid
 				.attr("class", "pg_row_accent")
 				.attr("width", this.state.modelWidth - 4)
@@ -2237,15 +2235,13 @@ var TooltipRender = require('./render.js');
 					if ((IDType == "Phenotype" && !this.state.invertAxis) || (IDType == "Model" && this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text.a_text." + id);
 						alabels.html(this._getShortLabel(label));
-					}else if ((IDType == "Phenotype" && this.state.invertAxis) || (IDType == "Model" && !this.state.invertAxis)) {
+					} else if ((IDType == "Phenotype" && this.state.invertAxis) || (IDType == "Model" && !this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text#" + id);
-						alabels.html(this._getShortLabel(label,self.state.labelCharDisplayCount));
+						alabels.html(this._getShortLabel(label, self.state.labelCharDisplayCount));
 					}
 
 					alabels.style("font-weight", "normal");
-					alabels.style("text-decoration", "none");
-					//alabels.style("fill", "black");
-					alabels.style("fill", this._getExpandStyling(data));
+					alabels.style("fill", "black");
 
 					this._deselectMatching(data);
 				}
