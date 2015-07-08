@@ -446,7 +446,6 @@ var TooltipRender = require('./render.js');
 		//init is now reduced down completely to loading
 		_init: function() {
 			this.element.empty();
-			this._loadSpinner();
 
 			// original spot for init of tooltip
 			this.state.phenoDisplayCount = this._calcPhenotypeDisplayCount();
@@ -507,13 +506,6 @@ var TooltipRender = require('./render.js');
 			this.state.currXIdx = this._getXLimit();
 			this.state.currYIdx = this._getYLimit();
 			this._createColorScale();
-		},
-
-		// Loading animation - Joe
-		_loadSpinner: function() {
-			var element =$('<div><h3>Loading...</h3><div class="cube1"></div><div class="cube2"></div></div>');
-			this._createSvgContainer();
-			element.appendTo(this.state.svgContainer);
 		},
 
 		_reDraw: function() {
