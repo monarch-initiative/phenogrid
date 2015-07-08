@@ -2225,9 +2225,13 @@ var TooltipRender = require('./render.js');
 			this.state.svg.selectAll("#pg_detail_content").remove();
 			this.state.svg.selectAll(".pg_col_accent").remove();
 			this._resetLinks();
+
 			if (data !== undefined) {
 				var IDType = this._getIDType(data);
 				var alabels;
+				
+				console.log(IDType);
+				// IDType can be false - Joe
 				if (IDType) {
 					var id = this._getConceptId(data);
 					var label = this._getAxisData(data).label;
@@ -2244,6 +2248,12 @@ var TooltipRender = require('./render.js');
 					alabels.style("fill", "black");
 
 					this._deselectMatching(data);
+				} else {
+					alabels = this.state.svg.selectAll("text#" + id);
+					
+					console.log(alabels);
+					alabels.style("font-weight", "normal");
+					alabels.style("fill", "black");
 				}
 			}
 			//stickytooltip.closetooltip();
@@ -2550,14 +2560,15 @@ var TooltipRender = require('./render.js');
 				.append("rect")
 				.attr("transform", rectTranslation) // moves the data cells to region - Joe
 				.attr("class", function(d) { // e.g. class="models  MGI_98331 MGI_98331HP_0000739" - Joe
-					var dConcept = (d.xID + d.yID);
+					var dConcept = (d.xID + ' ' + d.yID);
 					var modelConcept = self._getConceptId(d.xID);
 					// append the model id to all related items
 					if (d.value[self.state.selectedCalculation] > 0) {
 						var bla = self.state.svg.selectAll(".data_text." + dConcept);
 						bla.classed(modelConcept, true);
 					}
-					return "models " + " " + modelConcept + " " + dConcept;
+
+					return "models" + " " + dConcept;
 				})
 				.attr("y", function(d, i) {
 					return self._getAxisData(d.yID).ypos + self.state.yoffsetOver;
