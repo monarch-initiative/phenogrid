@@ -554,17 +554,8 @@ var TooltipRender = require('./render.js');
 				stickytooltip.init("*[data-tooltip]", "mystickytooltip");
 
 			} else {
-				var msg;
-				// COMPARE CALL HACK - REFACTOR OUT
-				if (this.state.targetSpeciesName == 'Overview' || this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser') {
-					msg = "There are no results available.";
-					this._createSvgContainer();
-					this._createEmptyVisualization(msg);
-				} else{
-					msg = 'There are no ' + this.state.targetSpeciesName + ' results available.';
-					this._createSvgContainer();
-					this._createEmptyVisualization(msg);
-				}
+				this._createSvgContainer();
+				this.state.svgContainer.append("Error: No results available! Please reload this widget later.");
 			}
 			// COMPARE CALL HACK - REFACTOR OUT
 			// no organism selector if we are doing the 'compare' function
@@ -620,7 +611,6 @@ var TooltipRender = require('./render.js');
 		
 		
 		// create this visualization if no phenotypes or models are returned
-		// [vaa12] the commented-out code has been here for a while.  Check to see if its unneeded and good to remove
 		_createEmptyVisualization: function(msg) {
 			var self = this;
 			var html;
@@ -3221,7 +3211,7 @@ var TooltipRender = require('./render.js');
 			self = this;
 			var y;
 			var gradientHeight = 20;
-			var gradient = this.state.svg.append("svg:linearGradient")
+			var gradient = this.state.svg.append("svg:linearGradient") // The <linearGradient> element is used to define a linear gradient. - Joe
 				.attr("id", "gradient_" + i)
 				.attr("x1", "0")
 				.attr("x2", "100%")
@@ -3250,7 +3240,7 @@ var TooltipRender = require('./render.js');
 				.attr("x", x)
 				.attr("width", 180)
 				.attr("height", 12)
-				.attr("fill", "url(#gradient_" + i + ")");
+				.attr("fill", "url(#gradient_" + i + ")"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 
 			y = (gradientHeight * (i + 1)) + y1 + self.state.yoffset - 1; // magic number to make it vertical aligined in center - Joe
 			// [vaa12] BUG. IF LOOKING AT ONLY 1 SPECIES, SOMEHOW Y IS EITHER ADDED BY 180 OR 360 AT THIS POINT. NOT OTHER VARS CHANGED
@@ -3335,7 +3325,7 @@ var TooltipRender = require('./render.js');
 			container.append(options);
 			// add the handler for the select control
 			$("#pg_organism" ).change(function(d) {
-				self.state.targetSpeciesName = self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
+				self.state.targetSpeciesName = self._getTargetSpeciesNameByIndex(self, d.target.selectedIndex);
 				self._resetSelections("organism");
 			});
 
