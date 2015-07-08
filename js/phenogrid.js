@@ -738,7 +738,7 @@ var TooltipRender = require('./render.js');
 			var overviewBoxDim = overviewRegionSize + viewPadding;
 
 			// create the main box and the instruction labels.
-			self._initializeOverviewRegion(overviewBoxDim,overviewX,overviewY);
+			self._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
 
 			// create the scales
 			self._createSmallScales(overviewRegionSize);
@@ -2229,8 +2229,7 @@ var TooltipRender = require('./render.js');
 			if (data !== undefined) {
 				var IDType = this._getIDType(data);
 				var alabels;
-				
-				console.log(IDType);
+
 				// IDType can be false - Joe
 				if (IDType) {
 					var id = this._getConceptId(data);
@@ -2248,12 +2247,6 @@ var TooltipRender = require('./render.js');
 					alabels.style("fill", "black");
 
 					this._deselectMatching(data);
-				} else {
-					alabels = this.state.svg.selectAll("text#" + id);
-					
-					console.log(alabels);
-					alabels.style("font-weight", "normal");
-					alabels.style("fill", "black");
 				}
 			}
 			//stickytooltip.closetooltip();
@@ -2589,7 +2582,22 @@ var TooltipRender = require('./render.js');
 					self._showModelData(d, this);
 				})
 				.on("mouseout", function(d) {
-					self._deselectData(data);
+					// De-highlight row and column
+					self.state.svg.selectAll(".pg_row_accent").remove();
+					self.state.svg.selectAll(".pg_col_accent").remove();
+					
+					// Reset model data tooltip content
+					self.state.svg.selectAll("#pg_detail_content").remove();
+					
+					// Reset model label
+					var model_label = self.state.svg.selectAll("#" + self._getConceptId(d.xID));
+					model_label.style("font-weight", "normal");
+					model_label.style("fill", "black");
+
+					// Reset phenotype label
+					var phenotype_label = self.state.svg.selectAll("#" + self._getConceptId(d.yID));
+					phenotype_label.style("font-weight", "normal");
+					phenotype_label.style("fill", "black");
 				})
 			.attr("fill", function(d) {
 				var colorID;
@@ -2598,6 +2606,7 @@ var TooltipRender = require('./render.js');
 				} else {
 					colorID = d.xID;
 				}
+				// The calculated color of the data model cell - Joe
 				return self._getColorForModelValue(self, self._getAxisData(colorID).species, d.value[self.state.selectedCalculation]);
 			});
 
