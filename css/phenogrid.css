@@ -39,13 +39,14 @@
 	fill-opacity: 0.1;    /*0.05;*/
 }
 
-/*.pg_gene_accent {
-	/*stroke:#ea763b;*/
+/*
+.pg_gene_accent {
 	stroke:#4CA092;
 	stroke-width: 2;
 	fill: #4CA092;
 	fill-opacity: 0.1;
-}*/
+}
+*/
 
 .pg_scroll_text {
 	font-size: 9px;
@@ -57,17 +58,11 @@
 	float:left;
 }
 
-
-
 #pg_scorelist {
 	font-size:10px;
 	fill: #0F473E;
 }
 
-
-#pg_hpoDiv {
-	text-align:left;
-}
 
 #pg_selectionrect {
 	fill: grey;

@@ -115,7 +115,7 @@ var TooltipRender = require('./render.js');
 			colStartingPos: 10,
 			detailRectWidth: 300,
 			detailRectHeight: 100,
-			detailRectStrokeWidth: 3,
+			detailRectStrokeWidth: 2,
 			globalViewSize : 110,
 			reducedGlobalViewSize: 50,
 			minHeight: 310,
@@ -156,7 +156,7 @@ var TooltipRender = require('./render.js');
 			defaultApiEntity: "gene",
 			tooltips: {},
 			widthOfSingleModel: 18,
-			heightOfSingleModel: 13,
+			heightOfSingleModel: 18,
 			yoffsetOver: 30,
 			overviewGridTitleXOffset: 340,
 			overviewGridTitleFaqOffset: 230,
@@ -681,7 +681,7 @@ var TooltipRender = require('./render.js');
 				.enter()
 				.append("rect")
 				.attr("id", "pg_gridline")
-				.attr("transform","translate(252, " + (this.state.yModelRegion + 5) + ")")
+				.attr("transform", "translate(254, " + (this.state.yModelRegion + 5) + ")") // position the pg_gridline net to region - Joe
 				.attr("x", function(d, i) { 
 					return d[1] * mWidth;
 				})
@@ -690,7 +690,7 @@ var TooltipRender = require('./render.js');
 				})
 				.attr("class", "hour bordered deselected")
 				.attr("width", 14)
-				.attr("height", 11.5);
+				.attr("height", 14);
 		},
 
 		// Sets the X & Y axis hash datastructures correctly based on axis position
@@ -747,17 +747,23 @@ var TooltipRender = require('./render.js');
 			var modData = self._mergeHashEntries(self.state.modelDataHash);
 
 			var model_rects = this.state.svg.selectAll(".mini_models")
-				.data(modData, function(d) {return d.yID + d.xID;});
+				.data(modData, function(d) {
+					return d.yID + d.xID;
+				});
 			overviewX++;	// Corrects the gapping on the sides
 			overviewY++;
 			var modelRectTransform = "translate(" + overviewX +	"," + overviewY + ")";
 
 			model_rects.enter()
 				.append("rect")
-				.attr("transform",modelRectTransform)
+				.attr("transform", modelRectTransform)
 				.attr("class", "mini_model")
-				.attr("y", function(d, i) { return self.state.smallYScale(d.yID) + linePad / 2;})
-				.attr("x", function(d) { return self.state.smallXScale(d.xID) + linePad / 2;})
+				.attr("y", function(d, i) { 
+					return self.state.smallYScale(d.yID) + linePad / 2;
+				})
+				.attr("x", function(d) { 
+					return self.state.smallXScale(d.xID) + linePad / 2;
+				})
 				.attr("width", linePad)
 				.attr("height", linePad)
 				.attr("fill", function(d) {
@@ -1136,7 +1142,7 @@ var TooltipRender = require('./render.js');
 				// the height of each row
 				var size = 10;
 				// the spacing you want between rows
-				var gap = 3;
+				var gap = 8;
 				// push the rowid and ypos onto the yaxis array
 				// so now the yaxis will be in the order of the ranked phenotypes
 				var ypos = (axis_idx * (size + gap)) + self.state.yoffset;
@@ -1504,11 +1510,11 @@ var TooltipRender = require('./render.js');
 		_getAxisData: function(key) {
 			if (this.state.yAxis.containsKey(key)) {
 				return this.state.yAxis.get(key);
-			}
-			else if (this.state.xAxis.containsKey(key)) {
+			} else if (this.state.xAxis.containsKey(key)) {
 				return this.state.xAxis.get(key);
+			} else { 
+				return false; 
 			}
-			else { return false; }
 		},
 
 		// Determines if an ID belongs to the Model or Phenotype hashtable
@@ -2175,6 +2181,7 @@ var TooltipRender = require('./render.js');
 						if (this.state.hpoTreeHeight < nextLevel){
 							this.state.hpoTreeHeight++;
 						}
+						
 						nextResult = this.buildHPOTree(edges[j].obj, edges, nextLevel);
 						if (nextResult === '') {
 							// Bolds the 'top of the line' to see what is the root or closet to the root.  It will hit this point either when it reaches the hpoDepth or there is no parents
@@ -2205,7 +2212,6 @@ var TooltipRender = require('./render.js');
 		// Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 		_buildHPOHyperLink: function(id) {
 			var label = this.state.hpoCacheLabels.get(id);
-			console.log(label);
 			var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
 			return link;
 		},
@@ -2542,8 +2548,8 @@ var TooltipRender = require('./render.js');
 			
 			model_rects.enter()
 				.append("rect")
-				.attr("transform", rectTranslation)
-				.attr("class", function(d) {
+				.attr("transform", rectTranslation) // moves the data cells to region - Joe
+				.attr("class", function(d) { // e.g. class="models  MGI_98331 MGI_98331HP_0000739" - Joe
 					var dConcept = (d.xID + d.yID);
 					var modelConcept = self._getConceptId(d.xID);
 					// append the model id to all related items
@@ -2559,7 +2565,7 @@ var TooltipRender = require('./render.js');
 				.attr("x", function(d) { 
 					return self.state.xScale(d.xID);
 				})
-				.attr("width", 10)
+				.attr("width", 10) // size of each cube - Joe
 				.attr("height", 10)
 				// I need to pass this into the function
 				.on("mouseover", function(d) {
@@ -2587,10 +2593,10 @@ var TooltipRender = require('./render.js');
 			// removed transition effect for a clean animation - Joe
 			model_rects
 				.attr("y", function(d) {
-					return self._getAxisData(d.yID).ypos - 10; // rowid
+					return self._getAxisData(d.yID).ypos - 8; // y position of the cubes region - Joe
 				})
 				.attr("x", function(d) {
-					return self.state.xScale(d.xID);
+					return self.state.xScale(d.xID) + 2; // x position of the cubes region - Joe
 				});
 			
 			model_rects.exit().remove();
@@ -2614,20 +2620,20 @@ var TooltipRender = require('./render.js');
 					list = self.state.speciesList;
 					ct = self.state.multiOrganismCt;
 					borderStroke = self.state.detailRectStrokeWidth / 2;
-					width = hwidthAndGap * displayCountX;
+					width = hwidthAndGap * displayCountX + 4; // magin number 4 makes the width a little wider - Joe
 					height = vwidthAndGap * ct + borderStroke;
 				} else {
 					list = self.state.speciesList;
 					ct = self.state.multiOrganismCt;
 					borderStroke = self.state.detailRectStrokeWidth;
-					width = hwidthAndGap * ct;
+					width = hwidthAndGap * ct + 4; // magin number 4 makes the width a little wider - Joe
 					height = vwidthAndGap * displayCount + borderStroke * 2;
 				}
 			} else {
 				list.push(self.state.targetSpeciesName);
 				ct = displayCountX;
 				borderStroke = self.state.detailRectStrokeWidth;
-				width = hwidthAndGap * ct;
+				width = hwidthAndGap * ct + 4; // magin number 4 makes the width a little wider - Joe
 				height = vwidthAndGap * displayCount + borderStroke * 2;
 			}
 
@@ -2639,7 +2645,7 @@ var TooltipRender = require('./render.js');
 				.attr("class", "species_accent")
 				.attr("width", width)
 				.attr("height", height)
-				.attr("stroke", "black")
+				.attr("stroke", "#333") // border color of the main data models region - Joe
 				.attr("stroke-width", borderStroke)
 				.attr("fill", "none");
 
@@ -2654,16 +2660,36 @@ var TooltipRender = require('./render.js');
 							return (self.state.yoffset + borderStroke) + ((vwidthAndGap) * parCt + i);
 						}
 					});
+				} else if (self.state.targetSpeciesName == 'Overview' && ! this.state.invertAxis) {
+					border_rect.attr("x", function(d, i) {
+						totCt += ct;
+						if (i === 0) { 
+							return 0; 
+						} else if (i === 1) { 
+							return width - 2; 
+						} else if (i === 2) { 
+							return width *2 - 4; // Magic numbers to move the position - Joe
+						}
+						
+						else {
+							parCt = totCt - ct;
+							return hwidthAndGap * parCt;
+						}
+					})
+					.attr("width", hwidthAndGap * ct + 1); // magic number 1 makes the width a little wider - Joe
+					
+					border_rect.attr("y", self.state.yoffset + 1);
 				} else {
 					border_rect.attr("x", function(d, i) {
 						totCt += ct;
 						if (i === 0) { 
 							return 0; 
-						} else {
+						} 
+						else {
 							parCt = totCt - ct;
 							return hwidthAndGap * parCt;
 						}
-					});
+					})
 					border_rect.attr("y", self.state.yoffset + 1);
 				}
 		},
@@ -2698,7 +2724,7 @@ var TooltipRender = require('./render.js');
 			var displayCount = self._getYLimit();
 			// Highlight Row
 			var highlight_rect = self.state.svg.append("svg:rect")
-				.attr("transform","translate(" + (self.state.axis_pos_list[1]) + ","+ (self.state.yoffsetOver + 4 ) + ")")
+				.attr("transform", "translate(" + (self.state.axis_pos_list[1] + 2) + ","+ (self.state.yoffsetOver + 6 ) + ")")
 				.attr("x", 12)
 				.attr("y", function(d) {
 					return self._getAxisData(curr_data.yID).ypos; 
@@ -2726,7 +2752,7 @@ var TooltipRender = require('./render.js');
 
 			// create the related model rectangles
 			var highlight_rect2 = self.state.svg.append("svg:rect")
-				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 34) + "," +self.state.yoffsetOver+ ")")
+				.attr("transform", "translate(" + (self.state.textWidth + self.state.xOffsetOver + 36) + "," + (self.state.yoffsetOver + 1) +  ")")
 				.attr("x", function(d) { 
 					return (self.state.xScale(curr_data.xID) - 1);
 				})
@@ -3657,7 +3683,7 @@ var TooltipRender = require('./render.js');
 				var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
 				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
 
-				var hpoTree = "<div id='pg_hpoDiv'>" + this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
+				var hpoTree = this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0);
 				
 	
 				if (hpoTree == "<br/>") {
