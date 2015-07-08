@@ -116,7 +116,7 @@ var TooltipRender = require('./render.js');
 			detailRectWidth: 300,
 			detailRectHeight: 100,
 			detailRectStrokeWidth: 2,
-			globalViewSize : 110,
+			globalViewSize : 110, // overview map -Joe
 			reducedGlobalViewSize: 50,
 			minHeight: 310,
 			h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
@@ -977,6 +977,9 @@ var TooltipRender = require('./render.js');
 			var overviewInstructionHeightOffset = 50;
 			var lineHeight = 12;
 
+			// There's better way to create this two-line text - Joe
+			// SVG 1.2 supports textarea, not all browsers support it though - Joe
+			
 			var y = self.state.yModelRegion + overviewBoxDim + overviewInstructionHeightOffset;
 			var rect_instructions = self.state.svg.append("text")
 				.attr("x", self.state.axis_pos_list[2] + 10)
@@ -3246,19 +3249,20 @@ var TooltipRender = require('./render.js');
 				.attr("y", y)
 				.attr("x", x)
 				.attr("width", 180)
-				.attr("height", 15)
+				.attr("height", 12)
 				.attr("fill", "url(#gradient_" + i + ")");
 
-			// text is 20 below gradient
-			y = (gradientHeight * (i + 1)) + y1 + self.state.yoffset;
+			y = (gradientHeight * (i + 1)) + y1 + self.state.yoffset - 1; // magic number to make it vertical aligined in center - Joe
 			// [vaa12] BUG. IF LOOKING AT ONLY 1 SPECIES, SOMEHOW Y IS EITHER ADDED BY 180 OR 360 AT THIS POINT. NOT OTHER VARS CHANGED
-			x = self.state.axis_pos_list[2] + 205;
+			x = self.state.axis_pos_list[2] + 100;
 			var gclass = "grad_text_" + i;
 			var specName = this.state.targetSpeciesList[i].name;
 			var grad_text = this.state.svg.append("svg:text")
 				.attr("class", gclass)
 				.attr("y", y)
 				.attr("x", x)
+				.attr("text-anchor", 'middle')
+				.attr('font-size', '10px')
 				.text(specName);
 			y += gradientHeight;
 			return y;
