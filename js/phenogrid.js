@@ -3013,19 +3013,26 @@ var TooltipRender = require('./render.js');
 				.html(SplitText )
 				.dialog({
 					modal: true,
-					minHeight: 200,
-					height: 250,
-					maxHeight: 300,
-					minWidth: 400,
-					resizable: true,
+					width:400,
+					height: 260,
 					draggable: true,
-					dialogClass: "dialogBG",
+					dialogClass: "faqdialog_bg_color",
 					position: {
 						my: "top", 
 						at: "top+25%",
 						of: "#pg_svg_area"
 					},
-					title: 'Phenogrid Notes'
+					title: 'Phenogrid Notes',
+					
+					// Replace default jquery-ui titlebar close icon with font awesome - Joe
+					open: function(event, ui) {
+						// remove default close icon
+						$('.ui-dialog-titlebar-close span').removeClass('ui-icon ui-icon-thickclose');
+						// Yuck they have close text let's remove that
+						$('.ui-dialog-titlebar-close span').text('');
+						// Lets add font awesome close icon
+						$('.ui-dialog-titlebar-close span').addClass('fa fa-times');
+					}
 				});
 			$dialog.html(text);
 			$dialog.dialog('open');
