@@ -2,18 +2,10 @@
 <head>
 <title>Monarch Phenotype Grid Widget</title>
 
-<!-- Option 1 Begin -->
-<!-- When jquery.js is already loaded in your target page -->
-<!--<script src="PATH_TO_YOUR/jquery/dist/jquery.js"></script>-->
-<!--<script src="dist/phenogrid-byo.js"></script>-->
-<!-- Option 1 End -->
-
-<!-- Option 2 Begin -->
-<!-- When jquery.js is not loaded in your target page -->
-<script src="dist/phenogrid-bundle.js"></script>
-<!-- Option 2 End -->
+<!-- Version comment 1 -->
 
 <script src="config/phenogrid_config.js"></script>
+<script charset="UTF-8" src="dist/phenogrid-byo.js"></script>
 
 <link rel="stylesheet" type="text/css" href="css/phenogrid.css">
 
@@ -34,21 +26,21 @@ var phenotypes = [
 	{ id:"HP:0002172", observed:"positive"},
 	{ id:"HP:0002322", observed:"positive"},
 	{ id:"HP:0007159", observed:"positive"}
-];	
+];
 
-$(document).ready(function(){
-	$("#phenogrid_container").phenogrid({
-		serverURL :"http://beta.monarchinitiative.org", 
+function initializePhenogrid(element) {
+	Phenogrid.createPhenogridForElement(element, {
+		serverURL : "http://beta.monarchinitiative.org",
 		phenotypeData: phenotypes,
-		targetSpeciesName: "Mus musculus" 
+		targetSpeciesName: "Mus musculus"
 	});
-});
+}
 
 </script>
 
 </head>
 
-<body>
+<body onload="initializePhenogrid(document.getElementById('phenogrid_container'))">
 
 <div id="phenogrid_container"></div>
 
