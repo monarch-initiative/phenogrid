@@ -1784,7 +1784,7 @@ var model = {
 			// don't put these styles in css file - these styles change depending on state
 			this.state.svg.selectAll("#pg_detail_content").remove();
 
-			var link_lines = d3.selectAll(".data_text");
+			var link_lines = d3.selectAll(".a_text");
 			for (var i in link_lines[0]) {
 				if ( ! link_lines[0].hasOwnProperty(i)) {
 					break;
@@ -2437,7 +2437,7 @@ var model = {
 					var modelConcept = self._getConceptId(d.xID);
 					// append the model id to all related items
 					if (d.value[self.state.selectedCalculation] > 0) {
-						var bla = self.state.svg.selectAll(".data_text." + dConcept);
+						var bla = self.state.svg.selectAll(".a_text." + dConcept);
 						bla.classed(modelConcept, true);
 					}
 
@@ -3344,7 +3344,7 @@ var model = {
 			rect_text.enter()
 				.append("text")
 				.attr("class", function(d) {
-					return "a_text data_text " + d;
+					return "a_text " + d;
 				})
 			    // store the id for this item. This will be used on click events
 				.attr("ontology_id", function(d) {
