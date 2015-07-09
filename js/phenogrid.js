@@ -593,53 +593,6 @@ var TooltipRender = require('./render.js');
 			this._super( options );
 		},
 
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		// create this visualization if no phenotypes or models are returned
-		_createEmptyVisualization: function(msg) {
-			var self = this;
-			var html;
-			d3.select("#pg_svg_area").remove();
-			//this.state.svgContainer.append("<svg id='pg_svg_area'></svg>");
-			//this.state.svg = d3.select("#pg_svg_area");
-
-			var svgContainer = this.state.svgContainer;
-			//svgContainer.append("<svg id='pg_svg_area'></svg>");
-			//this.state.svg = d3.select("#pg_svg_area")
-			//	.attr("width", this.state.emptySvgX)
-			//	.attr("height", this.state.emptySvgY);
-
-			//var error = "<br /><div id='err'><h4>" + msg + "</h4></div><br /><div id='return'><button id='button' type='button'>Return</button></div>";
-			//this.element.append(error);
-			if (this.state.targetSpeciesName != "Overview") {
-				html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><p><button id='button' type='button'>Return</button></p><br/></div>";
-				//this.element.append(html);
-				this.state.svgContainer.append(html);
-				var btn = d3.selectAll("#button") // D3 has its own selectors - Joe
-					.on("click", function(d, i) {
-						$("#return").remove();
-						$("#pg_errmsg").remove();
-						d3.select("#pg_svg_area").remove();
-
-						self.state.phenotypeData = self.state.origPhenotypeData.slice();
-						self._reset();
-						self.state.targetSpeciesName = "Overview";
-						self._init();
-					});
-			}else{
-				html = "<h4 id='err'>" + msg + "</h4><br />";
-				//this.element.append(html);
-				this.state.svgContainer.append(html);
-			}
-		},
-
 		// adds light gray gridlines to make it easier to see which row/column selected matches occur
 		_createGridlines: function() {
 			var self = this;
@@ -1626,59 +1579,10 @@ var TooltipRender = require('./render.js');
 					res = data;
 				},
 				error: function(xhr, errorType, exception) { // removed space between function and the ( - Joe
-				// Triggered if an error communicating with server
-					self._displayResult(xhr, errorType, exception);
+				    console.log('Server error.');
 				}
 			});
 			return res;
-		},
-
-		_displayResult: function(xhr, errorType, exception) {
-			var msg;
-
-			switch(xhr.status){
-				case 404:
-				case 500:
-				case 501:
-				case 502:
-				case 503:
-				case 504:
-				case 505:
-				default:
-					msg = "We're having some problems. Please try again soon.";
-					break;
-				case 0:
-					msg = "Please check your network connection.";
-					break;
-			}
-
-			// We need a better shared error handling here instead of displaying empty vis
-			//if (xhr.status === 0) {
-			//	msg = 'Not connected.\n Verify Network.';
-			//} else if (xhr.status == 404) {
-			//	msg = 'The requested page was not found.';
-			//} else if (xhr.status == 500) {
-			//	msg = 'Due to an Internal Server Error, no phenotype data was retrieved.';
-			//} else if (xhr.status == 501) {
-			//	msg = 'The server either does not recognize the request method, or it lacks the ability to fulfill the request';
-			//} else if (xhr.status == 502) {
-			//	msg = 'The server was acting as a gateway or proxy and received an invalid response from the upstream server.';
-			//} else if (xhr.status == 503) {
-			//	msg = 'The server is currently unavailable (because it is overloaded or down for maintenance).';
-			//} else if (xhr.status == 504) {
-			//	msg = 'The server was acting as a gateway or proxy and did not receive a timely response from the upstream server.';
-			//} else if (xhr.status == 505) {
-			//	msg = 'The server does not support the HTTP protocol version used in the request.';
-			//} else if (exception === 'parsererror') {
-			//	msg = 'Requested JSON parse failed.';
-			//} else if (exception === 'timeout') {
-			//	msg = 'Time out error.';
-			//} else if (exception === 'abort') {
-			//	msg = 'Ajax request aborted.';
-			//} else {
-			//	msg = 'Uncaught Error.\n' + xhr.responseText;
-			//}
-			//this._createEmptyVisualization(msg);
 		},
 
 		_createColorScale: function() {
