@@ -2968,13 +2968,6 @@ cursor:pointer;
 	font-size:1.2em;
 }
 
-em.HPO_tree_indent{
-width:12px;
-float:left;
-display:inline-block;
-height:1px;
-}
-
 /* Cursor for mini map */
 .draggable{
 cursor:move;
@@ -3005,31 +2998,13 @@ cursor:move;
 background-color: #fff !important;
 }
 
-.expandbtn {
-    padding: 0;
-    border: none;
-    background: transparent url('../image/ExpandAllIcon.png') no-repeat;
-    margin-left: auto;
-    margin-right: auto;
-    width: 18px;
-    height: 17px;
-	background-color: white;
-	/* box-shadow: 1px 1px 1px #888888; */
+.HPO_icon{
+margin-left:5px;
 }
 
-.collapsebtn {
-    padding: 0;
-    border: none;
-    background: transparent url('../image/CollapseAllIcon.png') no-repeat;
-    margin-left: auto;
-    margin-right: auto;    
-    width: 18px;
-    height: 17px;
-	background-color: white;
-	//box-shadow: 1px 1px 1px #888888;	
+em.HPO_tree_indent{
+width:12px;
+float:left;
+display:inline-block;
+height:1px;
 }
-
-
-
-
-
