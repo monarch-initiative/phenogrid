@@ -2184,16 +2184,18 @@ var TooltipRender = require('./render.js');
 			return results;
 		},
 
-		_buildIndentMark: function (times) {
-			var mark = "";
-			for (var i = 0; i < times; i++){
-				mark += "<em class='HPO_tree_indent'></em>";
+		_buildIndentMark: function (hpoTreeHeight) {
+			var indent = "<em class='HPO_tree_indent'></em>";
+
+			if (hpoTreeHeight === 0) {
+				return indent;
 			}
-			if (times === 0) {
-				return mark;
-			} else {
-				return mark + '└─';
+
+			for (var i = 1; i < hpoTreeHeight; i++){
+				indent += "<em class='HPO_tree_indent'></em>";
 			}
+			 
+			return indent + '&#8627'; // HTML entity - Joe
 		},
 
 		// Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
