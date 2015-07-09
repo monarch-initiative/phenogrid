@@ -859,7 +859,7 @@ var TooltipRender = require('./render.js');
 					.attr("id", "modelscores")
 					.attr("x", self.state.axis_pos_list[2] + tipTextLength)
 					.attr("y", faqY + 20) // 20 padding - Joe
-					.style('cursor', 'hand')
+					.style('cursor', 'pointer')
 					.on("click", function(d) {
 						var name = "modelscores";
 						self._showDialog(name);
@@ -1724,7 +1724,7 @@ var TooltipRender = require('./render.js');
 				})
 				.attr("x", xoffset+foffset)
 				.attr("y", this.state.gridTitleYOffset)
-				.style('cursor', 'hand')
+				.style('cursor', 'pointer')
 				.on("click", function(d) {
 					self._showDialog("faq");
 				});
@@ -2479,7 +2479,7 @@ var TooltipRender = require('./render.js');
 					
 					// Reset model data tooltip content
 					self.state.svg.selectAll("#pg_detail_content").remove();
-					
+
 					// Reset model label
 					var model_label = self.state.svg.selectAll("#" + self._getConceptId(d.xID));
 					model_label.style("font-weight", "normal");
