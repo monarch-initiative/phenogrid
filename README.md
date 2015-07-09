@@ -49,9 +49,6 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 <script src="dist/phenogrid-byo.js"></script>
 <script src="config/phenogrid_config.js"></script>
 
-<link rel="stylesheet" type="text/css" href="css/normalize.css">
-<link rel="stylesheet" type="text/css" href="css/font-awesome.css">
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
 <link rel="stylesheet" type="text/css" href="css/phenogrid.css">
 
 <script>
@@ -111,9 +108,6 @@ Now the `phenogrid-bundle.js` will be created and put into the same `dist` folde
 <script src="dist/phenogrid-bundle.js"></script>
 <script src="config/phenogrid_config.js"></script>
 
-<link rel="stylesheet" type="text/css" href="css/normalize.css">
-<link rel="stylesheet" type="text/css" href="css/font-awesome.css">
-<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
 <link rel="stylesheet" type="text/css" href="css/phenogrid.css">
 
 <script>
