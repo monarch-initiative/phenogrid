@@ -3375,6 +3375,8 @@ var TooltipRender = require('./render.js');
 				.attr("y", function(d) {
 					return self._getAxisData(d).ypos + 10;
 				})
+				.style("font-size", "12px")
+				.style("text-anchor", "end")
 				.on("mouseover", function(d) {
 					self._selectYItem(d, d3.mouse(this));
 				})
