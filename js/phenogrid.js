@@ -58,7 +58,7 @@
 
 // jquery  is commonsJS compliant as of 2.1.0 - Joe
 
-//require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
+require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
 require('jquery-ui');
 var d3 = require('d3');
 var Hashtable = require('jshashtable');
@@ -82,16 +82,22 @@ var TooltipRender = require('./render.js');
 	}
 })  
 
-  
 (function($, window, document, __undefined__) {
+	var createPhenogridForElement = function(element, options) {
+		var jqElement = $(element);
+		jqElement.phenogrid(options);
+	};
+
+	window.Phenogrid = {
+		createPhenogridForElement: createPhenogridForElement
+	};
+	
 	// Use widget factory to define the UI plugin - Joe
 	// Can aslo be ns.phenogrid (ns can be anything else - namespace) - Joe
 	// Later can be called using $().phenogrid(); - Joe
 	// Widget factory API documentation https://api.jqueryui.com/jquery.widget/ - Joe
 	$.widget("ui.phenogrid", {
-		
-		
-		
+
 		// Why not prefixed with underscore? - Joe
 		
 		// core commit. Not changeable by options.

@@ -29,27 +29,16 @@ var paths = {
 };
 
 // The default task is to build the different distributions.
-gulp.task('bundle', ['browserify-byo', 'create-bundle']);
+gulp.task('bundle', ['browserify-bundle']);
 
 // Bundle together 
-gulp.task('browserify-byo', function(cb) {
+gulp.task('browserify-bundle', function(cb) {
     browserify('./js/phenogrid.js')
 	.bundle()
-        .pipe(source('./js/phenogrid.js'))
-	.pipe(rename('phenogrid-byo.js'))
+    .pipe(source('./js/phenogrid.js'))
+	.pipe(rename('phenogrid-bundle.js'))
 	.pipe(gulp.dest('./dist/'))
 	.on('end', cb);
-});
-
-// Cat on the used jquery to the bundle.
-gulp.task('create-bundle', ['browserify-byo'], function() {
-    var pkg = require('./package.json');
-    var jq_path = pkg['browser']['jquery'];
-    //var jqui_path = pkg['browser']['jquery-ui'];
-    gulp.src([jq_path, 'dist/phenogrid-byo.js'])
-    //gulp.src(['./dist/phenogrid-byo.js'])
-	.pipe(concat('phenogrid-bundle.js'))
-	.pipe(gulp.dest('./dist/'));
 });
 
 // Browser runtime environment construction.

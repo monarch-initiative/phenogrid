@@ -1,6 +1,6 @@
 {
     "name":"phenogrid",
-    "version":"0.0.1",
+    "version":"0.0.2",
     "description":"Monarch PhenoGrid widget",
     "repository":{
         "type":"git",
@@ -19,17 +19,14 @@
     },
     "homepage":"https://github.com/monarch-initiative/phenogrid",
     "dependencies":{
-        "browserify-shim":"^3.8.8",
+        "browserify-global-shim": "^1.0.0",
+		"browserify-shim":"^3.8.8",
         "d3":"^3.5.5",
         "jquery":"^2.1.4",
         "jquery-ui":"^1.10.5",
         "jshashtable":"^0.1.0",
+		"npm": "^2.12.1",
         "vinyl-source-stream":"^1.1.0"
-    },
-    "browser":{
-        "jquery":"./node_modules/jquery/dist/jquery.js",
-        "jquery-ui":"./node_modules/jquery-ui/jquery-ui.js",
-        "d3":"./node_modules/d3/d3.min.js"
     },
     "devDependencies":{
         "browserify":"^10.2.1",
@@ -47,21 +44,6 @@
         "gulp-uglify":"^1.2.0",
         "jsdoc":"^3.3.0",
         "jsdoc-baseline":"git://github.com/hegemonic/jsdoc-baseline.git#74d1dc8075"
-    },
-    "browserify":{
-        "transform":[
-            "browserify-shim"
-        ]
-    },
-    "browserify-shim":{
-        "jquery":{
-            "exports":"global:$"
-        },
-        "jquery-ui":{
-            "depends":[
-                "jquery"
-            ]
-        }
     },
     "main":"js/phenogrid.js"
 }
