@@ -7,6 +7,12 @@
 - I'll remove the dist/ folder later, since it will be created during the installation. It's here for now, simply to make it work in monarch-app after duplication.
 - The npm stuff is from the zy branch, improvements will be made soon.
 
+#About Phenogrid
+
+Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided by OWLSim (www.owlsim.org), as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
+
+Given an input list of phenotypes (you will see the sample input below) and parameters specified in config/phenogrid_config.js indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.
+
 #1. Make sure npm installed
 
 Before you get started, you will need to make sure you have npm installed first. npm is bundled and installed automatically with node.js. If not, you need to install them.
