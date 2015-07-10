@@ -10435,9 +10435,11 @@ var TooltipRender = require('./render.js');
 			var toadd = limit - res.b.length;
 			for (var i = 0; i < toadd; i++) {
 				var dummyId = "dummy" + species + i;
-				var newItem = { id: dummyId,
+				var newItem = { 
+					id: dummyId,
 					label: this.state.dummyModelName,
 					score: {score: 0, rank: Number.MAX_VALUE},
+					taxon: {id: dummyId, label: this.state.dummyModelName}
 				};
 				res.b.push(newItem);
 			}
