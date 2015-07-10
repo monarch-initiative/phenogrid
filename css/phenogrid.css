@@ -2960,7 +2960,7 @@ cursor:pointer;
 }
 
 #pg_svg_container {
-	margin-top:40px;
+	margin-top:2px;
 }
 
 #pg_specieslist {
@@ -3008,3 +3008,28 @@ float:left;
 display:inline-block;
 height:1px;
 }
+
+/******* Grid related *****/
+
+#pg_gridline {
+  fill: #ffffff;
+  fill-opacity: 0;
+  stroke: #e5e5e5;
+  stroke-width: 1;
+
+.pg_grid_label {
+  font: 11px arial;
+}
+
+.pg_grid_row {
+  height: 100%;
+  width: 100%;
+  border: 1px black solid;
+}
+
+.pg_score_text {
+  font-size:10px;
+  font-family: Arial;   
+  font-weight:bold;
+}
+
