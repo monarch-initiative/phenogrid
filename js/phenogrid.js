@@ -83,7 +83,15 @@ var TooltipRender = require('./render.js');
 })  
 
 (function($, window, document, __undefined__) {
+	var createPhenogridForElement = function(element, options) {
+		var jqElement = $(element);
+		jqElement.phenogrid(options);
+	};
 
+	window.Phenogrid = {
+		createPhenogridForElement: createPhenogridForElement
+	};
+	
 	// Use widget factory to define the UI plugin - Joe
 	// Can aslo be ns.phenogrid (ns can be anything else - namespace) - Joe
 	// Later can be called using $().phenogrid(); - Joe
