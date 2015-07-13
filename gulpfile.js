@@ -29,16 +29,23 @@ var paths = {
 };
 
 // The default task is to build the different distributions.
-gulp.task('bundle', ['browserify-bundle']);
+gulp.task('bundle', ['js-bundle', 'css-bundle']);
 
-// Bundle together 
-gulp.task('browserify-bundle', function(cb) {
+// Bundle JS together
+gulp.task('js-bundle', function(cb) {
     browserify('./js/phenogrid.js')
-	.bundle()
+    .bundle()
     .pipe(source('./js/phenogrid.js'))
-	.pipe(rename('phenogrid-bundle.js'))
-	.pipe(gulp.dest('./dist/'))
-	.on('end', cb);
+    .pipe(rename('phenogrid-bundle.js'))
+    .pipe(gulp.dest('./dist/'))
+    .on('end', cb);
+});
+
+// Bundle CSS together
+gulp.task('css-bundle', function(cb) {
+  return gulp.src(['./css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css'])
+    .pipe(concat('phenogrid-bundle.css'))
+    .pipe(gulp.dest('./dist/'));
 });
 
 // Browser runtime environment construction.

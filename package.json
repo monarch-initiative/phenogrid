@@ -19,8 +19,6 @@
     },
     "homepage":"https://github.com/monarch-initiative/phenogrid",
     "dependencies":{
-        "browserify-global-shim": "^1.0.0",
-		"browserify-shim":"^3.8.8",
         "d3":"^3.5.5",
         "jquery":"^2.1.4",
         "jquery-ui":"^1.10.5",

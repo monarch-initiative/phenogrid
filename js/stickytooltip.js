@@ -4,6 +4,8 @@
 * Visit http://www.dynamicdrive.com/ for full source code
 */
 
+var jQuery = require('jQuery');
+var $ = jQuery;
 
 var stickytooltip={
 	tooltipoffsets: [1, -1], //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]

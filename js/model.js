@@ -16,7 +16,4 @@ module.exports = {
 	modelDataPointPrint: function(point) {
 		return "X:" + point.xID + ", Y:" + point.yID;
 	}
-}
-
-
-
+};
