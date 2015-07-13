@@ -5,7 +5,7 @@
 - The js/ folder contains all individual js files in CommonJS format.
 - The dist/ folder contains two files, phenogrid-bundle.js and phenogrid-bundle.css. For now, only the js bundle is generated with browserify/gulp, the css bundle is hand-merged. This way, we can just specify these two files, together with the config js in webapp.js once we have the final npm stuff integrated into both phenogrid and monarch-app repos. 
 - I'll remove the dist/ folder later, since it will be created during the installation. It's here for now, simply to make it work in monarch-app after duplication.
-- The npm stuff is from the zy branch, improvements will be made soon.
+- The npm stuff is from the zy branch (based on Seth's kltm branch) and Dan's PR, improvements will be made soon.
 
 #About Phenogrid
 
@@ -44,11 +44,10 @@ This will create a local `/node_modules` folder in the phenogrid root directory,
 ##3. Run gulp to build this widget
 
 ```
-gulp browserify-byo
-gulp create-bundle
+gulp bundle
 ```
 
-This command will use browserify to bundle up phenogrid core and its dependencies except jquery. And the target file `phenogrid-bundle.js` will be put into the newly created `dist` folder.
+This command will use browserify to bundle up phenogrid core and its dependencies into `phenogrid-bundle.js` and create the merge `phenogrid-bundle.css` and put both files under `dist` folder.
 
 ##4. Add phenogrid in your target page
 
