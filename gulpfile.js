@@ -29,28 +29,19 @@ var paths = {
 };
 
 // The default task is to build the different distributions.
-gulp.task('bundle', ['browserify-byo', 'js-bundle', 'css-bundle']);
+gulp.task('bundle', ['js-bundle', 'css-bundle']);
 
-// Bundle together 
-gulp.task('browserify-byo', function(cb) {
+// Bundle JS together with browserify
+gulp.task('js-bundle', function(cb) {
     browserify('./js/phenogrid.js')
-	.bundle()
+    .bundle()
     .pipe(source('./js/phenogrid.js'))
-	.pipe(rename('phenogrid-byo.js'))
-	.pipe(gulp.dest('./dist/'))
-	.on('end', cb);
+    .pipe(rename('phenogrid-bundle.js'))
+    .pipe(gulp.dest('./dist/'))
+    .on('end', cb);
 });
 
-// Cat on the used jquery to the bundle.
-gulp.task('js-bundle', ['browserify-byo'], function() {
-    var pkg = require('./package.json');
-    var jq_path = pkg['browser']['jquery'];
-    gulp.src([jq_path, 'dist/phenogrid-byo.js'])
-	.pipe(concat('phenogrid-bundle.js'))
-	.pipe(gulp.dest('./dist/'));
-});
-
-// Bundle CSS together
+// Bundle CSS together with gulp concat
 gulp.task('css-bundle', function(cb) {
   return gulp.src(['./css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css'])
     .pipe(concat('phenogrid-bundle.css'))
