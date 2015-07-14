@@ -3,7 +3,7 @@
 - npm-config-kltm branch and zy branch are dead
 - The css/ folder contains all individual css files, changes made to jquery-ui and font-awesome, and added '-modified' in the file name, so you know they are customized versions. 
 - The js/ folder contains all individual js files in CommonJS format.
-- The dist/ folder contains two files, phenogrid-bundle.js and phenogrid-bundle.css that are generated after running `gulp bunle`. We can just specify these two files, together with the config js in webapp.js. 
+- The dist/ folder contains two files, phenogrid-bundle.js and phenogrid-bundle.css that are generated after running `gulp bundle`. We can just specify these two files, together with the config js in webapp.js. 
 - I'll remove the dist/ folder later, since it will be created during the installation. It's here for now, simply to make it work in monarch-app after duplication.
 - The npm stuff is from the zy branch (based on Seth's kltm branch) and Dan's PR.
 
