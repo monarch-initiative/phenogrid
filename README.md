@@ -104,7 +104,7 @@ function initializePhenogrid(element) {
 
 #Configuration Preference
 
-`serverURL`  string | required
+##`serverURL`  string | required
 
 This URL should be pointed to the OWLSim URL server associated with your installation containing the Monarch web services. You have three options:
 - Use http://beta.monarchinitiative.org to connect to the development/test web services. This server is less stable than the production server.
@@ -112,12 +112,12 @@ This URL should be pointed to the OWLSim URL server associated with your install
 - If you are running the complete monarch-app, you can point it to http://localhost:8080, or whichever server/port you are using in your local installation.
 
 
-`phenotypeData`  array | required
+##`phenotypeData`  array | required
 
 It is a Javascript array of objects listing the phenotypes to be rendered in the widget.
 
 
-`targetSpecies`  string | optional
+##`targetSpecies`  string | optional
 
 This parameter defaults to 10090 (mus musculus). Change this parameter if you want to compare the phenotypes in the phenotypeData parameter against a different species. Available Species:
 - Name: Homo sapiens Taxon: 9606
@@ -125,6 +125,6 @@ This parameter defaults to 10090 (mus musculus). Change this parameter if you wa
 - Name: Drosophila melanogaster Taxon: 7227
 
 
-`simServerURL`  string | optional
+##`simServerURL`  string | optional
 
 The URL of the server running the similarity comparison. Usually default to being the same as serverURL. Use the default (do not specify a value) unless you have an expliciit reason for doing otherwise.
