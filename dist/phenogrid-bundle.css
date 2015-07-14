@@ -422,8 +422,6 @@ td,
 th {
   padding: 0;
 }
-
-
 /*!
  *  Font Awesome 4.3.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
@@ -2227,7 +2225,6 @@ th {
 }
 
 
-
 /*! jQuery UI - v1.11.4 - 2015-07-09 Customized by Joe
 * http://jqueryui.com
 * Includes: core.css, draggable.css, resizable.css, button.css, dialog.css, theme.css
@@ -2739,8 +2736,6 @@ button.ui-button::-moz-focus-inner {
 	filter: Alpha(Opacity=20); /* support: IE8 */
 	border-radius: 5px;
 }
-
-
 
 /*
  *  Phenogrid related styling
