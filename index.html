@@ -1,175 +1,465 @@
-<!--
-  File: /widget/phenogrid/index.html 
-  
-  Authors: Harry Hochheiser, Chuck Boromeo, Becky Boes (University of Pittsburgh)
-  
-  Version: Model Viewer v5.9.2014
-  
-  Purpose: This file provides step-by-step instructions on how to create an instance of the Phenogrid Viewer (phenogrid.js) widget on any webpage.
-  
-  General Steps include:  
-/  1. Add appropriate Javascript libraries and files
-  2. Add list of phenotypes and the function call for widget creation
-  3. Add a div for the widget to the html file body 
-  4. Display page in webbrowser
- -->
- 
 <html>
-  <head>
-    <title>TEST Monarch Phenotype Grid Widget</title>
-    <script src="js/jquery-1.11.0.min.js"></script>
-    <script src="js/jquery-ui-1.10.3.custom.min.js"></script>
-    <script src="js/d3.min.js"></script>
-    <script src="js/jshashtable.js"></script>
-    <script src="js/stickytooltip.js"></script>
-    <script src="js/phenogrid_config.js"></script>
-    <script src="js/phenogrid.js"></script>
-    <script src="js/render.js"></script>
-    <link rel="stylesheet" type="text/css" href="css/jquery-ui.css"/>
-	<link rel="stylesheet" type="text/css" href="css/instructions.css"/>
-	<link rel="stylesheet" type="text/css" href="css/phenogrid.css"/>
-	<link rel="stylesheet" type="text/css" href="css/stickytooltip.css"/>
+<head>
+<meta charset="UTF-8">
+<title>Monarch Phenotype Grid Widget</title>
 
-    <script>
-	var phenotypes = [
-	   	{ id:"HP:0000726", observed:"positive"},
-	   	{ id:"HP:0000746", observed:"positive"},
-		{ id:"HP:0001300", observed:"positive"},
-		{ id:"HP:0002367", observed:"positive"},
-	   	{ id:"HP:0000012", observed:"positive"},
-	   	{ id:"HP:0000716", observed:"positive"},
-		{ id:"HP:0000726", observed:"positive"},
-		{ id:"HP:0000739", observed:"positive"},
-	   	{ id:"HP:0001332", observed:"positive"},
-	   	{ id:"HP:0001347", observed:"positive"},
-	   	{ id:"HP:0002063", observed:"positive"},
-		{ id:"HP:0002067", observed:"positive"},
-		{ id:"HP:0002172", observed:"positive"},
-	   	{ id:"HP:0002322", observed:"positive"},
-		{ id:"HP:0007159", observed:"positive"}];	
+<script src="config/phenogrid_config.js"></script>
+<script src="dist/phenogrid-bundle.js"></script>
 
-   
-	// jQuery gets to bootstrap everything.
-	jQuery(document).ready(
-	function(){
-	$("#phen_vis").phenogrid({serverURL :
-	"http://beta.monarchinitiative.org", phenotypeData:	phenotypes,targetSpeciesName: "Mus musculus" });
-	   });
-	
-	</script>
-	
-  </head>
-  <body id="phenogrid">
-		
-			<span class="headtitle"><img id="monarch-logo"  width="90px" class="downloadline" src="image/logo.png"/>
-			<span class="header">Monarch Phenotype Grid Widget</span>
-			<div id="viscontent">
-			<div id="phen_vis"></div></div>
-			<div class="text">
-				<h2 class="title">Steps for Adding the Monarch Phenotype Grid to Your Webpage</h2>
+<link rel="stylesheet" type="text/css" href="dist/phenogrid-bundle.css">
+
+<style type="text/css">
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: h5bp.com/r
+   ========================================================================== */
+
+@media print {
+    * {
+        background: transparent !important;
+        color: #000 !important; /* Black prints faster: h5bp.com/s */
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+    
+    /* Disabled by PotatoGuide
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+    */
+    
+    /*
+     * Don't show links for images, or javascript/internal links
+     */
+
+    a[href^="javascript:"]:after,
+    a[href^="#"]:after {
+        content: "";
+    }
+
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group; /* h5bp.com/t */
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
+    
+    /* PotatoGuide */
+    .print_hide {
+        display: none !important; 
+    }
+
+    .print_show {
+        display: inherit !important; 
+    }
+
+}
+
+/*--------------------------------------------------------------
+Application-specific Styles
+-------------------------------------------------------------- */
+html {
+overflow-y:scroll;
+font-size: 62.5%; /* 16*62.5%=10px */
+-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+body {
+font-family: 'Source Sans Pro', sans-serif;
+font-size: 16px;
+line-height: 1.428571429;
+color: #212425;
+background:#fff;
+}
+
+/* clearfix hack http://nicolasgallagher.com/micro-clearfix-hack/ */
+.clearfix:before,
+.clearfix:after {
+content: " "; /* 1 */
+display: table; /* 2 */
+}
+
+.clearfix:after {
+clear: both;
+}
+
+.pg_index{
+width:1020px;
+margin:0 auto;
+padding:0;
+}
+
+#phenogrid_container{
+border:1px solid #ddd;
+margin:40px 0;
+}
+
+code{
+padding: 2px 4px;
+font-size: 90%;
+color: #DC4945;
+white-space: nowrap;
+background-color: #f9f2f4;
+border-radius: 4px;
+}
+
+/* Table */
+.table {
+width:100%;
+border:1px solid #ccc;
+margin:20px 0;
+}
+
+.table th {
+line-height:1.6;
+padding:15px 10px; 
+background:#f8f8f8;;
+border:1px solid #ddd;
+/* The text in th are bold and centered by default. */
+}
+
+.table td {
+line-height:1.6;
+padding:10px; 
+border:1px solid #ccc;
+}
+
+.table_hover>tbody>tr:hover>td{
+background-color:#fefbd6;
+}
 
 
+/*--------------------------------------------------------------
+syntac highlighter
+-------------------------------------------------------------- */
+.syntax  { 
+font-size: 14px;
+background: #f8f8f8; 
+border:1px solid #ddd;
+padding:15px 20px;
+margin:10px 0;
+overflow-x:auto;
+font-family:Menlo,'Courier New',Courier,monospace;
+position:relative;
+}
 
-<span>The phenogrid code
-  can be found
-  at <A HREF="https://github.com/monarch-initiative/phenogrid">
- https://github.com/monarch-initiative/phenogrid.</a>
-</span>
+.source_badge{
+position:absolute;
+right:0;
+top:0;
+border-left:1px solid #ddd;
+border-bottom:1px solid #ddd;
+background:#fffecf; 
+padding:5px 10px;
+text-align:center;
+font-size:.8em;
+}
+
+.syntax .c { color: #408080; font-style: italic } /* Comment */
+.syntax .err { border: 1px solid #FF0000 } /* Error */
+.syntax .k { color: #008000; font-weight: bold } /* Keyword */
+.syntax .o { color: #666666 } /* Operator */
+.syntax .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.syntax .cp { color: #BC7A00 } /* Comment.Preproc */
+.syntax .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.syntax .cs { color: #408080; font-style: italic } /* Comment.Special */
+.syntax .gd { color: #A00000 } /* Generic.Deleted */
+.syntax .ge { font-style: italic } /* Generic.Emph */
+.syntax .gr { color: #FF0000 } /* Generic.Error */
+.syntax .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.syntax .gi { color: #00A000 } /* Generic.Inserted */
+.syntax .go { color: #808080 } /* Generic.Output */
+.syntax .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.syntax .gs { font-weight: bold } /* Generic.Strong */
+.syntax .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.syntax .gt { color: #0040D0 } /* Generic.Traceback */
+.syntax .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.syntax .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.syntax .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.syntax .kp { color: #008000 } /* Keyword.Pseudo */
+.syntax .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.syntax .kt { color: #B00040 } /* Keyword.Type */
+.syntax .m { color: #666666 } /* Literal.Number */
+.syntax .s { color: #BA2121 } /* Literal.String */
+.syntax .na { color: #7D9029 } /* Name.Attribute */
+.syntax .nb { color: #008000 } /* Name.Builtin */
+.syntax .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.syntax .no { color: #880000 } /* Name.Constant */
+.syntax .nd { color: #AA22FF } /* Name.Decorator */
+.syntax .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.syntax .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.syntax .nf { color: #0000FF } /* Name.Function */
+.syntax .nl { color: #A0A000 } /* Name.Label */
+.syntax .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.syntax .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.syntax .nv { color: #19177C } /* Name.Variable */
+.syntax .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.syntax .w { color: #bbbbbb } /* Text.Whitespace */
+.syntax .mf { color: #666666 } /* Literal.Number.Float */
+.syntax .mh { color: #666666 } /* Literal.Number.Hex */
+.syntax .mi { color: #666666 } /* Literal.Number.Integer */
+.syntax .mo { color: #666666 } /* Literal.Number.Oct */
+.syntax .sb { color: #BA2121 } /* Literal.String.Backtick */
+.syntax .sc { color: #BA2121 } /* Literal.String.Char */
+.syntax .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.syntax .s2 { color: #BA2121 } /* Literal.String.Double */
+.syntax .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.syntax .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.syntax .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.syntax .sx { color: #008000 } /* Literal.String.Other */
+.syntax .sr { color: #BB6688 } /* Literal.String.Regex */
+.syntax .s1 { color: #BA2121 } /* Literal.String.Single */
+.syntax .ss { color: #19177C } /* Literal.String.Symbol */
+.syntax .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.syntax .vc { color: #19177C } /* Name.Variable.Class */
+.syntax .vg { color: #19177C } /* Name.Variable.Global */
+.syntax .vi { color: #19177C } /* Name.Variable.Instance */
+.syntax .il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
+
+<script>
+var phenotypes = [
+    {id:"HP:0000726", observed:"positive"},
+    {id:"HP:0000746", observed:"positive"},
+    {id:"HP:0001300", observed:"positive"},
+    {id:"HP:0002367", observed:"positive"},
+    {id:"HP:0000012", observed:"positive"},
+    {id:"HP:0000716", observed:"positive"},
+    {id:"HP:0000726", observed:"positive"},
+    {id:"HP:0000739", observed:"positive"},
+    {id:"HP:0001332", observed:"positive"},
+    {id:"HP:0001347", observed:"positive"},
+    {id:"HP:0002063", observed:"positive"},
+    {id:"HP:0002067", observed:"positive"},
+    {id:"HP:0002172", observed:"positive"},
+    {id:"HP:0002322", observed:"positive"},
+    {id:"HP:0007159", observed:"positive"}
+];  
+
+function initializePhenogrid(element) {
+	Phenogrid.createPhenogridForElement(element, {
+		serverURL: "http://beta.monarchinitiative.org",
+ 		phenotypeData: phenotypes,
+		targetSpeciesName: "Mus musculus"
+ 	});
+}
+</script>
+
+</head>
+
+<body onload="initializePhenogrid(document.getElementById('phenogrid_container'))">
+
+<div class="pg_index">
+
+<div id="phenogrid_container" class="clearfix"></div>
 
 
-                </div><br/>
-<div class="section">
-A quick guide to installing and configuring the widget on your site:
-<OL>
-<LI>Get the code: Clone
-  the <A HREF="https://github.com/monarch-initiative/phenogrid">repository</a>
-  using git, or download the zip file.</LI>		   
+<h1>About Phenogrid</h1>
 
-<LI>Add the required Files to your web server: Move the phenogrid
-    directory and its subdirectories to the desired location within
-    your web server content directories. 
-</LI>
-<LI>Load the following Javascript files (in this order) into your
-  page:</LI>
-<OL>
-  <LI> ./js/jshashtable.js</LI>
-  <LI> ./js/stickytooltip.js</LI>
-  <LI> ./js/phenogrid_config.js</LI>
-  <LI> ./js/phenogrid.js</LI>
-  <Li> ./js/render.js</LI>
-  </OL>
-<LI>Add your own javascript to the page, containing the following content:
-         <div class="text">
-                 <ul>
-		<li>Create a list of phenotypes as an array of Javascript objects with the following attributes:
-			<ul><li><pre>[{ id:"HP:0000006", observed:"positive"}, id:"HP:0000726", observed:"positive"},...];</pre>
-			</li>
-			<li>Note that the phenotypes may also be passed in as a JSON list and that the "observed" tag may be omitted.  <pre>Example: { "HP:0000006" , "HP0000726",...}</pre>
-			<li>Note that if there are no phenotype matches in the models, you may see a "No Models found" message.</li>
-					</ul>
-					</li>
-			<li>Add a jQuery .ready function that will add the widget to an empty div tag (see Step 4) as follows  (The following example assumes you are adding the widget to a div with an id="phen_vis"): 
-		<ul><li><pre>jQuery(document).ready(function(){$("#phen_vis").phenogrid(
-	{serverURL: "http://beta.monarchinitiative.org", phenotypeData: phenotypes, target_species: "10090" });
-});</pre>	
-				</li>
-			<li>
-							<div class="subsectiontitle">Widget Parameters</div>
-							<div class="text">To add the widget, you must set some parameters. The following are the most common parameters:
-								<ul>
-									<li><b><em>phenotypeData</em></b> [required] - It is a Javascript array of objects listing the phenotypes to be rendered in the widget.
-									</li>
-									<li><b><em>serverURL</em></b> [required] - This URL should be pointed to the OWLSim URL server associated with your installation containing the Monarch web services. You have three options:<br/>
-										<ol><li>Use http://beta.monarchinitiative.org to connect to the development/test web services.  This server is less stable than the production server.</li> 
-										  <li>Use http://monarch.monarchinitiative.org to connect to the stable, production version of the web services (better uptime)</li>
-										  <li>If you are running the complete monarch-app, you can point it to http://localhost:8080, or whichever server/port you are using in your local installation.</li></ol>
-									</li>
-									<li><b><em>targetSpecies</em></b> [optional]- this parameter defaults to 10090 (mus musculus).  Change this parameter if you want to compare the phenotypes in the phenotypeData parameter against a different species. Available Species: 
-									<ul><li>Name: Homo sapiens  Taxon: 9606</li>
-										<li>Name: Dani rerio    Taxon: 7955</li>
-										<li>Name: Drosophila melanogaster  Taxon: 7227</li>
-									</ul>
-									</li>
-									<li><b><em>simServerURL</em></b> [optional] - the URL of the server running the similarity comparison. Usually default to being the same as <em>serverURL</em> - use the default (do not specify a value) unless you have an expliciit reason for doing otherwise.</LI>
-								</ul>
-							</li>
-						</ul>
-						</li>
-						<li>Add the phenotype array and the jQuery function between &lt;script&gt; tags in the html &lt;head&gt; of the index file that you created above.</li>
-							<ul>Example:<br />					
-<pre>&lt;script&gt;
-	var phenotypes = [
-		{ id:"HP:0000006", observed:"positive"},
-		{ id:"HP:0000726", observed:"positive"},
-		{ id:"HP:0000746", observed:"positive"}];
-		
-	jQuery(document).ready(function(){
-		$("#phen_vis").phenogrid({serverURL : "http://beta.monarchinitiative.org", 
-			phenotypeData: phenotypes, targetSpecies: "10090" });	
-	});
-&lt;/script&gt;</pre>
-							</ul></li>	
-					</ul></li>
-                </LI>
-<LI>Add the widget &lt;div&gt;:
-                    <ul>
-						<li>Add an empty &lt;div&gt; tag in the body of the html file. The id of this &lt;div&gt; must match the id that you used in the Javascript fragment given above.</li>
-						<li>Example:<br />
-<pre>&lt;body&gt;	
-	&lt;div id="phen_vis"&gt;&lt;/div&gt;
-&lt;body&gt;</pre>						
-						</li>
-		    </ul>										
-				</LI>
-				<LI>Load your HTML file into a browser.</LI>
-</OL>
+<p>
+Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided by OWLSim (www.owlsim.org), as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
+</p>
+
+<p>
+Given an input list of phenotypes (you will see the sample input below) and parameters specified in <code>config/phenogrid_config.js</code> indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.
+</p>
+
+<h1>Installation Instructions</h1>
+
+<h2>1. Make sure npm installed</h2>
+
+<p>
+Before you get started, you will need to make sure you have npm installed first. npm is bundled and installed automatically with node.js. If not, you need to install them.
+</p>
+
+<div class="syntax">
+<pre>
+curl -sL https://rpm.nodesource.com/setup <span class="p">|</span> bash -
+
+yum install -y nodejs
+</pre>
 </div>
 
-<div class="sectiontitle">
-Additional configuration instructions can be found in the README.md
-file from the phenogrid repository.</div>
-			<div class="sectiontitle">Please contact us
-			at <a href="mailto:info@monarchinitiative.org">info@monarchinitiative.org</a>
-			if you have any problems or questions.</div>
-  </body>
+<h2>2. Install phenogrid widget</h2>
+
+<p>
+Now it's time to download and extract our phenogrid widget. In the phenogrid package directory, just run
+</p>
+
+
+<div class="syntax">
+<pre>
+npm install
+</pre>
+</div>
+
+<p>
+Sometimes, it requires root access to for the installation, just run the following instead
+</p>
+
+<div class="syntax">
+<pre>
+sudo npm install
+</pre>
+</div>
+
+<p>
+This will create a local <code>/node_modules</code> folder in the phenogrid root directory, and download/install all the dependencies(jquery, jquery-ui, d3, and jshashtable) and tools (gulp, browserify, etc.) into the local <code>/node_modules</code> folder.
+</p>
+
+<h2>3. Run gulp to build bundled JS and CSS</h2>
+
+<div class="syntax">
+<pre>
+gulp bundle
+</pre>
+</div>
+
+<p>
+This command will use browserify to bundle up phenogrid core and its dependencies into <code>phenogrid-bundle.js</code> and create the merge <code>phenogrid-bundle.css</code> and put both files under <code>/dist</code> folder.
+</p>
+
+<h2>4. Add phenogrid in your target page</h2>
+
+<p>
+In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the <code>&lt;meta charset="UTF-8"&gt;</code> tag in your HTML head.
+</p>
+
+<div class="syntax"><pre><span class="nt">&lt;html&gt;</span>
+<span class="nt">&lt;head&gt;</span>
+<span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">&quot;UTF-8&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;title&gt;</span>Monarch Phenotype Grid Widget<span class="nt">&lt;/title&gt;</span>
+
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;config/phenogrid_config.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;dist/phenogrid-bundle.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+
+<span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">type=</span><span class="s">&quot;text/css&quot;</span> <span class="na">href=</span><span class="s">&quot;dist/phenogrid-bundle.css&quot;</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+<span class="kd">var</span> <span class="nx">phenotypes</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000726&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000746&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001300&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002367&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000012&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000716&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000726&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000739&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001332&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001347&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002063&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002067&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002172&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002322&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0007159&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">}</span>
+<span class="p">];</span>  
+
+<span class="kd">function</span> <span class="nx">initializePhenogrid</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">Phenogrid</span><span class="p">.</span><span class="nx">createPhenogridForElement</span><span class="p">(</span><span class="nx">element</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">serverURL</span><span class="o">:</span> <span class="s2">&quot;http://beta.monarchinitiative.org&quot;</span><span class="p">,</span>
+        <span class="nx">phenotypeData</span><span class="o">:</span> <span class="nx">phenotypes</span><span class="p">,</span>
+        <span class="nx">targetSpeciesName</span><span class="o">:</span> <span class="s2">&quot;Mus musculus&quot;</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+<span class="nt">&lt;/script&gt;</span>
+
+<span class="nt">&lt;/head&gt;</span>
+
+<span class="nt">&lt;body</span> <span class="na">onload=</span><span class="s">&quot;initializePhenogrid(document.getElementById(&#39;phenogrid_container&#39;))&quot;</span><span class="nt">&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;phenogrid_container&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</pre></div>
+
+
+<h1>Configuration Preference</h1>
+
+<table class="table"> 
+<thead>
+<tr><th>Parameter</th><th>Data Type</th><th>Required or Optional</th><th>Description</th></tr>
+</thead>
+
+<tbody>
+<tr> 
+<td><strong>serverURL</strong></td><td>string</td><td>required</td>
+<td>
+This URL should be pointed to the OWLSim URL server associated with your installation containing the Monarch web services. You have three options:
+<ul>
+<li>Use http://beta.monarchinitiative.org to connect to the development/test web services. This server is less stable than the production server.</li>
+<li>Use http://monarch.monarchinitiative.org to connect to the stable, production version of the web services (better uptime)</li>
+<li>If you are running the complete monarch-app, you can point it to http://localhost:8080, or whichever server/port you are using in your local installation.</li>
+</ul>
+</td> 
+</tr>
+
+<tr> 
+<td><strong>phenotypeData</strong></td><td>array</td><td>required</td>
+<td>
+It is a Javascript array of objects listing the phenotypes to be rendered in the widget.
+</td> 
+</tr>
+
+<tr> 
+<td><strong>targetSpecies</strong></td><td>string</td><td>optional</td>
+<td>
+This parameter defaults to 10090 (mus musculus). Change this parameter if you want to compare the phenotypes in the phenotypeData parameter against a different species. Available Species:
+<ul>
+<li>Name: Homo sapiens Taxon: 9606</li>
+<li>Name: Dani rerio Taxon: 7955</li>
+<li>Name: Drosophila melanogaster Taxon: 7227</li>
+</ul>
+</td> 
+</tr>
+
+<tr> 
+<td><strong>simServerURL</strong></td><td>string</td><td>optional</td>
+<td>
+The URL of the server running the similarity comparison. Usually default to being the same as serverURL. Use the default (do not specify a value) unless you have an expliciit reason for doing otherwise.
+</td> 
+</tr>
+
+<tr> 
+</tbody>
+</table> 
+
+
+
+</div>
+
+</body>
 </html>
