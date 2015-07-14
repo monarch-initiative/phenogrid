@@ -56,6 +56,7 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 ````html
 <html>
 <head>
+<meta charset="UTF-8">
 <title>Monarch Phenotype Grid Widget</title>
 
 <script src="config/phenogrid_config.js"></script>
