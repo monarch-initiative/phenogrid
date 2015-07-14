@@ -51,7 +51,7 @@ This command will use browserify to bundle up phenogrid core and its dependencie
 
 ##4. Add phenogrid in your target page
 
-In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML.
+In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the `<meta charset="UTF-8">` tag in your HTML head.
 
 ````html
 <html>
