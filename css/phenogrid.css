@@ -92,6 +92,12 @@ position:relative;
 transform:translate(100px, 130px); /* Controls the position */
 }
 
+#pg_logo {
+transform:translate(10px, 20px);
+width:90px;
+height:46px;
+}
+
 #pg_org_div {
 	float: left;
 	width:140px;
@@ -157,11 +163,6 @@ label.pg_ctrl_label{
 	padding-top:5px;
 	text-align:center;
 	font:bold 11px Arial;
-}
-
-
-#pg_logo {
-	height:90px;
 }
 
 /** Overwrite jquery-ui default style */

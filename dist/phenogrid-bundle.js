@@ -1823,22 +1823,9 @@ var TooltipRender = require('./render.js');
 
 		// Monarch Logo - Joe
 		_addLogoImage:	 function() {
-			var start = 0;
-			if (this.state.filteredModelData.length < 30) {
-				// Magic Nums
-				start = 680;
-			} else {
-				start = 850;
-			}
-			//var imgs = this.state.svg.selectAll("image").data([0]);
-			//imgs.enter()
 			this.state.svg.append("svg:image")
 				.attr("xlink:href", this.state.scriptpath + "../image/logo.png")
-				.attr("x", start)
-				.attr("y",0)
 				.attr("id", "pg_logo")
-				.attr("width", "60")
-				.attr("height", "90");
 		},
 
 		_resetLinks: function() {
