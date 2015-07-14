@@ -438,9 +438,30 @@ var TooltipRender = require('./render.js');
 		 * thus, a workaround is included below to set the path correctly if it come up as '/'.
 		 * this should not impact any standalone uses of phenogrid, and will be removed once monarch-app is cleaned up.
 		 */
+		 
+		/*
+		 * HACK WARNING - 20150713, dan@quantumclay.com
+		 * 	The serverURL corresponds to a running Monarch server that can provide 'help text'
+		 * 	for a possibly separate Monarch server's UI. This enables the user (typically, a developer)
+		 * 	to point to a more authoritative server for help text.
+		 *	As we transition from the /widgets/phenogrid model to the /node_modules/phenogrid model,
+		 *	we may end up pointing from a more recent /node_modules server to an older /widgets/phenogrid
+		 *	server, in which case we need to adjust the path.
+		 * 	Once all the authoritative servers (e.g., beta.monarchinitiative.org) have been upgraded to use
+		 *	node_modules, then this can be simplified.
+		 *	Currently, the existence of an explicit serverUrl (non-blank) is used to indicate that the
+		 *	workaround is necessary.
+		 */
 		_getResourceUrl: function(name, type) {
-			var prefix = this.state.serverURL+'/widgets/phenogrid/js/';
-			return prefix + 'res/' + name + '.' + type;
+			var prefix = this.state.serverURL;
+
+			if (prefix === '') {
+				prefix = '/node_modules/phenogrid';
+			}
+			else {
+				prefix += '/widgets/phenogrid';
+			}
+			return prefix + '/js/res/' + name + '.' + type;
 		},
 
 		
