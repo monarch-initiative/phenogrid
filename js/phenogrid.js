@@ -2995,7 +2995,7 @@ var TooltipRender = require('./render.js');
 					}
 				})
 				.attr("fill", function(d, i) {
-					return i != 1 ? d3.rgb("#eee") : "white";
+					return i != 1 ? "#eee" : "#fff";
 				});
 
 			return gridHeight + self.state.yModelRegion;
