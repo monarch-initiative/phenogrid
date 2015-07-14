@@ -8,6 +8,7 @@
 
 html {
   font-family: sans-serif; /* 1 */
+  font-size: 10px;
   -ms-text-size-adjust: 100%; /* 2 */
   -webkit-text-size-adjust: 100%; /* 2 */
 }
@@ -2953,14 +2954,17 @@ label.pg_ctrl_label{
 
 #phenogrid_controls {
 	margin-left:10px;
+  padding-top: 10px;
 }
 
 .cursor_pointer {
 cursor:pointer;
 }
 
-#pg_svg_container {
-	margin-top:2px;
+#pg_svg_area {
+	margin-top:40px;
+  margin-bottom:40px;
+  padding-bottom: 20px;
 }
 
 #pg_specieslist {
@@ -3017,11 +3021,12 @@ height:1px;
   stroke: #e5e5e5;
   stroke-width: 1;
 
-.pg_grid_label {
-  font: 11px arial;
+.pg_grid {
+  fill: black;
 }
 
 .pg_grid_row {
+  font-family: 10px arial;  
   height: 100%;
   width: 100%;
   border: 1px black solid;

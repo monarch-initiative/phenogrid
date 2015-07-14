@@ -250,8 +250,35 @@ DataLoader.prototype = {
 		return this.maxICScore;
 	},
 
-	refresh: function(species) {
-		this.transform(species);
+	dataExists: function(species) {
+		var t = this.cellData[species]  || this.targetData[species];
+		if (typeof(t) === 'undefined') {
+			return false;
+		}
+		return true;
+	},
+
+	/*
+		Function: refresh
+
+			freshes the data 
+	
+	 	Parameters:
+			species - list of species to fetch
+	 		lazy - performs a lazy load of the data checking for existing data
+	*/
+	refresh: function(species, lazy) {
+		var list = [];
+		if (lazy) {
+			for (var idx in species) {
+				if (this.dataExists(species[idx].name) == false) {
+					list.push(species[idx]); // load to list to be reloaded
+				}
+			}
+		} else {
+			list = species;
+		}
+		this.load(this.origSourceList, list, this.limit);
 	},
 
 	// generic ajax call for all queries

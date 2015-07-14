@@ -294,16 +294,17 @@ DataManager.prototype = {
 
 		Parameters:
 			species - species name
+	 		lazy - performs a lazy load of the data checking for existing data			
 
 	*/
-	reinitialize: function(species) {
+	reinitialize: function(species, lazy) {
 		console.log("reinitialize dataManager...");
 		this.source = [];
 		this.target = [];
 		this.cellData = [];
 
 		// tell dataLoader to refresh data 
-		this.dataLoader.refresh(species);
+		this.dataLoader.refresh(species, lazy);
 
 		// inject data
 		this.target = this.dataLoader.getTargets();
