@@ -1825,6 +1825,8 @@ var TooltipRender = require('./render.js');
 			this.state.svg.append("svg:image")
 				.attr("xlink:href", this.state.imagePath + "logo.png")
 				.attr("id", "pg_logo")
+				.attr("width", 90)
+				.attr("height", 46)
 		},
 
 		_resetLinks: function() {
