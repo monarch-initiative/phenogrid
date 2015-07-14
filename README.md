@@ -41,7 +41,7 @@ sudo npm install
 
 This will create a local `/node_modules` folder in the phenogrid root directory, and download/install all the dependencies(jquery, jquery-ui, d3, and jshashtable) and tools (gulp, browserify, etc.) into the local `/node_modules` folder.
 
-##3. Run gulp to build this widget
+##3. Run gulp to build bundled JS and CSS
 
 ```
 gulp bundle
