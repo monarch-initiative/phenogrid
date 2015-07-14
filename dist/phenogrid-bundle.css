@@ -2741,6 +2741,10 @@ button.ui-button::-moz-focus-inner {
  *  Phenogrid related styling
  */
 
+#pg_svg_area{
+position:relative;
+}
+
 #pg_errmsg {
 	padding-top: 30px;
 	font-size:1.2em;
@@ -2821,6 +2825,10 @@ button.ui-button::-moz-focus-inner {
 #pg_toptitle {
 	font-size:1.4em;
 	font-weight:bold;
+}
+
+#pg_faqs {
+transform:translate(100px, 130px); /* Controls the position */
 }
 
 #pg_org_div {

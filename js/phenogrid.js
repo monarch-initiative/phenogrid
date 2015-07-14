@@ -165,9 +165,7 @@ var TooltipRender = require('./render.js');
 			heightOfSingleModel: 18,
 			yoffsetOver: 30,
 			overviewGridTitleXOffset: 340,
-			overviewGridTitleFaqOffset: 230,
 			nonOverviewGridTitleXOffset: 220,
-			nonOverviewGridTitleFaqOffset: 570,
 			gridTitleYOffset: 20,
 			xOffsetOver: 20,
 			baseYOffset: 150,
@@ -1723,13 +1721,11 @@ var TooltipRender = require('./render.js');
 
 			// set up defaults as if overview
 			var xoffset = this.state.overviewGridTitleXOffset;
-			var foffset = this.state.overviewGridTitleFaqOffset;
 			var titleText = "Cross-Species Overview";
 
 			if (this.state.targetSpeciesName !== 'Overview') {
 				species= this.state.targetSpeciesName;
 				xoffset = this.state.nonOverviewGridTitleXOffset;
-				foffset = this.state.nonOverviewGridTitleFaqOffset;
 				var comp = this._getComparisonType(species);
 				titleText = "Phenotype Comparison (grouped by " + species + " " + comp + ")";
 			}
@@ -1747,12 +1743,11 @@ var TooltipRender = require('./render.js');
 
 			var faq	= this.state.svg
 				.append("text")
+				.attr("id", "pg_faqs") // Position is controlled in CSS #pg_faqs - Joe
 				.attr('font-family', 'FontAwesome')
 				.text(function(d) { 
 					return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 				})
-				.attr("x", xoffset+foffset)
-				.attr("y", this.state.gridTitleYOffset)
 				.style('cursor', 'pointer')
 				.on("click", function(d) {
 					self._showDialog("faq");
