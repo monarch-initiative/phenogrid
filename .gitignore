@@ -1,0 +1,5 @@
+## Ignore npm libs.
+node_modules
+
+## Others
+.DS_Store
