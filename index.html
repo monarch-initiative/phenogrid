@@ -401,13 +401,19 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 <span class="nt">&lt;body</span> <span class="na">onload=</span><span class="s">&quot;initializePhenogrid(document.getElementById(&#39;phenogrid_container&#39;))&quot;</span><span class="nt">&gt;</span>
 
 <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;phenogrid_container&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
-
+o
 <span class="nt">&lt;/body&gt;</span>
 <span class="nt">&lt;/html&gt;</span>
 </pre></div>
 
 
-<h1>Configuration Preference</h1>
+<h1>Configuration Preferences</h1>
+
+These variables can be changed either in the hash that is provided to
+the <em>createPhenogridForElement</em> call (for customization of the
+phenogrid on a specific page), or by modifiying
+the  <em>configOptions</em> hash in <em>conf/phenogrid_config.js</em>
+(for site-wide customization).  
 
 <table class="table"> 
 <thead>
@@ -430,15 +436,16 @@ This URL should be pointed to the OWLSim URL server associated with your install
 <tr> 
 <td><strong>phenotypeData</strong></td><td>array</td><td>required</td>
 <td>
-It is a Javascript array of objects listing the phenotypes to be rendered in the widget.
+<em>Required</em>:A Javascript array of objects listing the phenotypes to be rendered in the widget.
 </td> 
 </tr>
 
 <tr> 
 <td><strong>targetSpecies</strong></td><td>string</td><td>optional</td>
 <td>
-This parameter defaults to 10090 (mus musculus). Change this parameter if you want to compare the phenotypes in the phenotypeData parameter against a different species. Available Species:
+Change this parameter if you want to compare the phenotypes in the phenotypeData parameter against a different species. Available Species:
 <ul>
+<LI>Name: Mus musculus Taxon: 10090</li> <em>Default</em></li>
 <li>Name: Homo sapiens Taxon: 9606</li>
 <li>Name: Dani rerio Taxon: 7955</li>
 <li>Name: Drosophila melanogaster Taxon: 7227</li>
