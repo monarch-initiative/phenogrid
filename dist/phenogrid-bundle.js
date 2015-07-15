@@ -132,7 +132,7 @@ var TooltipRender = require('./render.js');
 		// so we can just use one variable for all configs to contain everything in congig and internalOptions - Joe
 		config: {
 			imagePath: 'image/',
-			htmlPath: 'js/res',
+			htmlPath: 'js/res/',
 			colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
 			colorRanges: [
 				['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'], // blue - Joe
