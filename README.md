@@ -129,7 +129,7 @@ This parameter defaults to 10090 (mus musculus). Change this parameter if you wa
 - Name: Drosophila melanogaster Taxon: 7227
 
 
-# Testing and further configuration.
+# Testing and further configuration
 
 Open the modified index.html page in a web browser. This page will
 display an instance of the phenogrid, as configured above. Additional
