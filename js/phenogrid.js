@@ -4,9 +4,14 @@
  *
  *	implemented as a jQuery UI (jqueryui.com) widget, this can be instantiated on a jquery-enabled web page
  *	with a call of the form
- *	$("#mydiv).phenogrid({phenotypeData: phenotypeList}).
- *	where #mydiv is the id of the div that will contain the phenogrid widget
- *	and phenotypeList takes one of two forms:
+ *   Phenogrid.createPhenogridForElement(element, {
+ *         serverURL : "http://beta.monarchinitiative.org",
+ *        phenotypeData: phenotypes,
+ *        targetSpeciesName: "Mus musculus"
+ *    });
+ *
+ *	where element is the id of the div that will contain the phenogrid widget
+ *	and phenotypes takes one of two forms:
  *
  *	1. a list of hashes of the form
  *		[ {"id": "HP:12345", "observed" :"positive"}, {"oid: "HP:23451", "observed" : "negative"},]
@@ -41,12 +46,6 @@
  *	},
  *
  *	These results will then be rendered in the phenogrid
- *
- *	NOTE: I probably need a model_url to render additional model info on
- *	the screen. Alternatively I can load the data
- *	as a separate call in the init function.
- *
- *	META NOTE (HSH - 8/25/2014): Can we remove this note, or at least clarify?
  */
 
 
