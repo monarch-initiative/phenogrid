@@ -132,6 +132,7 @@ var TooltipRender = require('./render.js');
 		// so we can just use one variable for all configs to contain everything in congig and internalOptions - Joe
 		config: {
 			imagePath: 'image/',
+			htmlPath: 'js/res',
 			colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
 			colorRanges: [
 				['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'], // blue - Joe
@@ -474,16 +475,16 @@ var TooltipRender = require('./render.js');
 		 *	Currently, the existence of an explicit serverUrl (non-blank) is used to indicate that the
 		 *	workaround is necessary.
 		 */
+		
+		/*
+		 * HACK WARNING - 20150715, zhy19@pitt.edu
+		 * 	Added htmlPath to refer to the relative path to those FAQ html pages
+		 * 	To make it work with monarch-app, also need to add htmlPath in monarch-appjs/phenogridloader-no-species.js
+		 *  This way, both ifrmae and npm version of phenogrid on monarch-app will show the FAQ popup content
+		 *	Without adding this htmlPath in monarch-appjs/phenogridloader-no-species.js, the iframe page won't work
+		 */
 		_getResourceUrl: function(name, type) {
-			var prefix = this.state.serverURL;
-
-			if (prefix === '') {
-				prefix = '/node_modules/phenogrid';
-			}
-			else {
-				prefix += '/widgets/phenogrid';
-			}
-			return prefix + '/js/res/' + name + '.' + type;
+			return this.state.htmlPath + name + '.' + type;
 		},
 
 		
