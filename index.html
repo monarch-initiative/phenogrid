@@ -269,18 +269,18 @@ var phenotypes = [
     {id:"HP:0007159", observed:"positive"}
 ];  
 
-function initializePhenogrid(element) {
-	Phenogrid.createPhenogridForElement(element, {
-		serverURL: "http://beta.monarchinitiative.org",
- 		phenotypeData: phenotypes,
-		targetSpeciesName: "Mus musculus"
- 	});
+window.onload = function() {
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
+        serverURL : "http://beta.monarchinitiative.org",
+        phenotypeData: phenotypes,
+        targetSpeciesName: "Mus musculus"
+    });
 }
 </script>
 
 </head>
 
-<body onload="initializePhenogrid(document.getElementById('phenogrid_container'))">
+<body>
 
 <div class="pg_index">
 
@@ -370,26 +370,26 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 
 <span class="nt">&lt;script&gt;</span>
 <span class="kd">var</span> <span class="nx">phenotypes</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000726&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000746&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001300&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002367&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000012&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000716&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000726&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000739&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001332&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001347&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002063&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002067&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002172&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002322&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
-    <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0007159&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">}</span>
-<span class="p">];</span>  
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000726&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000746&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001300&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002367&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000012&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000716&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000726&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0000739&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001332&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0001347&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002063&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002067&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002172&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0002322&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">},</span>
+	<span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;HP:0007159&quot;</span><span class="p">,</span> <span class="nx">observed</span><span class="o">:</span><span class="s2">&quot;positive&quot;</span><span class="p">}</span>
+<span class="p">];</span>	
 
-<span class="kd">function</span> <span class="nx">initializePhenogrid</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">Phenogrid</span><span class="p">.</span><span class="nx">createPhenogridForElement</span><span class="p">(</span><span class="nx">element</span><span class="p">,</span> <span class="p">{</span>
-        <span class="nx">serverURL</span><span class="o">:</span> <span class="s2">&quot;http://beta.monarchinitiative.org&quot;</span><span class="p">,</span>
+<span class="nb">window</span><span class="p">.</span><span class="nx">onload</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">Phenogrid</span><span class="p">.</span><span class="nx">createPhenogridForElement</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;phenogrid_container&#39;</span><span class="p">),</span> <span class="p">{</span>
+        <span class="nx">serverURL</span> <span class="o">:</span> <span class="s2">&quot;http://beta.monarchinitiative.org&quot;</span><span class="p">,</span>
         <span class="nx">phenotypeData</span><span class="o">:</span> <span class="nx">phenotypes</span><span class="p">,</span>
         <span class="nx">targetSpeciesName</span><span class="o">:</span> <span class="s2">&quot;Mus musculus&quot;</span>
     <span class="p">});</span>
@@ -398,10 +398,10 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 
 <span class="nt">&lt;/head&gt;</span>
 
-<span class="nt">&lt;body</span> <span class="na">onload=</span><span class="s">&quot;initializePhenogrid(document.getElementById(&#39;phenogrid_container&#39;))&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;body&gt;</span>
 
 <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;phenogrid_container&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
-o
+
 <span class="nt">&lt;/body&gt;</span>
 <span class="nt">&lt;/html&gt;</span>
 </pre></div>

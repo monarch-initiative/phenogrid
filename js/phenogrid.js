@@ -2324,7 +2324,7 @@ var TooltipRender = require('./render.js');
 				.append("xhtml:div") // CSS needs to be applied to this div - Joe
 				.html(htmltext);
 				
-				console.log($('#pg_detail_content').html()); //Debugging - Joe
+				//console.log($('#pg_detail_content').html()); //Debugging - Joe
 		},
 
 		// Model data cell tooptip content - Joe

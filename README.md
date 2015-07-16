@@ -87,18 +87,18 @@ var phenotypes = [
 	{id:"HP:0007159", observed:"positive"}
 ];	
 
-function initializePhenogrid(element) {
-	Phenogrid.createPhenogridForElement(element, {
-		serverURL : "http://beta.monarchinitiative.org",
- 		phenotypeData: phenotypes,
-		targetSpeciesName: "Mus musculus"
- 	});
+window.onload = function() {
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
+        serverURL : "http://beta.monarchinitiative.org",
+        phenotypeData: phenotypes,
+        targetSpeciesName: "Mus musculus"
+    });
 }
 </script>
 
 </head>
 
-<body onload="initializePhenogrid(document.getElementById('phenogrid_container'))">
+<body>
 
 <div id="phenogrid_container"></div>
 
