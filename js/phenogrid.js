@@ -345,15 +345,6 @@ var url = document.URL;
 //		this.state.phenotypeData = this._parseQuerySourceList(this.state.phenotypeData);
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
-		// setup a species array for later usage;  GET RID OF THIS
-		var speciesList = [];
-		for (var i in this.state.targetSpeciesList) {	
-			var species = this.state.targetSpeciesList[i].name;
-			speciesList.push(species);
-		}		
-
-		this.state.speciesList = speciesList;
-
 		this.state.selectedTargetSpecies = [];
 
 		// load the default selected target species list based on the crossComparisonView flag
@@ -440,18 +431,14 @@ var url = document.URL;
 
 
 		// for overview we need to build a combined target list of all species
-		// var targetList;
-		// if (this.state.currentTargetSpeciesName == 'Overview') {
-		// 	targetList = this.state.dataManager.createCombinedTargetList(this.state.targetSpeciesList, this.state.defaultVisibleModelCt);	
-		// } else {
-		// 	targetList = this.state.dataManager.getData("target", this.state.currentTargetSpeciesName);
-		// }
-
-		// calculate how many target values we can show using the number of selectedTargetSpecies
-		this.state.defaultVisibleModelCt = (this.state.defaultTargetDisplayLimit / this.state.selectedTargetSpecies.length);
-
-		targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedTargetSpecies, this.state.defaultVisibleModelCt);			
-
+		var targetList;
+		if (this.state.currentTargetSpeciesName == 'Overview') {
+			// calculate how many target values we can show using the number of selectedTargetSpecies
+			this.state.defaultVisibleModelCt = (this.state.defaultTargetDisplayLimit / this.state.selectedTargetSpecies.length);
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedTargetSpecies, this.state.defaultVisibleModelCt);			
+		} else {
+			targetList = this.state.dataManager.getData("target", this.state.currentTargetSpeciesName);
+		}
     	this.state.targetAxis =  new AxisGroup(0, this.state.defaultTargetDisplayLimit, targetList);
 
     	this._setAxisRenderers();
@@ -476,6 +463,7 @@ var url = document.URL;
 		} else {
 			this.state.sourceDisplayLimit = this.state.dataManager.length("source");
 		}
+		console.log('source display limit: '  + this.state.sourceDisplayLimit);
 
 		if (this.state.currentTargetSpeciesName == 'Overview') {
 			this.state.targetDisplayLimit = this.state.defaultVisibleModelCt;   //this.state.defaultTargetDisplayLimit;
@@ -488,6 +476,7 @@ var url = document.URL;
 				this.state.targetDisplayLimit = currentSpeciesSize;
 			}
 		}
+		console.log('target display limit: '  + this.state.targetDisplayLimit);
     },
 
 	_loadSpinner: function() {
@@ -2014,31 +2003,33 @@ var url = document.URL;
 		// Have temporarly until fix for below during Axis Flip
 		if (self.state.currentTargetSpeciesName == "Overview"){
 			if (this.state.invertAxis) {
-				list = self.state.speciesList;
+				list = self.state.selectedTargetSpecies;
 				ct = self.state.defaultVisibleModelCt;
 				borderStroke = self.state.detailRectStrokeWidth / 2;
-				width = gridRegion.x + hwidthAndGap * displayCountX;
-				height = gridRegion.y + vwidthAndGap * ct + borderStroke;
+				// width = gridRegion.x + hwidthAndGap * displayCountX;
+				// height = gridRegion.y + vwidthAndGap * ct + borderStroke;
+				width =  (gridRegion.xpad*ct) + hwidthAndGap + borderStroke*2;//(hwidthAndGap * ct) +   * 2;  
+				height = (gridRegion.ypad*displayCount)+ vwidthAndGap + borderStroke*2;			
 			} else {
-				list = self.state.speciesList;
+				list = self.state.selectedTargetSpecies;
 				ct = self.state.defaultVisibleModelCt;
 				borderStroke = self.state.detailRectStrokeWidth;
-				width = gridRegion.x + hwidthAndGap * ct;
-				height = gridRegion.y + vwidthAndGap * displayCount + borderStroke * 2;
+				width =  (gridRegion.xpad*ct) + hwidthAndGap + borderStroke*2;//(hwidthAndGap * ct) +   * 2;  
+				height = (gridRegion.ypad*displayCount)+ vwidthAndGap + borderStroke*2;							
 			}
 		} else {
 			list.push(self.state.currentTargetSpeciesName);
 			ct = displayCountX;
 			borderStroke = self.state.detailRectStrokeWidth;
-			width = gridRegion.x + hwidthAndGap * ct;
-			height = gridRegion.y + vwidthAndGap * displayCount + borderStroke * 2;
+			width =  (gridRegion.xpad*ct) + hwidthAndGap + borderStroke*2;//(hwidthAndGap * ct) +   * 2;  
+			height = (gridRegion.ypad*displayCount)+ vwidthAndGap + borderStroke*2;			
+			//height = (vwidthAndGap * displayCount)+(gridRegion.ypad*4);  //+ borderStroke * 2; gridRegion.y + 
 		}
 
 		var border_rect = self.state.svg.selectAll(".species_accent")
 			.data(list)
 			.enter()
 			.append("rect")
-			//.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 30) + "," + (self.state.yoffsetOver) + ")")
 			.attr("transform","translate(" + (gridRegion.x-5) + "," + (gridRegion.y-5) + ")")	
 			.attr("class", "species_accent")
 			.attr("width", width)
@@ -2302,7 +2293,8 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var self = this;
 		var speciesList = this.state.selectedTargetSpecies.map( function(d) {return d.name;});  //[];
 		var len = self.state.xAxisRender.displayLength();
-		var width = self.state.gridRegion[0].x + (len * self.state.gridRegion[0].cellwd)-5;
+		//var width = self.state.gridRegion[0].x + (len * self.state.gridRegion[0].cellwd)-5;
+		var width = (self.state.gridRegion[0].xpad*len) + self.state.gridRegion[0].cellwd;
 
 		// position relative to the grid
 		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y) + ")";
