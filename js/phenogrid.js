@@ -896,30 +896,6 @@ var TooltipRender = require('./render.js');
 			
 		},
 
-		// Error, disease title is grabbed from html ttitle tag. - Joe
-		_createDiseaseTitleBox: function() {
-			var self = this;
-			var dTitleYOffset = self.state.yoffset - self.state.gridTitleYOffset/2;
-			var dTitleXOffset = self.state.colStartingPos;
-			var title = document.getElementsByTagName("title")[0].innerHTML;
-			var dtitle = title.replace("Monarch Disease:", "");
-
-			// place it at yoffset - the top of the rectangles with the phenotypes
-			var disease = dtitle.replace(/ *\([^)]*\) */g,"");
-			var shortDis = self._getShortLabel(disease, 60);	// [vaa12] magic number needs removed
-
-			// Use until SVG2. Word Wraps the Disease Title
-			this.state.svg.append("foreignObject")
-				.attr("width", 205)
-				.attr("height", 50)
-				.attr("id", "pg_diseasetitle")
-				.attr("transform", "translate(" + dTitleXOffset + "," + dTitleYOffset + ")")
-				.attr("x", 0)
-				.attr("y", 0)
-				.append("xhtml:div")
-				.html(shortDis);
-		},
-
 		// Overview navigation - Joe
 		_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
 			var self = this;
@@ -1660,7 +1636,6 @@ var TooltipRender = require('./render.js');
 			svgContainer.append("<svg id='pg_svg_area'></svg>");
 			this.state.svg = d3.select("#pg_svg_area");
 			this._addGridTitle();
-			this._createDiseaseTitleBox();
 
 		},
 
