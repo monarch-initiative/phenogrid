@@ -1,31 +1,31 @@
 /*
+ * Phenogrid
  *
- *	Phenogrid - the Phenogrid widget.
+ * Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided 
+ * by OWLSim (www.owlsim.org),  as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
+ * 
+ * Phenogrid widget can be instantiated on a jquery-enabled web page with a call of the form
  *
- *	implemented as a jQuery UI (jqueryui.com) widget, this can be instantiated on a jquery-enabled web page
- *	with a call of the form
- *   Phenogrid.createPhenogridForElement(element, {
+ * window.onload = function() {
+ *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
  *         serverURL : "http://beta.monarchinitiative.org",
- *        phenotypeData: phenotypes,
- *        targetSpeciesName: "Mus musculus"
- *    });
+ *         phenotypeData: phenotypes,
+ *         targetSpeciesName: "Mus musculus"
+ *     });
+ * }
+ * 
+ * 'phenogrid_container' is the id of the div that will contain the phenogrid widget
+ *	phenotypes is a Javascript array of objects listing the phenotypes to be rendered in the widget, it takes one of two forms:
  *
- *	where element is the id of the div that will contain the phenogrid widget
- *	and phenotypes takes one of two forms:
- *
- *	1. a list of hashes of the form
- *		[ {"id": "HP:12345", "observed" :"positive"}, {"oid: "HP:23451", "observed" : "negative"},]
- *	2. a simple list of ids..
- *		[ "HP:12345", "HP:23451"], etc.
+ *	1. A list of hashes
+ *		[{"id": "HP:12345", "observed":"positive"}, {"id: "HP:23451", "observed": "negative"}, ...]
+ *	2. A list of phenotype ids
+ *		["HP:12345", "HP:23451"]
  *
  *	Configuration options useful for setting species displayed, similarity calculations, and
  *	related parameters can also be passed in this hash. As of September
  *	2014, these options are currently being refactored - further
  *	documentation hopefully coming soon.
- *
- *	The phenogrid widget uses semantic similarity calculations
- *	provided by OWLSim (www.owlsim.org), as provided through APIs from
- *	the Monarch initiative (www.monarchinitiative.org).
  *
  *	Given an input list of phenotypes and parameters indicating
  *	desired source of matching models (humans, model organisms, etc.),
