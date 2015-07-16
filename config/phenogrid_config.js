@@ -6,11 +6,11 @@ var configoptions = {
     "targetSpeciesName" : "Overview",			   
     "refSpecies": "Homo sapiens",
     "targetSpeciesList" : [
-		{"name": "Homo sapiens", "taxon": "9606","showInOverview": false, "visible": true},
-		{"name": "Mus musculus", "taxon": "10090", "showInOverview": true, "visible": true},
-		{"name": "Danio rerio", "taxon": "7955", "showInOverview": false, "visible": true},
-        {"name": "Drosophila melanogaster", "taxon": "7227", "showInOverview": false, "visible": false},
-        {"name": "UDPICS", "taxon": "UDPICS", "showInOverview": false, "visible": false}
+		{"name": "Homo sapiens", "taxon": "9606","crossComparisonView": false, "active": true},
+		{"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
+		{"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
+        {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
+        {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
 	   ]
     };
          

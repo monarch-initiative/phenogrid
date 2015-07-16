@@ -268,7 +268,7 @@ DataLoader.prototype = {
 	 		lazy - performs a lazy load of the data checking for existing data
 	*/
 	refresh: function(species, lazy) {
-		var list = [];
+		var list = [], reloaded = false;
 		if (lazy) {
 			for (var idx in species) {
 				if (this.dataExists(species[idx].name) == false) {
@@ -278,7 +278,12 @@ DataLoader.prototype = {
 		} else {
 			list = species;
 		}
-		this.load(this.origSourceList, list, this.limit);
+		// if list is empty, that means we already have data loaded for species, or possible none were passed in
+		if (list.length > 0) {
+			this.load(this.origSourceList, list, this.limit);
+			reloaded = true;
+		}
+		return reloaded;
 	},
 
 	// generic ajax call for all queries

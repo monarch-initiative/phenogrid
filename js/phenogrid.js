@@ -83,7 +83,6 @@ var url = document.URL;
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
-		multiOrgModelLimit: 750,
 		phenotypeSort: ["Alphabetic", "Frequency and Rarity", "Frequency" ],
 		similarityCalculation: [{label: "Similarity", calc: 0, high: "Max", low: "Min"}, 
 			{label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"}, 
@@ -154,11 +153,11 @@ var url = document.URL;
 		refSpecies: "Homo sapiens",
 		genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid
 		phenoCompareLimit: 10, // sets the limit for the number of phenotypes used for genotype expansion
-		// targetSpeciesList : [{ name: "Homo sapiens", taxon: "9606", showInOverview: true},
-		// 	{ name: "Mus musculus", taxon: "10090", showInOverview: true },
-		// 	{ name: "Danio rerio", taxon: "7955", showInOverview: false},
-		// 	{ name: "Drosophila melanogaster", taxon: "7227", showInOverview: false},
-		// 	{ name: "UDPICS", taxon: "UDPICS", showInOverview: false}],
+		// targetSpeciesList : [{ name: "Homo sapiens", taxon: "9606", crossComparisonView: true},
+		// 	{ name: "Mus musculus", taxon: "10090", crossComparisonView: true },
+		// 	{ name: "Danio rerio", taxon: "7955", crossComparisonView: false},
+		// 	{ name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false},
+		// 	{ name: "UDPICS", taxon: "UDPICS", crossComparisonView: false}],
 		// COMPARE CALL HACK - REFACTOR OUT
 	    providedData: {},   
 	    axisFlipConfig: {
@@ -193,6 +192,14 @@ var url = document.URL;
 			pCount = -1;
 		}
 		return pCount;
+	},
+
+	_getTargetSpeciesInfo: function(self, name) {
+		for (var i in self.state.targetSpeciesList) {
+			if (self.state.targetSpeciesList[i].name == name) {
+				return self.state.targetSpeciesList[i];
+			}
+		}
 	},
 
 	// Several procedures for various aspects of filtering/identifying appropriate entries in the target species list.. 
@@ -349,9 +356,9 @@ var url = document.URL;
 
 		this.state.selectedTargetSpecies = [];
 
-		// load the default selected target species list based on the showInOverview flag
+		// load the default selected target species list based on the crossComparisonView flag
 		for(var idx in this.state.targetSpeciesList) {
-			if (this.state.targetSpeciesList[idx].showInOverview && this.state.targetSpeciesList[idx].visible) {
+			if (this.state.targetSpeciesList[idx].crossComparisonView && this.state.targetSpeciesList[idx].active) {
 				this.state.selectedTargetSpecies.push(this.state.targetSpeciesList[idx]);	
 			}			
 		}
@@ -505,7 +512,7 @@ var url = document.URL;
 		//	this._createXLines();
 		//	this._createYLines();
 			this._addPhenogridControls();
-			//this._createSpeciesBorderOutline();
+			this._createSpeciesBorderOutline();
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
 			 	this._createOverviewSpeciesLabels();
 			}
@@ -1329,7 +1336,7 @@ var url = document.URL;
 		var x = this.state.titleOffsets[0]["main"].x,
 			y = this.state.titleOffsets[0]["main"].y;
 
-		var titleText = "Cross-Species Overview";
+		var titleText = "Cross-Species Comparison";
 
 		if (this.state.currentTargetSpeciesName !== "Overview") {
 			species= this.state.currentTargetSpeciesName;
@@ -2297,12 +2304,6 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var len = self.state.xAxisRender.displayLength();
 		var width = self.state.gridRegion[0].x + (len * self.state.gridRegion[0].cellwd)-5;
 
-		// if (!this.state.invertAxis && self.state.currentTargetSpeciesName == "Overview") {
-		// 	speciesList = self.state.speciesList;
-		// } else{
-		// 	speciesList.push(self.state.currentTargetSpeciesName);
-		// }
-
 		// position relative to the grid
 		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y) + ")";
 
@@ -2633,14 +2634,15 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 			// MKD: NEED TO CHANGE THIS ONCE MULTIPLE SELECT WIDGET IS CREATED
 			if (self.state.currentTargetSpeciesName == 'Overview') {
+				self.state.selectedTargetSpecies = []; // reset
 				for (var idx in self.state.targetSpeciesList) {
-					if (self.state.targetSpeciesList[idx].showInOverview && self.state.targetSpeciesList[idx].visible) {
+					if (self.state.targetSpeciesList[idx].crossComparisonView && self.state.targetSpeciesList[idx].active) {
 						self.state.selectedTargetSpecies.push(self.state.targetSpeciesList[idx]);
 					}
 				}
 			} else {
-				var taxon = self._getTargetSpeciesTaxonByName(self, self.state.currentTargetSpeciesName);
-				self.state.selectedTargetSpecies = [{name: self.state.currentTargetSpeciesName, taxon: taxon, showInOverview: true}];
+				var rec = self._getTargetSpeciesInfo(self, self.state.currentTargetSpeciesName);
+				self.state.selectedTargetSpecies = [rec];
 			}
 
 			//self._resetSelections("organism");
@@ -2693,7 +2695,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 				break;
 			}
 			selectedItem = "";
-			if (this.state.targetSpeciesList[idx].visible) {  //MKD: NEEDS CHANGED AFTER MULTIPLE SELCTION WIDGET
+			if (this.state.targetSpeciesList[idx].active) {  //MKD: NEEDS CHANGED AFTER MULTIPLE SELCTION WIDGET
 				if (this.state.targetSpeciesList[idx].name === this.state.currentTargetSpeciesName) {
 					selectedItem = "selected";
 				}

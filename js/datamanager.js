@@ -299,17 +299,18 @@ DataManager.prototype = {
 	*/
 	reinitialize: function(species, lazy) {
 		console.log("reinitialize dataManager...");
-		this.source = [];
-		this.target = [];
-		this.cellData = [];
 
-		// tell dataLoader to refresh data 
-		this.dataLoader.refresh(species, lazy);
+		// tell dataLoader to refresh data, if data was reloaded, then reinject data 
+		if (this.dataLoader.refresh(species, lazy) ) {
+			this.source = [];
+			this.target = [];
+			this.cellData = [];
 
-		// inject data
-		this.target = this.dataLoader.getTargets();
-		this.source = this.dataLoader.getSources();
-		this.cellData = this.dataLoader.getCellData();
+			// inject data
+			this.target = this.dataLoader.getTargets();
+			this.source = this.dataLoader.getSources();
+			this.cellData = this.dataLoader.getCellData();
+		}
 	},
 
 	/*
