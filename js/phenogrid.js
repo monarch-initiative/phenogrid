@@ -1715,10 +1715,12 @@ var TooltipRender = require('./render.js');
 
 			var faq	= this.state.svg
 				.append("text")
-				.attr("id", "pg_faqs") // Position is controlled in CSS #pg_faqs - Joe
 				.attr('font-family', 'FontAwesome')
-				.text(function(d) { 
-					return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
+				.attr("id", "pg_faqs")
+				.attr("x", 90 + 90)	// Logo width + padding
+				.attr("y", 20)		// Half logo height
+				.text(function(d) {
+					return "\uf05a"; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 				})
 				.style('cursor', 'pointer')
 				.on("click", function(d) {
@@ -1773,8 +1775,10 @@ var TooltipRender = require('./render.js');
 			this.state.svg.append("svg:image")
 				.attr("xlink:href", this.state.imagePath + "logo.png")
 				.attr("id", "pg_logo")
+				.attr("x", 0)
+				.attr("y", 0)
 				.attr("width", 90)
-				.attr("height", 46)
+				.attr("height", 46);
 		},
 
 		_resetLinks: function() {
