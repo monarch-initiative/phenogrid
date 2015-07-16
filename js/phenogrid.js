@@ -2395,23 +2395,6 @@ var TooltipRender = require('./render.js');
 			this._updateDetailSection(retData, this._getXYPos(obj));
 		},
 
-		_showThrobber: function() {
-			this.state.svg.selectAll("#pg_detail_content").remove();
-			this.state.svg.append("svg:text")
-				.attr("id", "pg_detail_content")
-				.attr("y", (26 + this.state.detailRectStrokeWidth))
-				.attr("x", (440+this.state.detailRectStrokeWidth))
-				.style("font-size", "12px")
-				.text("Searching for data");
-			this.state.svg.append("svg:image")
-				.attr("width", 16)
-				.attr("height", 16)
-				.attr("id", "pg_detail_content")
-				.attr("y", (16 + this.state.detailRectStrokeWidth))
-				.attr("x", (545 + this.state.detailRectStrokeWidth))
-				.attr("xlink:href","/widgets/phenogrid/image/throbber.gif");
-		},
-
 		// extract the x,y values from a SVG transform string (ex: transform(200,20))
 		_extractTransform: function(dataString) {
 			var startIdx = dataString.indexOf("(");
@@ -3552,25 +3535,6 @@ var TooltipRender = require('./render.js');
 				// Do something else
 				$("#pg_unmatched").hide();
 			}
-		},
-
-		// Not used in other places? Can be removed? - Joe
-		_rectClick: function(data) {
-			var retData;
-			this._showThrobber();
-			$.ajax({
-				url : this.state.serverURL + "/phenotype/" + data.attributes.ontology_id.value + ".json",
-				async : false,
-				dataType : 'json',
-				success : function(data) {
-					retData = "<strong>Label:</strong> " + "<a href=\"" + data.url + "\">" + data.label + "</a><br/><strong>Type:</strong> " + data.category;
-				},
-				error: function (xhr, errorType, exception) {
-					//Triggered if an error communicating with server
-					self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
-				},
-			});
-			this._updateDetailSection(retData, this._getXYPos(data));
 		},
 
 		_toProperCase: function (oldstring) {
