@@ -49,7 +49,7 @@
  */
 
 
-// Will need to install jquery, jquery-ui, jshashtable first via npm - Joe
+// Will need to install jquery, jquery-ui, d3, jshashtable first via npm - Joe
 // Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
 // npm install jquery jquery-ui d3 jshashtable
  
@@ -114,8 +114,6 @@ var TooltipRender = require('./render.js');
 				['rgb(230,209,178)','rgb(210,173,116)','rgb(148,114,60)','rgb(68,162,147)','rgb(31,128,113)','rgb(3,82,70)'], // beige - Joe
 				['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'] // Green - Joe
 			],
-			emptySvgX: 1100, // not used - Joe
-			emptySvgY: 200, // not used - Joe
 			overviewCount: 3,
 			colStartingPos: 10,
 			detailRectWidth: 300,

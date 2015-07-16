@@ -29,9 +29,14 @@ module.exports = {
  *
  *	implemented as a jQuery UI (jqueryui.com) widget, this can be instantiated on a jquery-enabled web page
  *	with a call of the form
- *	$("#mydiv).phenogrid({phenotypeData: phenotypeList}).
- *	where #mydiv is the id of the div that will contain the phenogrid widget
- *	and phenotypeList takes one of two forms:
+ *   Phenogrid.createPhenogridForElement(element, {
+ *         serverURL : "http://beta.monarchinitiative.org",
+ *        phenotypeData: phenotypes,
+ *        targetSpeciesName: "Mus musculus"
+ *    });
+ *
+ *	where element is the id of the div that will contain the phenogrid widget
+ *	and phenotypes takes one of two forms:
  *
  *	1. a list of hashes of the form
  *		[ {"id": "HP:12345", "observed" :"positive"}, {"oid: "HP:23451", "observed" : "negative"},]
@@ -66,16 +71,10 @@ module.exports = {
  *	},
  *
  *	These results will then be rendered in the phenogrid
- *
- *	NOTE: I probably need a model_url to render additional model info on
- *	the screen. Alternatively I can load the data
- *	as a separate call in the init function.
- *
- *	META NOTE (HSH - 8/25/2014): Can we remove this note, or at least clarify?
  */
 
 
-// Will need to install jquery, jquery-ui, jshashtable first via npm - Joe
+// Will need to install jquery, jquery-ui, d3, jshashtable first via npm - Joe
 // Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
 // npm install jquery jquery-ui d3 jshashtable
  
@@ -140,8 +139,6 @@ var TooltipRender = require('./render.js');
 				['rgb(230,209,178)','rgb(210,173,116)','rgb(148,114,60)','rgb(68,162,147)','rgb(31,128,113)','rgb(3,82,70)'], // beige - Joe
 				['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'] // Green - Joe
 			],
-			emptySvgX: 1100, // not used - Joe
-			emptySvgY: 200, // not used - Joe
 			overviewCount: 3,
 			colStartingPos: 10,
 			detailRectWidth: 300,
@@ -475,8 +472,8 @@ var TooltipRender = require('./render.js');
 		 *	Currently, the existence of an explicit serverUrl (non-blank) is used to indicate that the
 		 *	workaround is necessary.
 		 */
-		
-		/*
+		 
+		 /*
 		 * HACK WARNING - 20150715, zhy19@pitt.edu
 		 * 	Added htmlPath to refer to the relative path to those FAQ html pages
 		 * 	To make it work with monarch-app, also need to add htmlPath in monarch-appjs/phenogridloader-no-species.js
