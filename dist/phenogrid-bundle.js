@@ -141,8 +141,8 @@ var TooltipRender = require('./render.js');
 			],
 			overviewCount: 3,
 			colStartingPos: 10,
-			detailRectWidth: 300,
-			detailRectHeight: 100,
+			detailRectWidth: 360,
+			detailRectHeight: 120,
 			detailRectStrokeWidth: 2,
 			globalViewSize : 110, // overview map -Joe
 			reducedGlobalViewSize: 50,
@@ -2342,12 +2342,14 @@ var TooltipRender = require('./render.js');
 			this.state.svg.append("foreignObject")
 				.attr("width", w)
 				.attr("height", h)
-				.attr("id", "pg_detail_content")
+				.attr("id", "pg_detail_content") // "#pg_detail_content" is the id of "foreignObject" - Joe
 				// add an offset. Otherwise, the tooltip turns off the mouse event
 				.attr("y", yv)
 				.attr("x", wv)
-				.append("xhtml:body")
+				.append("xhtml:div") // CSS needs to be applied to this div - Joe
 				.html(htmltext);
+				
+				console.log($('#pg_detail_content').html()); //Debugging - Joe
 		},
 
 		// Model data cell tooptip content - Joe
