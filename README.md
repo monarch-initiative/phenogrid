@@ -30,7 +30,7 @@ To download and install the phenogrid widget, run
 npm install
 ```
 
-from this directory..
+from this directory.
 Sometimes, it requires root access to for the installation, just run the following instead
 
 ```
