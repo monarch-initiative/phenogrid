@@ -2259,7 +2259,7 @@ var TooltipRender = require('./render.js');
 				.attr('y', y-10)
 				.attr('width', 9)
 				.attr('height', 9)
-				.attr('xlink:href', this.state.imagePath + '.checkmark-drk.png'); //small-bracket.png');
+				.attr('xlink:href', this.state.imagePath + '.checkmark-drk.png'); 
 			}
 
 			el.remove();
