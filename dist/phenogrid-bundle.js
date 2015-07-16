@@ -24,33 +24,33 @@ module.exports = {
 
 },{}],2:[function(require,module,exports){
 /*
+ * Phenogrid
  *
- *	Phenogrid - the Phenogrid widget.
+ * Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided 
+ * by OWLSim (www.owlsim.org),  as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
+ * 
+ * Phenogrid widget can be instantiated on a jquery-enabled web page with a call of the form
  *
- *	implemented as a jQuery UI (jqueryui.com) widget, this can be instantiated on a jquery-enabled web page
- *	with a call of the form
- *   Phenogrid.createPhenogridForElement(element, {
+ * window.onload = function() {
+ *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
  *         serverURL : "http://beta.monarchinitiative.org",
- *        phenotypeData: phenotypes,
- *        targetSpeciesName: "Mus musculus"
- *    });
+ *         phenotypeData: phenotypes,
+ *         targetSpeciesName: "Mus musculus"
+ *     });
+ * }
+ * 
+ * 'phenogrid_container' is the id of the div that will contain the phenogrid widget
+ *	phenotypes is a Javascript array of objects listing the phenotypes to be rendered in the widget, it takes one of two forms:
  *
- *	where element is the id of the div that will contain the phenogrid widget
- *	and phenotypes takes one of two forms:
- *
- *	1. a list of hashes of the form
- *		[ {"id": "HP:12345", "observed" :"positive"}, {"oid: "HP:23451", "observed" : "negative"},]
- *	2. a simple list of ids..
- *		[ "HP:12345", "HP:23451"], etc.
+ *	1. A list of hashes
+ *		[{"id": "HP:12345", "observed":"positive"}, {"id: "HP:23451", "observed": "negative"}, ...]
+ *	2. A list of phenotype ids
+ *		["HP:12345", "HP:23451"]
  *
  *	Configuration options useful for setting species displayed, similarity calculations, and
  *	related parameters can also be passed in this hash. As of September
  *	2014, these options are currently being refactored - further
  *	documentation hopefully coming soon.
- *
- *	The phenogrid widget uses semantic similarity calculations
- *	provided by OWLSim (www.owlsim.org), as provided through APIs from
- *	the Monarch initiative (www.monarchinitiative.org).
  *
  *	Given an input list of phenotypes and parameters indicating
  *	desired source of matching models (humans, model organisms, etc.),
@@ -921,30 +921,6 @@ var TooltipRender = require('./render.js');
 			
 		},
 
-		// Error, disease title is grabbed from html ttitle tag. - Joe
-		_createDiseaseTitleBox: function() {
-			var self = this;
-			var dTitleYOffset = self.state.yoffset - self.state.gridTitleYOffset/2;
-			var dTitleXOffset = self.state.colStartingPos;
-			var title = document.getElementsByTagName("title")[0].innerHTML;
-			var dtitle = title.replace("Monarch Disease:", "");
-
-			// place it at yoffset - the top of the rectangles with the phenotypes
-			var disease = dtitle.replace(/ *\([^)]*\) */g,"");
-			var shortDis = self._getShortLabel(disease, 60);	// [vaa12] magic number needs removed
-
-			// Use until SVG2. Word Wraps the Disease Title
-			this.state.svg.append("foreignObject")
-				.attr("width", 205)
-				.attr("height", 50)
-				.attr("id", "pg_diseasetitle")
-				.attr("transform", "translate(" + dTitleXOffset + "," + dTitleYOffset + ")")
-				.attr("x", 0)
-				.attr("y", 0)
-				.append("xhtml:div")
-				.html(shortDis);
-		},
-
 		// Overview navigation - Joe
 		_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
 			var self = this;
@@ -1685,7 +1661,6 @@ var TooltipRender = require('./render.js');
 			svgContainer.append("<svg id='pg_svg_area'></svg>");
 			this.state.svg = d3.select("#pg_svg_area");
 			this._addGridTitle();
-			this._createDiseaseTitleBox();
 
 		},
 
@@ -2309,7 +2284,7 @@ var TooltipRender = require('./render.js');
 				.attr('y', y-10)
 				.attr('width', 9)
 				.attr('height', 9)
-				.attr('xlink:href', this.state.imagePath + '.checkmark-drk.png'); //small-bracket.png');
+				.attr('xlink:href', this.state.imagePath + '.checkmark-drk.png'); 
 			}
 
 			el.remove();
@@ -2349,7 +2324,7 @@ var TooltipRender = require('./render.js');
 				.append("xhtml:div") // CSS needs to be applied to this div - Joe
 				.html(htmltext);
 				
-				console.log($('#pg_detail_content').html()); //Debugging - Joe
+				//console.log($('#pg_detail_content').html()); //Debugging - Joe
 		},
 
 		// Model data cell tooptip content - Joe
@@ -2418,23 +2393,6 @@ var TooltipRender = require('./render.js');
 				"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
 			
 			this._updateDetailSection(retData, this._getXYPos(obj));
-		},
-
-		_showThrobber: function() {
-			this.state.svg.selectAll("#pg_detail_content").remove();
-			this.state.svg.append("svg:text")
-				.attr("id", "pg_detail_content")
-				.attr("y", (26 + this.state.detailRectStrokeWidth))
-				.attr("x", (440+this.state.detailRectStrokeWidth))
-				.style("font-size", "12px")
-				.text("Searching for data");
-			this.state.svg.append("svg:image")
-				.attr("width", 16)
-				.attr("height", 16)
-				.attr("id", "pg_detail_content")
-				.attr("y", (16 + this.state.detailRectStrokeWidth))
-				.attr("x", (545 + this.state.detailRectStrokeWidth))
-				.attr("xlink:href","/widgets/phenogrid/image/throbber.gif");
 		},
 
 		// extract the x,y values from a SVG transform string (ex: transform(200,20))
@@ -3577,25 +3535,6 @@ var TooltipRender = require('./render.js');
 				// Do something else
 				$("#pg_unmatched").hide();
 			}
-		},
-
-		// Not used in other places? Can be removed? - Joe
-		_rectClick: function(data) {
-			var retData;
-			this._showThrobber();
-			$.ajax({
-				url : this.state.serverURL + "/phenotype/" + data.attributes.ontology_id.value + ".json",
-				async : false,
-				dataType : 'json',
-				success : function(data) {
-					retData = "<strong>Label:</strong> " + "<a href=\"" + data.url + "\">" + data.label + "</a><br/><strong>Type:</strong> " + data.category;
-				},
-				error: function (xhr, errorType, exception) {
-					//Triggered if an error communicating with server
-					self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
-				},
-			});
-			this._updateDetailSection(retData, this._getXYPos(data));
 		},
 
 		_toProperCase: function (oldstring) {
