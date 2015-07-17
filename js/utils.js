@@ -71,3 +71,26 @@ Utils.encodeHtmlEntity = function(str) {
 Utils.decodeHtmlEntity = function(str) {
 	return $('<div></div>').html(str).text();
 };
+
+Utils.formatScore =  function(score) {
+	if(score === 0) {
+		return "";
+	} else {
+		return " (IC: " + score + ")";
+	}
+};
+
+// Will capitalize words passed or send back undefined incase error
+Utils.capitalizeString = function(word){
+	if (word === undefined) {
+		return "Undefined";
+	} else if (word === null) {
+			return "";
+	} else {
+		return word.charAt(0).toUpperCase() + word.slice(1);
+	}
+};
+
+Utils.toProperCase = function (oldstring) {
+	return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+};

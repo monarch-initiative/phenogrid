@@ -67,43 +67,9 @@ DataLoader.prototype = {
 			}
 		    console.log(url);
 
+		    // make ajax call
 		    res = this.fetch(url);
-		    //TODO: Make call to function below
-			// jQuery.ajax({
-			// 	url: url, 
-			// 	async : false,
-			// 	dataType : 'json',
-			// 	success : function(data) {
-			// 		res = data;
-			// 	},
-			// 	error: function (xhr, errorType, exception) { 
-			// 		var msg;
-			// 		// Triggered if an error communicating with server
-			// 		switch(xhr.status){
-			// 		case 404:
-			// 		case 500:
-			// 		case 501:
-			// 		case 502:
-			// 		case 503:
-			// 		case 504:
-			// 		case 505:
-			// 		default:
-			// 			msg = "We're having some problems. Please try again soon.";
-			// 			break;
-			// 		case 0: 
-			// 			msg = "Please check your network connection.";
-			// 			break;
-			// 		}
-			// 		console.log(msg);
-			// 	} 
-			// });	
 
-
-			// if (typeof (res) !=='undefined' && res !== null) {
-			// 	if (typeof(limit) !== 'undefined' && typeof(res.b) !== 'undefined' && res.b !== null && res.b.length < limit) {
-			// 		res = this._padSpeciesData(res,speciesName,limit);
-			// 	}
-			// }
 			// save the original owlsim data
 			this.owlsimsData[speciesName[i].name] = res;
 
@@ -215,11 +181,17 @@ DataLoader.prototype = {
 
 
 						// building cell data points
-						dataVals = {"source_id": sourceID_a, "target_id": targetID, "value": lcs, 
-									"subsumer_label": curr_row.lcs.label, "subsumer_id": currID_lcs, 
-									"subsumer_IC": parseFloat(curr_row.lcs.IC), "b_label": curr_row.b.label, 
-									"species": item.taxon.label,
-									"b_id": currID_b, "b_IC": parseFloat(curr_row.b.IC),
+						dataVals = {"source_id": sourceID_a, 
+									"target_id": targetID, 
+									"species": item.taxon.label,									
+									"value": lcs, 
+									"a_IC" : curr_row.a.IC,  
+									"subsumer_id": currID_lcs, 
+									"subsumer_label": curr_row.lcs.label, 
+									"subsumer_IC": parseFloat(curr_row.lcs.IC), 
+									"b_id": currID_b,
+									"b_label": curr_row.b.label, 
+									"b_IC": parseFloat(curr_row.b.IC),
 							    "rowid": sourceID_a + "_" + currID_lcs};						
 					    if (typeof(this.cellData[species][sourceID_a]) == 'undefined') {
 							this.cellData[species][sourceID_a] = {};

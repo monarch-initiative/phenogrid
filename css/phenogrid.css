@@ -2890,11 +2890,10 @@ label.pg_ctrl_label{
 	-moz-box-shadow: 5px 5px 8px #818181;
 	display:none;
 	position:absolute;
-	display:none;
 	border:1px solid #000;
 	background:#fff;
 	z-index:3000;
-	font:10px Arial;
+	font:11px Arial;
 }
 
 

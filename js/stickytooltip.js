@@ -57,7 +57,7 @@ var stickytooltip={
 
 	// wrapper function
 	closetooltip:function() {		
-		var $tooltip=$('#mystickytooltip');
+		var $tooltip= jQuery('#mystickytooltip');
 		stickytooltip.isdocked = false;
 		stickytooltip.hidebox($, $tooltip);
 	},
@@ -65,7 +65,7 @@ var stickytooltip={
 	init:function(targetselector, tipid){
 		jQuery(document).ready(function($){
 			var self = this;			
-			var $targets=$(targetselector);
+			var $targets= jQuery(targetselector);  //    $(targetselector);
 			var $tooltip=$('#'+tipid).appendTo(document.body);
 			if ($targets.length==0)
 				return;

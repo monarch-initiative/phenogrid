@@ -498,8 +498,8 @@ var url = document.URL;
 //			self._createGridlines();
 
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
-		//	this._createXLines();
-		//	this._createYLines();
+			this._createXLines();
+			this._createYLines();
 			this._addPhenogridControls();
 			this._createSpeciesBorderOutline();
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
@@ -561,11 +561,21 @@ var url = document.URL;
 	      			 })  
 	        .attr("width", gridRegion.cellwd)
 	        .attr("height", gridRegion.cellht) 
-	      	.attr("dy", ".60em")  // this makes small adjustment in position
-	      .attr("text-anchor", "end")
-	      .text(function(d, i) { 
-	      	var el = self.state.yAxisRender.itemAt(i);
-	      	return Utils.getShortLabel(el.label); });
+	      	.attr("dy", ".60em")  // this makes small adjustment in position	      	
+	      	.attr("text-anchor", "end")
+			.attr("data-tooltip", "sticky1")   				      
+		      .text(function(d, i) { 
+	      		var el = self.state.yAxisRender.itemAt(i);
+	      		return Utils.getShortLabel(el.label); })
+			.on("mouseover", function(d, i) { 
+		        	var data = self.state.yAxisRender.itemAt(i);
+		        	self._mouseover(data, self);
+		        	})
+			.on("mouseout", function(d, i) { 
+		        	var data = self.state.xAxisRender.itemAt(i);
+		        	self._mouseout(data, self);
+		        	});		    
+	      	
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -583,9 +593,20 @@ var url = document.URL;
 	      	.attr("x", 0)
 	      	.attr("y", self.state.xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
+		    .attr("data-tooltip", "sticky1")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		      	
-	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); });
+	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
+		    .on("mouseover", function(d, i) { 
+		        	//var data = d[i];
+		        	var data = self.state.xAxisRender.itemAt(i);
+		        	self._mouseover(data, self);
+		        	})
+			.on("mouseout", function(d, i) { 
+		        	var data = self.state.xAxisRender.itemAt(i);
+		        	self._mouseout(data, self);
+		        	});		    
+	      	
 
 	    // add the scores  
 	    self._createTextScores();
@@ -601,6 +622,7 @@ var url = document.URL;
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
+				.attr("data-tooltip", "sticky1")   					        
 				// .attr("rx", "3")
 				// .attr("ry", "3")			        
 		        //.style("fill-opacity", function(d) { return z(d.z); })
@@ -609,25 +631,33 @@ var url = document.URL;
 					//console.log(JSON.stringify(el));
 					return self._getColorForModelValue(self, d.species, el.value[self.state.selectedCalculation]);
 			        })
-		        .on("mouseover", self._mouseover)
-		        .on("mouseout", self._mouseout);
+		        .on("mouseover", function(d) { 
+		        	var data = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+		        	self._mouseover(data, self);
+		        	})
+		        .on("mouseout", function(d) { 
+		        	var data = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+		        	self._mouseout(data, self);
+		        	});
 		}
 	},
 
-	_mouseover: function (p) {
+	_mouseover: function (data , parent) {
 		var self = this;
 		console.log('mouseover...');
+		parent._createHoverBox(data);
 			//console.log("mouseover:  g#pg_grid_row_" + lastRowHighlighted+ '.pg_grid_row');
-	  		 d3.selectAll("g#pg_grid_row_" + p.ypos + '.pg_grid_row') // + ' rect#cell_' + p.source_id+p.target_id)
-				 .attr("class", "row_accent");
+	  		 //d3.selectAll("g#pg_grid_row_" + p.ypos + '.pg_grid_row') // + ' rect#cell_' + p.source_id+p.target_id)
+				// .attr("class", "row_accent");
 			//lastRowHighlighted = p.ypos;
 		  // from les miserable example
 		  //   d3.selectAll("g.row text").classed("active", function(d, i) { return i == d.ypos; });
 				// d3.selectAll("g.column text").classed("active", function(d, i) { return i == d.xpos; });
 	},
 
-	_mouseout:	function() {
+	_mouseout:	function(data , parent) {
 		  console.log('mouseout...');
+		  stickytooltip.closetooltip();
 			// console.log("mouseout:  g#pg_grid_row_" + lastRowHighlighted);
 			// d3.selectAll("g#pg_grid_row_" + lastRowHighlighted)
 			// 	.attr("class", "row_accent_reset");
@@ -1507,154 +1537,19 @@ var url = document.URL;
 		}
 	},
 
-	// Merging of both deselect model and phenotype functions
-	_deselectMatching: function(curr_data){
-		var self = this;
-		var dataType = self._getIDType(curr_data);
-		var label, alabels, shortTxt, shrinkSize;
-		if (dataType === "source"){
-			if (!this.state.invertAxis){
-				alabels = this.state.svg.selectAll("text.a_text");
-				shrinkSize = self.state.textLength;
-			} else {
-				alabels = this.state.svg.selectAll("text.model_label");
-				shrinkSize = self.state.labelCharDisplayCount;
-			}
-		} else if (dataType === "target"){
-			if (!this.state.invertAxis){
-				alabels = this.state.svg.selectAll("text.model_label"); 
-				shrinkSize = self.state.labelCharDisplayCount;
-			} else {
-				alabels = this.state.svg.selectAll("text.a_text"); 
-				shrinkSize = self.state.textLength;
-			}
-		} else {
-			alabels = this.state.svg.selectAll("text.a_text");
-			shrinkSize = self.state.textLength;
-
-			// Clear both axis.  One here, one below
-			var blabels = this.state.svg.selectAll("text.model_label");
-			for (var i in blabels[0]){
-				label = this._getAxisData(blabels[0][i].id).label;
-				shortTxt = Utils.getShortLabel(label,self.state.labelCharDisplayCount);
-				if (blabels[0][i].innerHTML == shortTxt){
-					blabels[0][i].style.fill = this._getExpandStyling(blabels[0][i].id); //"black";
-				}
-			}
-		}
-
-		for (var j in alabels[0]){
-			var obj = this._getAxisData(alabels[0][j].id);
-
-			label = obj.label;
-
-			if (label != null && typeof(label) !== 'undefined') {
-				shortTxt = Utils.getShortLabel(label,shrinkSize);
-				if (alabels[0][j].innerHTML == shortTxt){	
-					alabels[0][j].style.fill = this._getExpandStyling(alabels[0][j].id); //"black";
-				}
-			}
-		}
-	},
-
-	// Will capitalize words passed or send back undefined incase error
-	_capitalizeString: function(word){
-		if (word === undefined) {
-			return "Undefined";
-		} else if (word === null) {
-				return "";
-		} else {
-			return word.charAt(0).toUpperCase() + word.slice(1);
-		}
-	},
-
-	_selectXItem: function(data, obj) {
-		// HACK: this temporarily 'disables' the mouseover when the stickytooltip is docked
-		// that way the user doesn't accidently hover another label which caused tooltip to be refreshed
-		if (stickytooltip.isdocked){ return; }
-
-		var self = this;
-	    //var displayCount = self._getYLimit();
-	    var sourceDisplayCount = self.state.yAxisRender.displayLength();
-		var concept = Utils.getConceptId(data);
-		//console.log("selecting x item.."+concept);
-		var appearanceOverrides;
-
-		// Show that model label is selected. Change styles to bold, blue and full-length label
-		var target_label = self.state.svg.selectAll("text#" + concept)
-			.style("font-weight", "bold")
-			.style("fill", "blue");
-
-		appearanceOverrides = self._createHoverBox(data);   // TODO:we may want to rethink using this return value override
-
-		// create the related model rectangles
-		var highlight_rect = self.state.svg.append("svg:rect")
-			.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 32) + "," + self.state.yoffsetOver + ")")
-			.attr("x", function(d) { return (self.state.xScale(data) - 1);})
-			.attr("y", self.state.yoffset + 5) 
-			.attr("class", "model_accent")
-			.attr("width", 15 * appearanceOverrides.offset)
-			.attr("height", (sourceDisplayCount * self.state.heightOfSingleCell));
-
-		// obj is try creating an ojbect with an attributes array including "attributes", but I may need to define getAttrbitues
-		// just create a temporary object to pass to the next method...
-		obj = {
-			attributes: [],
-			getAttribute: function(keystring) {
-				var ret = self.state.xScale(data) + 15;
-				if (keystring == "y") {
-					ret = Number(self.state.yoffset - 100);
-				}
-				return ret;
-			},
-		};
-		obj.attributes.transform = {value: highlight_rect.attr("transform")};
-		self._highlightMatching(data);
-	},
-
-	// Previously _selectData
-	_selectYItem: function(curr_data, obj) {
-		var appearanceOverrides;
-		// create a highlight row
-		if (stickytooltip.isdocked){ return; }
-
-		var self = this;
-		//var info = self._getAxisData(curr_data);
-		var id = curr_data.id;
-		
-		//console.log("select y item.. "+txt);
-
-		var alabels = this.state.svg.selectAll("text.a_text." + id)
-			.style("font-weight", "bold")
-			.style("fill", "blue");
-
-		appearanceOverrides = self._createHoverBox(id);
-
-		// create the related row rectangle
-		var highlight_rect = self.state.svg.append("svg:rect")
-//			.attr("transform","translate(" + (self.state.axis_pos_list[1]) + "," + (self.state.yoffsetOver + 4) + ")")
-			.attr("transform","translate(252, " + (this.state.yModelRegion + 5) + ")")			
-			.attr("x", 0) //
-			.attr("y", self._getAxisDataPosition(id) * self.state.heightOfSingleCell) //.ypos
-			.attr("class", "row_accent")  
-			.attr("width", this.state.modelWidth - 4)
-			.attr("height", 11 * appearanceOverrides.offset);
-
-		this._highlightMatching(curr_data);
-	},
-
 	_createHoverBox: function(data){
 		var appearanceOverrides = {offset: 1, style: "pg_col_accent"}; // may use this structure later, offset is only used now
-		var info = this._getAxisData(data);
-		var type = info.type;
-		if (type === undefined){
-			type = this._getIDType(data);
-		}
 
-		var concept = this._getConceptId(data);
+		var id;
+
+		 if (this.state.invertAxis) {
+			id = data.target_id;
+		 } else {
+			id = data.source_id;
+		 }
 
 		// format data for rendering in a tooltip
-		var retData = this.state.tooltipRender.html({parent: this, id:concept, data: info});   
+		var retData = this.state.tooltipRender.html({parent: this, id:id, data: data});   
 
 		// update the stub stickytool div dynamically to display
 		$("#sticky1").empty();
@@ -1720,41 +1615,6 @@ var url = document.URL;
 		return link;
 	},
 
-	// Previously _deselectData + _clearModelData
-	_deselectData: function (data) {
-		var self = this;
-		this.state.svg.selectAll(".pg_row_accent").remove();
-		this.state.svg.selectAll("#pg_detail_content").remove();
-		this.state.svg.selectAll(".pg_col_accent").remove();
-		this._resetLinks();
-		if (data !== undefined){
-			var IDType = this._getIDType(data);
-			var alabels;
-			if (IDType) {
-				var id = this._getConceptId(data);
-				if (typeof(id) !== 'undefined') {
-					var label = this._getAxisData(data).label;
-
-					if ((IDType == "source" && !this.state.invertAxis) || (IDType == "target" && this.state.invertAxis)){
-						alabels = this.state.svg.selectAll("text.a_text." + id);
-						alabels.html(Utils.getShortLabel(label));
-					}else if ((IDType == "source" && this.state.invertAxis) || (IDType == "target" && !this.state.invertAxis)){
-						alabels = this.state.svg.selectAll("text#" + id);
-						alabels.html(Utils.getShortLabel(label,self.state.labelCharDisplayCount));
-					}
-
-					alabels.style("font-weight","normal");
-					alabels.style("text-decoration", "none");
-					alabels.style("fill", "black");
-
-					this._deselectMatching(data);
-				}
-				
-			}
-		}
-		//stickytooltip.closetooltip();
-	},
-
 	_clickItem: function(url_origin,data) {
 		var url;
 		var apientity = this.state.defaultApiEntity;
@@ -1782,166 +1642,72 @@ var url = document.URL;
 
 
 	
-	_convertLabelHTML: function (self, t, label, data) {
-		self = this;
-		var width = 100,
-		el = d3.select(t),
-		p = d3.select(t.parentNode),
-		x = +t.getAttribute("x"),
-		y = +t.getAttribute("y");
+	// _convertLabelHTML: function (self, t, label, data) {
+	// 	self = this;
+	// 	var width = 100,
+	// 	el = d3.select(t),
+	// 	p = d3.select(t.parentNode),
+	// 	x = +t.getAttribute("x"),
+	// 	y = +t.getAttribute("y");
 
-		// this fixes the labels that are html encoded 
-		label = Utils.decodeHtmlEntity(label);
+	// 	// this fixes the labels that are html encoded 
+	// 	label = Utils.decodeHtmlEntity(label);
 
-		p.append("text")
-			.attr('x', function(d) {
-				var p = self._getAxisDataPosition(d);
-				var x = p * self.state.widthOfSingleCell;  //x += 15;
-				return x;})
-			.attr('y', y)
-			.attr("width", width)
-			.attr("id", Utils.getConceptId(data))
-			.attr("model_id", data)
-			.attr("height", 60)
-			.attr("transform", function(d) {
-				return "rotate(-45)";
-			})
-			//.on("click", function(d) {
-			//	self._clickItem(self.state.serverURL,data);
-			//})
-			.on("mouseover", function(d, event) {  
-				self._selectXItem(data, this);
-			})
-			.on("mouseout", function(d) {
-				self._deselectData(data);
-			})
-			.attr("class", this._getConceptId(data) + " model_label")
-			// this activates the stickytool tip			
-			.attr("data-tooltip", "sticky1")   			
-			//.style("font-size", "12px")
-			//.style("font-weight", "bold")
-			.style("fill", this._getExpandStyling(data))
-			// don't show the label if it is a dummy.
-			.text( function(d) {
-				if (label == self.state.dummyModelName){
-					return ""; 
-				} else {
-					return label;
-				}});
+	// 	p.append("text")
+	// 		.attr('x', function(d) {
+	// 			var p = self._getAxisDataPosition(d);
+	// 			var x = p * self.state.widthOfSingleCell;  //x += 15;
+	// 			return x;})
+	// 		.attr('y', y)
+	// 		.attr("width", width)
+	// 		.attr("id", Utils.getConceptId(data))
+	// 		.attr("model_id", data)
+	// 		.attr("height", 60)
+	// 		.attr("transform", function(d) {
+	// 			return "rotate(-45)";
+	// 		})
+	// 		//.on("click", function(d) {
+	// 		//	self._clickItem(self.state.serverURL,data);
+	// 		//})
+	// 		.on("mouseover", function(d, event) {  
+	// 			self._selectXItem(data, this);
+	// 		})
+	// 		.on("mouseout", function(d) {
+	// 			self._deselectData(data);
+	// 		})
+	// 		.attr("class", this._getConceptId(data) + " model_label")
+	// 		// this activates the stickytool tip			
+	// 		.attr("data-tooltip", "sticky1")   			
+	// 		//.style("font-size", "12px")
+	// 		//.style("font-weight", "bold")
+	// 		.style("fill", this._getExpandStyling(data))
+	// 		// don't show the label if it is a dummy.
+	// 		.text( function(d) {
+	// 			if (label == self.state.dummyModelName){
+	// 				return ""; 
+	// 			} else {
+	// 				return label;
+	// 			}});
 
-		// put a little icon indicator in front of the label
-		if (this._hasChildrenForExpansion(data)) {
-			p.append("image")
-			.attr('x', x-3)
-			.attr('y', y-10)
-			.attr('width', 9)
-			.attr('height', 9)
-			.attr('xlink:href', '/widgets/phenogrid/image/downarrow.png');  
-		} else if (this._isGenoType(data) ){
-			p.append("image")
-			.attr('x', x-3)
-			.attr('y', y-10)
-			.attr('width', 9)
-			.attr('height', 9)
-			.attr('xlink:href', '/widgets/phenogrid/image/checkmark-drk.png'); //small-bracket.png');
-		}
+	// 	// put a little icon indicator in front of the label
+	// 	if (this._hasChildrenForExpansion(data)) {
+	// 		p.append("image")
+	// 		.attr('x', x-3)
+	// 		.attr('y', y-10)
+	// 		.attr('width', 9)
+	// 		.attr('height', 9)
+	// 		.attr('xlink:href', '/widgets/phenogrid/image/downarrow.png');  
+	// 	} else if (this._isGenoType(data) ){
+	// 		p.append("image")
+	// 		.attr('x', x-3)
+	// 		.attr('y', y-10)
+	// 		.attr('width', 9)
+	// 		.attr('height', 9)
+	// 		.attr('xlink:href', '/widgets/phenogrid/image/checkmark-drk.png'); //small-bracket.png');
+	// 	}
 
-		el.remove();
-	},
-
-	_updateDetailSection: function(htmltext, coords, width, height) {
-		this.state.svg.selectAll("#pg_detail_content").remove();
-
-		var w = this.state.detailRectWidth - (this.state.detailRectStrokeWidth * 2);
-		var h = this.state.detailRectHeight - (this.state.detailRectStrokeWidth * 2);
-		if (width !== undefined) {
-			w = width;
-		}
-		if (height !== undefined) {
-			h = height;
-		}
-		var wdt = this.state.axis_pos_list[1] + ((this.state.axis_pos_list[2] - this.state.axis_pos_list[1])/2);
-	    //var displayCount = this._getYLimit();
-	    var displayCount = this.state.yAxisRender.displayLength();
-		var hgt = displayCount * 10 + this.state.yoffset;
-		var yv, wv;
-
-		if (coords.y > hgt) { yv = coords.y - this.state.detailRectHeight - 10;}
-		else {yv = coords.y + 20;}
-
-		if (coords.x > wdt) { wv = coords.x - w - 20;}
-		else {wv = coords.x + 20;}
-
-		this.state.svg.append("foreignObject")
-			.attr("width", w)
-			.attr("height", h)
-			.attr("id", "pg_detail_content")
-			// add an offset. Otherwise, the tooltip turns off the mouse event
-			.attr("y", yv)
-			.attr("x", wv) 
-			.append("xhtml:body")
-			.attr("id", "detail_text")
-			.html(htmltext);
-	},
-
-	_showCellData: function(d, obj) {
-		var retData, prefix, targetLabel, sourceLabel, type;
-
-		var yInfo = this._getAxisData(d.source_id); //this._getAxisData(d.yID); 
-		var xInfo = this._getAxisData(d.target_id);
-		var fullInfo = $.extend({},xInfo,yInfo);
-		var species = fullInfo.species;
-		var taxon = fullInfo.taxon;
-
-		 if (self.state.invertAxis) {
-			sourceLabel = xInfo.label;
-			targetLabel = yInfo.label;
-			type = yInfo.type;
-		 } else {
-			sourceLabel = yInfo.label;
-			targetLabel = xInfo.label;
-			type = xInfo.type;
-		 }
-
-		if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-			if (taxon.indexOf("NCBITaxon:") != -1) {
-				taxon = taxon.slice(10);
-			}
-		}
-
-		for (var idx in this.state.similarityCalculation) {	
-			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
-				break;
-			}
-			if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
-				prefix = this.state.similarityCalculation[idx].label;
-			break;
-			}
-		}
-
-		// Hiding scores which are equal to 0
-		var formatScore =  function(score) {
-			if(score === 0) {
-				return "";
-			} else {
-				return " (IC: " + score + ")";
-			}
-		};
-
-		var suffix = "";
-		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-		if (this.state.selectedCalculation != 2) {suffix = '%';}
-
-		retData = "<strong>Query: </strong> " + sourceLabel + formatScore(fullInfo.IC.toFixed(2)) +
-			"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
-			"<br/><strong>Common: </strong> " + d.subsumer_label + formatScore(d.subsumer_IC.toFixed(2)) +
-			"<br/><strong>" + this._capitalizeString(type)+": </strong> " + targetLabel +
-			"<br/><strong>" + prefix + ":</strong> " + d.value[this.state.selectedCalculation].toFixed(2) + suffix +
-			"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
-
-//		console.log(retData);
-		this._updateDetailSection(retData, this._getXYPos(obj));
-	},
+	// 	el.remove();
+	// },
 
 	_showThrobber: function() {
 		this.state.svg.selectAll("#pg_detail_content").remove();
@@ -1959,32 +1725,6 @@ var url = document.URL;
 			.attr("x", (545 + this.state.detailRectStrokeWidth))
 			.attr("xlink:href","/widgets/phenogrid/image/throbber.gif");
 	},
-
-	// extract the x,y values from a SVG transform string (ex: transform(200,20))
-	_extractTransform: function(dataString) {
-		var startIdx = dataString.indexOf("(");
-		var commaIdx = dataString.indexOf(",");
-		var x_data = Number(dataString.substring(startIdx+1,commaIdx));
-		var y_data = Number(dataString.substring(commaIdx+1, dataString.length-1));
-		return { x: x_data, y: y_data};
-	},
-
-	/*
-	 * The the "SVG" XY position of an element
-	 * The mouse position returned by d3.mouse returns the poistion within the page, not the SVG
-	 * area. Therefore, this is a two step process: retreive any transform data and the (x,y) pair.
-	 * Return the (x,y) coordinates with the transform applied
-	 */
-	_getXYPos: function(obj) {
-		var tform = { x: 0, y: 0};
-		// if a transform exists, apply it
-		if (typeof obj.attributes.transform != 'undefined') {
-			var transform_str = obj.attributes.transform.value;
-			tform = this._extractTransform(transform_str);
-		}
-		return {x: Number(obj.getAttribute("x")) + tform.x, y: Number(obj.getAttribute("y")) + tform.y};
-	},
-
 
 	_createSpeciesBorderOutline: function () {
 		// create the related model rectangles
@@ -2042,7 +1782,7 @@ var url = document.URL;
 				border_rect.attr("x", 0);
 				border_rect.attr("y", function(d,i) { 
 					totCt += ct;
-					if (i === 0) { return (self.state.yoffset + borderStroke); }
+					if (i === 0) { return (gridRegion.y + borderStroke); }  //self.state.yoffset
 					else {
 						parCt = totCt - ct;
 						return (borderStroke) + ((vwidthAndGap) * parCt + i);
@@ -2054,7 +1794,7 @@ var url = document.URL;
 					if (i === 0) { return 0; }
 					else {
 						parCt = totCt - ct;
-						return hwidthAndGap * parCt;
+						return gridRegion.x + hwidthAndGap * parCt;
 					}
 				});
 				//border_rect.attr("y", gridRegion.y + 1);
@@ -2209,22 +1949,6 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		stickytooltip.init("*[data-tooltip]", "mystickytooltip");
 	},
 
-	// Previously _createModelLabels
-	_createXLabels: function(self, models) {
-		var target_x_axis = d3.svg.axis().scale(self.state.xScale).orient("top");
-		self.state.svg.append("g")
-			.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 28) + "," + self.state.yoffset + ")")
-			.attr("class", "x axis")
-			.call(target_x_axis)
-			// this be some voodoo...
-			// to rotate the text, I need to select it as it was added by the axis
-			.selectAll("text") 
-			.each(function(d,i) { 
-				var labelM = self._getAxisData(d).label;
-				self._convertLabelHTML(self, this, Utils.getShortLabel(labelM,self.state.labelCharDisplayCount),d);
-			});
-	},
-
 	// Previously _clearModelLabels
 	_clearXLabels: function() {
 		this.state.svg.selectAll("g.x").remove();
@@ -2293,7 +2017,6 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var self = this;
 		var speciesList = this.state.selectedTargetSpecies.map( function(d) {return d.name;});  //[];
 		var len = self.state.xAxisRender.displayLength();
-		//var width = self.state.gridRegion[0].x + (len * self.state.gridRegion[0].cellwd)-5;
 		var width = (self.state.gridRegion[0].xpad*len) + self.state.gridRegion[0].cellwd;
 
 		// position relative to the grid
@@ -2757,79 +2480,6 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		return $(optionhtml);
 	},
 
-	// this code creates the text and rectangles containing the text on either side of the y-axis data
-	// Previously _createRowLabels
-// 	_createYLabels: function() {
-// 		var self = this;
-// 		var pad = 14;
-// 		var list = [];
-// 		var y = 0;
-// 		//list = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
-// 		list = self.state.yAxisRender.entries(); //getItems();
-// console.log(list);
-
-// 		var rect_text = this.state.svg
-// 			.selectAll(".a_text")
-// 			.data(list, function(d) { 
-// 				return d.label; });
-// 		rect_text.enter()
-// 			.append("text")
-// 			.attr("transform","translate(0, " + (this.state.yModelRegion+5) + ")")
-// 			.attr("class", function(d) {
-// 				return "a_text data_text " + d.id;  
-// 			})
-// 		// store the id for this item. This will be used on click events
-// 			.attr("ontology_id", function(d) {
-// 				return d.id;
-// 			})
-// 			.attr("id", function(d) {
-// 				return d.id;
-// 			})
-// 			.attr("x", 208)    // MAGIC NUM
-// 			.attr("y", function(d) {				
-// 				  y += 13;  
-// 				return y;  // 		self._getAxisData(d).ypos + 10;
-// 			})
-// 			.on("mouseover", function(d) {
-// 				self._selectYItem(d, d3.mouse(this));
-// 			})
-// 			.on("mouseout", function(d) {
-// 				self._deselectData(d, d3.mouse(this));
-// 			})
-// 			.attr("width", self.state.textWidth)
-// 			.attr("height", 50) // 11.5
-// 			.attr("data-tooltip", "sticky1")
-// 			.style("fill", function(d){
-// 				return self._getExpandStyling(d);
-// 			})
-// 			.text(function(d) {
-// 				var txt = d.label;   //self._getAxisData(d).label;
-// 				if (txt === undefined) {
-// 					txt = d;
-// 				}
-// 				txt = Utils.getShortLabel(txt);
-// 				return Utils.decodeHtmlEntity(txt);
-// 			});
-
-// 	// MKD: should probably move this
-// 		this._buildUnmatchedSourceDisplay();
-
-// 		y = 0;  // set
-// 		rect_text.transition()
-// 			.style('opacity', '1.0')
-// 			.delay(5)
-// 			.attr("y", function(d) {
-// 				y += 13;  
-// 				return y
-// 				  //self.state.yAxisRender.getOrdinalPosition(d.id) + self.state.yoffsetOver + pad;    //self._getAxisData(d).ypos + self.state.yoffsetOver + pad;
-// 			});
-// 		rect_text.exit()
-// 			.transition()
-// 			.delay(20)
-// 			.style('opacity', '0.0')
-// 			.remove();
-// 	},
-
 	_getUnmatchedSources: function(){
 		//var fullset = this.state.origPhenotypeData;
 		var fullset = this.state.dataManager.getOriginalSource();
@@ -2956,10 +2606,6 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		}
 	},
 
-	_toProperCase: function (oldstring) {
-		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-	},
-
 	/*
 	 * given an array of phenotype objects edit the object array.
 	 * items are either ontology ids as strings, in which case they are handled as is,
@@ -2994,7 +2640,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			var info = this._getAxisData(id);
 			var type = this._getIDType(id);
 			var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype" + type +"/"+ id.replace("_", ":") + "\" target=\"_blank\">" + info.label + "</a>";
-			var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
+			var hpoData = "<strong>" + Utils.capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
 			hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
 
 			var hpoTree = this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0);
@@ -3042,7 +2688,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 				// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
 				for (var i in nodes){
 					if (!this.state.hpoCacheLabels.containsKey(nodes[i].id) && (nodes[i].id != "MP:0000001" && nodes[i].id != "UPHENO_0001001" && nodes[i].id != "UPHENO_0001002" && nodes[i].id != "HP:0000118" && nodes[i].id != "HP:0000001")){
-						this.state.hpoCacheLabels.put(nodes[i].id,this._capitalizeString(nodes[i].lbl));
+						this.state.hpoCacheLabels.put(nodes[i].id,Utils.capitalizeString(nodes[i].lbl));
 					}
 				}
 
