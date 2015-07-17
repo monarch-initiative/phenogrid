@@ -6,6 +6,10 @@ Given an input list of phenotypes (you will see the sample input below) and para
 
 #Installation Instructions
 
+If you won't be doing any development of Phenogrid, you can simply download the phenogrid github zip file and unzip, then open the `index.html` to run this widget. 
+
+For developers who want to make changes to phenogrid, following is the process.
+
 ##1. Install npm
 
 Before you get started, you will need to make sure you have npm
