@@ -2418,8 +2418,9 @@ var TooltipRender = require('./render.js');
 			model_rects.enter()
 				.append("rect")
 				.attr("transform", rectTranslation) // moves the data cells to region - Joe
-				.attr("class", function(d) { // e.g. class="models  MGI_98331 MGI_98331HP_0000739" - Joe
-					var dConcept = (d.xID + ' ' + d.yID);
+				.attr("class", 'models')
+				.attr("id", function(d) { // e.g. id="cell_MGI_98331_HP_0000739" - Joe
+					var dConcept = (d.xID + '_' + d.yID);
 					var modelConcept = self._getConceptId(d.xID);
 					// append the model id to all related items
 					if (d.value[self.state.selectedCalculation] > 0) {
@@ -2427,7 +2428,7 @@ var TooltipRender = require('./render.js');
 						bla.classed(modelConcept, true);
 					}
 
-					return "models" + " " + dConcept;
+					return "cell_" + dConcept;
 				})
 				.attr("y", function(d, i) {
 					return self._getAxisData(d.yID).ypos + self.state.yoffsetOver;
