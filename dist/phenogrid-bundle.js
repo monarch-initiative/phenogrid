@@ -26,9 +26,9 @@ module.exports = {
 /*
  * Phenogrid
  *
- * Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided 
+ * Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided
  * by OWLSim (www.owlsim.org),  as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
- * 
+ *
  * Phenogrid widget can be instantiated on a jquery-enabled web page with a call of the form
  *
  * window.onload = function() {
@@ -38,7 +38,7 @@ module.exports = {
  *         targetSpeciesName: "Mus musculus"
  *     });
  * }
- * 
+ *
  * 'phenogrid_container' is the id of the div that will contain the phenogrid widget
  *	phenotypes is a Javascript array of objects listing the phenotypes to be rendered in the widget, it takes one of two forms:
  *
@@ -77,7 +77,7 @@ module.exports = {
 // Will need to install jquery, jquery-ui, d3, jshashtable first via npm - Joe
 // Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
 // npm install jquery jquery-ui d3 jshashtable
- 
+
 // NPM installed packages, you will find them in /node_modules - Joe
 
 // jquery  is commonsJS compliant as of 2.1.0 - Joe
@@ -104,7 +104,7 @@ var TooltipRender = require('./render.js');
 	} else {
 		factory($, window, document);
 	}
-})  
+})
 
 (function($, window, document, __undefined__) {
 	var createPhenogridForElement = function(element, options) {
@@ -115,7 +115,7 @@ var TooltipRender = require('./render.js');
 	window.Phenogrid = {
 		createPhenogridForElement: createPhenogridForElement
 	};
-	
+
 	// Use widget factory to define the UI plugin - Joe
 	// Can aslo be ns.phenogrid (ns can be anything else - namespace) - Joe
 	// Later can be called using $().phenogrid(); - Joe
@@ -123,9 +123,9 @@ var TooltipRender = require('./render.js');
 	$.widget("ui.phenogrid", {
 
 		// Why not prefixed with underscore? - Joe
-		
+
 		// core commit. Not changeable by options.
-		
+
 		// merged into this.state - Joe
 		// only used twice, one of them is for config.h, which according to the comments, h should be elimiated - Joe
 		// so we can just use one variable for all configs to contain everything in congig and internalOptions - Joe
@@ -166,7 +166,7 @@ var TooltipRender = require('./render.js');
 			comparisonTypes: [{organism: "Homo sapiens", comparison: "diseases"}],
 			defaultComparisonType: {comparison: "genes"},
 			// speciesLabels Not used - Joe
-			speciesLabels: [ 
+			speciesLabels: [
 				{abbrev: "HP", label: "Human"},
 				{abbrev: "MP", label: "Mouse"},
 				{abbrev: "ZFIN", label: "Zebrafish"},
@@ -177,7 +177,7 @@ var TooltipRender = require('./render.js');
 			],
 			dataDisplayCount: 30,
 			labelCharDisplayCount : 20,
-			apiEntityMap: [ 
+			apiEntityMap: [
 				{prefix: "HP", apifragment: "disease"},
 				{prefix: "OMIM", apifragment: "disease"}
 			],
@@ -198,7 +198,7 @@ var TooltipRender = require('./render.js');
 		},
 
 		// Why not prefixed with underscore? - Joe
-		
+
 		// merged into this.state - Joe
 		// only used once, so we can just use one variable to store all configs - Joe
 		internalOptions: {
@@ -221,7 +221,7 @@ var TooltipRender = require('./render.js');
 						{name: "Mus musculus", taxon: "10090" },
 						{name: "Danio rerio", taxon: "7955"},
 						{name: "Drosophila melanogaster", taxon: "7227"},
-						{name: "UDP", taxon: "UDP"} 
+						{name: "UDP", taxon: "UDP"}
 					],
 			// According to Harry, the genotype expand is not showing in current version - Joe
 			genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid
@@ -230,14 +230,14 @@ var TooltipRender = require('./render.js');
 			providedData: {}
 		},
 
-		
-		
-		
+
+
+
 		// Methods begin with underscore are not callable from outside of the plugin - Joe
-		
-		
-		
-		
+
+
+
+
 		// reset state values that must be cleared before reloading data
 		_reset: function(type) {
 			// LEAVE UNTIL OR MOVING HASH CONSTRUCTION EARLIER
@@ -344,14 +344,14 @@ var TooltipRender = require('./render.js');
 			return species;
 		},
 
-		
-		
-		
+
+
+
 		// _create() method is the widget's constructor, it is called for each element that the plugin method is called on - Joe
-		
-		
-		
-		
+
+
+
+
 		// NOTE: I'm not too sure what the default init() method signature should be given an imageDiv and phenotype_data list
 		/*
 		 * imageDiv - the place you want the widget to appear
@@ -361,35 +361,35 @@ var TooltipRender = require('./render.js');
 		 * [ "HP:12345", "HP:23451", ...]
 		 */
 		_create: function() {
-			
-			
-			
-			
-			
-			
-			
+
+
+
+
+
+
+
 			// local model.js into local scope - Joe
-			//this.model = model; 
-			
-			
-			
-			
-			
-			
-			
-			
-			
+			//this.model = model;
+
+
+
+
+
+
+
+
+
 			// must be available from js loaded in a separate file...
 			// configoptions is defined in phenogrid_config.js - Joe
-			
+
 			/* Content of phenogrid_config.js, just a copy for quick reference - Joe
-			
+
 			var configoptions = {
 				"serverURL": "",
 				"selectedCalculation": "0",
 				"invertAxis": false,
 				"selectedSort": "Frequency",
-				"targetSpeciesName" : "Overview",			   
+				"targetSpeciesName" : "Overview",
 				"refSpecies": "Homo sapiens",
 				"targetSpeciesList" : [
 					{ "name": "Homo sapiens", "taxon": "9606"},
@@ -401,30 +401,30 @@ var TooltipRender = require('./render.js');
 			*/
 
 			// loaded into local scope, should just remove the phenogrid_config.js and have those config options coded in this file. - Joe
-			this.configoptions = configoptions; 
+			this.configoptions = configoptions;
 			// check these
 			// important that config options (from the file) and this. options (from
 			// the initializer) come last
-			
+
 			// jquery $.extend(): Merge the contents of two or more objects together into the first object - Joe
 			// so now this.state contains all the config options - Joe
 			this.state = $.extend({}, this.internalOptions, this.config, this.configoptions, this.options);
-			
+
 			// Added by Joe - Joe
 			// simsearch returned data b[] is stored in this.state['data'] - Joe
-			console.log(this.state); 
-			
-			
+			console.log(this.state);
+
+
 			// Do we need this? - Joe
-			
+
 			// default simServerURL value..
 			if (typeof(this.state.simServerURL) == 'undefined' || this.state.simServerURL === '') {
 				this.state.simServerURL=this.state.serverURL;
 			}
-			
+
 			// contains all simsearch returned data - Joe
 			this.state.data = {};
-			
+
 			// will this work?
 			this.configoptions = undefined; // Did you want to reset this variable? Why only reset configoptions? - Joe
 
@@ -458,7 +458,7 @@ var TooltipRender = require('./render.js');
 		 * thus, a workaround is included below to set the path correctly if it come up as '/'.
 		 * this should not impact any standalone uses of phenogrid, and will be removed once monarch-app is cleaned up.
 		 */
-		 
+
 		/*
 		 * HACK WARNING - 20150713, dan@quantumclay.com
 		 * 	The serverURL corresponds to a running Monarch server that can provide 'help text'
@@ -472,7 +472,7 @@ var TooltipRender = require('./render.js');
 		 *	Currently, the existence of an explicit serverUrl (non-blank) is used to indicate that the
 		 *	workaround is necessary.
 		 */
-		 
+
 		 /*
 		 * HACK WARNING - 20150715, zhy19@pitt.edu
 		 * 	Added htmlPath to refer to the relative path to those FAQ html pages
@@ -484,12 +484,12 @@ var TooltipRender = require('./render.js');
 			return this.state.htmlPath + name + '.' + type;
 		},
 
-		
-		
+
+
 		// initialization, distinct from creation - Joe
-		
-		
-		
+
+
+
 		//init is now reduced down completely to loading
 		_init: function() {
 			this.element.empty();
@@ -519,7 +519,7 @@ var TooltipRender = require('./render.js');
 				this.state.stickyInitialized = true;
 				stickytooltip.init("*[data-tooltip]", "mystickytooltip");
 			}
-			
+
 			this.state.tooltipRender = new TooltipRender(this.state.serverURL);
 
 			if (this.state.owlSimFunction == 'exomiser') {
@@ -623,11 +623,11 @@ var TooltipRender = require('./render.js');
 			}
 		},
 
-		
-		
+
+
 		// https://api.jqueryui.com/jquery.widget/#method-_setOption - Joe
-		
-		
+
+
 		/* dummy option procedures as per
 		 * http://learn.jquery.com/jquery-ui/widget-factory/how-to-use-the-widget-factory/
 		 * likely to have some content added as we proceed
@@ -664,10 +664,10 @@ var TooltipRender = require('./render.js');
 				.append("rect")
 				.attr("id", "pg_gridline")
 				.attr("transform", "translate(254, " + (this.state.yModelRegion + 5) + ")") // position the pg_gridline net to region - Joe
-				.attr("x", function(d, i) { 
+				.attr("x", function(d, i) {
 					return d[1] * mWidth;
 				})
-				.attr("y", function(d, i) { 
+				.attr("y", function(d, i) {
 					return d[0] * mHeight;
 				})
 				.attr("class", "hour bordered deselected")
@@ -740,10 +740,10 @@ var TooltipRender = require('./render.js');
 				.append("rect")
 				.attr("transform", modelRectTransform)
 				.attr("class", "mini_model")
-				.attr("y", function(d, i) { 
+				.attr("y", function(d, i) {
 					return self.state.smallYScale(d.yID) + linePad / 2;
 				})
-				.attr("x", function(d) { 
+				.attr("x", function(d) {
 					return self.state.smallXScale(d.xID) + linePad / 2;
 				})
 				.attr("width", linePad)
@@ -786,7 +786,7 @@ var TooltipRender = require('./render.js');
 						var curY = parseFloat(current.attr("y"));
 
 						var rect = self.state.svg.select("#pg_selectionrect");
-						
+
 						rect.attr("transform", "translate(0, 0)"); // May not need this - Joe
 
 						// limit the range of the x value
@@ -889,7 +889,7 @@ var TooltipRender = require('./render.js');
 				var tipTextLength = 92;
 				var explYOffset = 15;
 				var explXOffset = 10;
-				
+
 				var scoretip = self.state.svg.append("text")
 					.attr("transform", "translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY + ")")
 					.attr("x", 0)
@@ -900,7 +900,7 @@ var TooltipRender = require('./render.js');
 				var tip	= self.state.svg
 					.append("text")
 					.attr('font-family', 'FontAwesome')
-					.text(function(d) { 
+					.text(function(d) {
 						return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 					})
 					.attr("id", "modelscores")
@@ -918,7 +918,7 @@ var TooltipRender = require('./render.js');
 					.attr("class", "pg_tip")
 					.text("Best matches high to low"); // uppercased best - > Best - Joe
 			}
-			
+
 		},
 
 		// Overview navigation - Joe
@@ -937,7 +937,7 @@ var TooltipRender = require('./render.js');
 
 			// There's better way to create this two-line text - Joe
 			// SVG 1.2 supports textarea, not all browsers support it though - Joe
-			
+
 			var y = self.state.yModelRegion + overviewBoxDim + overviewInstructionHeightOffset;
 			var rect_instructions = self.state.svg.append("text")
 				.attr("x", self.state.axis_pos_list[2] + 10)
@@ -964,12 +964,12 @@ var TooltipRender = require('./render.js');
 
 			this.state.smallYScale = d3.scale.ordinal()
 				.domain(sortDataList.map(function (d) {
-					return d; 
+					return d;
 				}))
 				.rangePoints([0,overviewRegionSize]);
 
 			var modids = mods.map(function (d) {
-				return d; 
+				return d;
 			});
 			this.state.smallXScale = d3.scale.ordinal()
 				.domain(modids)
@@ -1142,12 +1142,12 @@ var TooltipRender = require('./render.js');
 			this.state.phenotypeListHash = new Hashtable();
 			this.state.modelListHash = new Hashtable();
 			// Create a new empty hash table with supplied options, Hashtable(Object options) - Joe
-			// hashCode: A function that provides hash codes for keys placed in the hash table. 
-			// equals: A function that checks for equality between two keys with the same hash code. 
+			// hashCode: A function that provides hash codes for keys placed in the hash table.
+			// equals: A function that checks for equality between two keys with the same hash code.
 			//this.state.modelDataHash = new Hashtable({hashCode: this.model.modelDataPointPrint, equals: this.model.modelDataPointEquals});
 			this.state.modelDataHash = new Hashtable({hashCode: model.modelDataPointPrint, equals: model.modelDataPointEquals});
 
-			
+
 			// [vaa12] determine if is wise to preload datasets for the three species and then build overview from this
 			// At time being, overview is made up of three calls, which it repeats these calls with a larger limit if you decided to view single species
 			// Might be more efficent to load those three, cache them and then make an overview dataset and cache that as well.
@@ -1215,7 +1215,7 @@ var TooltipRender = require('./render.js');
 			var toadd = limit - res.b.length;
 			for (var i = 0; i < toadd; i++) {
 				var dummyId = "dummy" + species + i;
-				var newItem = { 
+				var newItem = {
 					id: dummyId,
 					label: this.state.dummyModelName,
 					score: {score: 0, rank: Number.MAX_VALUE},
@@ -1285,12 +1285,12 @@ var TooltipRender = require('./render.js');
 						}
 
 						hashData = {
-							"label": item.label, 
-							"species": species, 
-							"taxon": item.taxon.id, 
-							"type": type, 
-							"pos": parseInt(posID), 
-							"rank": parseInt(idx), 
+							"label": item.label,
+							"species": species,
+							"taxon": item.taxon.id,
+							"type": type,
+							"pos": parseInt(posID),
+							"rank": parseInt(idx),
 							"score": item.score.score
 						};
 						// use put(key, value) to add a key/value pair to the hashtable, and get() to retrieve a value - Joe
@@ -1389,20 +1389,20 @@ var TooltipRender = require('./render.js');
 						modelPoint = new model.modelDataPoint(this._getConceptId(modelID), this._getConceptId(curr_row.a.id));
 					}
 					this._updateSortVals(this._getConceptId(curr_row.a.id), parseFloat(curr_row.lcs.IC));
-					
+
 					// simsearch returns array b:[{}...] with all the matched results. Each item in array b is an object
 					// that contains: id, label, matches[], score{}, taxon{}, and type. - Joe
-					
+
 					hashData = {
-						"value": lcs, 
-						"subsumer_label": curr_row.lcs.label, 
-						"subsumer_id": this._getConceptId(curr_row.lcs.id), 
-						"subsumer_IC": parseFloat(curr_row.lcs.IC), 
-						"b_label": curr_row.b.label, 
-						"b_id": this._getConceptId(curr_row.b.id), 
+						"value": lcs,
+						"subsumer_label": curr_row.lcs.label,
+						"subsumer_id": this._getConceptId(curr_row.lcs.id),
+						"subsumer_IC": parseFloat(curr_row.lcs.IC),
+						"b_label": curr_row.b.label,
+						"b_id": this._getConceptId(curr_row.b.id),
 						"b_IC": parseFloat(curr_row.b.IC)
 					};
-					
+
 					this.state.modelDataHash.put(modelPoint, hashData);
 				}
 			}
@@ -1475,8 +1475,8 @@ var TooltipRender = require('./render.js');
 				return this.state.yAxis.get(key);
 			} else if (this.state.xAxis.containsKey(key)) {
 				return this.state.xAxis.get(key);
-			} else { 
-				return false; 
+			} else {
+				return false;
 			}
 		},
 
@@ -1486,8 +1486,8 @@ var TooltipRender = require('./render.js');
 				return 'Model';
 			} else if (this.state.phenotypeListHash.containsKey(key)) {
 				return 'Phenotype';
-			} else { 
-				return false; 
+			} else {
+				return false;
 			}
 		},
 
@@ -1543,9 +1543,9 @@ var TooltipRender = require('./render.js');
 			for (var i in origHash){
 				if(!origHash.hasOwnProperty(i)){break;}
 				newHash.push({
-					"id": origHash[i][0], 
-					"label": origHash[i][1].label.toLowerCase(), 
-					"count": origHash[i][1].count, 
+					"id": origHash[i][0],
+					"label": origHash[i][1].label.toLowerCase(),
+					"count": origHash[i][1].count,
 					"sum": origHash[i][1].sum}
 				);
 			}
@@ -1817,7 +1817,7 @@ var TooltipRender = require('./render.js');
 				}
 				link_lines[0][i].style.fill = this._getExpandStyling(link_lines[0][i].id);
 			}
-			
+
 			link_lines.style("font-weight", "normal");
 			link_lines.style("text-anchor", "end");
 
@@ -1961,8 +1961,8 @@ var TooltipRender = require('./render.js');
 		_selectXItem: function(data, obj) {
 			// HACK: this temporarily 'disables' the mouseover when the stickytooltip is docked
 			// that way the user doesn't accidently hover another label which caused tooltip to be refreshed
-			if (stickytooltip.isdocked) { 
-				return; 
+			if (stickytooltip.isdocked) {
+				return;
 			}
 
 			var self = this;
@@ -1982,7 +1982,7 @@ var TooltipRender = require('./render.js');
 			// create the related model rectangles
 			var highlight_rect = self.state.svg.append("svg:rect")
 				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 34.5) + "," + self.state.yoffsetOver + ")")
-				.attr("x", function(d) { 
+				.attr("x", function(d) {
 					return (self.state.xScale(data) - 1);
 				})
 				.attr("y", self.state.yoffset + 3)
@@ -2010,8 +2010,8 @@ var TooltipRender = require('./render.js');
 		_selectYItem: function(curr_data, obj) {
 			var appearanceOverrides;
 			// create a highlight row
-			if (stickytooltip.isdocked) { 
-				return; 
+			if (stickytooltip.isdocked) {
+				return;
 			}
 
 			var self = this;
@@ -2062,10 +2062,10 @@ var TooltipRender = require('./render.js');
 			return appearanceOverrides;
 		},
 
-		
-		
+
+
 		// Why not prefixed with underscore? - Joe
-		
+
 		// This builds the string to show the relations of the HPO nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
 		buildHPOTree: function(id, edges, level) {
 			var results = "";
@@ -2082,7 +2082,7 @@ var TooltipRender = require('./render.js');
 						if (this.state.hpoTreeHeight < nextLevel){
 							this.state.hpoTreeHeight++;
 						}
-						
+
 						nextResult = this.buildHPOTree(edges[j].obj, edges, nextLevel);
 						if (nextResult === '') {
 							// Bolds the 'top of the line' to see what is the root or closet to the root.  It will hit this point either when it reaches the hpoDepth or there is no parents
@@ -2112,7 +2112,7 @@ var TooltipRender = require('./render.js');
 			for (var i = 1; i < hpoTreeHeight; i++){
 				indent += "<em class='HPO_tree_indent'></em>";
 			}
-			 
+
 			return indent + '&#8627'; // HTML entity - Joe
 		},
 
@@ -2288,7 +2288,7 @@ var TooltipRender = require('./render.js');
 				.attr('y', y-10)
 				.attr('width', 9)
 				.attr('height', 9)
-				.attr('xlink:href', this.state.imagePath + '.checkmark-drk.png'); 
+				.attr('xlink:href', this.state.imagePath + '.checkmark-drk.png');
 			}
 
 			el.remove();
@@ -2306,13 +2306,13 @@ var TooltipRender = require('./render.js');
 			var hgt = displayCount * 10 + this.state.yoffset;
 			var yv, wv;
 
-			if (coords.y > hgt) { 
+			if (coords.y > hgt) {
 				yv = coords.y - this.state.detailRectHeight - 5;
 			} else {
 				yv = coords.y + 20;
 			}
 
-			if (coords.x > wdt) { 
+			if (coords.x > wdt) {
 				wv = coords.x - w - 10;
 			} else {
 				wv = coords.x + 20;
@@ -2327,7 +2327,7 @@ var TooltipRender = require('./render.js');
 				.attr("x", wv)
 				.append("xhtml:div") // CSS needs to be applied to this div - Joe
 				.html(htmltext);
-				
+
 				//console.log($('#pg_detail_content').html()); //Debugging - Joe
 		},
 
@@ -2349,7 +2349,7 @@ var TooltipRender = require('./render.js');
 			} else {
 				phenoLabel = null;
 			}
-			
+
 			if (this.state.modelListHash.containsKey(d.xID)) {
 				modelLabel = this.state.modelListHash.get(d.xID).label;
 			} else if (this.state.modelListHash.containsKey(d.yID)) {
@@ -2395,7 +2395,7 @@ var TooltipRender = require('./render.js');
 				"<br/><strong>" + this._capitalizeString(fullInfo.type)+": </strong> " + modelLabel +
 				"<br/><strong>" + prefix + ":</strong> " + d.value[this.state.selectedCalculation].toFixed(2) + suffix +
 				"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
-			
+
 			this._updateDetailSection(retData, this._getXYPos(obj));
 		},
 
@@ -2439,12 +2439,13 @@ var TooltipRender = require('./render.js');
 				.data(data, function(d) {
 					return d.xID + d.yID;
 				});
-			
+
 			model_rects.enter()
 				.append("rect")
 				.attr("transform", rectTranslation) // moves the data cells to region - Joe
-				.attr("class", function(d) { // e.g. class="models  MGI_98331 MGI_98331HP_0000739" - Joe
-					var dConcept = (d.xID + ' ' + d.yID);
+				.attr("class", 'models')
+				.attr("id", function(d) { // e.g. id="cell_MGI_98331_HP_0000739" - Joe
+					var dConcept = (d.xID + '_' + d.yID);
 					var modelConcept = self._getConceptId(d.xID);
 					// append the model id to all related items
 					if (d.value[self.state.selectedCalculation] > 0) {
@@ -2452,12 +2453,12 @@ var TooltipRender = require('./render.js');
 						bla.classed(modelConcept, true);
 					}
 
-					return "models" + " " + dConcept;
+					return "cell_" + dConcept;
 				})
 				.attr("y", function(d, i) {
 					return self._getAxisData(d.yID).ypos + self.state.yoffsetOver;
 				})
-				.attr("x", function(d) { 
+				.attr("x", function(d) {
 					return self.state.xScale(d.xID);
 				})
 				.attr("width", 10) // size of each cube - Joe
@@ -2465,18 +2466,18 @@ var TooltipRender = require('./render.js');
 				// I need to pass this into the function
 				.on("mouseover", function(d) {
 					this.parentNode.appendChild(this);
-					
+
 					self._highlightIntersection(d, d3.mouse(this));
 					self._enableRowColumnRects(this);
 					self.state.currSelectedRect = this;
-					
+
 					self._showModelData(d, this);
 				})
 				.on("mouseout", function(d) {
 					// De-highlight row and column
 					self.state.svg.selectAll(".pg_row_accent").remove();
 					self.state.svg.selectAll(".pg_col_accent").remove();
-					
+
 					// Reset model data tooltip content
 					self.state.svg.selectAll("#pg_detail_content").remove();
 
@@ -2509,7 +2510,7 @@ var TooltipRender = require('./render.js');
 				.attr("x", function(d) {
 					return self.state.xScale(d.xID) + 2; // x position of the cubes region - Joe
 				});
-			
+
 			model_rects.exit().remove();
 		},
 
@@ -2564,8 +2565,8 @@ var TooltipRender = require('./render.js');
 					border_rect.attr("x", 0);
 					border_rect.attr("y", function(d, i) {
 						totCt += ct;
-						if (i === 0) { 
-							return (self.state.yoffset + borderStroke); 
+						if (i === 0) {
+							return (self.state.yoffset + borderStroke);
 						} else {
 							parCt = totCt - ct;
 							return (self.state.yoffset + borderStroke) + ((vwidthAndGap) * parCt + i);
@@ -2574,28 +2575,28 @@ var TooltipRender = require('./render.js');
 				} else if (self.state.targetSpeciesName == 'Overview' && ! this.state.invertAxis) {
 					border_rect.attr("x", function(d, i) {
 						totCt += ct;
-						if (i === 0) { 
-							return 0; 
-						} else if (i === 1) { 
-							return width - 2; 
-						} else if (i === 2) { 
+						if (i === 0) {
+							return 0;
+						} else if (i === 1) {
+							return width - 2;
+						} else if (i === 2) {
 							return width *2 - 4; // Magic numbers to move the position - Joe
 						}
-						
+
 						else {
 							parCt = totCt - ct;
 							return hwidthAndGap * parCt;
 						}
 					})
 					.attr("width", hwidthAndGap * ct + 1); // magic number 1 makes the width a little wider - Joe
-					
+
 					border_rect.attr("y", self.state.yoffset + 1);
 				} else {
 					border_rect.attr("x", function(d, i) {
 						totCt += ct;
-						if (i === 0) { 
-							return 0; 
-						} 
+						if (i === 0) {
+							return 0;
+						}
 						else {
 							parCt = totCt - ct;
 							return hwidthAndGap * parCt;
@@ -2609,7 +2610,7 @@ var TooltipRender = require('./render.js');
 			var self = this;
 
 			var model_rects = self.state.svg.selectAll("rect.models")
-				.filter(function(d) { 
+				.filter(function(d) {
 					return d.rowid == curr_rect.__data__.rowid;
 				});
 			for (var i in model_rects[0]){
@@ -2619,7 +2620,7 @@ var TooltipRender = require('./render.js');
 				model_rects[0][i].parentNode.appendChild(model_rects[0][i]);
 			}
 			var data_rects = self.state.svg.selectAll("rect.models")
-				.filter(function(d) { 
+				.filter(function(d) {
 					return d.model_id == curr_rect.__data__.model_id;
 				});
 			for (var j in data_rects[0]){
@@ -2638,7 +2639,7 @@ var TooltipRender = require('./render.js');
 				.attr("transform", "translate(" + (self.state.axis_pos_list[1] + 2) + ","+ (self.state.yoffsetOver + 6 ) + ")") // position control -Joe
 				.attr("x", 12)
 				.attr("y", function(d) {
-					return self._getAxisData(curr_data.yID).ypos; 
+					return self._getAxisData(curr_data.yID).ypos;
 				}) //rowid
 				.attr("class", "pg_row_accent")
 				.attr("width", this.state.modelWidth - 4)
@@ -2664,7 +2665,7 @@ var TooltipRender = require('./render.js');
 			// create the related model rectangles
 			var highlight_rect2 = self.state.svg.append("svg:rect")
 				.attr("transform", "translate(" + (self.state.textWidth + self.state.xOffsetOver + 36) + "," + (self.state.yoffsetOver + 1) +  ")") // position control -Joe
-				.attr("x", function(d) { 
+				.attr("x", function(d) {
 					return (self.state.xScale(curr_data.xID) - 1);
 				})
 				.attr("y", self.state.yoffset + 2 )
@@ -2686,8 +2687,8 @@ var TooltipRender = require('./render.js');
 			this.state.h = (data.length * 2.5);
 
 			self.state.yScale = d3.scale.ordinal()
-				.domain(data.map(function(d) { 
-					return d.yID; 
+				.domain(data.map(function(d) {
+					return d.yID;
 				}))
 				.range([0,data.length])
 				.rangePoints([self.state.yModelRegion,self.state.yModelRegion + this.state.h]);
@@ -2749,7 +2750,7 @@ var TooltipRender = require('./render.js');
 
 		// Previously _clearModelLabels
 		_clearXLabels: function() {
-			// In SVG, the g element is a container used to group objects. Transformations applied to the g element are performed on all of its child elements. 
+			// In SVG, the g element is a container used to group objects. Transformations applied to the g element are performed on all of its child elements.
 			// Attributes applied are inherited by child elements. - Joe
 			this.state.svg.selectAll("g.x").remove(); // Fixed x labels overlaping - Joe
 			this.state.svg.selectAll("g .tick.major").remove(); // Can be removed? - Joe
@@ -2771,8 +2772,8 @@ var TooltipRender = require('./render.js');
 					.attr("y2", 0)
 					.attr("stroke", "#0F473E")
 					.attr("stroke-width", 1);
-			} 
-			
+			}
+
 			// Why the following? - Joe
 			this.state.svg.selectAll("path.domain").remove();
 			this.state.svg.selectAll("text.scores").remove();
@@ -2873,7 +2874,7 @@ var TooltipRender = require('./render.js');
 				.enter()
 				.append("text")
 				.attr("transform", translation)
-				.attr("x", function(d,i) { 
+				.attr("x", function(d,i) {
 					return (i + 1 / 2 ) * xPerModel;
 				})
 				.attr("id", "pg_specieslist")
@@ -2922,12 +2923,12 @@ var TooltipRender = require('./render.js');
 					draggable: true,
 					dialogClass: "faqdialog_bg_color",
 					position: {
-						my: "top", 
+						my: "top",
 						at: "top+25%",
 						of: "#pg_svg_area"
 					},
 					title: 'Phenogrid Notes',
-					
+
 					// Replace default jquery-ui titlebar close icon with font awesome - Joe
 					open: function(event, ui) {
 						// remove default close icon
@@ -2960,13 +2961,13 @@ var TooltipRender = require('./render.js');
 			var y = self.state.yModelRegion;
 			// create accent boxes
 			var rect_accents = this.state.svg.selectAll("#rect.accent")
-				.data([0,1,2], function(d) { 
+				.data([0,1,2], function(d) {
 					return d;
 				});
 			rect_accents.enter()
 				.append("rect")
 				.attr("class", "accent")
-				.attr("x", function(d, i) { 
+				.attr("x", function(d, i) {
 				    return self.state.axis_pos_list[i];
 				})
 				.attr("y", y)
@@ -3023,7 +3024,7 @@ var TooltipRender = require('./render.js');
 
 			this.state.xScale = d3.scale.ordinal()
 				.domain(mods.map(function (d) {
-					return d; 
+					return d;
 				}))
 				.rangeRoundBands([0,this.state.modelWidth]);
 
@@ -3059,7 +3060,7 @@ var TooltipRender = require('./render.js');
 		_addGradients: function() {
 			var self = this;
 			var modData = this.state.modelDataHash.values();
-			var temp_data = modData.map(function(d) { 
+			var temp_data = modData.map(function(d) {
 				return d.value[self.state.selectedCalculation];
 			});
 			var diff = d3.max(temp_data) - d3.min(temp_data);
@@ -3084,7 +3085,7 @@ var TooltipRender = require('./render.js');
 			var y;
 			// If this is the Overview, get gradients for all species with an index
 			// COMPARE CALL HACK - REFACTOR OUT
-			if ((this.state.targetSpeciesName == 'Overview' || this.state.targetSpeciesName == 'All') 
+			if ((this.state.targetSpeciesName == 'Overview' || this.state.targetSpeciesName == 'All')
 				|| (this.state.targetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {
 				//this.state.overviewCount tells us how many fit in the overview
 				for (var i = 0; i < this.state.overviewCount; i++) {
@@ -3122,7 +3123,7 @@ var TooltipRender = require('./render.js');
 				.attr("x2", "100%")
 				.attr("y1", "0%")
 				.attr("y2", "0%");
-			
+
 			for (var j in this.state.colorDomains) {
 				if ( ! this.state.colorDomains.hasOwnProperty(j)) {
 					break;
@@ -3130,7 +3131,7 @@ var TooltipRender = require('./render.js');
 				gradient.append("svg:stop")
 					.attr("offset", this.state.colorDomains[j])
 					.style("stop-color", this.state.colorRanges[i][j])
-					.style("stop-opacity", 1); 
+					.style("stop-opacity", 1);
 			}
 
 			// gradient + gap is 20 pixels
@@ -3274,9 +3275,9 @@ var TooltipRender = require('./render.js');
 				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + "</option>";
 			}
 			// add one for overview.
-			
+
 			// Overview is not a proper name, change it later - Joe
-			
+
 			if (this.state.targetSpeciesName === 'Overview') {
 				selectedItem = 'selected';
 			} else {
@@ -3347,10 +3348,10 @@ var TooltipRender = require('./render.js');
 			list = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
 
 			// Updating nodes - Joe
-			var rect_text = this.state.svg.selectAll(".a_text").data(list, function(d) { 
-					return d; 
+			var rect_text = this.state.svg.selectAll(".a_text").data(list, function(d) {
+					return d;
 				});
-			
+
 			// Enter, create new nodes for incoming data - Joe
 			rect_text.enter()
 				.append("text")
@@ -3373,7 +3374,7 @@ var TooltipRender = require('./render.js');
 				.on("mouseover", function(d) {
 					self._selectYItem(d, d3.mouse(this));
 				})
-				.on("mouseout", function(d) { 
+				.on("mouseout", function(d) {
 					self._deselectData(d, d3.mouse(this));
 				})
 				.attr("data-tooltip", "sticky1")
@@ -3410,7 +3411,7 @@ var TooltipRender = require('./render.js');
 			var tempObject = {"id": 0, "observed": "positive"};
 
 			for (var i in fullset) {
-				if ( ! fullset.hasOwnProperty(i)) { 
+				if ( ! fullset.hasOwnProperty(i)) {
 					break;
 				}
 				if (typeof(fullset[i].id) === 'undefined') {
@@ -3586,8 +3587,8 @@ var TooltipRender = require('./render.js');
 				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
 
 				var hpoTree = this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0);
-				
-	
+
+
 				if (hpoTree == "<br/>") {
 					hpoData += "<em>No HPO Data Found</em>";
 				} else {
@@ -3600,7 +3601,7 @@ var TooltipRender = require('./render.js');
 			}
 		},
 
-		// Will hide the hpo info, not delete it.  
+		// Will hide the hpo info, not delete it.
 		// This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
 		_collapseHPO: function(id) {
 			var idClean = id.replace("_", ":");
@@ -3610,8 +3611,8 @@ var TooltipRender = require('./render.js');
 			stickytooltip.closetooltip();
 		},
 
-		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored, 
-		// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash, 
+		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
+		// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
 		// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
 		_getHPO: function(id) {
 			// check cached hashtable first
@@ -3636,11 +3637,11 @@ var TooltipRender = require('./render.js');
 						if ( ! nodes.hasOwnProperty(i)) {
 							break;
 						}
-						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id) 
-							&& (nodes[i].id != "MP:0000001" 
-							&& nodes[i].id != "OBO:UPHENO_0001001" 
-							&& nodes[i].id != "OBO:UPHENO_0001002" 
-							&& nodes[i].id != "HP:0000118" 
+						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id)
+							&& (nodes[i].id != "MP:0000001"
+							&& nodes[i].id != "OBO:UPHENO_0001001"
+							&& nodes[i].id != "OBO:UPHENO_0001002"
+							&& nodes[i].id != "HP:0000118"
 							&& nodes[i].id != "HP:0000001")) {
 							this.state.hpoCacheLabels.put(nodes[i].id, this._capitalizeString(nodes[i].lbl));
 						}
@@ -3651,10 +3652,10 @@ var TooltipRender = require('./render.js');
 						if ( ! edges.hasOwnProperty(j)) {
 							break;
 						}
-						if (edges[j].obj != "MP:0000001" 
-							&& edges[j].obj != "OBO:UPHENO_0001001" 
-							&& edges[j].obj != "OBO:UPHENO_0001002" 
-							&& edges[j].obj != "HP:0000118" 
+						if (edges[j].obj != "MP:0000001"
+							&& edges[j].obj != "OBO:UPHENO_0001001"
+							&& edges[j].obj != "OBO:UPHENO_0001002"
+							&& edges[j].obj != "HP:0000118"
 							&& edges[j].obj != "HP:0000001") {
 							HPOInfo.push(edges[j]);
 						}
@@ -3986,7 +3987,7 @@ var TooltipRender = require('./render.js');
 		_rebuildModelHash: function() {
 			// [vaa12] needs updating based on changes in finishLoad and finishOverviewLoad
 			this.state.phenotypeListHash = new Hashtable();
-			
+
 			// Create a new empty hash table with supplied options, Hashtable(Object options) - Joe
 			this.state.modelDataHash = new Hashtable({hashCode: model.modelDataPointPrint, equals: model.modelDataPointEquals});
 			var modelPoint, hashData;
@@ -4016,7 +4017,7 @@ var TooltipRender = require('./render.js');
 			}
 		},
 
-		
+
 		// According to harry, not showing in current master version - Joe
 		_getAssociatedGenotypes: function(curModel) {
 			// check cached hashtable first

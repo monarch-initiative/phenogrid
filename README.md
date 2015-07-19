@@ -1,12 +1,12 @@
 #About Phenogrid
 
-Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided by OWLSim (www.owlsim.org), as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
+Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by OWLSim (www.owlsim.org), as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
 
 Given an input list of phenotypes (you will see the sample input below) and parameters specified in config/phenogrid_config.js indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.
 
 #Installation Instructions
 
-If you won't be doing any development of Phenogrid, you can simply download the phenogrid github zip file and unzip, then open the `index.html` to run this widget. 
+If you won't be doing any development of Phenogrid, you can simply download the phenogrid github zip file and unzip, then open the `index.html` to run this widget.
 
 For developers who want to make changes to phenogrid, following is the process.
 
@@ -15,6 +15,7 @@ For developers who want to make changes to phenogrid, following is the process.
 Before you get started, you will need to make sure you have npm
 installed first. npm is bundled and installed automatically with
 node.js. If you have not installed node.js, try:
+
 ```
 curl -sL https://rpm.nodesource.com/setup | bash -
 
@@ -28,7 +29,7 @@ Or, just visit nodejs.org.
 
 ##2. Install phenogrid widget
 
-To download and install the phenogrid widget, run  
+To download and install the phenogrid widget, run
 
 ```
 npm install
@@ -51,7 +52,7 @@ gulp bundle
 
 This command will use browserify to bundle up phenogrid core and its
 dependencies into `phenogrid-bundle.js` and create the merge
-`phenogrid-bundle.css` and put both files under `dist` folder. 
+`phenogrid-bundle.css` and put both files under `dist` folder.
 
 ##4. Add phenogrid in your target page
 
@@ -59,9 +60,9 @@ In the below sample code, you will see how to use phenogrid as a
 embeded widget in your HTML. Please note that in order to parse the js
 file correctly (since it uses D3.js and D3.js requires UTF-8 charset
 encoding), we suggest you to add the `<meta charset="UTF-8">` tag in
-your HTML head. 
+your HTML head.
 
-````html
+```html
 <html>
 <head>
 <meta charset="UTF-8">
@@ -89,7 +90,7 @@ var phenotypes = [
 	{id:"HP:0002172", observed:"positive"},
 	{id:"HP:0002322", observed:"positive"},
 	{id:"HP:0007159", observed:"positive"}
-];	
+];
 
 window.onload = function() {
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
@@ -108,7 +109,7 @@ window.onload = function() {
 
 </body>
 </html>
-````
+```
 
 #Configuration Parameters
 

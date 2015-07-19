@@ -2,15 +2,12 @@
 //// Usage: node ./node_modules/.bin/gulp <TARGET>
 //// Current top targets:
 ////  - bundle: create the distribution files
-////  - docs: create the API documentation and put it into docs/
 ////  - tests: run the unit tests
 //// Watch targets:
 ////  - watch-tests: run tests on changes to source files
-////  - watch-docs: build doc on changes to source files
 ////
 
 var gulp = require('gulp');
-//var jsdoc = require('gulp-jsdoc');
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var rename = require("gulp-rename");
@@ -20,16 +17,42 @@ var concat = require('gulp-concat');
 var bump = require('gulp-bump');
 var del = require('del');
 var shell = require('gulp-shell');
+var marked = require('marked');
+
+function markdownHelper(text) {
+  marked.setOptions({
+    gfm: true,
+    tables: true,
+    breaks: true,
+    pedantic: true,
+    sanitize: true,
+    smartLists: true,
+    smartypants: true
+  });
+  return marked.parse(text);
+}
+var fileinclude = require('gulp-file-include');
+
+
 
 var paths = {
     readme: ['./README.md'],
-    tests: ['tests/*.test.js', 'tests/*.tests.js'],
-    docable: ['js/*.js', './README.md'],
-    transients:['./docs/*', '!./docs/README.org']
+    transients:[],
+    tests: ['tests/*.test.js', 'tests/*.tests.js']
 };
 
 // The default task is to build the different distributions.
-gulp.task('bundle', ['js-bundle', 'css-bundle']);
+gulp.task('bundle', ['create-index', 'js-bundle', 'css-bundle']);
+
+gulp.task('create-index', ['clean'], function(cb) {
+  gulp.src(['templates/index.html'])
+    .pipe(fileinclude({
+      filters: {
+        marked: markdownHelper
+      }
+    }))
+    .pipe(gulp.dest('./'));
+});
 
 // Bundle JS together with browserify
 gulp.task('js-bundle', function(cb) {
@@ -49,7 +72,7 @@ gulp.task('css-bundle', function(cb) {
 });
 
 // Browser runtime environment construction.
-gulp.task('build', ['bundle', 'patch-bump', 'docs']);
+gulp.task('build', ['bundle', 'patch-bump']);
 
 gulp.task('patch-bump', function(cb){
     gulp.src('./package.json')
@@ -72,28 +95,8 @@ gulp.task('major-bump', function(cb){
     cb(null);
 });
 
-// Build docs directory with JSDoc.
-gulp.task('docs', ['jsdoc']);
-
-// Build docs directory with JSDoc.
-// Completely dependent on clean before running doc.
-// gulp.task('jsdoc', ['clean'], function(cb) {
-//     gulp.src(paths.docable, paths.readme)
-//         .pipe(jsdoc('./doc'));
-//     cb(null);
-// });
-// TODO: Ugh--do this manually until gulp-jsdoc gets its act together.
-gulp.task('jsdoc', ['clean'], function(cb) {
-    gulp.src('')
-        .pipe(shell([
-	    './node_modules/.bin/jsdoc --verbose --template ./node_modules/jsdoc-baseline --readme ./README.md --destination ./docs/ ./js/*.js'
-	]));
-    cb(null);
-});
-
 // Get rid of anything that is transient.
 gulp.task('clean', function(cb) {
-    del(paths.transients);
     cb(null);
 });
 
@@ -115,19 +118,12 @@ gulp.task('publish-npm', function() {
     var npm = require("npm");
     npm.load(function (er, npm) {
 	// NPM
-	npm.commands.publish();	
+	npm.commands.publish();
     });
 });
 
-// Rerun doc build when a file changes.
-gulp.task('watch-docs', function() {
-  gulp.watch(paths.docable, ['docs']);
-  gulp.watch(paths.readme, ['docs']);
-});
-
-// Rerun doc build when a file changes.
+// Rerun test build when a file changes.
 gulp.task('watch-tests', function() {
-  gulp.watch(paths.docable, ['tests', 'bundle']);
   gulp.watch(paths.tests, ['tests', 'bundle']);
 });
 
