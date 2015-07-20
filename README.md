@@ -1,3 +1,5 @@
+#TESTING 0.0.1
+
 #About Phenogrid
 
 Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by OWLSim (www.owlsim.org), as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
