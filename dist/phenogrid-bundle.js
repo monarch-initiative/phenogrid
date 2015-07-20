@@ -141,8 +141,6 @@ var TooltipRender = require('./render.js');
 			],
 			overviewCount: 3,
 			colStartingPos: 10,
-			detailRectWidth: 360,
-			detailRectHeight: 120,
 			detailRectStrokeWidth: 2,
 			globalViewSize : 110, // overview map -Joe
 			reducedGlobalViewSize: 50,
