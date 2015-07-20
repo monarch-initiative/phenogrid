@@ -67,7 +67,7 @@ var Hashtable = require('jshashtable');
 // need to specify the relative path ./ and .js extension
 var model = require('./model.js');
 var stickytooltip = require('./stickytooltip.js');
-var TooltipRender = require('./render.js');
+var TooltipRender = require('./tooltiprender.js');
 
 (function(factory) {
 	// If there is a variable named module and it has an exports property,
