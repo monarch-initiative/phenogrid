@@ -12,9 +12,7 @@ For developers who want to make changes to phenogrid, following is the process.
 
 ##1. Install npm
 
-Before you get started, you will need to make sure you have npm
-installed first. npm is bundled and installed automatically with
-node.js. If you have not installed node.js, try:
+Before you get started, you will need to make sure you have npm installed first. npm is bundled and installed automatically with node.js. If you have not installed node.js, try:
 
 ```
 curl -sL https://rpm.nodesource.com/setup | bash -
@@ -22,10 +20,7 @@ curl -sL https://rpm.nodesource.com/setup | bash -
 yum install -y nodejs
 ```
 
-For OS X machines, you can try these instructions:
-http://blog.teamtreehouse.com/install-node-js-npm-mac.
-
-Or, just visit nodejs.org.
+For OS X machines, you can try these instructions: http://blog.teamtreehouse.com/install-node-js-npm-mac. Or, just visit nodejs.org.
 
 ##2. Install phenogrid widget
 
@@ -35,8 +30,7 @@ To download and install the phenogrid widget, run
 npm install
 ```
 
-from this directory.
-Sometimes, it requires root access to for the installation, just run the following instead
+from this directory. Sometimes, it requires root access to for the installation, just run the following instead
 
 ```
 sudo npm install
@@ -50,17 +44,11 @@ This will create a local `/node_modules` folder in the phenogrid root directory,
 gulp bundle
 ```
 
-This command will use browserify to bundle up phenogrid core and its
-dependencies into `phenogrid-bundle.js` and create the merge
-`phenogrid-bundle.css` and put both files under `dist` folder.
+This command will use browserify to bundle up phenogrid core and its dependencies into `phenogrid-bundle.js` and create the merge `phenogrid-bundle.css` and put both files under `dist` folder.
 
 ##4. Add phenogrid in your target page
 
-In the below sample code, you will see how to use phenogrid as a
-embeded widget in your HTML. Please note that in order to parse the js
-file correctly (since it uses D3.js and D3.js requires UTF-8 charset
-encoding), we suggest you to add the `<meta charset="UTF-8">` tag in
-your HTML head.
+In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the `<meta charset="UTF-8">` tag in your HTML head.
 
 ```html
 <html>
@@ -136,10 +124,7 @@ This parameter defaults to 10090 (mus musculus). Change this parameter if you wa
 
 # Testing and further configuration
 
-Open the modified `index.html` or your target web page that has the phenogrid embeded in a web browser. This page will
-display an instance of the phenogrid, as configured above. Additional
-instructions for further customization of parameters will also be
-available on this page.
+Open the modified `index.html` or your target web page that has the phenogrid embeded in a web browser. This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.
 
 #Web Browser Support
 
