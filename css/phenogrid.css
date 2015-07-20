@@ -7,8 +7,8 @@
  */
 
 html {
-  font-family: sans-serif; /* 1 */
-  font-size: 10px;
+  font-family: Verdana, sans-serif; /* 1 */
+  font-size: small;
   -ms-text-size-adjust: 100%; /* 2 */
   -webkit-text-size-adjust: 100%; /* 2 */
 }
@@ -20,6 +20,8 @@ html {
 body {
   margin: 0;
 }
+
+
 
 /* HTML5 display definitions
    ========================================================================== */
@@ -407,6 +409,30 @@ optgroup {
   font-weight: bold;
 }
 
+table.pgtb {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+table.pgtb td {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size:11px;
+  border-style: none;
+  border-width:0px;
+  overflow:hidden;
+  word-break:normal;
+}
+table.pgtb th
+{
+  font-family: Verdana, Geneva, sans-serif;
+/*  font-family:"Lucida Console", Monaco, monospace;*/
+  font-size: 12px;
+  font-weight: bold;
+  padding:10px 5px;
+  overflow:hidden;
+  word-break:normal;
+}
+
 /* Tables
    ========================================================================== */
 
@@ -423,6 +449,9 @@ td,
 th {
   padding: 0;
 }
+
+
+
 
 
 /*!
@@ -2747,7 +2776,7 @@ button.ui-button::-moz-focus-inner {
  *  Phenogrid related styling
  */
 #phenogrid_container{
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: Verdana, Geneva, sans-serif;                /*Arial, Helvetica, sans-serif;*/
 	font-size: 14px;
 }
 
@@ -2777,24 +2806,22 @@ button.ui-button::-moz-focus-inner {
 	stroke-width: 2;
 }
 
-
-.pg_row_accent,
-.pg_col_accent {
-	/*stroke:#ea763b;*/
-	stroke:#4CA092;
-	stroke-width: 2;
-	fill: #4CA092;   /*#fff;*/
-	fill-opacity: 0.1;    /*0.05;*/
+.row,
+.column {
+  font-family: Verdana, Geneva, sans-serif;              
+  font-size: 11px;
 }
 
-/*
-.pg_gene_accent {
-	stroke:#4CA092;
-	stroke-width: 2;
-	fill: #4CA092;
-	fill-opacity: 0.1;
+.active {
+  font-family: Verdana, Geneva, sans-serif;              
+  font-size: 11px;
+  font-weight: bold;
+  fill: blue;
 }
-*/
+
+.cell.rowcolmatch {
+  fill:#440000;
+}
 
 .pg_scroll_text {
 	font-size: 9px;
@@ -2806,9 +2833,10 @@ button.ui-button::-moz-focus-inner {
 	float:left;
 }
 
-#pg_scorelist {
-	font-size:10px;
-	fill: #0F473E;
+.pg_score_text {
+  font-family: Verdana, Geneva, sans-serif;               
+  font-size: 11px;
+  letter-spacing:-1px;
 }
 
 
@@ -3012,28 +3040,5 @@ display:inline-block;
 height:1px;
 }
 
-/******* Grid related *****/
 
-#pg_gridline {
-  fill: #ffffff;
-  fill-opacity: 0;
-  stroke: #e5e5e5;
-  stroke-width: 1;
-
-.pg_grid {
-  fill: black;
-}
-
-.pg_grid_row {
-  font-family: 10px arial;  
-  height: 100%;
-  width: 100%;
-  border: 1px black solid;
-}
-
-.pg_score_text {
-  font-size:10px;
-  font-family: Arial;   
-  font-weight:bold;
-}
 

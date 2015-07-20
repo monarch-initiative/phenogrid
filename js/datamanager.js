@@ -331,7 +331,7 @@ DataManager.prototype = {
 			var data = this.getData("target", targetSpeciesList[e].name);
 			var i=0;
 			for (var idx in data) {
-				combinedTargetList.push(data[idx]);
+				combinedTargetList[data[idx].id] = data[idx];
 				i++;
 				if (i >= limit) break;
 			}

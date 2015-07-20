@@ -195,12 +195,27 @@ cell: function(tooltip, d) {
 		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
 		if ( selCalc != 2) {suffix = '%';}
 
-		returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
-			"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
-			"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
-			"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-			"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-			"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
+		returnHtml = "<table class=\"pgtb\">" +
+			"<tbody><tr><td><u><b>Query</b></u><br>" +
+			"<b>Source:</b>" + d.a_label + " (" +sourceLabel + ") [" + Utils.formatScore(d.a_IC.toFixed(2)) + "]<br><b>Species:</b> " + d.species + "</td>" + 
+			"<tr><td><u><b>In-common</b></u><br>" + 
+			d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
+			"<tr><td><u><b>Match</b></u><br>" + 
+			d.b_label + Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
+			"</tbody>" + 
+			"</table>";
+
+			// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
+			// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
+			// "<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
+
+
+		// returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
+		// 	"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
+		// 	"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
+		// 	"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
+		// 	"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
+		// 	"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
 	
 	return returnHtml;	
 

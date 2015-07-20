@@ -134,8 +134,7 @@ var url = document.URL;
 						speciesLabelOffset: -10    // offset of the species label, above grid
 					}],
 		defaultTargetDisplayLimit: 30,//  defines the limit of the number of targets to display
-		defaultVisibleModelCt: 10,    // the number of visible modes to be displayed in overview mode
-		//overviewRegion:[{x:}]
+		defaultVisibleModelCt: 10    // the number of visible targets per organisms to be displayed in overview mode
 	},
 
 	internalOptions: {
@@ -466,7 +465,8 @@ var url = document.URL;
 		console.log('source display limit: '  + this.state.sourceDisplayLimit);
 
 		if (this.state.currentTargetSpeciesName == 'Overview') {
-			this.state.targetDisplayLimit = this.state.defaultVisibleModelCt;   //this.state.defaultTargetDisplayLimit;
+			this.state.targetDisplayLimit = (this.state.defaultTargetDisplayLimit / this.state.selectedTargetSpecies.length)*this.state.selectedTargetSpecies.length;
+			//this.state.targetDisplayLimit = this.state.defaultVisibleModelCt;   //this.state.defaultTargetDisplayLimit;
 		} else {
 			var currentSpeciesSize = this.state.dataManager.length("target", this.state.currentTargetSpeciesName);
 
@@ -540,7 +540,7 @@ var url = document.URL;
 		var row = this.state.svg.selectAll(".row")
   			.data(matrix)
 				.enter().append("g")			
-			.attr("class", "pg_grid")	  			
+			.attr("class", "row")	  			
 			.attr("id", function(d, i) { 
 				return "pg_grid_row_"+i;})
   			.attr("transform", function(d, i) { 
@@ -553,7 +553,7 @@ var url = document.URL;
 
    		// create row labels
 	  	row.append("text")
-	  		.style("font-size", "11px")
+	  		//.style("font-size", "11px")
 			.attr("x", gridRegion.rowLabelOffset)	  		
 	      	.attr("y",  function(d, i) {
 	      			 var rb = self.state.yScale.rangeBand(i)/2;
@@ -568,28 +568,28 @@ var url = document.URL;
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
+					var coords = {x: d.xpos, y: d.ypos};
 		        	var data = self.state.yAxisRender.itemAt(i);
-		        	self._mouseover(data, self);
+		        	self._cellover(coords,data, self);
 		        	})
-			.on("mouseout", function(d, i) { 
-		        	var data = self.state.xAxisRender.itemAt(i);
-		        	self._mouseout(data, self);
-		        	});		    
-	      	
+			.on("mouseout", self._cellout);		    
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
 	      .data(xvalues)
 	    .enter().append("g")
-	      	.attr("class", "pg_grid_col")	  		    
+	      	.attr("class", "column")	  		    
+			.attr("id", function(d, i) { 
+				return "pg_grid_col_"+i;})	      	
 	      .attr("transform", function(d, i) { 
-	      	var p = self.state.xScale(i);
+	      	var offset = gridRegion.colLabelOffset;
+	      	if (self.state.invertAxis) {offset = 30;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores
 	      	return "translate(" + (gridRegion.x + self.state.xScale(i)*gridRegion.xpad) +
-	      				 "," + (gridRegion.y-gridRegion.colLabelOffset) + ")rotate(-60)"; }); //-45
+	      				 "," + (gridRegion.y-offset) + ")rotate(-60)"; }); //-45
 
 	    // create column labels
 	  	column.append("text")
-	  		.style("font-size", "11px")
+	  		//.style("font-size", "11px")
 	      	.attr("x", 0)
 	      	.attr("y", self.state.xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
@@ -599,13 +599,11 @@ var url = document.URL;
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 
 		        	//var data = d[i];
+		        	var coords = {x: d.xpos, y: d.ypos};
 		        	var data = self.state.xAxisRender.itemAt(i);
-		        	self._mouseover(data, self);
+		        	self._cellover(coords, data, self);
 		        	})
-			.on("mouseout", function(d, i) { 
-		        	var data = self.state.xAxisRender.itemAt(i);
-		        	self._mouseout(data, self);
-		        	});		    
+			.on("mouseout", self._cellout);		    
 	      	
 
 	    // add the scores  
@@ -616,7 +614,7 @@ var url = document.URL;
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
 		      .enter().append("rect")
-		      	.attr("id", function(d) {return 'cell_' + d.source_id+d.target_id;})
+//		      	.attr("id", function(d) {return 'cell_' + d.source_id+d.target_id;})
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
 		        		return d.xpos * gridRegion.xpad;})
@@ -632,38 +630,40 @@ var url = document.URL;
 					return self._getColorForModelValue(self, d.species, el.value[self.state.selectedCalculation]);
 			        })
 		        .on("mouseover", function(d) { 
+		        	var coords = {x: d.xpos, y: d.ypos};
 		        	var data = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
-		        	self._mouseover(data, self);
+		        	self._cellover(coords, data, self);
 		        	})
-		        .on("mouseout", function(d) { 
-		        	var data = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
-		        	self._mouseout(data, self);
-		        	});
+		        .on("mouseout", self._cellout);
 		}
 	},
 
-	_mouseover: function (data , parent) {
-		var self = this;
-		console.log('mouseover...');
+	_cellover: function (coords, data, parent) {
+
+		// show tooltip
 		parent._createHoverBox(data);
-			//console.log("mouseover:  g#pg_grid_row_" + lastRowHighlighted+ '.pg_grid_row');
-	  		 //d3.selectAll("g#pg_grid_row_" + p.ypos + '.pg_grid_row') // + ' rect#cell_' + p.source_id+p.target_id)
-				// .attr("class", "row_accent");
-			//lastRowHighlighted = p.ypos;
-		  // from les miserable example
-		  //   d3.selectAll("g.row text").classed("active", function(d, i) { return i == d.ypos; });
-				// d3.selectAll("g.column text").classed("active", function(d, i) { return i == d.xpos; });
+
+		// hightlight row/col
+	  	d3.select("#pg_grid_row_" + coords.y +" text")
+			  .classed("active", true);
+ 		d3.select("#pg_grid_row_" + coords.y +" .cell")
+			  .classed("rowcolmatch", true);			  
+	  	d3.select("#pg_grid_col_" + coords.x +" text")
+			  .classed("active", true);
 	},
 
-	_mouseout:	function(data , parent) {
-		  console.log('mouseout...');
-		  stickytooltip.closetooltip();
-			// console.log("mouseout:  g#pg_grid_row_" + lastRowHighlighted);
-			// d3.selectAll("g#pg_grid_row_" + lastRowHighlighted)
-			// 	.attr("class", "row_accent_reset");
+	_cellout: function() {
+		// unhighlight row/col
+		d3.selectAll(".row text")
+			  .classed("active", false);
+		d3.selectAll(".column text")
+			  .classed("active", false);
 
-			// from les miserable example
-			//d3.selectAll("text").classed("active", false);
+		if (!stickytooltip.isdocked) {
+			// hide the tooltip
+			stickytooltip.closetooltip();
+		}
+
 	},
 
 	_createTextScores: function () {
@@ -672,11 +672,11 @@ var url = document.URL;
 		var list, scale, axRender;
 
 		if (self.state.invertAxis) {
-			list = self.state.yAxisRender.keys();  //yvalues;
+			list = self.state.yAxisRender.keys();  
 			scale = self.state.yScale;
 			axRender = self.state.yAxisRender;
 		} else {
-			list = self.state.xAxisRender.keys();    //xvalues;
+			list = self.state.xAxisRender.keys(); 
 			scale = self.state.xScale;
 			axRender = self.state.xAxisRender;
 		}
@@ -686,9 +686,6 @@ var url = document.URL;
 	    	    .attr("class", "pg_score_text");
 
 	    scores.append("text")	 
-	    	.style("letter-spacing", "-2px")
-	     	.style("font-size", "10px")
-	  		.style("font-weight", "bold")	     	
 //		    .attr("dy", ".32em")
 		    .attr("fill", function(d, i) {
 		    	var el = axRender.itemAt(i);
@@ -858,6 +855,7 @@ var url = document.URL;
 
 		// this should be the full set of cellData
 		var xvalues = self.state.xAxisRender.groupEntries();
+		console.log(JSON.stringify(xvalues));
 		var yvalues = self.state.yAxisRender.groupEntries();		
 		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
 
@@ -867,7 +865,6 @@ var url = document.URL;
 		overviewY++;
 		var cellRectTransform = "translate(" + overviewX +	"," + overviewY + ")";
 
-	    console.log("mini rects...");
 	    var colorSelector = this.state.axisFlipConfig.colorSelector[this.state.invertAxis];
 
 		cell_rects.enter()
@@ -875,19 +872,15 @@ var url = document.URL;
 			.attr("transform",cellRectTransform)
 			.attr("class", "mini_cell")
 			.attr("y", function(d, i) { 
-
 				var yid = d.source_id;
 				var yscale = self.state.smallYScale(yid);
 			        var y = yscale + linePad / 2;
-			    //hh 
-			    var x = self.state.smallXScale(d.target_id+linePad/2);
-			    //console.log(i+", "+d.source_id+", "+d.target_id+" ... "+x+","+y);
-				return y;})  // yID
+				return y;})
 			.attr("x", function(d) { 
 				var xid = d.target_id;
 				var xscale = self.state.smallXScale(xid);
 				var x =  xscale + linePad / 2; 
-				return x;})  // xID
+				return x;})
 			.attr("width", linePad)
 			.attr("height", linePad)
 			.attr("fill", function(d) {
@@ -1093,23 +1086,15 @@ var url = document.URL;
    	    sourceList = self.state.yAxisRender.groupIDs();
 	    targetList = self.state.xAxisRender.groupIDs();
 
-	    console.log("source len: " + sourceList.length);
-	    console.log("target len: " + targetList.length);
-
 		this.state.smallYScale = d3.scale.ordinal()
 			.domain(sourceList.map(function (d) {return d; }))
 			.rangePoints([0,overviewRegionSize]);
 
-	    console.log("targetList are .."+JSON.stringify(targetList));
-	    /*var targids = targ.map(function (d) {return d; });
-	    console.log("target ids are ..."+JSON.stringify(targids));*/
-
 		this.state.smallXScale = d3.scale.ordinal()
-			.domain(targetList)
-			.rangePoints([0,overviewRegionSize]);
-	    //console.log(this.state.smallXScale(targetList[0]));
-	    
-	    
+			.domain(targetList.map(function (d) {
+				var td = d;
+				return d; }))
+			.rangePoints([0,overviewRegionSize]);   	    
 	},
 
 	_invertOverviewDragPosition: function(scale,value) {
@@ -1431,7 +1416,6 @@ var url = document.URL;
 			self._reset("sortphenotypes");
 		} else if (type === "axisflip"){
 			self._reset("axisflip");
-//			self._init();  // MKD: this reloads data, needs refactored
 		}
 	},
 
@@ -1742,6 +1726,7 @@ var url = document.URL;
 
 		// Have temporarly until fix for below during Axis Flip
 		if (self.state.currentTargetSpeciesName == "Overview"){
+			return;  //TEMP ONLY
 			if (this.state.invertAxis) {
 				list = self.state.selectedTargetSpecies;
 				ct = self.state.defaultVisibleModelCt;
@@ -1821,87 +1806,6 @@ var url = document.URL;
 		}
 	},
 
-	_highlightIntersection: function(curr_data, obj, parent){
-		// var self = this;
-		// var gr = parent.state.gridRegion[0]; 
-		// var yAxisRender = parent.state.yAxisRender;	
-		// var xAxisRender = parent.state.xAxisRender;	
-	 //    var yCount = yAxisRender.displayLength();
-	 //    var xCount = xAxisRender.displayLength();
-	 //    var yScale = parent.state.yAxisRender.getScale();
-	 //   	var xScale = parent.state.xAxisRender.getScale();
-	 //   	var highlightWidth = xCount*gr.cellwd;
-		//console.log('yCount:' + yCount + ' xCount: ' + xCount + ' highlightWidth: ' + highlightWidth);
-
-		console.log('x: ' + curr_data.xpos + ' y: ' + curr_data.ypos + ' g.grid_row_' + curr_data.ypos);
-		var obj = this.state.svg.selectAll("g#grid_row_" + curr_data.ypos + '.grid_row')
-					.attr("class", "row_accent");
-
-		// Highlight Row
-		// var highlight_rect = self.state.svg.append("svg:rect")
-		// 	//.attr("transform","translate(" + gr.x  +", " + (gr.y+yScale(curr_data.ypos)*gr.ypad)  + ")")
-		// 	.attr("transform","translate(" + gr.x  +", " + gr.y  + ")")
-		// 	.attr("x", 0) //12
-		// 	.attr("y", function(d) {
-		// 		console.log(curr_data.ypos * gr.cellht);
-		// 		return curr_data.ypos * gr.cellht; }) 
-		// 	.attr("class", "row_accent")
-		// 	.attr("width", highlightWidth)
-		// 	.attr("height", gr.cellht + 2);
-
-		//this.state.selectedRow = curr_data.source_id;  //yID;
-		//this.state.selectedColumn = curr_data.target_id;    //xID;
-		//this._resetLinks();
-
-		/*
-		 * To get the phenotype label from the selected rect data, we need to concat the phenotype ids to the model id 
-		 * that is in the 0th position in the grid. No labels exist with the curr_data.id except for the first column
-		 * For the overview, there will be a 0th position for each species so we need to get the right model_id
-		 */
-
-		// var source_label = this.state.svg.selectAll("text.a_text." + Utils.getConceptId(curr_data.source_id));  //yID
-		// source_label.style("font-weight", "bold");
-		// source_label.style("fill", "blue");
-
-		// // Highlight Column
-		// var target_label = self.state.svg.selectAll("text#" + Utils.getConceptId(curr_data.target_id));  //xID
-		// target_label.style("font-weight", "bold");
-		// target_label.style("fill", "blue");
-
-		// create the related model rectangles
-		// var highlight_rect2 = self.state.svg.append("svg:rect")
-		// 	.attr("transform","translate(" + (gr.x + xScale(curr_data.xpos)*gr.xpad) + "," + (gr.y-gr.colLabelOffset) + ")")
-		// 	.attr("x", function(d) { 
-		// 						console.log("xpos:"+curr_data.xpos);
-		// 		return curr_data.xpos;})  // xID
-		// 	.attr("y", gr.y + 2 )
-		// 	.attr("class", "model_accent")
-		// 	.attr("width", gr.cellht)
-		// 	.attr("height", (yCount * gr.cellht));
-	},
-
-	_updateAxes: function() {
-		var self = this;
-		var data = [];
-
-		// This is for the new "Overview" target option 
-		if (this.state.currentTargetSpeciesName == "Overview"){
-			//MKD: data = this.state.cellDataHash.keys();
-			data = this.state.dataManager.keys("cellData");   //MKD: NEEDS SOME WORK 
-		} else {
-			data = self.state.filteredCellData;
-		}
-		this.state.h = (data.length * 2.5);
-
-		self.state.yScale = d3.scale.ordinal()
-			.domain(data.map(function (d) { return d.source_id; }))  //d.yID; }))
-			.range([0,data.length])
-			.rangePoints([self.state.yModelRegion,self.state.yModelRegion + this.state.h]);
-
-		// update accent boxes
-		self.state.svg.selectAll("#rect.accent").attr("height", self.state.h);
-	},
-
 	/*
 	 * Change the list of phenotypes and filter the models accordingly. The 
 	 * Movecount is an integer and can be either positive or negative
@@ -1911,7 +1815,6 @@ var url = document.URL;
 		var ySize = this.state.yAxisRender.groupLength();
 		var newXEndPos, newYEndPos;
 
-console.log("X:"+newXPos + " Y:"+newYPos);
 		if (newXPos >= xSize){
 			this.state.currXIdx = xSize;
 		} else {
@@ -1931,20 +1834,20 @@ console.log("X:"+newXPos + " Y:"+newYPos);
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
 console.log("Xaxis start: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
-			+ " size: " + this.state.targetDisplayLimit);
+			+ " limit size: " + this.state.targetDisplayLimit);
 
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.sourceDisplayLimit);
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
 
 console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end: "+this.state.yAxisRender.getRenderEndPos()+
-				" size: " + this.state.sourceDisplayLimit);
+				" limit size: " + this.state.sourceDisplayLimit);
 
 		this._clearGrid();
 		this._createGrid();
 
 		/*
-		 * this must be initialized here after the _createModelLabels, or the mouse events don't get
-		 * initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
+		 * this must be initialized here after the _createGrid, or the mouse events don't get
+		 * initialized properly and tooltips won't work with the mouseover 
 		 */
 		stickytooltip.init("*[data-tooltip]", "mystickytooltip");
 	},
@@ -1957,8 +1860,8 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 	_clearGrid: function() {
 		console.log("in clearGrid()....");
-		this.state.svg.selectAll("g.pg_grid").remove();
-		this.state.svg.selectAll("g.pg_grid_col").remove();
+		this.state.svg.selectAll("g.row").remove();
+		this.state.svg.selectAll("g.column").remove();
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
 

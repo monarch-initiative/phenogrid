@@ -186,6 +186,7 @@ DataLoader.prototype = {
 									"species": item.taxon.label,									
 									"value": lcs, 
 									"a_IC" : curr_row.a.IC,  
+									"a_label" : curr_row.a.label,
 									"subsumer_id": currID_lcs, 
 									"subsumer_label": curr_row.lcs.label, 
 									"subsumer_IC": parseFloat(curr_row.lcs.IC), 
