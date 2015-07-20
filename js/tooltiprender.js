@@ -110,11 +110,11 @@ return returnHtml;
 
 cell: function(tooltip, d) {
 	
-	var retData, prefix, modelLabel, phenoLabel;
+	var returnHtml, prefix, modelLabel, phenoLabel;
 
 	var yInfo = tooltip.parent._getAxisData(d.yID);
 	var xInfo = tooltip.parent._getAxisData(d.xID);
-	var fullInfo = $.extend({}, xInfo, yInfo);
+	var fullInfo = $.extend({}, xInfo, yInfo); // jquery's $.extend() - Joe
 	var species = fullInfo.species;
 	var taxon = fullInfo.taxon;
 
@@ -166,7 +166,7 @@ cell: function(tooltip, d) {
 		suffix = '%';
 	}
 
-	retData = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
+	returnHtml = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
 		"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
 		"<br/><strong>Common: </strong> " + d.subsumer_label + formatScore(d.subsumer_IC.toFixed(2)) +
 		"<br/><strong>" + tooltip.parent._capitalizeString(fullInfo.type)+": </strong> " + modelLabel +
@@ -174,70 +174,7 @@ cell: function(tooltip, d) {
 		"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
 
 
-	return retData;
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*
-	
-	var returnHtml = "";
-
-		var suffix = "";
-		var selCalc = tooltip.parent.state.selectedCalculation;
-
-		var prefix, targetLabel, sourceLabel, type;
-		var species = d.species;
-		//var taxon = d.taxon;
-
-		 if (tooltip.parent.state.invertAxis) {
-			sourceLabel = d.source_id;
-			targetLabel = d.target_id;
-//			type = yInfo.type;
-		 } else {
-			sourceLabel = d.source_id;
-			targetLabel = d.target_id;
-//			type = xInfo.type;
-		 }
-
-		// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-		// 	if (taxon.indexOf("NCBITaxon:") != -1) {
-		// 		taxon = taxon.slice(10);
-		// 	}
-		// }
-
-		for (var idx in tooltip.parent.state.similarityCalculation) {	
-			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
-				break;
-			}
-			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
-				prefix = tooltip.parent.state.similarityCalculation[idx].label;
-			break;
-			}
-		}
-
-		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-		if ( selCalc != 2) {suffix = '%';}
-
-		returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
-			"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
-			"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
-			"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-			"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-			"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
-	
-	return returnHtml;	
-	
-	*/
-
+	return returnHtml;
 },
 
 
