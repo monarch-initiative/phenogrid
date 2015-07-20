@@ -217,6 +217,17 @@ font-size:1.2em;
 cursor:move;
 }
 
+/* clearfix hack http://nicolasgallagher.com/micro-clearfix-hack/ */
+.clearfix:before,
+.clearfix:after {
+content: " "; /* 1 */
+display: table; /* 2 */
+}
+
+.clearfix:after {
+clear: both;
+}
+
 #unmatchedimg,
 #unmatchedhideimg {
 font-size:1.1em;
