@@ -2063,6 +2063,16 @@ var TooltipRender = require('./render.js');
 		},
 
 
+		// Added for grid cell mouse over tooltip - Joe
+		_createHoverBoxForCell: function(data) {
+			// format data for rendering in a tooltip
+			var retData = this.state.tooltipRender.html({parent: this, data: data});
+
+			// update the stub stickytool div dynamically to display
+			$("#sticky1").empty();
+			$("#sticky1").html(retData);
+		},
+		
 
 		// Why not prefixed with underscore? - Joe
 
@@ -2331,74 +2341,6 @@ var TooltipRender = require('./render.js');
 				//console.log($('#pg_detail_content').html()); //Debugging - Joe
 		},
 
-		// Model data cell tooptip content - Joe
-		_showModelData: function(d, obj) {
-			var retData, prefix, modelLabel, phenoLabel;
-
-			var yInfo = this._getAxisData(d.yID);
-			var xInfo = this._getAxisData(d.xID);
-			var fullInfo = $.extend({}, xInfo, yInfo);
-			var species = fullInfo.species;
-			var taxon = fullInfo.taxon;
-
-			//[vaa12] Could be done in a more sophisticated function, but this works and removed dependancy on invertAxis
-			if (this.state.phenotypeListHash.containsKey(d.xID)) {
-				phenoLabel = this.state.phenotypeListHash.get(d.xID).label;
-			} else if (this.state.phenotypeListHash.containsKey(d.yID)) {
-				phenoLabel = this.state.phenotypeListHash.get(d.yID).label;
-			} else {
-				phenoLabel = null;
-			}
-
-			if (this.state.modelListHash.containsKey(d.xID)) {
-				modelLabel = this.state.modelListHash.get(d.xID).label;
-			} else if (this.state.modelListHash.containsKey(d.yID)) {
-				modelLabel = this.state.modelListHash.get(d.yID).label;
-			} else {
-				modelLabel = null;
-			}
-
-			if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-				if (taxon.indexOf("NCBITaxon:") != -1) {
-					taxon = taxon.slice(10);
-				}
-			}
-
-			for (var idx in this.state.similarityCalculation) {
-				if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
-					break;
-				}
-				if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
-					prefix = this.state.similarityCalculation[idx].label;
-					break;
-				}
-			}
-
-			// Hiding scores which are equal to 0
-			var formatScore =  function(score) {
-				if (score === 0) {
-					return "";
-				} else {
-					return " (IC: " + score + ")";
-				}
-			};
-
-			var suffix = "";
-			// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-			if (this.state.selectedCalculation != 2) {
-				suffix = '%';
-			}
-
-			retData = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
-				"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
-				"<br/><strong>Common: </strong> " + d.subsumer_label + formatScore(d.subsumer_IC.toFixed(2)) +
-				"<br/><strong>" + this._capitalizeString(fullInfo.type)+": </strong> " + modelLabel +
-				"<br/><strong>" + prefix + ":</strong> " + d.value[this.state.selectedCalculation].toFixed(2) + suffix +
-				"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
-
-			this._updateDetailSection(retData, this._getXYPos(obj));
-		},
-
 		// extract the x,y values from a SVG transform string (ex: transform(200,20))
 		_extractTransform: function(dataString) {
 			var startIdx = dataString.indexOf("(");
@@ -2463,6 +2405,7 @@ var TooltipRender = require('./render.js');
 				})
 				.attr("width", 10) // size of each cube - Joe
 				.attr("height", 10)
+				.attr("data-tooltip", "sticky1") // Tooptip on mouseover - Joe
 				// I need to pass this into the function
 				.on("mouseover", function(d) {
 					this.parentNode.appendChild(this);
@@ -2471,7 +2414,7 @@ var TooltipRender = require('./render.js');
 					self._enableRowColumnRects(this);
 					self.state.currSelectedRect = this;
 
-					self._showModelData(d, this);
+					self._createHoverBoxForCell(d);
 				})
 				.on("mouseout", function(d) {
 					// De-highlight row and column
@@ -2490,6 +2433,8 @@ var TooltipRender = require('./render.js');
 					var phenotype_label = self.state.svg.selectAll("#" + self._getConceptId(d.yID));
 					phenotype_label.style("font-weight", "normal");
 					phenotype_label.style("fill", "black");
+					
+					stickytooltip.closetooltip(); // Close the tooltip - Joe
 				})
 			.attr("fill", function(d) {
 				var colorID;
@@ -4159,6 +4104,9 @@ var TooltipRender = require('./render.js');
 	just add a specialized method, making sure the the name matches the data.type 
 	(e.g, function phenotype => data.type='phenotype').
 */
+
+var $ = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
+
 var TooltipRender = function(url) {  //parms
 	 this.url = url;
 };
@@ -4177,20 +4125,26 @@ TooltipRender.prototype = {
 		this.parent = parms.parent;
 		this.data = parms.data;
 		this.id = parms.id;
+		var retInfo = "";
 
-		// this creates the standard information portion of the tooltip, 
-		var inf =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + this.entityHreflink() + "<br/>" +
-				   this._rank() + this._score() + this._ic();
+		// making an assumption here that we want to display cell info
+		if ( typeof(this.data.type) == 'undefined') {
+			retInfo = this.cell(this, this.data);
+		} else {
+			// this creates the standard information portion of the tooltip, 
+			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + this.entityHreflink() + "<br/>" +
+					   this._rank() + this._score() + this._ic();
 
-		// this creates the extended information for specialized tooltip info and functionality
-		// try to dynamically invoke the function that matches the data.type
-		try {
-			var func = this.data.type;			
-			inf += this[func](this);
-		} catch(err) { console.log("searching for " + func);}
-
-		return inf;
+			// this creates the extended information for specialized tooltip info and functionality
+			// try to dynamically invoke the function that matches the data.type
+			try {
+				var func = this.data.type;			
+				retInfo += this[func](this);
+			} catch(err) { console.log("searching for " + func);}
+		}
+		return retInfo;
 	},
+	
 	_rank: function() {
 		return (typeof(this.data.rank) !== 'undefined'?"<strong>Rank:</strong> " + this.data.rank+"<br/>":"");
 	},
@@ -4250,6 +4204,139 @@ return returnHtml;
 
 },
 
+cell: function(tooltip, d) {
+	
+	var retData, prefix, modelLabel, phenoLabel;
+
+	var yInfo = tooltip.parent._getAxisData(d.yID);
+	var xInfo = tooltip.parent._getAxisData(d.xID);
+	var fullInfo = $.extend({}, xInfo, yInfo);
+	var species = fullInfo.species;
+	var taxon = fullInfo.taxon;
+
+	//[vaa12] Could be done in a more sophisticated function, but this works and removed dependancy on invertAxis
+	if (tooltip.parent.state.phenotypeListHash.containsKey(d.xID)) {
+		phenoLabel = tooltip.parent.state.phenotypeListHash.get(d.xID).label;
+	} else if (tooltip.parent.state.phenotypeListHash.containsKey(d.yID)) {
+		phenoLabel = tooltip.parent.state.phenotypeListHash.get(d.yID).label;
+	} else {
+		phenoLabel = null;
+	}
+
+	if (tooltip.parent.state.modelListHash.containsKey(d.xID)) {
+		modelLabel = tooltip.parent.state.modelListHash.get(d.xID).label;
+	} else if (tooltip.parent.state.modelListHash.containsKey(d.yID)) {
+		modelLabel = tooltip.parent.state.modelListHash.get(d.yID).label;
+	} else {
+		modelLabel = null;
+	}
+
+	if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
+		if (taxon.indexOf("NCBITaxon:") != -1) {
+			taxon = taxon.slice(10);
+		}
+	}
+
+	for (var idx in tooltip.parent.state.similarityCalculation) {
+		if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+			break;
+		}
+		if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+			prefix = tooltip.parent.state.similarityCalculation[idx].label;
+			break;
+		}
+	}
+
+	// Hiding scores which are equal to 0
+	var formatScore =  function(score) {
+		if (score === 0) {
+			return "";
+		} else {
+			return " (IC: " + score + ")";
+		}
+	};
+
+	var suffix = "";
+	// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+	if (tooltip.parent.state.selectedCalculation != 2) {
+		suffix = '%';
+	}
+
+	retData = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
+		"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
+		"<br/><strong>Common: </strong> " + d.subsumer_label + formatScore(d.subsumer_IC.toFixed(2)) +
+		"<br/><strong>" + tooltip.parent._capitalizeString(fullInfo.type)+": </strong> " + modelLabel +
+		"<br/><strong>" + prefix + ":</strong> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + suffix +
+		"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
+
+
+	return retData;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	
+	var returnHtml = "";
+
+		var suffix = "";
+		var selCalc = tooltip.parent.state.selectedCalculation;
+
+		var prefix, targetLabel, sourceLabel, type;
+		var species = d.species;
+		//var taxon = d.taxon;
+
+		 if (tooltip.parent.state.invertAxis) {
+			sourceLabel = d.source_id;
+			targetLabel = d.target_id;
+//			type = yInfo.type;
+		 } else {
+			sourceLabel = d.source_id;
+			targetLabel = d.target_id;
+//			type = xInfo.type;
+		 }
+
+		// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
+		// 	if (taxon.indexOf("NCBITaxon:") != -1) {
+		// 		taxon = taxon.slice(10);
+		// 	}
+		// }
+
+		for (var idx in tooltip.parent.state.similarityCalculation) {	
+			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+				break;
+			}
+			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+				prefix = tooltip.parent.state.similarityCalculation[idx].label;
+			break;
+			}
+		}
+
+		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+		if ( selCalc != 2) {suffix = '%';}
+
+		returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
+			"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
+			"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
+			"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
+			"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
+			"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
+	
+	return returnHtml;	
+	
+	*/
+
+},
+
+
 gene: function(tooltip) {
 	var returnHtml = "";	
 /* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING
@@ -4302,7 +4389,7 @@ genotype: function(tooltip) {
 
 // CommonJS format - Joe
 module.exports = TooltipRender;
-},{}],4:[function(require,module,exports){
+},{"jquery":7}],4:[function(require,module,exports){
 /* Sticky Tooltip script (v1.0)
 * Created: Nov 25th, 2009. This notice must stay intact for usage 
 * Author: Dynamic Drive at http://www.dynamicdrive.com/

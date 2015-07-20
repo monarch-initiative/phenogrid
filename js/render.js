@@ -8,6 +8,9 @@
 	just add a specialized method, making sure the the name matches the data.type 
 	(e.g, function phenotype => data.type='phenotype').
 */
+
+var $ = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
+
 var TooltipRender = function(url) {  //parms
 	 this.url = url;
 };
@@ -26,20 +29,26 @@ TooltipRender.prototype = {
 		this.parent = parms.parent;
 		this.data = parms.data;
 		this.id = parms.id;
+		var retInfo = "";
 
-		// this creates the standard information portion of the tooltip, 
-		var inf =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + this.entityHreflink() + "<br/>" +
-				   this._rank() + this._score() + this._ic();
+		// making an assumption here that we want to display cell info
+		if ( typeof(this.data.type) == 'undefined') {
+			retInfo = this.cell(this, this.data);
+		} else {
+			// this creates the standard information portion of the tooltip, 
+			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + this.entityHreflink() + "<br/>" +
+					   this._rank() + this._score() + this._ic();
 
-		// this creates the extended information for specialized tooltip info and functionality
-		// try to dynamically invoke the function that matches the data.type
-		try {
-			var func = this.data.type;			
-			inf += this[func](this);
-		} catch(err) { console.log("searching for " + func);}
-
-		return inf;
+			// this creates the extended information for specialized tooltip info and functionality
+			// try to dynamically invoke the function that matches the data.type
+			try {
+				var func = this.data.type;			
+				retInfo += this[func](this);
+			} catch(err) { console.log("searching for " + func);}
+		}
+		return retInfo;
 	},
+	
 	_rank: function() {
 		return (typeof(this.data.rank) !== 'undefined'?"<strong>Rank:</strong> " + this.data.rank+"<br/>":"");
 	},
@@ -98,6 +107,139 @@ phenotype: function(tooltip) {
 return returnHtml;		
 
 },
+
+cell: function(tooltip, d) {
+	
+	var retData, prefix, modelLabel, phenoLabel;
+
+	var yInfo = tooltip.parent._getAxisData(d.yID);
+	var xInfo = tooltip.parent._getAxisData(d.xID);
+	var fullInfo = $.extend({}, xInfo, yInfo);
+	var species = fullInfo.species;
+	var taxon = fullInfo.taxon;
+
+	//[vaa12] Could be done in a more sophisticated function, but this works and removed dependancy on invertAxis
+	if (tooltip.parent.state.phenotypeListHash.containsKey(d.xID)) {
+		phenoLabel = tooltip.parent.state.phenotypeListHash.get(d.xID).label;
+	} else if (tooltip.parent.state.phenotypeListHash.containsKey(d.yID)) {
+		phenoLabel = tooltip.parent.state.phenotypeListHash.get(d.yID).label;
+	} else {
+		phenoLabel = null;
+	}
+
+	if (tooltip.parent.state.modelListHash.containsKey(d.xID)) {
+		modelLabel = tooltip.parent.state.modelListHash.get(d.xID).label;
+	} else if (tooltip.parent.state.modelListHash.containsKey(d.yID)) {
+		modelLabel = tooltip.parent.state.modelListHash.get(d.yID).label;
+	} else {
+		modelLabel = null;
+	}
+
+	if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
+		if (taxon.indexOf("NCBITaxon:") != -1) {
+			taxon = taxon.slice(10);
+		}
+	}
+
+	for (var idx in tooltip.parent.state.similarityCalculation) {
+		if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+			break;
+		}
+		if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+			prefix = tooltip.parent.state.similarityCalculation[idx].label;
+			break;
+		}
+	}
+
+	// Hiding scores which are equal to 0
+	var formatScore =  function(score) {
+		if (score === 0) {
+			return "";
+		} else {
+			return " (IC: " + score + ")";
+		}
+	};
+
+	var suffix = "";
+	// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+	if (tooltip.parent.state.selectedCalculation != 2) {
+		suffix = '%';
+	}
+
+	retData = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
+		"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
+		"<br/><strong>Common: </strong> " + d.subsumer_label + formatScore(d.subsumer_IC.toFixed(2)) +
+		"<br/><strong>" + tooltip.parent._capitalizeString(fullInfo.type)+": </strong> " + modelLabel +
+		"<br/><strong>" + prefix + ":</strong> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + suffix +
+		"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
+
+
+	return retData;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	
+	var returnHtml = "";
+
+		var suffix = "";
+		var selCalc = tooltip.parent.state.selectedCalculation;
+
+		var prefix, targetLabel, sourceLabel, type;
+		var species = d.species;
+		//var taxon = d.taxon;
+
+		 if (tooltip.parent.state.invertAxis) {
+			sourceLabel = d.source_id;
+			targetLabel = d.target_id;
+//			type = yInfo.type;
+		 } else {
+			sourceLabel = d.source_id;
+			targetLabel = d.target_id;
+//			type = xInfo.type;
+		 }
+
+		// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
+		// 	if (taxon.indexOf("NCBITaxon:") != -1) {
+		// 		taxon = taxon.slice(10);
+		// 	}
+		// }
+
+		for (var idx in tooltip.parent.state.similarityCalculation) {	
+			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+				break;
+			}
+			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+				prefix = tooltip.parent.state.similarityCalculation[idx].label;
+			break;
+			}
+		}
+
+		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+		if ( selCalc != 2) {suffix = '%';}
+
+		returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
+			"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
+			"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
+			"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
+			"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
+			"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
+	
+	return returnHtml;	
+	
+	*/
+
+},
+
 
 gene: function(tooltip) {
 	var returnHtml = "";	
