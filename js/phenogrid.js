@@ -3059,7 +3059,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var ylowText = y1 + self.state.yoffset;
 			var xlowText = self.state.axis_pos_list[2] + 10;
 			var div_text1 = self.state.svg.append("svg:text")
-				.attr("class", "pg_detail_text")
+				.attr("class", "pg_sim_text")
 				.attr("y", ylowText)
 				.attr("x", xlowText)
 				.style("font-size", "10px")
@@ -3068,7 +3068,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var ylabelText = y1 + self.state.yoffset;
 			var xlabelText = self.state.axis_pos_list[2] + 75;
 			var div_text2 = self.state.svg.append("svg:text")
-				.attr("class", "pg_detail_text")
+				.attr("class", "pg_sim_text")
 				.attr("y", ylabelText)
 				.attr("x", xlabelText)
 				.style("font-size", "12px")
@@ -3077,7 +3077,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var yhighText = y1 + self.state.yoffset;
 			var xhighText = self.state.axis_pos_list[2] + 125;
 			var div_text3 = self.state.svg.append("svg:text")
-				.attr("class", "pg_detail_text")
+				.attr("class", "pg_sim_text")
 				.attr("y", yhighText)
 				.style("font-size", "10px")
 				.text(highText);
