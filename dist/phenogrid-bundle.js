@@ -2552,7 +2552,7 @@ var TooltipRender = require('./tooltiprender.js');
 			 * For the overview, there will be a 0th position for each species so we need to get the right model_id
 			 */
 
-			var phen_label = this.state.svg.selectAll("text.phenotype_label." + this._getConceptId(curr_data.yID));
+			var phen_label = this.state.svg.selectAll("text#" + this._getConceptId(curr_data.yID));
 			phen_label.style("font-weight", "bold");
 			phen_label.style("fill", "blue");
 
@@ -3254,9 +3254,7 @@ var TooltipRender = require('./tooltiprender.js');
 			// Enter, create new nodes for incoming data - Joe
 			rect_text.enter()
 				.append("text")
-				.attr("class", function(d) {
-					return "phenotype_label " + d;
-				})
+				.attr("class", "phenotype_label")
 			    // store the id for this item. This will be used on click events
 				.attr("ontology_id", function(d) {
 					return d;
