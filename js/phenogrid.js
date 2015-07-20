@@ -1,3 +1,6 @@
+(function () {
+'use strict';
+
 /*
  * Phenogrid
  *
@@ -75,7 +78,7 @@ var TooltipRender = require('./tooltiprender.js');
 	// the jQuery object that the module system is using and pass it in.
 	// Otherwise, we're working in a browser, so just pass in the global jQuery object.
 	if (typeof module === "object" && typeof module.exports === "object") {
-		module_exports = factory(require("jquery"), window, document);
+		module.exports = factory(require("jquery"), window, document);
 	} else {
 		factory($, window, document);
 	}
@@ -214,7 +217,7 @@ var TooltipRender = require('./tooltiprender.js');
 		// reset state values that must be cleared before reloading data
 		_reset: function(type) {
 			// LEAVE UNTIL OR MOVING HASH CONSTRUCTION EARLIER
-			if (type == 'organism' || type == 'axisflip' || typeof(type) == 'undefined') {
+			if (type === 'organism' || type === 'axisflip' || typeof(type) === 'undefined') {
 				this.state.modelData = [];
 				this.state.modelList = [];
 				this.state.expandedHash = new Hashtable(); // used jshashtable.js - Joe
@@ -300,11 +303,11 @@ var TooltipRender = require('./tooltiprender.js');
 					break;
 				}
 				// we've found a matching name.
-				if (name == sname) {
+				if (name === sname) {
 					found = true;
 				}
 
-				if (name == self.state.targetSpeciesByName[sname].taxon) {
+				if (name === self.state.targetSpeciesByName[sname].taxon) {
 					found = true;
 					species = sname;
 					break;
@@ -391,7 +394,7 @@ var TooltipRender = require('./tooltiprender.js');
 			// Do we need this? - Joe
 
 			// default simServerURL value..
-			if (typeof(this.state.simServerURL) == 'undefined' || this.state.simServerURL === '') {
+			if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
 				this.state.simServerURL=this.state.serverURL;
 			}
 
@@ -487,7 +490,7 @@ var TooltipRender = require('./tooltiprender.js');
 		_setLoadedValues: function() {
 			// must init the stickytooltip here initially, but then don't reinit later until in the redraw
 			// this is weird behavior, but need to figure out why later
-			if (typeof(this.state.stickyInitialized) == 'undefined') {
+			if (typeof(this.state.stickyInitialized) === 'undefined') {
 				this._addStickyTooltipAreaStub();
 				this.state.stickyInitialized = true;
 				stickytooltip.init("*[data-tooltip]", "mystickytooltip");
@@ -495,7 +498,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			this.state.tooltipRender = new TooltipRender(this.state.serverURL);
 
-			if (this.state.owlSimFunction == 'exomiser') {
+			if (this.state.owlSimFunction === 'exomiser') {
 				this.state.selectedCalculation = 2; // Force the color to Uniqueness
 			}
 
@@ -767,10 +770,10 @@ var TooltipRender = require('./tooltiprender.js');
 						var newY = curY + d3.event.dy;
 
 						// Restrict Movement if no need to move map
-						if (selectRectHeight == overviewRegionSize) {
+						if (selectRectHeight === overviewRegionSize) {
 							newY = overviewY;
 						}
-						if (selectRectWidth == overviewRegionSize) {
+						if (selectRectWidth === overviewRegionSize) {
 							newX = overviewX;
 						}
 
@@ -819,7 +822,7 @@ var TooltipRender = require('./tooltiprender.js');
 				if ( ! searchArray.hasOwnProperty(i)) {
 					break;
 				}
-				if (searchArray[i][1].pos == position) {
+				if (searchArray[i][1].pos === position) {
 					results = searchArray[i][0];
 					break;
 				}
@@ -1102,7 +1105,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			if (typeof this.state.owlSimFunction === 'undefined') {
 				this.state.owlSimFunction = 'search';
-			} else if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction == 'exomiser') {
+			} else if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser') {
 				this.state.targetSpeciesName = 'Homo sapiens';
 			}
 
@@ -1467,7 +1470,9 @@ var TooltipRender = require('./tooltiprender.js');
 		_getIDTypeDetail: function(key) {
 			var info = this.state.modelListHash.get(key);
 
-			if (info !== null) return info.type;
+			if (info !== null) {
+				return info.type;
+			}
 			return "unknown";
 		},
 
@@ -1522,11 +1527,11 @@ var TooltipRender = require('./tooltiprender.js');
 					"sum": origHash[i][1].sum}
 				);
 			}
-			if (sortType == 'Frequency') {
+			if (sortType === 'Frequency') {
 				sortFunc = self._sortPhenotypesModelHash;
-			} else if (sortType == 'Frequency and Rarity') {
+			} else if (sortType === 'Frequency and Rarity') {
 				sortFunc = self._sortPhenotypesRankHash;
-			} else if (sortType == 'Alphabetic') {
+			} else if (sortType === 'Alphabetic') {
 				sortFunc = self._sortPhenotypesAlphabeticHash;
 			}
 
@@ -1536,7 +1541,7 @@ var TooltipRender = require('./tooltiprender.js');
 					if ( ! newHash.hasOwnProperty(j)) {
 						break;
 					}
-					self._updatePhenoPos(newHash[j].id, j);
+					self._updatePhenoPos(newHash[j].id, Number(j));
 				}
 			}
 		},
@@ -1610,7 +1615,7 @@ var TooltipRender = require('./tooltiprender.js');
 				this.state.colorScale[species] = new Array(4);
 				for (var j = 0; j <4; j++) {
 					maxScore = 100;
-					if (j == 2) {
+					if (j === 2) {
 						maxScore = this.state.maxICScore;
 					}
 					if (typeof(this.state.colorRanges[i][j]) !== 'undefined') {
@@ -1809,7 +1814,7 @@ var TooltipRender = require('./tooltiprender.js');
 				if ( ! modelKeys.hasOwnProperty(i)) {
 					break;
 				}
-				if (key == modelKeys[i].yID || key == modelKeys[i].xID) {
+				if (key === modelKeys[i].yID || key === modelKeys[i].xID) {
 					matchingKeys.push(modelKeys[i]);
 				}
 			}
@@ -1859,7 +1864,7 @@ var TooltipRender = require('./tooltiprender.js');
 					if ( ! alabels[0].hasOwnProperty(j)) {
 						break;
 					}
-					if (alabels[0][j].id == ID) {
+					if (alabels[0][j].id === ID) {
 						alabels[0][j].style.fill = "blue";
 					}
 				}
@@ -2119,10 +2124,10 @@ var TooltipRender = require('./tooltiprender.js');
 					var id = this._getConceptId(data);
 					var label = this._getAxisData(data).label;
 
-					if ((IDType == "Phenotype" && !this.state.invertAxis) || (IDType == "Model" && this.state.invertAxis)) {
+					if ((IDType === "Phenotype" && !this.state.invertAxis) || (IDType === "Model" && this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text.phenotype_label." + id);
 						alabels.html(this._getShortLabel(label));
-					} else if ((IDType == "Phenotype" && this.state.invertAxis) || (IDType == "Model" && !this.state.invertAxis)) {
+					} else if ((IDType === "Phenotype" && this.state.invertAxis) || (IDType === "Model" && !this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text#" + id);
 						alabels.html(this._getShortLabel(label, self.state.labelCharDisplayCount));
 					}
@@ -2139,15 +2144,15 @@ var TooltipRender = require('./tooltiprender.js');
 		_clickItem: function(url_origin, data) {
 			var url;
 			var apientity = this.state.defaultApiEntity;
-			if (this._getIDType(data) == "Phenotype") {
+			if (this._getIDType(data) === "Phenotype") {
 				url = url_origin + "/phenotype/" + (data.replace("_", ":"));
 				var win = window.open(url, '_blank');
 
-			} else if (this._getIDType(data) == "Model"){
+			} else if (this._getIDType(data) === "Model"){
 				apientity = this._getIDTypeDetail(data);
 
 				// if it's overview, then just allow view of the model clicked
-				if (this.state.targetSpeciesName != "Overview" && apientity == 'gene') {
+				if (this.state.targetSpeciesName !== "Overview" && apientity === 'gene') {
 					// TEMP: THIS HIDES THE GENOTYPE EXPANSION STUFF FOR NOW
 					//var expanded = this._isExpanded(data);
 					//if (expanded !== null && expanded) {
@@ -2247,7 +2252,7 @@ var TooltipRender = require('./tooltiprender.js');
 				.style("fill", this._getExpandStyling(data))
 				// don't show the label if it is a dummy.
 				.text(function(d) {
-					if (label == self.state.dummyModelName) {
+					if (label === self.state.dummyModelName) {
 						return "";
 					} else {
 						return label;
@@ -2475,7 +2480,7 @@ var TooltipRender = require('./tooltiprender.js');
 							parCt = totCt - ct;
 							return hwidthAndGap * parCt;
 						}
-					})
+					});
 					border_rect.attr("y", self.state.yoffset + 1);
 				}
 		},
@@ -2959,8 +2964,8 @@ var TooltipRender = require('./tooltiprender.js');
 			var y;
 			// If this is the Overview, get gradients for all species with an index
 			// COMPARE CALL HACK - REFACTOR OUT
-			if ((this.state.targetSpeciesName == 'Overview' || this.state.targetSpeciesName == 'All')
-				|| (this.state.targetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {
+			if ((this.state.targetSpeciesName == 'Overview' || this.state.targetSpeciesName == 'All') ||
+				(this.state.targetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {
 				//this.state.overviewCount tells us how many fit in the overview
 				for (var i = 0; i < this.state.overviewCount; i++) {
 					y = this._createGradients(i,y1);
@@ -3509,12 +3514,12 @@ var TooltipRender = require('./tooltiprender.js');
 						if ( ! nodes.hasOwnProperty(i)) {
 							break;
 						}
-						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id)
-							&& (nodes[i].id != "MP:0000001"
-							&& nodes[i].id != "OBO:UPHENO_0001001"
-							&& nodes[i].id != "OBO:UPHENO_0001002"
-							&& nodes[i].id != "HP:0000118"
-							&& nodes[i].id != "HP:0000001")) {
+						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id) &&
+							(nodes[i].id != "MP:0000001" &&
+							nodes[i].id != "OBO:UPHENO_0001001" &&
+							nodes[i].id != "OBO:UPHENO_0001002" &&
+							nodes[i].id != "HP:0000118" &&
+							nodes[i].id != "HP:0000001")) {
 							this.state.hpoCacheLabels.put(nodes[i].id, this._capitalizeString(nodes[i].lbl));
 						}
 					}
@@ -3524,11 +3529,11 @@ var TooltipRender = require('./tooltiprender.js');
 						if ( ! edges.hasOwnProperty(j)) {
 							break;
 						}
-						if (edges[j].obj != "MP:0000001"
-							&& edges[j].obj != "OBO:UPHENO_0001001"
-							&& edges[j].obj != "OBO:UPHENO_0001002"
-							&& edges[j].obj != "HP:0000118"
-							&& edges[j].obj != "HP:0000001") {
+						if (edges[j].obj != "MP:0000001" &&
+							edges[j].obj != "OBO:UPHENO_0001001" &&
+							edges[j].obj != "OBO:UPHENO_0001002" &&
+							edges[j].obj != "HP:0000118" &&
+							edges[j].obj != "HP:0000001") {
 							HPOInfo.push(edges[j]);
 						}
 					}
@@ -4019,3 +4024,6 @@ var TooltipRender = require('./tooltiprender.js');
 
 	}); // end of widget code
 });
+
+
+}());

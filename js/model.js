@@ -1,3 +1,6 @@
+(function () {
+'use strict';
+
 // CommonJS format
 module.exports = {
 	// In JavaScript, a function is an object, and can be used to construct objects with the new operator - Joe
@@ -16,7 +19,6 @@ module.exports = {
 	modelDataPointPrint: function(point) {
 		return "X:" + point.xID + ", Y:" + point.yID;
 	}
-}
+};
 
-
-
+}());

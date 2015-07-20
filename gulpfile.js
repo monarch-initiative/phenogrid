@@ -1,3 +1,6 @@
+(function () {
+'use strict';
+
 ////
 //// Usage: node ./node_modules/.bin/gulp <TARGET>
 //// Current top targets:
@@ -18,6 +21,8 @@ var bump = require('gulp-bump');
 var del = require('del');
 var shell = require('gulp-shell');
 var marked = require('marked');
+var jshint = require('gulp-jshint');
+var jshints = require('jshint-stylish');
 
 function markdownHelper(text) {
   marked.setOptions({
@@ -34,15 +39,15 @@ function markdownHelper(text) {
 var fileinclude = require('gulp-file-include');
 
 
-
 var paths = {
     readme: ['./README.md'],
     transients:[],
+    js: ['js/*.js'],
     tests: ['tests/*.test.js', 'tests/*.tests.js']
 };
 
 // The default task is to build the different distributions.
-gulp.task('bundle', ['create-index', 'js-bundle', 'css-bundle']);
+gulp.task('bundle', ['lint', 'create-index', 'js-bundle', 'css-bundle']);
 
 gulp.task('create-index', ['clean'], function(cb) {
   gulp.src(['templates/index.html'])
@@ -127,7 +132,17 @@ gulp.task('watch-tests', function() {
   gulp.watch(paths.tests, ['tests', 'bundle']);
 });
 
+gulp.task("lint", function() {
+     return gulp.src(paths.js)
+        .pipe(jshint())
+        .pipe(jshint.reporter("jshint-stylish"));
+        //.pipe(jshint.reporter("fail"));
+});
+
 // The default task (called when you run `gulp` from cli)
 gulp.task('default', function() {
     console.log("'allo 'allo!");
 });
+
+
+}());

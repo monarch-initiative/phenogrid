@@ -1,4 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function () {
+'use strict';
+
 // CommonJS format
 module.exports = {
 	// In JavaScript, a function is an object, and can be used to construct objects with the new operator - Joe
@@ -17,12 +20,14 @@ module.exports = {
 	modelDataPointPrint: function(point) {
 		return "X:" + point.xID + ", Y:" + point.yID;
 	}
-}
+};
 
-
-
+}());
 
 },{}],2:[function(require,module,exports){
+(function () {
+'use strict';
+
 /*
  * Phenogrid
  *
@@ -100,7 +105,7 @@ var TooltipRender = require('./tooltiprender.js');
 	// the jQuery object that the module system is using and pass it in.
 	// Otherwise, we're working in a browser, so just pass in the global jQuery object.
 	if (typeof module === "object" && typeof module.exports === "object") {
-		module_exports = factory(require("jquery"), window, document);
+		module.exports = factory(require("jquery"), window, document);
 	} else {
 		factory($, window, document);
 	}
@@ -239,7 +244,7 @@ var TooltipRender = require('./tooltiprender.js');
 		// reset state values that must be cleared before reloading data
 		_reset: function(type) {
 			// LEAVE UNTIL OR MOVING HASH CONSTRUCTION EARLIER
-			if (type == 'organism' || type == 'axisflip' || typeof(type) == 'undefined') {
+			if (type === 'organism' || type === 'axisflip' || typeof(type) === 'undefined') {
 				this.state.modelData = [];
 				this.state.modelList = [];
 				this.state.expandedHash = new Hashtable(); // used jshashtable.js - Joe
@@ -325,11 +330,11 @@ var TooltipRender = require('./tooltiprender.js');
 					break;
 				}
 				// we've found a matching name.
-				if (name == sname) {
+				if (name === sname) {
 					found = true;
 				}
 
-				if (name == self.state.targetSpeciesByName[sname].taxon) {
+				if (name === self.state.targetSpeciesByName[sname].taxon) {
 					found = true;
 					species = sname;
 					break;
@@ -416,7 +421,7 @@ var TooltipRender = require('./tooltiprender.js');
 			// Do we need this? - Joe
 
 			// default simServerURL value..
-			if (typeof(this.state.simServerURL) == 'undefined' || this.state.simServerURL === '') {
+			if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
 				this.state.simServerURL=this.state.serverURL;
 			}
 
@@ -512,7 +517,7 @@ var TooltipRender = require('./tooltiprender.js');
 		_setLoadedValues: function() {
 			// must init the stickytooltip here initially, but then don't reinit later until in the redraw
 			// this is weird behavior, but need to figure out why later
-			if (typeof(this.state.stickyInitialized) == 'undefined') {
+			if (typeof(this.state.stickyInitialized) === 'undefined') {
 				this._addStickyTooltipAreaStub();
 				this.state.stickyInitialized = true;
 				stickytooltip.init("*[data-tooltip]", "mystickytooltip");
@@ -520,7 +525,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			this.state.tooltipRender = new TooltipRender(this.state.serverURL);
 
-			if (this.state.owlSimFunction == 'exomiser') {
+			if (this.state.owlSimFunction === 'exomiser') {
 				this.state.selectedCalculation = 2; // Force the color to Uniqueness
 			}
 
@@ -792,10 +797,10 @@ var TooltipRender = require('./tooltiprender.js');
 						var newY = curY + d3.event.dy;
 
 						// Restrict Movement if no need to move map
-						if (selectRectHeight == overviewRegionSize) {
+						if (selectRectHeight === overviewRegionSize) {
 							newY = overviewY;
 						}
-						if (selectRectWidth == overviewRegionSize) {
+						if (selectRectWidth === overviewRegionSize) {
 							newX = overviewX;
 						}
 
@@ -844,7 +849,7 @@ var TooltipRender = require('./tooltiprender.js');
 				if ( ! searchArray.hasOwnProperty(i)) {
 					break;
 				}
-				if (searchArray[i][1].pos == position) {
+				if (searchArray[i][1].pos === position) {
 					results = searchArray[i][0];
 					break;
 				}
@@ -1127,7 +1132,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			if (typeof this.state.owlSimFunction === 'undefined') {
 				this.state.owlSimFunction = 'search';
-			} else if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction == 'exomiser') {
+			} else if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser') {
 				this.state.targetSpeciesName = 'Homo sapiens';
 			}
 
@@ -1492,7 +1497,9 @@ var TooltipRender = require('./tooltiprender.js');
 		_getIDTypeDetail: function(key) {
 			var info = this.state.modelListHash.get(key);
 
-			if (info !== null) return info.type;
+			if (info !== null) {
+				return info.type;
+			}
 			return "unknown";
 		},
 
@@ -1547,11 +1554,11 @@ var TooltipRender = require('./tooltiprender.js');
 					"sum": origHash[i][1].sum}
 				);
 			}
-			if (sortType == 'Frequency') {
+			if (sortType === 'Frequency') {
 				sortFunc = self._sortPhenotypesModelHash;
-			} else if (sortType == 'Frequency and Rarity') {
+			} else if (sortType === 'Frequency and Rarity') {
 				sortFunc = self._sortPhenotypesRankHash;
-			} else if (sortType == 'Alphabetic') {
+			} else if (sortType === 'Alphabetic') {
 				sortFunc = self._sortPhenotypesAlphabeticHash;
 			}
 
@@ -1561,7 +1568,7 @@ var TooltipRender = require('./tooltiprender.js');
 					if ( ! newHash.hasOwnProperty(j)) {
 						break;
 					}
-					self._updatePhenoPos(newHash[j].id, j);
+					self._updatePhenoPos(newHash[j].id, Number(j));
 				}
 			}
 		},
@@ -1635,7 +1642,7 @@ var TooltipRender = require('./tooltiprender.js');
 				this.state.colorScale[species] = new Array(4);
 				for (var j = 0; j <4; j++) {
 					maxScore = 100;
-					if (j == 2) {
+					if (j === 2) {
 						maxScore = this.state.maxICScore;
 					}
 					if (typeof(this.state.colorRanges[i][j]) !== 'undefined') {
@@ -1834,7 +1841,7 @@ var TooltipRender = require('./tooltiprender.js');
 				if ( ! modelKeys.hasOwnProperty(i)) {
 					break;
 				}
-				if (key == modelKeys[i].yID || key == modelKeys[i].xID) {
+				if (key === modelKeys[i].yID || key === modelKeys[i].xID) {
 					matchingKeys.push(modelKeys[i]);
 				}
 			}
@@ -1884,7 +1891,7 @@ var TooltipRender = require('./tooltiprender.js');
 					if ( ! alabels[0].hasOwnProperty(j)) {
 						break;
 					}
-					if (alabels[0][j].id == ID) {
+					if (alabels[0][j].id === ID) {
 						alabels[0][j].style.fill = "blue";
 					}
 				}
@@ -2144,10 +2151,10 @@ var TooltipRender = require('./tooltiprender.js');
 					var id = this._getConceptId(data);
 					var label = this._getAxisData(data).label;
 
-					if ((IDType == "Phenotype" && !this.state.invertAxis) || (IDType == "Model" && this.state.invertAxis)) {
+					if ((IDType === "Phenotype" && !this.state.invertAxis) || (IDType === "Model" && this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text.phenotype_label." + id);
 						alabels.html(this._getShortLabel(label));
-					} else if ((IDType == "Phenotype" && this.state.invertAxis) || (IDType == "Model" && !this.state.invertAxis)) {
+					} else if ((IDType === "Phenotype" && this.state.invertAxis) || (IDType === "Model" && !this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text#" + id);
 						alabels.html(this._getShortLabel(label, self.state.labelCharDisplayCount));
 					}
@@ -2164,15 +2171,15 @@ var TooltipRender = require('./tooltiprender.js');
 		_clickItem: function(url_origin, data) {
 			var url;
 			var apientity = this.state.defaultApiEntity;
-			if (this._getIDType(data) == "Phenotype") {
+			if (this._getIDType(data) === "Phenotype") {
 				url = url_origin + "/phenotype/" + (data.replace("_", ":"));
 				var win = window.open(url, '_blank');
 
-			} else if (this._getIDType(data) == "Model"){
+			} else if (this._getIDType(data) === "Model"){
 				apientity = this._getIDTypeDetail(data);
 
 				// if it's overview, then just allow view of the model clicked
-				if (this.state.targetSpeciesName != "Overview" && apientity == 'gene') {
+				if (this.state.targetSpeciesName !== "Overview" && apientity === 'gene') {
 					// TEMP: THIS HIDES THE GENOTYPE EXPANSION STUFF FOR NOW
 					//var expanded = this._isExpanded(data);
 					//if (expanded !== null && expanded) {
@@ -2272,7 +2279,7 @@ var TooltipRender = require('./tooltiprender.js');
 				.style("fill", this._getExpandStyling(data))
 				// don't show the label if it is a dummy.
 				.text(function(d) {
-					if (label == self.state.dummyModelName) {
+					if (label === self.state.dummyModelName) {
 						return "";
 					} else {
 						return label;
@@ -2500,7 +2507,7 @@ var TooltipRender = require('./tooltiprender.js');
 							parCt = totCt - ct;
 							return hwidthAndGap * parCt;
 						}
-					})
+					});
 					border_rect.attr("y", self.state.yoffset + 1);
 				}
 		},
@@ -2984,8 +2991,8 @@ var TooltipRender = require('./tooltiprender.js');
 			var y;
 			// If this is the Overview, get gradients for all species with an index
 			// COMPARE CALL HACK - REFACTOR OUT
-			if ((this.state.targetSpeciesName == 'Overview' || this.state.targetSpeciesName == 'All')
-				|| (this.state.targetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {
+			if ((this.state.targetSpeciesName == 'Overview' || this.state.targetSpeciesName == 'All') ||
+				(this.state.targetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {
 				//this.state.overviewCount tells us how many fit in the overview
 				for (var i = 0; i < this.state.overviewCount; i++) {
 					y = this._createGradients(i,y1);
@@ -3534,12 +3541,12 @@ var TooltipRender = require('./tooltiprender.js');
 						if ( ! nodes.hasOwnProperty(i)) {
 							break;
 						}
-						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id)
-							&& (nodes[i].id != "MP:0000001"
-							&& nodes[i].id != "OBO:UPHENO_0001001"
-							&& nodes[i].id != "OBO:UPHENO_0001002"
-							&& nodes[i].id != "HP:0000118"
-							&& nodes[i].id != "HP:0000001")) {
+						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id) &&
+							(nodes[i].id != "MP:0000001" &&
+							nodes[i].id != "OBO:UPHENO_0001001" &&
+							nodes[i].id != "OBO:UPHENO_0001002" &&
+							nodes[i].id != "HP:0000118" &&
+							nodes[i].id != "HP:0000001")) {
 							this.state.hpoCacheLabels.put(nodes[i].id, this._capitalizeString(nodes[i].lbl));
 						}
 					}
@@ -3549,11 +3556,11 @@ var TooltipRender = require('./tooltiprender.js');
 						if ( ! edges.hasOwnProperty(j)) {
 							break;
 						}
-						if (edges[j].obj != "MP:0000001"
-							&& edges[j].obj != "OBO:UPHENO_0001001"
-							&& edges[j].obj != "OBO:UPHENO_0001002"
-							&& edges[j].obj != "HP:0000118"
-							&& edges[j].obj != "HP:0000001") {
+						if (edges[j].obj != "MP:0000001" &&
+							edges[j].obj != "OBO:UPHENO_0001001" &&
+							edges[j].obj != "OBO:UPHENO_0001002" &&
+							edges[j].obj != "HP:0000118" &&
+							edges[j].obj != "HP:0000001") {
 							HPOInfo.push(edges[j]);
 						}
 					}
@@ -4045,7 +4052,13 @@ var TooltipRender = require('./tooltiprender.js');
 	}); // end of widget code
 });
 
+
+}());
+
 },{"./model.js":1,"./stickytooltip.js":3,"./tooltiprender.js":4,"d3":5,"jquery":7,"jquery-ui":6,"jshashtable":8}],3:[function(require,module,exports){
+(function () {
+'use strict';
+
 /* Sticky Tooltip script (v1.0)
 * Created: Nov 25th, 2009. This notice must stay intact for usage 
 * Author: Dynamic Drive at http://www.dynamicdrive.com/
@@ -4072,9 +4085,9 @@ var stickytooltip={
 	positiontooltip:function($, $tooltip, e){
 		//var x=e.pageX+this.tooltipoffsets[0], y=e.pageY+this.tooltipoffsets[1]
 	    var x=e.pageX+1, y=e.pageY-1;
-		var tipw=$tooltip.outerWidth(), tiph=$tooltip.outerHeight(), 
-		x=(x+tipw>$(document).scrollLeft()+$(window).width())? x-tipw-(stickytooltip.tooltipoffsets[0]*2) : x
-		y=(y+tiph>$(document).scrollTop()+$(window).height())? $(document).scrollTop()+$(window).height()-tiph-10 : y
+		var tipw=$tooltip.outerWidth(), tiph=$tooltip.outerHeight();
+		x=(x+tipw>$(document).scrollLeft()+$(window).width())? x-tipw-(stickytooltip.tooltipoffsets[0]*2) : x;
+		y=(y+tiph>$(document).scrollTop()+$(window).height())? $(document).scrollTop()+$(window).height()-tiph-10 : y;
 		$tooltip.css({left:x, top:y});
 	},
 	
@@ -4086,7 +4099,7 @@ var stickytooltip={
 
 	// wrapper function
 	show:function(e) {
-		if (e == null) e = stickytooltip.lastEvent;
+		if (e === null) e = stickytooltip.lastEvent;
 		var $tooltip=$('#mystickytooltip');
 		stickytooltip.isdocked = true;
 		stickytooltip.showbox($, $tooltip, e);
@@ -4101,7 +4114,7 @@ var stickytooltip={
 	},
 
 	docktooltip:function($, $tooltip, e){
-		this.isdocked=true
+		this.isdocked=true;
 		//$tooltip.css({borderColor:'darkred'}).find('.stickystatus:eq(0)').css({background:this.stickybordercolors[1]}).html(this.stickynotice2)
 	},
 
@@ -4117,7 +4130,7 @@ var stickytooltip={
 			var self = this;			
 			var $targets=$(targetselector);
 			var $tooltip=$('#'+tipid).appendTo(document.body);
-			if ($targets.length==0)
+			if ($targets.length===0)
 				return;
 			var $alltips=$tooltip.find('div.atip');
 			if (!stickytooltip.rightclickstick)
@@ -4137,7 +4150,7 @@ var stickytooltip={
 			 $targets.bind('mouseout', function(e){  // mouseleave
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				//console.log("sticky:mouseout: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
-				if (elem.id != 'mystickytooltip' && elem.id != "") {
+				if (elem.id !== 'mystickytooltip' && elem.id !== "") {
 				    //console.log("hiding...");
 					stickytooltip.isdocked = false;
 			 		stickytooltip.hidebox($, $tooltip);
@@ -4177,9 +4190,9 @@ var stickytooltip={
 			// 		stickytooltip.hidebox($, $tooltip);
 			// 	}
 			// })
-		}) //end dom ready
+		}); //end dom ready
 	}
-}
+};
 
 //stickytooltip.init("targetElementSelector", "tooltipcontainer")
 //stickytooltip.init("*[data-tooltip]", "mystickytooltip")
@@ -4188,7 +4201,13 @@ var stickytooltip={
 // CommonJS format - Joe
 module.exports=stickytooltip;
 
+
+}());
+
 },{"jquery":7}],4:[function(require,module,exports){
+(function () {
+'use strict';
+
 /* 
 	TooltipRender - Render the content of a tooltip.
 
@@ -4210,8 +4229,8 @@ TooltipRender.prototype = {
 	constructor:TooltipRender,
 
 	entityHreflink: function() {
-		var s = "<a href=\"" + this.url +"/" +  this.data.type +"/"+ this.id 
-				+ "\" target=\"_blank\">" + this.data.label + "</a>";
+		var s = "<a href=\"" + this.url +"/" +  this.data.type +"/"+ this.id +
+				"\" target=\"_blank\">" + this.data.label + "</a>";
 		return s;
 	},
 
@@ -4267,14 +4286,14 @@ phenotype: function(tooltip) {
 	var hpoExpand = false;
 	var hpoData = "<br/><br/>";
 	var hpoCached = tooltip.parent.state.hpoCacheHash.get(tooltip.id.replace("_", ":"));
-	if (hpoCached !== null && hpoCached.active == 1){
+	if (hpoCached !== null && hpoCached.active === 1){
 		hpoExpand = true;
 
 		//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 		tooltip.parent.state.hpoTreesDone = 0;
 		tooltip.parent.state.hpoTreeHeight = 0;
 		var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-		if (hpoTree == "<br/>"){
+		if (hpoTree === "<br/>"){
 			hpoData += "<em>No HPO Data Found</em>";
 		} else {
 			hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
@@ -4327,7 +4346,7 @@ cell: function(tooltip, d) {
 	}
 
 	if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-		if (taxon.indexOf("NCBITaxon:") != -1) {
+		if (taxon.indexOf("NCBITaxon:") !== -1) {
 			taxon = taxon.slice(10);
 		}
 	}
@@ -4353,7 +4372,7 @@ cell: function(tooltip, d) {
 
 	var suffix = "";
 	// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-	if (tooltip.parent.state.selectedCalculation != 2) {
+	if (tooltip.parent.state.selectedCalculation !== 2) {
 		suffix = '%';
 	}
 
@@ -4398,6 +4417,7 @@ gene: function(tooltip) {
 	return returnHtml;	
 },
 
+/*
 genotype: function(tooltip) {
 	var returnHtml = "";
 	if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
@@ -4416,11 +4436,16 @@ genotype: function(tooltip) {
 	}
 	return returnHtml;	
 }
+*/
 
 };
 
 // CommonJS format - Joe
 module.exports = TooltipRender;
+
+
+}());
+
 },{"jquery":7}],5:[function(require,module,exports){
 !function() {
   var d3 = {

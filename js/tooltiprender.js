@@ -1,3 +1,6 @@
+(function () {
+'use strict';
+
 /* 
 	TooltipRender - Render the content of a tooltip.
 
@@ -19,8 +22,8 @@ TooltipRender.prototype = {
 	constructor:TooltipRender,
 
 	entityHreflink: function() {
-		var s = "<a href=\"" + this.url +"/" +  this.data.type +"/"+ this.id 
-				+ "\" target=\"_blank\">" + this.data.label + "</a>";
+		var s = "<a href=\"" + this.url +"/" +  this.data.type +"/"+ this.id +
+				"\" target=\"_blank\">" + this.data.label + "</a>";
 		return s;
 	},
 
@@ -76,14 +79,14 @@ phenotype: function(tooltip) {
 	var hpoExpand = false;
 	var hpoData = "<br/><br/>";
 	var hpoCached = tooltip.parent.state.hpoCacheHash.get(tooltip.id.replace("_", ":"));
-	if (hpoCached !== null && hpoCached.active == 1){
+	if (hpoCached !== null && hpoCached.active === 1){
 		hpoExpand = true;
 
 		//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 		tooltip.parent.state.hpoTreesDone = 0;
 		tooltip.parent.state.hpoTreeHeight = 0;
 		var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-		if (hpoTree == "<br/>"){
+		if (hpoTree === "<br/>"){
 			hpoData += "<em>No HPO Data Found</em>";
 		} else {
 			hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
@@ -136,7 +139,7 @@ cell: function(tooltip, d) {
 	}
 
 	if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-		if (taxon.indexOf("NCBITaxon:") != -1) {
+		if (taxon.indexOf("NCBITaxon:") !== -1) {
 			taxon = taxon.slice(10);
 		}
 	}
@@ -162,7 +165,7 @@ cell: function(tooltip, d) {
 
 	var suffix = "";
 	// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-	if (tooltip.parent.state.selectedCalculation != 2) {
+	if (tooltip.parent.state.selectedCalculation !== 2) {
 		suffix = '%';
 	}
 
@@ -207,6 +210,7 @@ gene: function(tooltip) {
 	return returnHtml;	
 },
 
+/*
 genotype: function(tooltip) {
 	var returnHtml = "";
 	if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
@@ -225,8 +229,12 @@ genotype: function(tooltip) {
 	}
 	return returnHtml;	
 }
+*/
 
 };
 
 // CommonJS format - Joe
 module.exports = TooltipRender;
+
+
+}());
