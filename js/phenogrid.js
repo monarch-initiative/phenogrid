@@ -1780,7 +1780,7 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_resetLinks: function() {
-			var link_lines = d3.selectAll(".a_text");
+			var link_lines = d3.selectAll(".phenotype_label");
 			for (var i in link_lines[0]) {
 				if ( ! link_lines[0].hasOwnProperty(i)) {
 					break;
@@ -1826,7 +1826,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			if (dataType === "Phenotype") {
 				if (this.state.invertAxis) {
-					alabels = this.state.svg.selectAll("text.a_text");
+					alabels = this.state.svg.selectAll("text.phenotype_label");
 					highlightX = true;
 				} else {
 					alabels = this.state.svg.selectAll("text.model_label");
@@ -1835,7 +1835,7 @@ var TooltipRender = require('./tooltiprender.js');
 				if (this.state.invertAxis) {
 					alabels = this.state.svg.selectAll("text.model_label");
 				} else {
-					alabels = this.state.svg.selectAll("text.a_text");
+					alabels = this.state.svg.selectAll("text.phenotype_label");
 					highlightX = true;
 				}
 			}
@@ -1873,7 +1873,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var label, alabels, shortTxt, shrinkSize;
 			if (dataType === "Phenotype") {
 				if (this.state.invertAxis) {
-					alabels = this.state.svg.selectAll("text.a_text");
+					alabels = this.state.svg.selectAll("text.phenotype_label");
 					shrinkSize = self.state.textLength;
 				} else {
 					alabels = this.state.svg.selectAll("text.model_label");
@@ -1884,11 +1884,11 @@ var TooltipRender = require('./tooltiprender.js');
 					alabels = this.state.svg.selectAll("text.model_label");
 					shrinkSize = self.state.labelCharDisplayCount;
 				} else {
-					alabels = this.state.svg.selectAll("text.a_text");
+					alabels = this.state.svg.selectAll("text.phenotype_label");
 					shrinkSize = self.state.textLength;
 				}
 			} else {
-				alabels = this.state.svg.selectAll("text.a_text");
+				alabels = this.state.svg.selectAll("text.phenotype_label");
 				shrinkSize = self.state.textLength;
 
 				// Clear both axis.  One here, one below
@@ -1989,7 +1989,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			//console.log("select y item.. "+txt);
 
-			var alabels = this.state.svg.selectAll("text.a_text." + curr_data)
+			var alabels = this.state.svg.selectAll("text.phenotype_label." + curr_data)
 				//.style("font-weight", "bold")
 				.style("fill", "blue");
 
@@ -2120,7 +2120,7 @@ var TooltipRender = require('./tooltiprender.js');
 					var label = this._getAxisData(data).label;
 
 					if ((IDType == "Phenotype" && !this.state.invertAxis) || (IDType == "Model" && this.state.invertAxis)) {
-						alabels = this.state.svg.selectAll("text.a_text." + id);
+						alabels = this.state.svg.selectAll("text.phenotype_label." + id);
 						alabels.html(this._getShortLabel(label));
 					} else if ((IDType == "Phenotype" && this.state.invertAxis) || (IDType == "Model" && !this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text#" + id);
@@ -2323,7 +2323,7 @@ var TooltipRender = require('./tooltiprender.js');
 					var modelConcept = self._getConceptId(d.xID);
 					// append the model id to all related items
 					if (d.value[self.state.selectedCalculation] > 0) {
-						var bla = self.state.svg.selectAll(".a_text." + dConcept);
+						var bla = self.state.svg.selectAll(".phenotype_label." + dConcept);
 						bla.classed(modelConcept, true);
 					}
 
@@ -2527,7 +2527,7 @@ var TooltipRender = require('./tooltiprender.js');
 			 * For the overview, there will be a 0th position for each species so we need to get the right model_id
 			 */
 
-			var phen_label = this.state.svg.selectAll("text.a_text." + this._getConceptId(curr_data.yID));
+			var phen_label = this.state.svg.selectAll("text.phenotype_label." + this._getConceptId(curr_data.yID));
 			phen_label.style("font-weight", "bold");
 			phen_label.style("fill", "blue");
 
@@ -3222,7 +3222,7 @@ var TooltipRender = require('./tooltiprender.js');
 			list = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
 
 			// Updating nodes - Joe
-			var rect_text = this.state.svg.selectAll(".a_text").data(list, function(d) {
+			var rect_text = this.state.svg.selectAll(".phenotype_label").data(list, function(d) {
 					return d;
 				});
 
@@ -3230,7 +3230,7 @@ var TooltipRender = require('./tooltiprender.js');
 			rect_text.enter()
 				.append("text")
 				.attr("class", function(d) {
-					return "a_text " + d;
+					return "phenotype_label " + d;
 				})
 			    // store the id for this item. This will be used on click events
 				.attr("ontology_id", function(d) {
