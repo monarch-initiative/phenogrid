@@ -2304,43 +2304,6 @@ var TooltipRender = require('./render.js');
 			el.remove();
 		},
 
-		// HTML tooptip content on mouseover grid cell - Joe
-		_updateDetailSection: function(htmltext, coords) {
-			this.state.svg.selectAll("#pg_detail_content").remove();
-
-			var w = this.state.detailRectWidth - (this.state.detailRectStrokeWidth * 2);
-			var h = this.state.detailRectHeight - (this.state.detailRectStrokeWidth * 2);
-
-			var wdt = this.state.axis_pos_list[1] + ((this.state.axis_pos_list[2] - this.state.axis_pos_list[1])/2);
-			var displayCount = this._getYLimit();
-			var hgt = displayCount * 10 + this.state.yoffset;
-			var yv, wv;
-
-			if (coords.y > hgt) {
-				yv = coords.y - this.state.detailRectHeight - 5;
-			} else {
-				yv = coords.y + 20;
-			}
-
-			if (coords.x > wdt) {
-				wv = coords.x - w - 10;
-			} else {
-				wv = coords.x + 20;
-			}
-
-			this.state.svg.append("foreignObject")
-				.attr("width", w)
-				.attr("height", h)
-				.attr("id", "pg_detail_content") // "#pg_detail_content" is the id of "foreignObject" - Joe
-				// add an offset. Otherwise, the tooltip turns off the mouse event
-				.attr("y", yv)
-				.attr("x", wv)
-				.append("xhtml:div") // CSS needs to be applied to this div - Joe
-				.html(htmltext);
-
-				//console.log($('#pg_detail_content').html()); //Debugging - Joe
-		},
-
 		// extract the x,y values from a SVG transform string (ex: transform(200,20))
 		_extractTransform: function(dataString) {
 			var startIdx = dataString.indexOf("(");
