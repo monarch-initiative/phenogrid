@@ -54,23 +54,22 @@ window.onload = function() {
 <p>If you won’t be doing any development of Phenogrid, you can simply download the phenogrid github zip file and unzip, then open the <code>index.html</code> to run this widget.</p>
 <p>For developers who want to make changes to phenogrid, following is the process.</p>
 <h2 id="1-install-npm">1. Install npm</h2>
-<p>Before you get started, you will need to make sure you have npm<br>installed first. npm is bundled and installed automatically with<br>node.js. If you have not installed node.js, try:</p>
+<p>Before you get started, you will need to make sure you have npm installed first. npm is bundled and installed automatically with node.js. If you have not installed node.js, try:</p>
 <pre><code>curl -sL https://rpm.nodesource.com/setup | bash -
 
 yum install -y nodejs
-</code></pre><p>For OS X machines, you can try these instructions:<br><a href="http://blog.teamtreehouse.com/install-node-js-npm-mac">http://blog.teamtreehouse.com/install-node-js-npm-mac</a>.</p>
-<p>Or, just visit nodejs.org.</p>
+</code></pre><p>For OS X machines, you can try these instructions: <a href="http://blog.teamtreehouse.com/install-node-js-npm-mac">http://blog.teamtreehouse.com/install-node-js-npm-mac</a>. Or, just visit nodejs.org.</p>
 <h2 id="2-install-phenogrid-widget">2. Install phenogrid widget</h2>
 <p>To download and install the phenogrid widget, run</p>
 <pre><code>npm install
-</code></pre><p>from this directory.<br>Sometimes, it requires root access to for the installation, just run the following instead</p>
+</code></pre><p>from this directory. Sometimes, it requires root access to for the installation, just run the following instead</p>
 <pre><code>sudo npm install
 </code></pre><p>This will create a local <code>/node_modules</code> folder in the phenogrid root directory, and download/install all the dependencies(jquery, jquery-ui, d3, and jshashtable) and tools (gulp, browserify, etc.) into the local <code>/node_modules</code> folder.</p>
 <h2 id="3-run-gulp-to-build-bundled-js-and-css">3. Run gulp to build bundled JS and CSS</h2>
 <pre><code>gulp bundle
-</code></pre><p>This command will use browserify to bundle up phenogrid core and its<br>dependencies into <code>phenogrid-bundle.js</code> and create the merge<br><code>phenogrid-bundle.css</code> and put both files under <code>dist</code> folder.</p>
+</code></pre><p>This command will use browserify to bundle up phenogrid core and its dependencies into <code>phenogrid-bundle.js</code> and create the merge <code>phenogrid-bundle.css</code> and put both files under <code>dist</code> folder.</p>
 <h2 id="4-add-phenogrid-in-your-target-page">4. Add phenogrid in your target page</h2>
-<p>In the below sample code, you will see how to use phenogrid as a<br>embeded widget in your HTML. Please note that in order to parse the js<br>file correctly (since it uses D3.js and D3.js requires UTF-8 charset<br>encoding), we suggest you to add the <code>&lt;meta charset=&quot;UTF-8&quot;&gt;</code> tag in<br>your HTML head.</p>
+<p>In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the <code>&lt;meta charset=&quot;UTF-8&quot;&gt;</code> tag in your HTML head.</p>
 <pre><code class="lang-html">&lt;html&gt;
 &lt;head&gt;
 &lt;meta charset=&quot;UTF-8&quot;&gt;
@@ -136,7 +135,7 @@ window.onload = function() {
 <li>Name: Drosophila melanogaster Taxon: 7227</li>
 </ul>
 <h1 id="testing-and-further-configuration">Testing and further configuration</h1>
-<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser. This page will<br>display an instance of the phenogrid, as configured above. Additional<br>instructions for further customization of parameters will also be<br>available on this page.</p>
+<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser. This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
 <h1 id="web-browser-support">Web Browser Support</h1>
 <p>Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.</p>
 
