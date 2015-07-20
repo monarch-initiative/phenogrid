@@ -123,15 +123,6 @@ label.pg_ctrl_label{
 font-weight:700;
 }
 
-/* CSS has be applied to the div */
-#pg_detail_content div {
-font-size: 10px;
-padding: 8px;
-background: #fff;
-border: 1px solid #000;
-z-index:500;
-}
-
 .stickytooltip{
 box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
 -webkit-box-shadow: 5px 5px 8px #818181;

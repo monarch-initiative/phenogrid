@@ -1805,9 +1805,6 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_resetLinks: function() {
-			// don't put these styles in css file - these styles change depending on state
-			this.state.svg.selectAll("#pg_detail_content").remove();
-
 			var link_lines = d3.selectAll(".a_text");
 			for (var i in link_lines[0]) {
 				if ( ! link_lines[0].hasOwnProperty(i)) {
@@ -2135,7 +2132,6 @@ var TooltipRender = require('./tooltiprender.js');
 		_deselectData: function (data) {
 			var self = this;
 			this.state.svg.selectAll(".pg_row_accent").remove();
-			this.state.svg.selectAll("#pg_detail_content").remove();
 			this.state.svg.selectAll(".pg_col_accent").remove();
 			this._resetLinks();
 
@@ -2381,9 +2377,6 @@ var TooltipRender = require('./tooltiprender.js');
 					// De-highlight row and column
 					self.state.svg.selectAll(".pg_row_accent").remove();
 					self.state.svg.selectAll(".pg_col_accent").remove();
-
-					// Reset model data tooltip content
-					self.state.svg.selectAll("#pg_detail_content").remove();
 
 					// Reset model label
 					var model_label = self.state.svg.selectAll("#" + self._getConceptId(d.xID));
