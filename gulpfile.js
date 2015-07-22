@@ -71,7 +71,7 @@ gulp.task('js-bundle', function(cb) {
 
 // Bundle CSS together with gulp concat
 gulp.task('css-bundle', function(cb) {
-  return gulp.src(['./css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css'])
+  return gulp.src(['./css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css', './css/sumoselect.css'])
     .pipe(concat('phenogrid-bundle.css'))
     .pipe(gulp.dest('./dist/'));
 });

@@ -10,9 +10,16 @@
 var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 var $ = jQuery;
 
+/* Sticky Tooltip script (v1.0)
+* Created: Nov 25th, 2009. This notice must stay intact for usage 
+* Author: Dynamic Drive at http://www.dynamicdrive.com/
+* Visit http://www.dynamicdrive.com/ for full source code
+*/
+
+
 var stickytooltip={
 	tooltipoffsets: [1, -1], //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
-	fadeinspeed: 0, //duration of fade effect in milliseconds
+	fadeinspeed: 1, //duration of fade effect in milliseconds
 	rightclickstick: true, //sticky tooltip when user right clicks over the triggering element (apart from pressing "s" key) ?
 	stickybordercolors: ["black", "darkred"], //border color of tooltip depending on sticky state
 	stickynotice1: ["Press \"s\" or right click to activate sticky box. \"h\" to hide"], //, "or right click", "to sticky box"], //customize tooltip status message
@@ -27,9 +34,9 @@ var stickytooltip={
 	positiontooltip:function($, $tooltip, e){
 		//var x=e.pageX+this.tooltipoffsets[0], y=e.pageY+this.tooltipoffsets[1]
 	    var x=e.pageX+1, y=e.pageY-1;
-		var tipw=$tooltip.outerWidth(), tiph=$tooltip.outerHeight();
-		x=(x+tipw>$(document).scrollLeft()+$(window).width())? x-tipw-(stickytooltip.tooltipoffsets[0]*2) : x;
-		y=(y+tiph>$(document).scrollTop()+$(window).height())? $(document).scrollTop()+$(window).height()-tiph-10 : y;
+		var tipw=$tooltip.outerWidth(), tiph=$tooltip.outerHeight(), 
+		x=(x+tipw>$(document).scrollLeft()+$(window).width())? x-tipw-(stickytooltip.tooltipoffsets[0]*2) : x
+		y=(y+tiph>$(document).scrollTop()+$(window).height())? $(document).scrollTop()+$(window).height()-tiph-10 : y
 		$tooltip.css({left:x, top:y});
 	},
 	
@@ -41,7 +48,7 @@ var stickytooltip={
 
 	// wrapper function
 	show:function(e) {
-		if (e === null) e = stickytooltip.lastEvent;
+		if (e == null) e = stickytooltip.lastEvent;
 		var $tooltip=$('#mystickytooltip');
 		stickytooltip.isdocked = true;
 		stickytooltip.showbox($, $tooltip, e);
@@ -56,13 +63,13 @@ var stickytooltip={
 	},
 
 	docktooltip:function($, $tooltip, e){
-		this.isdocked=true;
+		this.isdocked=true
 		//$tooltip.css({borderColor:'darkred'}).find('.stickystatus:eq(0)').css({background:this.stickybordercolors[1]}).html(this.stickynotice2)
 	},
 
 	// wrapper function
 	closetooltip:function() {		
-		var $tooltip=$('#mystickytooltip');
+		var $tooltip= jQuery('#mystickytooltip');
 		stickytooltip.isdocked = false;
 		stickytooltip.hidebox($, $tooltip);
 	},
@@ -70,9 +77,9 @@ var stickytooltip={
 	init:function(targetselector, tipid){
 		jQuery(document).ready(function($){
 			var self = this;			
-			var $targets=$(targetselector);
+			var $targets= jQuery(targetselector);  //    $(targetselector);
 			var $tooltip=$('#'+tipid).appendTo(document.body);
-			if ($targets.length===0)
+			if ($targets.length==0)
 				return;
 			var $alltips=$tooltip.find('div.atip');
 			if (!stickytooltip.rightclickstick)
@@ -92,7 +99,7 @@ var stickytooltip={
 			 $targets.bind('mouseout', function(e){  // mouseleave
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				//console.log("sticky:mouseout: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
-				if (elem.id !== 'mystickytooltip' && elem.id !== "") {
+				if (elem.id != 'mystickytooltip' && elem.id != "") {
 				    //console.log("hiding...");
 					stickytooltip.isdocked = false;
 			 		stickytooltip.hidebox($, $tooltip);
@@ -132,16 +139,14 @@ var stickytooltip={
 			// 		stickytooltip.hidebox($, $tooltip);
 			// 	}
 			// })
-		}); //end dom ready
+		}) //end dom ready
 	}
-};
+}
 
 //stickytooltip.init("targetElementSelector", "tooltipcontainer")
 //stickytooltip.init("*[data-tooltip]", "mystickytooltip")
 
-
-// CommonJS format - Joe
+// CommonJS format
 module.exports=stickytooltip;
-
 
 }());
