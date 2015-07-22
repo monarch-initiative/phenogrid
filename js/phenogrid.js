@@ -52,6 +52,8 @@ var url = document.URL;
 
 /* main phenogrid widget */
 (function($) {
+
+
 	// Use widget factory to define the UI plugin - Joe
 	// Can aslo be ns.phenogrid (ns can be anything else - namespace) - Joe
 	// Later can be called using $().phenogrid(); - Joe
@@ -164,114 +166,6 @@ var url = document.URL;
 	    }
 	},
 
-	/*
-	 reset state values that must be cleared before reloading data
-	*/
-	_reset: function(type) {
-
-		// target species name might be provided as a name or as taxon. Make sure that we translate to name
-		this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
-
-		this.state.yAxisMax = 0;
-		this.state.yoffset = this.state.baseYOffset;
-		this.state.h = this.config.h;
-	},
-
-	/*
-	 * this function will use the desired height to determine how many phenotype rows to display
-	 * the basic formula is: (height - headerAreaHeight)/14.
-	 * return -1 if the available space is too small to properly display the grid
-	 */
-// MKD: may be able to eliminate later 	 
-	_calcYAxisDisplayLimit: function() {
-		var self = this;
-
-		var pCount = Math.round((self.state.h - self.state.headerAreaHeight) / 14);
-		if (pCount < 10) {
-			pCount = -1;
-		}
-		return pCount;
-	},
-
-	_getTargetSpeciesInfo: function(self, name) {
-		for (var i in self.state.targetSpeciesList) {
-			if (self.state.targetSpeciesList[i].name == name) {
-				return self.state.targetSpeciesList[i];
-			}
-		}
-	},
-
-	// Several procedures for various aspects of filtering/identifying appropriate entries in the target species list.. 
-	_getTargetSpeciesIndexByName: function(self,name) {
-		var index = -1;
-		if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
-			index = self.state.targetSpeciesByName[name].index;
-		}
-		return index;
-	},
-
-	_getTargetSpeciesNameByIndex: function(self,index) {
-		var species;
-		if (typeof(self.state.targetSpeciesList[index]) !== 'undefined') {
-			species = self.state.targetSpeciesList[index].name;
-		}
-		else {
-			species = 'Overview';
-		}
-		return species;
-	},
-
-	_getTargetSpeciesTaxonByName: function(self,name) {
-		var taxon;
-		// first, find something that matches by name
-		if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
-			taxon = self.state.targetSpeciesByName[name].taxon;
-		}
-		// default to overview, so as to always do somethign sensible
-		if (typeof(taxon) === 'undefined') {
-			taxon ='Overview';
-		}
-
-		return taxon;
-	},
-
-	/*
-	* some installations might send in a taxon - "10090" - as opposed to a name - "Mus musculus".
-	* here, we make sure that we are dealing with names by translating back
-	* this might be somewhat inefficient, as we will later translate to taxon, but it will
-	* make other calls easier to be consitently talking in terms of species name
-	*/
-	_getTargetSpeciesNameByTaxon: function(self,name) {
-		// default - it actually was a species name
-		var species = name;
-		var found = false;
-
-		/*
-		 * check to see if the name exists.
-		 * if it is found, then we say "true" and we're good.
-		 * if, however, it matches the taxon, take the index in the array.
-		 */
-
-		for (var sname in self.state.targetSpeciesByName) {
-			if(!self.state.targetSpeciesByName.hasOwnProperty(sname)){break;}
-			// we've found a matching name.
-			if (name == sname) {
-				found = true;
-			}
-
-			if (name == self.state.targetSpeciesByName[sname].taxon) {
-				found = true;
-				species = sname;
-				break;
-			}
-		}
-		// if not found, it's overview.
-		if (found === false) {
-			species = "Overview";
-		}
-		return species;
-	},
-
 	// NOTE: I'm not too sure what the default init() method signature should be given an imageDiv and phenotype_data list
 	/*
 	 * imageDiv - the place you want the widget to appear
@@ -281,6 +175,14 @@ var url = document.URL;
 	 * [ "HP:12345", "HP:23451", ...]
 	 */
 	_create: function() {
+
+		$(document).ready(function() {
+			$('.SlectBox').SumoSelect({ okCancelInMulti: true ,
+ 										triggerChangeCombined: true,
+			       						forceCustomRendering: true	
+										});
+			});
+
 		// must be available from js loaded in a separate file...
 		this.configoptions = configoptions;
 		// check these 
@@ -305,33 +207,7 @@ var url = document.URL;
 		console.log("in create func...");
 	},
 
-	// create a shortcut index for quick access to target species by name - to get index (position) and taxon
-	_createTargetSpeciesIndices: function() {
-		this.state.targetSpeciesByName = {};
-		for (var j in this.state.targetSpeciesList) {
-			// list starts as name, taxon pairs
-			var name = this.state.targetSpeciesList[j].name;
-			var taxon = this.state.targetSpeciesList[j].taxon;
-			var entry = {};
-			entry.index = j;
-			entry.taxon = taxon;
-			this.state.targetSpeciesByName[name] = entry;
-		}
-	},
-
-	/*
-	 * HACK WARNING - 20140926, harryh@pitt.edu
-	 * phenogrid assumes a path of /js/res relative to the scriptpath directory. This will contain configuration files
-	 * that will be loaded via urls constructed in this function.
-	 * As of 9/26/2014, the puptent application used in monarch-app breaks this.
-	 * thus, a workaround is included below to set the path correctly if it come up as '/'.
-	 * this should not impact any standalone uses of phenogrid, and will be removed once monarch-app is cleaned up.
-	 */
-	_getResourceUrl: function(name,type) {
-		var prefix = this.state.serverURL+'/widgets/phenogrid/js/';
-		return prefix + 'res/' + name + '.' + type;
-	},
-
+	
 	//init is now reduced down completely to loading
 	_init: function() {
 
@@ -356,8 +232,16 @@ var url = document.URL;
 		// initialize data processing classes 
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.simSearchQuery, querySourceList, 
 				this.state.selectedTargetSpecies, this.state.apiEntityMap);
-		
+
 		this.state.dataManager = new DataManager(this.state.dataLoader);
+
+		//if (preloadHPO) {
+		// MKD: just testing one source id
+		var srcs = this.state.dataManager.keys("source");
+		this.state.hpoCacheHash = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth)
+		//}
+		
+
 
 	    // initialize axis groups
 	    this._createAxisRenderingGroups();
@@ -653,6 +537,7 @@ var url = document.URL;
 	},
 
 	_cellout: function() {
+		
 		// unhighlight row/col
 		d3.selectAll(".row text")
 			  .classed("active", false);
@@ -758,8 +643,6 @@ var url = document.URL;
 					$("#errmsg").remove();
 					d3.select("#pg_svg_area").remove();
 
-					//MKD: GET RID OF THIS LINE
-					//self.state.phenotypeData = self.state.origPhenotypeData.slice();
 					self._reset();
 					self.state.currentTargetSpeciesName = "Overview";
 					self._init();
@@ -1274,7 +1157,7 @@ var url = document.URL;
 		svgContainer.append("<svg id='pg_svg_area'></svg>");
 		this.state.svg = d3.select("#pg_svg_area")
 				.attr("width", "100%")
-				.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+100));
+				.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+50));
 
 		 this._addGridTitle();
 		 this._createDiseaseTitleBox();
@@ -1467,58 +1350,6 @@ var url = document.URL;
 			}
 		}
 		return matchingKeys;
-	},
-
-	// Merging of both Highlight model and phenotype functions
-// MKD: this needs some refactoring	
-	_highlightMatching: function(curr_data){
-		var self = this;
-		var alabels, label, ID;
-		var dataType = self._getIDType(curr_data);
-		var models = self._getMatchingModels(curr_data);
-		var highlightX = false;
-
-		if (dataType === "source"){
-			if (this.state.invertAxis){
-				alabels = this.state.svg.selectAll("text.a_text");
-				highlightX = true;
-			} else {
-				alabels = this.state.svg.selectAll("text.model_label");
-			}
-		} else if (dataType === "target"){
-			if (this.state.invertAxis){
-				alabels = this.state.svg.selectAll("text.model_label");
-			} else {
-				alabels = this.state.svg.selectAll("text.a_text");
-				highlightX = true;
-			}
-		}
-
-		for (var i in models){
-			if ( ! models.hasOwnProperty(i)) {
-				break;
-			}
-
-			if (highlightX){
-				ID = models[i].source_id;   //yID;
-			} else {
-				ID = models[i].target_id;   //xID;
-			}
-
-			label = self._getAxisData(ID).label;
-			if (label === undefined){
-				label = ID;
-			}
-
-			for (var j in alabels[0]){
-				if ( ! alabels[0].hasOwnProperty(j)) {
-					break;
-				}				
-				if (alabels[0][j].id == ID){
-					alabels[0][j].style.fill = "blue";
-				}
-			}
-		}
 	},
 
 	_createHoverBox: function(data){
@@ -2069,6 +1900,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	},
 
 	_addPhenogridControls: function() {
+
 		var phenogridControls = $('<div id="phenogrid_controls"></div>');
 		this.element.append(phenogridControls);
 		this._createSelectionControls(phenogridControls);
@@ -2248,22 +2080,16 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		container.append(options);
 		// add the handler for the select control
 		$( "#pg_organism" ).change(function(d) {
-			self.state.currentTargetSpeciesName = d.target[d.target.selectedIndex].label;     //self._getTargetSpeciesNameByIndex(self,d.target.selectedIndex);
-
-			// MKD: NEED TO CHANGE THIS ONCE MULTIPLE SELECT WIDGET IS CREATED
-			if (self.state.currentTargetSpeciesName == 'Overview') {
-				self.state.selectedTargetSpecies = []; // reset
-				for (var idx in self.state.targetSpeciesList) {
-					if (self.state.targetSpeciesList[idx].crossComparisonView && self.state.targetSpeciesList[idx].active) {
-						self.state.selectedTargetSpecies.push(self.state.targetSpeciesList[idx]);
-					}
+			console.log('in the change()..');
+			self.state.selectedTargetSpecies = [];
+			var opts = this.options;
+			for (var idx in opts) {
+				if (opts[idx].selected) {
+					var rec = self._getTargetSpeciesInfo(self, opts[idx].text);
+					self.state.selectedTargetSpecies.push(rec);
 				}
-			} else {
-				var rec = self._getTargetSpeciesInfo(self, self.state.currentTargetSpeciesName);
-				self.state.selectedTargetSpecies = [rec];
-			}
 
-			//self._resetSelections("organism");
+			}
 			self.state.dataManager.reinitialize(self.state.selectedTargetSpecies, true);
 			self._createAxisRenderingGroups();
 			self._initDefaults();
@@ -2301,12 +2127,11 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		self._configureFaqs();
 	},
 
-	// construct the HTML needed for selecting organism
 	_createOrganismSelection: function() {
 		var selectedItem;
-		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Species</label>" + // removed <br> - Joe
-			"<span id='org_sel'><select id='pg_organism'>"; // select is inline level element, it's fine to use <span> - Joe
-
+		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism</label>" + 
+			"<div class='SumoSelect' tabindex='0'>" +
+			"<select id='pg_organism' multiple='multiple' class='SlectBox'>"; // select is inline level element, it's fine to use <span> - Joe
 
 		for (var idx in this.state.targetSpeciesList) {
 			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
@@ -2314,22 +2139,14 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			}
 			selectedItem = "";
 			if (this.state.targetSpeciesList[idx].active) {  //MKD: NEEDS CHANGED AFTER MULTIPLE SELCTION WIDGET
-				if (this.state.targetSpeciesList[idx].name === this.state.currentTargetSpeciesName) {
+				if (this._isTargetSpeciesSelected(this, this.state.targetSpeciesList[idx].name)) {
 					selectedItem = "selected";
 				}
-				optionhtml += "<option value=\"" + this.state.targetSpeciesList[idx.name] +
+				optionhtml += "<option value=\"" + this.state.targetSpeciesList[idx].name +
 				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + "</option>";
 			}
 		}
-		// add one for overview.
-		if (this.state.currentTargetSpeciesName === "Overview") {
-			selectedItem = "selected";
-		} else {
-			selectedItem = "";
-		}
-		optionhtml += "<option value=\"Overview\" " + selectedItem + ">Overview</option>";
-
-		optionhtml += "</select></span></div>";
+		optionhtml += "</select></div></div>";
 		return $(optionhtml);
 	},
 
@@ -2533,20 +2350,30 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 	// Will call the getHPO function to either load the HPO info or to make it visible if it was previously hidden.  Not available if preloading
 	_expandHPO: function(id){
-		self._getHPO(id);
+		
+		var displayIt = false;
+		var fixedId = id.replace("_", ":");
+		var hpoCached = this.state.hpoCacheHash[fixedId];
 
-		// this code refreshes the stickytooltip so that tree appears instantly
-		var hpoCached = this.state.hpoCacheHash.get(id.replace("_", ":"));
-		if (hpoCached !== null){
+		if (hpoCached == null){
+			var hpoInfo = this.state.dataLoader.getOntology(fixedId, this.state.ontologyDirection, this.state.ontologyDepth);			
+			this.state.hpoCacheHash[fixedId] = hpoInfo;
+			hpoCached = hpoInfo;
+			displayIt = true;
+		} else {
+			displayIt = true;
+		}
+
+		if (displayIt) {
 			this.state.ontologyTreesDone = 0;
 			this.state.ontologyTreeHeight = 0;
 			var info = this._getAxisData(id);
 			var type = this._getIDType(id);
-			var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype" + type +"/"+ id.replace("_", ":") + "\" target=\"_blank\">" + info.label + "</a>";
+			var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype" + type +"/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
 			var hpoData = "<strong>" + Utils.capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
 			hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
 
-			var hpoTree = this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0);
+			var hpoTree = this.buildHPOTree(fixedId, hpoCached.edges, 0);
 
 			if (hpoTree == "<br/>"){
 				hpoData += "<em>No HPO Data Found</em>";
@@ -2557,7 +2384,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 			// reshow the sticky with updated info
 			stickytooltip.show(null);
-		}
+		}		
 	},
 
 	// Will hide the hpo info, not delete it.  This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
@@ -2567,61 +2394,6 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		HPOInfo.active = 0;
 		this.state.hpoCacheHash.put(idClean,HPOInfo);
 		stickytooltip.closetooltip();
-	},
-
-	// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored, and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash, it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
-	_getHPO: function(id) {
-		// check cached hashtable first 
-		var idClean = id.replace("_", ":");
-		var HPOInfo = this.state.hpoCacheHash.get(idClean);
-		var direction = this.state.ontologyDirection;
-		var relationship = "subClassOf";
-		var depth = this.state.ontologyDepth;
-		var nodes, edges;
-		///neighborhood/HP_0003273/2/out/subClassOf.json
-		if (HPOInfo === null) {
-			HPOInfo = [];
-			var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
-		        //console.log("getting hpo data .. url is ..."+url);
-			var taxon = this._getTargetSpeciesTaxonByName(this,this.state.currentTargetSpeciesName);
-			var results = null;  //  MKD: HANDLE THIS IN THE DATALOADER this._ajaxLoadData(taxon,url);
-			if (typeof (results) !== 'undefined') {
-				edges = results.edges;
-				nodes = results.nodes;
-				// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
-				for (var i in nodes){
-					if (!this.state.hpoCacheLabels.containsKey(nodes[i].id) && (nodes[i].id != "MP:0000001" && nodes[i].id != "UPHENO_0001001" && nodes[i].id != "UPHENO_0001002" && nodes[i].id != "HP:0000118" && nodes[i].id != "HP:0000001")){
-						this.state.hpoCacheLabels.put(nodes[i].id,Utils.capitalizeString(nodes[i].lbl));
-					}
-				}
-
-				// Used to prevent breaking objects
-				for (var j in edges){
-					if ( ! edges.hasOwnProperty(j)) {
-						break;
-					}
-					if (edges[j].obj != "MP:0000001" 
-							&& edges[j].obj != "OBO:UPHENO_0001001" 
-							&& edges[j].obj != "OBO:UPHENO_0001002" 
-							&& edges[j].obj != "HP:0000118" 
-							&& edges[j].obj != "HP:0000001") {
-							HPOInfo.push(edges[j]);
-					}
-				}
-			}
-
-			// HACK:if we return a null just create a zero-length array for now to add it to hashtable
-			// this is for later so we don't have to lookup concept again
-			if (HPOInfo === null) {HPOInfo = {};}
-
-			// save the HPO in cache for later
-			var hashData = {"edges": HPOInfo, "active": 1};
-			this.state.hpoCacheHash.put(idClean,hashData);
-		} else {
-			// If it does exist, make sure its set to visible
-			HPOInfo.active = 1;
-			this.state.hpoCacheHash.put(idClean,HPOInfo);
-		}
 	},
 
 	// collapse the expanded items for the current selected model targets
@@ -2879,7 +2651,137 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 		$('#wait').hide();
 		stickytooltip.closetooltip();
+	},
+
+		/*
+	 reset state values that must be cleared before reloading data
+	*/
+	_reset: function(type) {
+
+		// target species name might be provided as a name or as taxon. Make sure that we translate to name
+		this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
+
+		this.state.yAxisMax = 0;
+		this.state.yoffset = this.state.baseYOffset;
+		this.state.h = this.config.h;
+	},
+
+	_isTargetSpeciesSelected: function(self, name) {
+		for (var i in self.state.selectedTargetSpecies) {
+			if (self.state.selectedTargetSpecies[i].name == name) {
+				return true;
+			}
+		}
+		return false;
+	},
+
+	_getTargetSpeciesInfo: function(self, name) {
+		for (var i in self.state.targetSpeciesList) {
+			if (self.state.targetSpeciesList[i].name == name) {
+				return self.state.targetSpeciesList[i];
+			}
+		}
+	},
+
+	// Several procedures for various aspects of filtering/identifying appropriate entries in the target species list.. 
+	_getTargetSpeciesIndexByName: function(self,name) {
+		var index = -1;
+		if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
+			index = self.state.targetSpeciesByName[name].index;
+		}
+		return index;
+	},
+
+	_getTargetSpeciesNameByIndex: function(self,index) {
+		var species;
+		if (typeof(self.state.targetSpeciesList[index]) !== 'undefined') {
+			species = self.state.targetSpeciesList[index].name;
+		}
+		else {
+			species = 'Overview';
+		}
+		return species;
+	},
+
+	_getTargetSpeciesTaxonByName: function(self,name) {
+		var taxon;
+		// first, find something that matches by name
+		if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
+			taxon = self.state.targetSpeciesByName[name].taxon;
+		}
+		// default to overview, so as to always do somethign sensible
+		if (typeof(taxon) === 'undefined') {
+			taxon ='Overview';
+		}
+
+		return taxon;
+	},
+
+	/*
+	* some installations might send in a taxon - "10090" - as opposed to a name - "Mus musculus".
+	* here, we make sure that we are dealing with names by translating back
+	* this might be somewhat inefficient, as we will later translate to taxon, but it will
+	* make other calls easier to be consitently talking in terms of species name
+	*/
+	_getTargetSpeciesNameByTaxon: function(self,name) {
+		// default - it actually was a species name
+		var species = name;
+		var found = false;
+
+		/*
+		 * check to see if the name exists.
+		 * if it is found, then we say "true" and we're good.
+		 * if, however, it matches the taxon, take the index in the array.
+		 */
+
+		for (var sname in self.state.targetSpeciesByName) {
+			if(!self.state.targetSpeciesByName.hasOwnProperty(sname)){break;}
+			// we've found a matching name.
+			if (name == sname) {
+				found = true;
+			}
+
+			if (name == self.state.targetSpeciesByName[sname].taxon) {
+				found = true;
+				species = sname;
+				break;
+			}
+		}
+		// if not found, it's overview.
+		if (found === false) {
+			species = "Overview";
+		}
+		return species;
+	},
+
+	// create a shortcut index for quick access to target species by name - to get index (position) and taxon
+	_createTargetSpeciesIndices: function() {
+		this.state.targetSpeciesByName = {};
+		for (var j in this.state.targetSpeciesList) {
+			// list starts as name, taxon pairs
+			var name = this.state.targetSpeciesList[j].name;
+			var taxon = this.state.targetSpeciesList[j].taxon;
+			var entry = {};
+			entry.index = j;
+			entry.taxon = taxon;
+			this.state.targetSpeciesByName[name] = entry;
+		}
+	},
+
+	/*
+	 * HACK WARNING - 20140926, harryh@pitt.edu
+	 * phenogrid assumes a path of /js/res relative to the scriptpath directory. This will contain configuration files
+	 * that will be loaded via urls constructed in this function.
+	 * As of 9/26/2014, the puptent application used in monarch-app breaks this.
+	 * thus, a workaround is included below to set the path correctly if it come up as '/'.
+	 * this should not impact any standalone uses of phenogrid, and will be removed once monarch-app is cleaned up.
+	 */
+	_getResourceUrl: function(name,type) {
+		var prefix = this.state.serverURL+'/widgets/phenogrid/js/';
+		return prefix + 'res/' + name + '.' + type;
 	}
+
+
 
 	}); // end of widget code
 })(jQuery);

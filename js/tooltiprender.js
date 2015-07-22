@@ -20,9 +20,9 @@ var TooltipRender = function(url) {  //parms
 TooltipRender.prototype = {
 	constructor:TooltipRender,
 
-	entityHreflink: function() {
-		var s = "<a href=\"" + this.url +"/" +  this.data.type +"/"+ this.data.id 
-				+ "\" target=\"_blank\">" + this.data.label + "</a>";
+	entityHreflink: function(ptype, pid, plabel) {
+		var s = "<a href=\"" + this.url +"/" +  ptype +"/"+ pid 
+				+ "\" target=\"_blank\">" + plabel + "</a>";
 		return s;
 	},
 
@@ -38,8 +38,9 @@ TooltipRender.prototype = {
 			retInfo = this.cell(this, this.data);
 		} else {
 			// this creates the standard information portion of the tooltip, 
-			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + this.entityHreflink() + "<br/>" +
-					   this._rank() + this._score() + this._ic();
+			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
+						this.entityHreflink(this.data.type, this.data.id, this.data.label ) +
+						"<br/>" + this._rank() + this._score() + this._ic();
 
 			// this creates the extended information for specialized tooltip info and functionality
 			// try to dynamically invoke the function that matches the data.type
@@ -76,8 +77,9 @@ phenotype: function(tooltip) {
 	var returnHtml = "";
 	var hpoExpand = false;
 	var hpoData = "<br/><br/>";
-	var hpoCached = tooltip.parent.state.hpoCacheHash.get(tooltip.id.replace("_", ":"));
-	if (hpoCached !== null && hpoCached.active == 1){
+	var fixedId = tooltip.id.replace("_", ":");
+	var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
+	if (hpoCached !== undefined) { //&& hpoCached.active == 1){
 		hpoExpand = true;
 
 		//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
@@ -94,11 +96,11 @@ phenotype: function(tooltip) {
 	if (!tooltip.parent.state.preloadHPO){
 		if (hpoExpand){
 			returnHtml = "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
-			returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"self._collapseHPO('" + tooltip.id + "')\"></i>";
+			returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"this._collapseHPO('" + tooltip.id + "')\"></i>";
 			returnHtml += hpoData;
 		} else {
 			returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
-			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"self._expandHPO('" + tooltip.id + "')\"></i>";
+			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"this._expandHPO('" + tooltip.id + "')\"></i>";
 		}
 	}
 	else {
@@ -162,16 +164,16 @@ cell: function(tooltip, d) {
 		var suffix = "";
 		var selCalc = tooltip.parent.state.selectedCalculation;
 
-		var prefix, targetLabel, sourceLabel, type;
+		var prefix, targetLabel, sourceId, type;
 		var species = d.species;
 		//var taxon = d.taxon;
 
 		 if (tooltip.parent.state.invertAxis) {
-			sourceLabel = d.source_id;
+			sourceId = d.source_id;
 			targetLabel = d.target_id;
 //			type = yInfo.type;
 		 } else {
-			sourceLabel = d.source_id;
+			sourceId = d.source_id;
 			targetLabel = d.target_id;
 //			type = xInfo.type;
 		 }
@@ -197,10 +199,11 @@ cell: function(tooltip, d) {
 
 		returnHtml = "<table class=\"pgtb\">" +
 			"<tbody><tr><td><u><b>Query</b></u><br>" +
-			"<b>Source:</b>" + d.a_label + " (" +sourceLabel + ") [" + Utils.formatScore(d.a_IC.toFixed(2)) + "]<br><b>Species:</b> " + d.species + "</td>" + 
-			"<tr><td><u><b>In-common</b></u><br>" + 
+			this.entityHreflink(d.type, sourceId, d.a_label ) +  
+			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br><b>Species:</b> " + d.species + "</td>" + 
+			"<tr><td><u><b><br>In-common</b></u><br>" + 
 			d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
-			"<tr><td><u><b>Match</b></u><br>" + 
+			"<tr><td><br><u><b>Match</b></u><br>" + 
 			d.b_label + Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
 			"</tbody>" + 
 			"</table>";
