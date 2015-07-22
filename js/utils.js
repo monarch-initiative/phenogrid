@@ -1,6 +1,8 @@
 (function () {
 'use strict';
 
+var $ = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
+
 function Utils() {};
 
 Utils.getConceptId = function (uri) {
