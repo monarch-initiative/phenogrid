@@ -1,4 +1,3 @@
-TESTING 002
 Add phenogrid in your target page
 
 Phenogrid widget is created based on several JavaScript libraries. In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML.
@@ -42,7 +41,7 @@ $(document).ready(function(){
 	$("#phenogrid_container").phenogrid({
 		serverURL :"http://beta.monarchinitiative.org", 
 		phenotypeData: phenotypes,
-		targetSpeciesName: "Mus musculus",
+		defaulTargetSpeciesName: "Mus musculus",
 		targetSpeciesList: [
 			{"name": "Homo sapiens", "taxon": "9606","crossComparisonView": false, "active": true},
 			{"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
