@@ -1,7 +1,8 @@
 (function () {
 'use strict';
 
-var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
+var Utils = require('./utils.js');
+
 
 /* 
 	Package: tooltiprender.js

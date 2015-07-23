@@ -4218,7 +4218,8 @@ module.exports=stickytooltip;
 (function () {
 'use strict';
 
-var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
+var Utils = require('./utils.js');
+
 
 /* 
 	Package: tooltiprender.js
@@ -4454,7 +4455,7 @@ cell: function(tooltip, d) {
 module.exports = TooltipRender;
 
 }());
-},{"jquery":11}],8:[function(require,module,exports){
+},{"./utils.js":8}],8:[function(require,module,exports){
 (function () {
 'use strict';
 
