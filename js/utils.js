@@ -99,7 +99,7 @@ var Utils = {
 		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
 
-};
+}
 
 
 // CommonJS format

@@ -1222,10 +1222,10 @@ Expander.prototype = {
 		}
 		return str;
 	}
-};
+}
 
 // CommonJS format
-module.exports = TooltipRender;
+module.exports = Expander;
 
 }());
 },{"jquery":11}],5:[function(require,module,exports){
@@ -4450,7 +4450,7 @@ TooltipRender.prototype = {
 	}
 
 
-};
+}
 
 
 // CommonJS format
@@ -4559,7 +4559,7 @@ var Utils = {
 		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
 
-};
+}
 
 
 // CommonJS format

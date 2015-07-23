@@ -189,9 +189,9 @@ Expander.prototype = {
 		}
 		return str;
 	}
-};
+}
 
 // CommonJS format
-module.exports = TooltipRender;
+module.exports = Expander;
 
 }());
