@@ -301,6 +301,8 @@ module.exports = AxisGroup;
 (function () {
 'use strict';
 
+var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
+
 var Utils = require('./utils.js');
 
 /*
@@ -678,7 +680,7 @@ DataLoader.prototype = {
 module.exports = DataLoader;
 
 }());
-},{"./utils.js":8}],3:[function(require,module,exports){
+},{"./utils.js":8,"jquery":11}],3:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -4295,157 +4297,157 @@ TooltipRender.prototype = {
 		}
 	}, 
 
-phenotype: function(tooltip) {
-	
-	var returnHtml = "";
-	var hpoExpand = false;
-	var hpoData = "<br/><br/>";
-	var fixedId = tooltip.id.replace("_", ":");
-	var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
-	if (hpoCached !== undefined) { //&& hpoCached.active == 1){
-		hpoExpand = true;
+	phenotype: function(tooltip) {
+		
+		var returnHtml = "";
+		var hpoExpand = false;
+		var hpoData = "<br/><br/>";
+		var fixedId = tooltip.id.replace("_", ":");
+		var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
+		if (hpoCached !== undefined) { //&& hpoCached.active == 1){
+			hpoExpand = true;
 
-		//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
-		tooltip.parent.state.ontologyTreesDone = 0;
-		tooltip.parent.state.ontologyTreeHeight = 0;
-		var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-		if (hpoTree == "<br/>"){
-			hpoData += "<em>No HPO Data Found</em>";
-		} else {
-			hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
-		}
-	}
-	// Used font awesome for expand/collapse buttons - Joe
-	if (!tooltip.parent.state.preloadHPO){
-		if (hpoExpand){
-			returnHtml = "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
-			returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"this._collapseHPO('" + tooltip.id + "')\"></i>";
-			returnHtml += hpoData;
-		} else {
-			returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
-			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"this._expandHPO('" + tooltip.id + "')\"></i>";
-		}
-	}
-	else {
-		returnHtml = hpoData;
-	}
-return returnHtml;		
-
-},
-
-gene: function(tooltip) {
-	var returnHtml = "";	
-/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
-	// for gene and species mode only, show genotype link
-	if (tooltip.parent.state.targetSpeciesName != "Overview"){
-		var isExpanded = false;
-		var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
-		if (gtCached !== null) { isExpanded = gtCached.expanded;}
-
-		//if found just return genotypes scores
-		if (isExpanded) {
-//					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
-			returnHtml = "<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
-				 "<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
-				 "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapse('" + tooltip.id + "')\">" +
-				 "</button>";
-		} else {
-			if (gtCached !== null) {
-				returnHtml = "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
+			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
+			tooltip.parent.state.ontologyTreesDone = 0;
+			tooltip.parent.state.ontologyTreeHeight = 0;
+			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
+			if (hpoTree == "<br/>"){
+				hpoData += "<em>No HPO Data Found</em>";
 			} else {
-				returnHtml = "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
+				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
 			}
-			returnHtml += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expand('" + tooltip.id + "')\"></button>";
 		}
-	}
-	
-	return returnHtml;	
-},
-
-genotype: function(tooltip) {
-	var returnHtml = "";
-	if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
-		var parentInfo = tooltip.parent.state.modelListHash.get(info.parent);
-		if (parentInfo !== null) {
-			// var alink = this.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":");
-			// var hyperLink = $("<a>")
-			// 	.attr("href", alink)
-			// 	.attr("target", "_blank")
-			// 	.text(parentInfo.label);
-			// return "<br/><strong>Gene:</strong> " + hyperLink;				
-
- 			var genehrefLink = "<a href=\"" + tooltip.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
- 			returnHtml = "<br/><strong>Gene:</strong> " + genehrefLink;
+		// Used font awesome for expand/collapse buttons - Joe
+		if (!tooltip.parent.state.preloadHPO){
+			if (hpoExpand){
+				returnHtml = "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
+				returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"this._collapseHPO('" + tooltip.id + "')\"></i>";
+				returnHtml += hpoData;
+			} else {
+				returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
+				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"this._expandHPO('" + tooltip.id + "')\"></i>";
+			}
 		}
-	}
-	return returnHtml;	
-},
+		else {
+			returnHtml = hpoData;
+		}
+	return returnHtml;		
 
-cell: function(tooltip, d) {
-	var returnHtml = "";
+	},
 
-		var suffix = "";
-		var selCalc = tooltip.parent.state.selectedCalculation;
+	gene: function(tooltip) {
+		var returnHtml = "";	
+	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
+		// for gene and species mode only, show genotype link
+		if (tooltip.parent.state.targetSpeciesName != "Overview"){
+			var isExpanded = false;
+			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
+			if (gtCached !== null) { isExpanded = gtCached.expanded;}
 
-		var prefix, targetLabel, sourceId, type;
-		var species = d.species;
-		//var taxon = d.taxon;
+			//if found just return genotypes scores
+			if (isExpanded) {
+	//					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
+				returnHtml = "<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
+					 "<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
+					 "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapse('" + tooltip.id + "')\">" +
+					 "</button>";
+			} else {
+				if (gtCached !== null) {
+					returnHtml = "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
+				} else {
+					returnHtml = "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
+				}
+				returnHtml += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expand('" + tooltip.id + "')\"></button>";
+			}
+		}
+		
+		return returnHtml;	
+	},
 
-		 if (tooltip.parent.state.invertAxis) {
-			sourceId = d.source_id;
-			targetLabel = d.target_id;
-//			type = yInfo.type;
-		 } else {
-			sourceId = d.source_id;
-			targetLabel = d.target_id;
-//			type = xInfo.type;
-		 }
+	genotype: function(tooltip) {
+		var returnHtml = "";
+		if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
+			var parentInfo = tooltip.parent.state.modelListHash.get(info.parent);
+			if (parentInfo !== null) {
+				// var alink = this.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":");
+				// var hyperLink = $("<a>")
+				// 	.attr("href", alink)
+				// 	.attr("target", "_blank")
+				// 	.text(parentInfo.label);
+				// return "<br/><strong>Gene:</strong> " + hyperLink;				
 
-		// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-		// 	if (taxon.indexOf("NCBITaxon:") != -1) {
-		// 		taxon = taxon.slice(10);
-		// 	}
-		// }
+				var genehrefLink = "<a href=\"" + tooltip.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
+				returnHtml = "<br/><strong>Gene:</strong> " + genehrefLink;
+			}
+		}
+		return returnHtml;	
+	},
 
-		for (var idx in tooltip.parent.state.similarityCalculation) {	
-			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+	cell: function(tooltip, d) {
+		var returnHtml = "";
+
+			var suffix = "";
+			var selCalc = tooltip.parent.state.selectedCalculation;
+
+			var prefix, targetLabel, sourceId, type;
+			var species = d.species;
+			//var taxon = d.taxon;
+
+			 if (tooltip.parent.state.invertAxis) {
+				sourceId = d.source_id;
+				targetLabel = d.target_id;
+	//			type = yInfo.type;
+			 } else {
+				sourceId = d.source_id;
+				targetLabel = d.target_id;
+	//			type = xInfo.type;
+			 }
+
+			// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
+			// 	if (taxon.indexOf("NCBITaxon:") != -1) {
+			// 		taxon = taxon.slice(10);
+			// 	}
+			// }
+
+			for (var idx in tooltip.parent.state.similarityCalculation) {	
+				if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+					break;
+				}
+				if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+					prefix = tooltip.parent.state.similarityCalculation[idx].label;
 				break;
+				}
 			}
-			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
-				prefix = tooltip.parent.state.similarityCalculation[idx].label;
-			break;
-			}
-		}
 
-		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-		if ( selCalc != 2) {suffix = '%';}
+			// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+			if ( selCalc != 2) {suffix = '%';}
 
-		returnHtml = "<table class=\"pgtb\">" +
-			"<tbody><tr><td><u><b>Query</b></u><br>" +
-			this.entityHreflink(d.type, sourceId, d.a_label ) +  
-			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br><b>Species:</b> " + d.species + "</td>" + 
-			"<tr><td><u><b><br>In-common</b></u><br>" + 
-			d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
-			"<tr><td><br><u><b>Match</b></u><br>" + 
-			d.b_label + Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
-			"</tbody>" + 
-			"</table>";
+			returnHtml = "<table class=\"pgtb\">" +
+				"<tbody><tr><td><u><b>Query</b></u><br>" +
+				this.entityHreflink(d.type, sourceId, d.a_label ) +  
+				" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br><b>Species:</b> " + d.species + "</td>" + 
+				"<tr><td><u><b><br>In-common</b></u><br>" + 
+				d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
+				"<tr><td><br><u><b>Match</b></u><br>" + 
+				d.b_label + Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
+				"</tbody>" + 
+				"</table>";
 
-			// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-			// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-			// "<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
+				// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
+				// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
+				// "<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
 
 
-		// returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
-		// 	"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
-		// 	"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
-		// 	"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-		// 	"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-		// 	"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
-	
-	return returnHtml;	
+			// returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
+			// 	"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
+			// 	"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
+			// 	"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
+			// 	"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
+			// 	"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
+		
+		return returnHtml;	
 
-}
+	}
 
 
 };
