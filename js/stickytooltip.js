@@ -17,7 +17,7 @@ var $ = jQuery;
 */
 
 
-var stickytooltip={
+var stickytooltip = {
 	tooltipoffsets: [1, -1], //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
 	fadeinspeed: 1, //duration of fade effect in milliseconds
 	rightclickstick: true, //sticky tooltip when user right clicks over the triggering element (apart from pressing "s" key) ?

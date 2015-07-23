@@ -1,6 +1,8 @@
 (function () {
 'use strict';
 
+var Utils = require('./utils.js');
+
 /*
  	Package: dataloader.js
 

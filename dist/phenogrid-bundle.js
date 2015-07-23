@@ -301,6 +301,8 @@ module.exports = AxisGroup;
 (function () {
 'use strict';
 
+var Utils = require('./utils.js');
+
 /*
  	Package: dataloader.js
 
@@ -674,7 +676,7 @@ DataLoader.prototype = {
 module.exports = DataLoader;
 
 }());
-},{}],3:[function(require,module,exports){
+},{"./utils.js":7}],3:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -3878,7 +3880,7 @@ var $ = jQuery;
 */
 
 
-var stickytooltip={
+var stickytooltip = {
 	tooltipoffsets: [1, -1], //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
 	fadeinspeed: 1, //duration of fade effect in milliseconds
 	rightclickstick: true, //sticky tooltip when user right clicks over the triggering element (apart from pressing "s" key) ?
@@ -4445,8 +4447,6 @@ module.exports = TooltipRender;
 
 var $ = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 
-function Utils() {};
-
 var Utils = {
 	getConceptId: function (uri) {
 			// replace spaces with underscores. Classes are separated with spaces so a class called "Model 1" will be two classes: Model and 1. Convert this to "Model_1" to avoid this problem.
@@ -4543,7 +4543,7 @@ var Utils = {
 		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
 
-}
+};
 
 
 // CommonJS format
@@ -38284,7 +38284,7 @@ return jQuery;
 },{}],11:[function(require,module,exports){
 (function (global){
 
-; require("/Users/yuanzhou19/Desktop/phenogrid/node_modules/jquery/dist/jquery.js");
+; require("/var/www/html/phenogrid/node_modules/jquery/dist/jquery.js");
 ; var __browserify_shim_require__=require;(function browserifyShim(module, define, require) {
 /*!
  * jquery.sumoselect - v2.1.0
@@ -38909,4 +38909,4 @@ return jQuery;
 }).call(global, module, undefined, undefined);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/Users/yuanzhou19/Desktop/phenogrid/node_modules/jquery/dist/jquery.js":10}]},{},[4]);
+},{"/var/www/html/phenogrid/node_modules/jquery/dist/jquery.js":10}]},{},[4]);

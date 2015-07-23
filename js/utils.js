@@ -3,8 +3,6 @@
 
 var $ = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 
-function Utils() {};
-
 var Utils = {
 	getConceptId: function (uri) {
 			// replace spaces with underscores. Classes are separated with spaces so a class called "Model 1" will be two classes: Model and 1. Convert this to "Model_1" to avoid this problem.
@@ -101,7 +99,7 @@ var Utils = {
 		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
 
-}
+};
 
 
 // CommonJS format
