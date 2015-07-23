@@ -72,6 +72,7 @@ var DataLoader = require('./dataloader.js');
 var DataManager = require('./datamanager.js');
 var stickytooltip = require('./stickytooltip.js');
 var TooltipRender = require('./tooltiprender.js');
+var Expander = require('./expander.js');
 var Utils = require('./utils.js');
 
 (function(factory) {

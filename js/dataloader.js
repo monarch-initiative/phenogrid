@@ -126,9 +126,10 @@ DataLoader.prototype = {
 
 				// TODO: THIS NEEDS CHANGED TO CATEGORY (I THINK MONARCH TEAM MENTIONED ADDING THIS)
 				//type = this.parent.defaultApiEntity;
+
 				for (var j in this.apiEntityMap) {
 				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
-				 		type = this.apiEntityMap[j].apifragment;
+				 		var type = this.apiEntityMap[j].apifragment; // Added var - Joe
 				 	}
 				}
 				
@@ -144,7 +145,7 @@ DataLoader.prototype = {
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, cellPoint, dataVals;
-				var sourceID_a, currID_lcs;
+				var sourceID_a, currID_b, currID_lcs;  // Added currID_b - Joe
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 
 					var sum =0, count=0;
@@ -307,6 +308,7 @@ DataLoader.prototype = {
 		var idClean = id.replace("_", ":");
 
 //		var HPOInfo = this.state.hpoCacheHash.get(idClean);
+        var HPOInfo; // Added var definiation - Joe
 		var hpoCacheLabels = [], hpoCache = [];
 		var direction = hpoDirection;
 		var relationship = "subClassOf";
