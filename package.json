@@ -25,7 +25,26 @@
     "jquery-ui": "^1.10.5",
     "jshashtable": "^0.1.0",
     "npm": "^2.12.1",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "browserify-shim": "^3.8.10",
+    "sumoselect": "git+https://github.com/HemantNegi/jquery.sumoselect.git#master"
+  },
+  "browser": {
+    "jquery": "./node_modules/jquery/dist/jquery.js",
+    "sumoselect": "./node_modules/sumoselect/jquery.sumoselect.js"
+  },
+  "browserify-shim": {
+    "jquery": "$",
+    "sumoselect": {
+      "depends": [
+        "jquery"
+      ]
+    }
+  },
+  "browserify": {
+    "transform": [
+      "browserify-shim"
+    ]
   },
   "devDependencies": {
     "browserify": "^10.2.1",
