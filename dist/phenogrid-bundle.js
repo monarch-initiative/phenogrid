@@ -497,6 +497,9 @@ var TooltipRender = require('./tooltiprender.js');
 		_init: function() {
 			this.element.empty();
 
+			// show loading spinner - Joe
+			this._showLoadingSpinner();
+			
 			// original spot for init of tooltip
 			this.state.phenoDisplayCount = this._calcPhenotypeDisplayCount();
 			// save a copy of the original phenotype data
@@ -513,6 +516,13 @@ var TooltipRender = require('./tooltiprender.js');
 			this._processDisplay();
 		},
 
+		// Loading spinner image from font awesome - Joe
+		_showLoadingSpinner: function() {
+			var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
+			this._createSvgContainer();
+			element.appendTo(this.state.svgContainer);
+		},
+		
 		//Originally part of _init
 		_setLoadedValues: function() {
 			// must init the stickytooltip here initially, but then don't reinit later until in the redraw
