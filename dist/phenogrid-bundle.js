@@ -518,7 +518,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 		// Loading spinner image from font awesome - Joe
 		_showLoadingSpinner: function() {
-			var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
+			var element = $('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
 			this._createSvgContainer();
 			element.appendTo(this.state.svgContainer);
 		},
@@ -3030,7 +3030,7 @@ var TooltipRender = require('./tooltiprender.js');
 		 * y1 is the baseline for computing the y position of the gradient
 		 */
 		_createGradients: function(i, y1){
-			self = this;
+			var self = this;
 			var y;
 			var gradientHeight = 20;
 			var gradient = this.state.svg.append("svg:linearGradient") // The <linearGradient> element is used to define a linear gradient. - Joe
@@ -3085,6 +3085,7 @@ var TooltipRender = require('./tooltiprender.js');
 		 * y1 is the baseline to work from
 		 */
 		_buildGradientTexts: function(y1) {
+			var self = this;
 			var lowText, highText, labelText;
 			for (var idx in this.state.similarityCalculation) {
 				if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
