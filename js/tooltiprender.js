@@ -231,7 +231,7 @@ TooltipRender.prototype = {
 	}
 
 
-}
+};
 
 
 // CommonJS format

@@ -189,7 +189,7 @@ Expander.prototype = {
 		}
 		return str;
 	}
-}
+};
 
 // CommonJS format
 module.exports = Expander;

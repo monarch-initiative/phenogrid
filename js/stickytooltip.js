@@ -141,7 +141,7 @@ var stickytooltip = {
 			// })
 		}) //end dom ready
 	}
-}
+};
 
 //stickytooltip.init("targetElementSelector", "tooltipcontainer")
 //stickytooltip.init("*[data-tooltip]", "mystickytooltip")

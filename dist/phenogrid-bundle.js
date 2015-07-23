@@ -674,7 +674,7 @@ DataLoader.prototype = {
 		return hpoCache; 
 	}
 
-}
+};
 
 // CommonJS format
 module.exports = DataLoader;
@@ -1222,7 +1222,7 @@ Expander.prototype = {
 		}
 		return str;
 	}
-}
+};
 
 // CommonJS format
 module.exports = Expander;
@@ -4207,7 +4207,7 @@ var stickytooltip = {
 			// })
 		}) //end dom ready
 	}
-}
+};
 
 //stickytooltip.init("targetElementSelector", "tooltipcontainer")
 //stickytooltip.init("*[data-tooltip]", "mystickytooltip")
@@ -4450,7 +4450,7 @@ TooltipRender.prototype = {
 	}
 
 
-}
+};
 
 
 // CommonJS format
@@ -4559,7 +4559,7 @@ var Utils = {
 		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
 
-}
+};
 
 
 // CommonJS format

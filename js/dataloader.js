@@ -374,7 +374,7 @@ DataLoader.prototype = {
 		return hpoCache; 
 	}
 
-}
+};
 
 // CommonJS format
 module.exports = DataLoader;
