@@ -894,8 +894,7 @@ var TooltipRender = require('./tooltiprender.js');
 					.attr("y", faqY + 20) // 20 padding - Joe
 					.style('cursor', 'pointer')
 					.on("click", function(d) {
-						var name = "modelscores";
-						self._showDialog(name);
+						self._showDialog("modelscores");
 					});
 
 				var expl = self.state.svg.append("text")
@@ -1702,6 +1701,7 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_addGridTitle: function() {
+			var self = this;
 			var species = '';
 
 			// set up defaults as if overview
@@ -1743,15 +1743,16 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_configureFaqs: function() {
+			var self = this;
 			var sorts = $("#pg_sorts")
 				.on("click", function(d, i) {
-					self._showDialog( "sorts");
+					self._showDialog("sorts");
 				});
 
 			//var calcs = d3.selectAll("#calcs")
 			var calcs = $("#pg_calcs")
 				.on("click", function(d) {
-					self._showDialog( "calcs");
+					self._showDialog("calcs");
 				});
 		},
 
