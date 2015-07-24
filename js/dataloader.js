@@ -297,19 +297,19 @@ DataLoader.prototype = {
 	// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
 	// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
 	// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
-	getOntology: function(id, hpoDirection, hpoDepth) {
+	getOntology: function(id, ontologyDirection, ontologyDepth) {
 		// check cached hashtable first
 		var idClean = id.replace("_", ":");
 
-//		var HPOInfo = this.state.hpoCacheHash.get(idClean);
-		var hpoCacheLabels = [], hpoCache = [];
-		var direction = hpoDirection;
+//		var ontologyInfo = this.state.ontologyCacheHash.get(idClean);
+		var ontologyCacheLabels = [], ontologyCache = [];
+		var direction = ontologyDirection;
 		var relationship = "subClassOf";
-		var depth = hpoDepth;
+		var depth = ontologyDepth;
 		var nodes, edges;
 		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
-//		if (HPOInfo === null) {
-			HPOInfo = [];
+//		if (ontologyInfo === null) {
+			ontologyInfo = [];
 			var url = this.simServerURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 			var results = this.fetch(url);
@@ -322,14 +322,14 @@ DataLoader.prototype = {
 					if ( ! nodes.hasOwnProperty(i)) {
 						break;
 					}
-					var lab = hpoCacheLabels[nodes[i].id];
+					var lab = ontologyCacheLabels[nodes[i].id];
 					if ( typeof(lab) !== 'undefined' &&
 						(nodes[i].id != "MP:0000001" &&
 						nodes[i].id != "OBO:UPHENO_0001001" &&
 						nodes[i].id != "OBO:UPHENO_0001002" &&
 						nodes[i].id != "HP:0000118" &&
 						nodes[i].id != "HP:0000001")) {
-						hpoCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
+						ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
 					}
 				}
 
@@ -343,26 +343,26 @@ DataLoader.prototype = {
 						edges[j].obj != "OBO:UPHENO_0001002" &&
 						edges[j].obj != "HP:0000118" &&
 						edges[j].obj != "HP:0000001") {
-						HPOInfo.push(edges[j]);
+						ontologyInfo.push(edges[j]);
 					}
 				}
 			}
 
 			// HACK:if we return a null just create a zero-length array for now to add it to hashtable
 			// this is for later so we don't have to lookup concept again
-			if (HPOInfo === null) {
-				HPOInfo = {};
+			if (ontologyInfo === null) {
+				ontologyInfo = {};
 			}
 
-			// save the HPO in cache for later
-			var hashData = {"edges": HPOInfo, "active": 1};
-			hpoCache[idClean] = hashData;
+			// save the ontology in cache for later
+			var hashData = {"edges": ontologyInfo, "active": 1};
+			ontologyCache[idClean] = hashData;
 		// } else {
 		// 	// If it does exist, make sure its set to visible
-		// 	HPOInfo.active = 1;
-		// 	hpoCache[idClean] = HPOInfo;
+		// 	ontologyInfo.active = 1;
+		// 	ontologyCache[idClean] = ontologyInfo;
 		// }
-		return hpoCache; 
+		return ontologyCache; 
 	}
 
 }

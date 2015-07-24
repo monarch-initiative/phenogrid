@@ -2835,8 +2835,8 @@ button.ui-button::-moz-focus-inner {
 
 .pg_score_text {
   font-family: Verdana, Geneva, sans-serif;               
-  font-size: 11px;
-  letter-spacing:-1px;
+  font-size: 10px;
+  /*letter-spacing:-2px;*/
 }
 
 
@@ -2869,7 +2869,7 @@ button.ui-button::-moz-focus-inner {
 
 #pg_org_div {
 	float: left;
-	width:140px;
+	width:100%;
 }
 
 #pg_sort_div {

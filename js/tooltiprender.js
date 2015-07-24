@@ -26,6 +26,10 @@ TooltipRender.prototype = {
 		return s;
 	},
 
+	test: function() {
+		console.log('test');
+	}, 
+
 	// main method for rendering tooltip content
 	html: function(parms) {
 		this.parent = parms.parent;
@@ -79,6 +83,8 @@ phenotype: function(tooltip) {
 	var hpoData = "<br/><br/>";
 	var fixedId = tooltip.id.replace("_", ":");
 	var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
+	var TEMP = tooltip.parent._expandHPO;
+
 	if (hpoCached !== undefined) { //&& hpoCached.active == 1){
 		hpoExpand = true;
 
@@ -100,7 +106,8 @@ phenotype: function(tooltip) {
 			returnHtml += hpoData;
 		} else {
 			returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
-			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"this._expandHPO('" + tooltip.id + "')\"></i>";
+			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"ui.phenogrid._expandHPO('" + tooltip.id + "')\"></i>";
+
 		}
 	}
 	else {
@@ -164,17 +171,17 @@ cell: function(tooltip, d) {
 		var suffix = "";
 		var selCalc = tooltip.parent.state.selectedCalculation;
 
-		var prefix, targetLabel, sourceId, type;
+		var prefix, targetId, sourceId, type;
 		var species = d.species;
 		//var taxon = d.taxon;
 
 		 if (tooltip.parent.state.invertAxis) {
 			sourceId = d.source_id;
-			targetLabel = d.target_id;
+			targetId = d.target_id;
 //			type = yInfo.type;
 		 } else {
 			sourceId = d.source_id;
-			targetLabel = d.target_id;
+			targetId = d.target_id;
 //			type = xInfo.type;
 		 }
 
@@ -202,9 +209,11 @@ cell: function(tooltip, d) {
 			this.entityHreflink(d.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br><b>Species:</b> " + d.species + "</td>" + 
 			"<tr><td><u><b><br>In-common</b></u><br>" + 
-			d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
+			this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label )
+			+ Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
 			"<tr><td><br><u><b>Match</b></u><br>" + 
-			d.b_label + Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
+			this.entityHreflink(d.type, d.b_id, d.b_label )
+			+ Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
 			"</tbody>" + 
 			"</table>";
 
