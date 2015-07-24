@@ -1,3 +1,15 @@
+(function () {
+'use strict';
+
+/* Sticky Tooltip script (v1.0)
+* Created: Nov 25th, 2009. This notice must stay intact for usage 
+* Author: Dynamic Drive at http://www.dynamicdrive.com/
+* Visit http://www.dynamicdrive.com/ for full source code
+*/
+
+var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
+var $ = jQuery;
+
 /* Sticky Tooltip script (v1.0)
 * Created: Nov 25th, 2009. This notice must stay intact for usage 
 * Author: Dynamic Drive at http://www.dynamicdrive.com/
@@ -5,7 +17,7 @@
 */
 
 
-var stickytooltip={
+var stickytooltip = {
 	tooltipoffsets: [1, -1], //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
 	fadeinspeed: 1, //duration of fade effect in milliseconds
 	rightclickstick: true, //sticky tooltip when user right clicks over the triggering element (apart from pressing "s" key) ?
@@ -129,7 +141,12 @@ var stickytooltip={
 			// })
 		}) //end dom ready
 	}
-}
+};
 
 //stickytooltip.init("targetElementSelector", "tooltipcontainer")
 //stickytooltip.init("*[data-tooltip]", "mystickytooltip")
+
+// CommonJS format
+module.exports=stickytooltip;
+
+}());

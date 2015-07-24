@@ -1,3 +1,6 @@
+(function () {
+'use strict';
+
 /*
 	Package: axisgroup.js
 
@@ -288,3 +291,8 @@ AxisGroup.prototype = {
 		return scale
     }
 };
+
+// CommonJS format
+module.exports = AxisGroup;
+
+}());

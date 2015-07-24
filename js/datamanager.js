@@ -1,3 +1,6 @@
+(function () {
+'use strict';
+
 /*
  	Package: datamanager.js
 
@@ -340,3 +343,7 @@ DataManager.prototype = {
 	}
 };
 
+// CommonJS format
+module.exports=DataManager;
+
+}());

@@ -1,3 +1,9 @@
+(function () {
+'use strict';
+
+var Utils = require('./utils.js');
+
+
 /* 
 	Package: tooltiprender.js
 
@@ -76,351 +82,168 @@ TooltipRender.prototype = {
 		}
 	}, 
 
-phenotype: function(tooltip) {
-	
-	var returnHtml = "";
-	var hpoExpand = false;
-	var hpoData = "<br/><br/>";
-	var fixedId = tooltip.id.replace("_", ":");
-	var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
+	phenotype: function(tooltip) {
+		
+		var returnHtml = "";
+		var hpoExpand = false;
+		var hpoData = "<br/><br/>";
+		var fixedId = tooltip.id.replace("_", ":");
+		var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
 	var TEMP = tooltip.parent._expandHPO;
 
-	if (hpoCached !== undefined) { //&& hpoCached.active == 1){
-		hpoExpand = true;
+		if (hpoCached !== undefined) { //&& hpoCached.active == 1){
+			hpoExpand = true;
 
-		//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
-		tooltip.parent.state.ontologyTreesDone = 0;
-		tooltip.parent.state.ontologyTreeHeight = 0;
-		var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-		if (hpoTree == "<br/>"){
-			hpoData += "<em>No HPO Data Found</em>";
-		} else {
-			hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
-		}
-	}
-	// Used font awesome for expand/collapse buttons - Joe
-	if (!tooltip.parent.state.preloadHPO){
-		if (hpoExpand){
-			returnHtml = "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
-			returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"this._collapseHPO('" + tooltip.id + "')\"></i>";
-			returnHtml += hpoData;
-		} else {
-			returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
-			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"ui.phenogrid._expandHPO('" + tooltip.id + "')\"></i>";
-
-		}
-	}
-	else {
-		returnHtml = hpoData;
-	}
-return returnHtml;		
-
-},
-
-gene: function(tooltip) {
-	var returnHtml = "";	
-/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
-	// for gene and species mode only, show genotype link
-	if (tooltip.parent.state.targetSpeciesName != "Overview"){
-		var isExpanded = false;
-		var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
-		if (gtCached !== null) { isExpanded = gtCached.expanded;}
-
-		//if found just return genotypes scores
-		if (isExpanded) {
-//					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
-			returnHtml = "<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
-				 "<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
-				 "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapse('" + tooltip.id + "')\">" +
-				 "</button>";
-		} else {
-			if (gtCached !== null) {
-				returnHtml = "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
+			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
+			tooltip.parent.state.ontologyTreesDone = 0;
+			tooltip.parent.state.ontologyTreeHeight = 0;
+			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
+			if (hpoTree == "<br/>"){
+				hpoData += "<em>No HPO Data Found</em>";
 			} else {
-				returnHtml = "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
+				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
 			}
-			returnHtml += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expand('" + tooltip.id + "')\"></button>";
 		}
-	}
-	
-	return returnHtml;	
-},
+		// Used font awesome for expand/collapse buttons - Joe
+		if (!tooltip.parent.state.preloadHPO){
+			if (hpoExpand){
+				returnHtml = "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
+				returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"this._collapseHPO('" + tooltip.id + "')\"></i>";
+				returnHtml += hpoData;
+			} else {
+				returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
+				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"this._expandHPO('" + tooltip.id + "')\"></i>";
 
-genotype: function(tooltip) {
-	var returnHtml = "";
-	if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
-		var parentInfo = tooltip.parent.state.modelListHash.get(info.parent);
-		if (parentInfo !== null) {
-			// var alink = this.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":");
-			// var hyperLink = $("<a>")
-			// 	.attr("href", alink)
-			// 	.attr("target", "_blank")
-			// 	.text(parentInfo.label);
-			// return "<br/><strong>Gene:</strong> " + hyperLink;				
-
- 			var genehrefLink = "<a href=\"" + tooltip.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
- 			returnHtml = "<br/><strong>Gene:</strong> " + genehrefLink;
+			}
 		}
-	}
-	return returnHtml;	
-},
+		else {
+			returnHtml = hpoData;
+		}
+	return returnHtml;		
 
-cell: function(tooltip, d) {
-	var returnHtml = "";
+	},
 
-		var suffix = "";
-		var selCalc = tooltip.parent.state.selectedCalculation;
+	gene: function(tooltip) {
+		var returnHtml = "";	
+	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
+		// for gene and species mode only, show genotype link
+		if (tooltip.parent.state.targetSpeciesName != "Overview"){
+			var isExpanded = false;
+			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
+			if (gtCached !== null) { isExpanded = gtCached.expanded;}
+
+			//if found just return genotypes scores
+			if (isExpanded) {
+	//					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
+				returnHtml = "<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
+					 "<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
+					 "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapse('" + tooltip.id + "')\">" +
+					 "</button>";
+			} else {
+				if (gtCached !== null) {
+					returnHtml = "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
+				} else {
+					returnHtml = "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
+				}
+				returnHtml += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expand('" + tooltip.id + "')\"></button>";
+			}
+		}
+		
+		return returnHtml;	
+	},
+
+	genotype: function(tooltip) {
+		var returnHtml = "";
+		if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
+			var parentInfo = tooltip.parent.state.modelListHash.get(info.parent);
+			if (parentInfo !== null) {
+				// var alink = this.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":");
+				// var hyperLink = $("<a>")
+				// 	.attr("href", alink)
+				// 	.attr("target", "_blank")
+				// 	.text(parentInfo.label);
+				// return "<br/><strong>Gene:</strong> " + hyperLink;				
+
+				var genehrefLink = "<a href=\"" + tooltip.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
+				returnHtml = "<br/><strong>Gene:</strong> " + genehrefLink;
+			}
+		}
+		return returnHtml;	
+	},
+
+	cell: function(tooltip, d) {
+		var returnHtml = "";
+
+			var suffix = "";
+			var selCalc = tooltip.parent.state.selectedCalculation;
 
 		var prefix, targetId, sourceId, type;
-		var species = d.species;
-		//var taxon = d.taxon;
+			var species = d.species;
+			//var taxon = d.taxon;
 
-		 if (tooltip.parent.state.invertAxis) {
-			sourceId = d.source_id;
+			 if (tooltip.parent.state.invertAxis) {
+				sourceId = d.source_id;
 			targetId = d.target_id;
-//			type = yInfo.type;
-		 } else {
-			sourceId = d.source_id;
+	//			type = yInfo.type;
+			 } else {
+				sourceId = d.source_id;
 			targetId = d.target_id;
-//			type = xInfo.type;
-		 }
+	//			type = xInfo.type;
+			 }
 
-		// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-		// 	if (taxon.indexOf("NCBITaxon:") != -1) {
-		// 		taxon = taxon.slice(10);
-		// 	}
-		// }
+			// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
+			// 	if (taxon.indexOf("NCBITaxon:") != -1) {
+			// 		taxon = taxon.slice(10);
+			// 	}
+			// }
 
-		for (var idx in tooltip.parent.state.similarityCalculation) {	
-			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+			for (var idx in tooltip.parent.state.similarityCalculation) {	
+				if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+					break;
+				}
+				if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+					prefix = tooltip.parent.state.similarityCalculation[idx].label;
 				break;
-			}
-			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
-				prefix = tooltip.parent.state.similarityCalculation[idx].label;
-			break;
-			}
-		}
-
-		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-		if ( selCalc != 2) {suffix = '%';}
-
-		returnHtml = "<table class=\"pgtb\">" +
-			"<tbody><tr><td><u><b>Query</b></u><br>" +
-			this.entityHreflink(d.type, sourceId, d.a_label ) +  
-			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br><b>Species:</b> " + d.species + "</td>" + 
-			"<tr><td><u><b><br>In-common</b></u><br>" + 
-			this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label )
-			+ Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
-			"<tr><td><br><u><b>Match</b></u><br>" + 
-			this.entityHreflink(d.type, d.b_id, d.b_label )
-			+ Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
-			"</tbody>" + 
-			"</table>";
-
-			// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-			// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-			// "<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
-
-
-		// returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
-		// 	"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
-		// 	"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
-		// 	"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-		// 	"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-		// 	"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
-	
-	return returnHtml;	
-
-}
-
-
-};
-
-/********************************************************** 
-	Expander: 
-	handles expansion form a single source into a 
-	set of targets
-***********************************************************/
-var Expander = function() {   // constructor
-};
-
-Expander.prototype = {
-	parentObject: null,
-	constructor:Expander,
-	
-	// general expansion starts here
-	getTargets: function(parms) {
-		var targets = null;
-		try {
-			// infers function based on type
-			var func = parms.modelData.type;					
-			var modelData = parms.modelData
-			this.parentObject = parms.parentRef.state;  // instance of phenoGrid
-			targets = this[func](modelData);   
-		} catch(err) { console.log(err.message);}
-		return targets;
-	},
-
-	gene: function(model) {
-					//this.parent = [id];
-			//print("Expanding Gene...for id="+id);
-			modelInfo = model;
-			var targets = new Hashtable();
-			var genotypeIds = "", phenotypeIds = "", genoTypeAssociations;
-			var genotypeLabelHashtable = new Hashtable();
-
-			// go get the assocated genotypes
-			//var url = this.parentObject.serverURL+"/gene/"+ modelInfo.id.replace('_', ':') + ".json";		
-			//var url = this.state.serverURL+"/genotypes/"+ modelInfo.id.replace('_', ':');
-			
-			// CALL THAT SHOULD WORK FROM ROSIE; NICOLE WILL WRAP THIS IN THE APP LAYER 4/9/15			
-			var url = this.parentObject.serverURL + "/scigraph/dynamic/genes/" + modelInfo.id.replace('_', ':') +
-			 			"/genotypes/targets.json";
-			//http://rosie.crbs.ucsd.edu:9000/scigraph/dynamic/genes/MGI:101926/genotypes/targets.json 
-			// THIS SHOULD WORK
-			//http://tartini.crbs.ucsd.edu/dynamic/genes/NCBIGene:14183/genotypes/nodes.json
-			console.log("Getting Gene " + url);
-			//console.profile("genotypes call");
-			var res = null; //this.parentObject._ajaxLoadData(modelInfo.d.species,url);
-
-			jQuery.ajax({
-				url: url, 
-				async : false,
-				dataType : 'json',
-				success : function(data) {
-					res = data;
-				},
-				error: function (xhr, errorType, exception) { 
-					console.log("ajax error: " + xhr.status);					
-				} 
-			});
-
-			// UNCOMMENT LATER WHEN SCIGRAPH GETS WORKING MORE CONSISTANT
-			//res = this.parentObject._filterGenotypeGraphList(res);  // this is for the /scigraph call
-			//console.profileEnd();
-
-			// can't go any further if we do get genotypes
-			if (typeof (res) == 'undefined' || res.length === 0) { 
-			 	return null;
-			}
-
-			//genoTypeAssociations = res.genotype_associations;  // this works with old /gene call above
-			genoTypeAssociations = res.nodes;  // this is for the /scigraph call
-
-			if (genoTypeAssociations !== null && genoTypeAssociations.length > 5) {
-				console.log("There are " + genoTypeAssociations.length + " associated genotypes");
-			}
-
-			//var assocPhenotypes = this.parentObject.getMatchingPhenotypes(modelInfo.id);
-			var modelKeys = this.parentObject.cellDataHash.keys();
-			var assocPhenotypes = [];
-			var key = modelInfo.id;
-			for (var i in modelKeys){
-				if (key == modelKeys[i].yID) {				
-					assocPhenotypes.push(modelKeys[i].xID);   // phenotype id is xID
-				} else if (key == modelKeys[i].xID){
-					assocPhenotypes.push(modelKeys[i].yID); // phenotype id is in the yID					
 				}
 			}
-			var ctr = 0;
 
-			// assemble the phenotype ids 
-			for (var p in assocPhenotypes) {
-				phenotypeIds += assocPhenotypes[p] + "+";
-				ctr++;
+			// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+			if ( selCalc != 2) {suffix = '%';}
 
-				// limit number of genotypes do display based on internalOptions
-				if (ctr > this.parentObject.phenoCompareLimit && ctr < assocPhenotypes.length) break;  
-			}
-			// truncate the last + off, if there
-			if (phenotypeIds.slice(-1) == '+') {
-				phenotypeIds = phenotypeIds.slice(0, -1);
-			}
+			returnHtml = "<table class=\"pgtb\">" +
+				"<tbody><tr><td><u><b>Query</b></u><br>" +
+				this.entityHreflink(d.type, sourceId, d.a_label ) +  
+				" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br><b>Species:</b> " + d.species + "</td>" + 
+				"<tr><td><u><b><br>In-common</b></u><br>" + 
+			this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label )
+			+ Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
+				"<tr><td><br><u><b>Match</b></u><br>" + 
+			this.entityHreflink(d.type, d.b_id, d.b_label )
+			+ Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
+				"</tbody>" + 
+				"</table>";
 
-			ctr = 0;
-			// assemble a list of genotypes
-			for (var g in genoTypeAssociations) {
-				//genotypeIds += genoTypeAssociations[g].genotype.id + "+";
-				genotypeIds += genoTypeAssociations[g].id + "+";
-				// fill a hashtable with the labels so we can quickly get back to them later
-				//var tmpLabel = this._encodeHtmlEntity(genoTypeAssociations[g].genotype.label); 				
-				//var tmpLabel = this.encodeHtmlEntity(genoTypeAssociations[g].genotype.label); // scigraph
-				var tmpLabel = this.encodeHtmlEntity(genoTypeAssociations[g].lbl);  				
-				tmpLabel = (tmpLabel === null ? "undefined" : tmpLabel);
-				genotypeLabelHashtable.put(genoTypeAssociations[g].id, tmpLabel);
-				ctr++;
+				// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
+				// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
+				// "<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
 
-				// limit number of genotypes do display based on internalOptions 
-				if (ctr > this.parentObject.genotypeExpandLimit && ctr < genoTypeAssociations.length) break;  
-			}
 
-			// truncate the last + off, if there
-			if (genotypeIds.slice(-1) == '+') {
-				genotypeIds = genotypeIds.slice(0, -1);
-			}
+			// returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
+			// 	"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
+			// 	"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
+			// 	"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
+			// 	"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
+			// 	"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
+		
+		return returnHtml;	
 
-			// call compare
-			var compareScores = null;
-			url = this.parentObject.serverURL + "/compare/" + phenotypeIds + "/" + genotypeIds;
-			console.log("Comparing " + url);
-			//console.profile("compare call");
-			//compareScores = this.parentObject._ajaxLoadData(modelInfo.d.species,url);
-			jQuery.ajax({
-				url: url, 
-				async : false,
-				dataType : 'json',
-				success : function(data) {
-					compareScores = data;
-				},
-				error: function (xhr, errorType, exception) { 
-					console.log("ajax error: " + xhr.status);
-				} 
-			});
-
-			if (compareScores != null) {
-				var iPosition = 1;
-				// rebuild the model list with genotypes
-				for (var idx in compareScores.b) {
-					var newGtLabel = genotypeLabelHashtable.get(compareScores.b[idx].id); 
-					var gt = {
-					parent: modelInfo.id,
-					label: (newGtLabel !== null?newGtLabel:compareScores.b[idx].label), // if label was null, then use previous fixed label
-				// if label was null, then use previous fixed label
-					score: compareScores.b[idx].score.score, 
-					species: modelInfo.d.species,
-					rank: compareScores.b[idx].score.rank,
-					type: "genotype",
-					taxon: compareScores.b[idx].taxon.id,
-					pos: (modelInfo.d.pos + iPosition),
-					count: modelInfo.d.count,
-					sum: modelInfo.d.sum
-					};
-
-					targets.put( compareScores.b[idx].id.replace('_', ':'), gt);
-					//genoTypeList.put( this._getConceptId(compareScores.b[idx].id), gt);
-
-					// Hack: need to fix the label because genotypes have IDs as labels
-					compareScores.b[idx].label = genotypeLabelHashtable.get(compareScores.b[idx].id);
-
-					iPosition++;
-				}			
-			} else {
-				targets = null;
-			}
-			// return a complex object with targets and scores
-			returnObj = {targets: targets, scores: compareScores};
-		return returnObj;
-	},
-	encodeHtmlEntity: function(str) {
-		if (str !== null) {
-			return str
-			.replace(/»/g, "&#187;")
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;")
-			.replace(/'/g, "&#039;");
-		}
-		return str;
 	}
+
+
 };
+
+
+// CommonJS format
+module.exports = TooltipRender;
+
+}());

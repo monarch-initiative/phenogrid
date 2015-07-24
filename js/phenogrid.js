@@ -1,27 +1,35 @@
+(function () {
+'use strict';
+
 /*
+ * Phenogrid
  *
- *	Phenogrid - the Phenogrid widget.
- * 
- *	implemented as a jQuery UI (jqueryui.com) widget, this can be instantiated on a jquery-enabled web page
- *	with a call of the form 
- *	$("#mydiv).phenogrid({phenotypeData: phenotypeList}).
- *	where #mydiv is the id of the div that will contain the phenogrid widget
- *	and phenotypeList takes one of two forms:
+ * Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided
+ * by OWLSim (www.owlsim.org),  as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
  *
- *	1. a list of hashes of the form 
- *		[ {"id": "HP:12345", "observed" :"positive"}, {"oid: "HP:23451", "observed" : "negative"},]
- *	2. a simple list of ids..
- *		[ "HP:12345", "HP:23451"], etc.
+ * Phenogrid widget can be instantiated on a jquery-enabled web page with a call of the form
  *
- *	Configuration options useful for setting species displayed, similarity calculations, and 
+ * window.onload = function() {
+ *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
+ *         serverURL : "http://beta.monarchinitiative.org",
+ *         phenotypeData: phenotypes,
+ *         targetSpeciesName: "Mus musculus"
+ *     });
+ * }
+ *
+ * 'phenogrid_container' is the id of the div that will contain the phenogrid widget
+ *	phenotypes is a Javascript array of objects listing the phenotypes to be rendered in the widget, it takes one of two forms:
+ *
+ *	1. A list of hashes
+ *		[{"id": "HP:12345", "observed":"positive"}, {"id: "HP:23451", "observed": "negative"}, ...]
+ *	2. A list of phenotype ids
+ *		["HP:12345", "HP:23451"]
+ *
+ *	Configuration options useful for setting species displayed, similarity calculations, and
  *	related parameters can also be passed in this hash. As of September
  *	2014, these options are currently being refactored - further
  *	documentation hopefully coming soon.
  *
- *	The phenogrid widget uses semantic similarity calculations
- *	provided by OWLSim (www.owlsim.org), as provided through APIs from
- *	the Monarch initiative (www.monarchinitiative.org). 
- * 
  *	Given an input list of phenotypes and parameters indicating
  *	desired source of matching models (humans, model organisms, etc.),
  *	the phenogrid will call the Monarch API to get OWLSim results
@@ -41,18 +49,53 @@
  *	},
  *
  *	These results will then be rendered in the phenogrid
- *
- *	NOTE: I probably need a model_url to render additional model info on 
- *	the screen. Alternatively I can load the data 
- *	as a separate call in the init function.
- *
- *	META NOTE (HSH - 8/25/2014): Can we remove this note, or at least clarify?
  */
-var url = document.URL;
 
-/* main phenogrid widget */
-(function($) {
 
+// Will need to install jquery, jquery-ui, d3, jshashtable first via npm - Joe
+// Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
+// npm install jquery jquery-ui d3 jshashtable
+
+// NPM installed packages, you will find them in /node_modules - Joe
+
+// jquery  is commonsJS compliant as of 2.1.0 - Joe
+
+require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
+require('jquery-ui');
+require('sumoselect');
+var d3 = require('d3');
+
+// load other non-npm dependencies - Joe
+// need to specify the relative path ./ and .js extension
+var AxisGroup = require('./axisgroup.js');
+var DataLoader = require('./dataloader.js');
+var DataManager = require('./datamanager.js');
+var stickytooltip = require('./stickytooltip.js');
+var TooltipRender = require('./tooltiprender.js');
+var Expander = require('./expander.js');
+var Utils = require('./utils.js');
+
+(function(factory) {
+	// If there is a variable named module and it has an exports property,
+	// then we're working in a Node-like environment. Use require to load
+	// the jQuery object that the module system is using and pass it in.
+	// Otherwise, we're working in a browser, so just pass in the global jQuery object.
+	if (typeof module === "object" && typeof module.exports === "object") {
+		module.exports = factory(require("jquery"), window, document);
+	} else {
+		factory($, window, document);
+	}
+})
+
+(function($, window, document, __undefined__) {
+	var createPhenogridForElement = function(element, options) {
+		var jqElement = $(element);
+		jqElement.phenogrid(options);
+	};
+
+	window.Phenogrid = {
+		createPhenogridForElement: createPhenogridForElement
+	};
 
 	// Use widget factory to define the UI plugin - Joe
 	// Can aslo be ns.phenogrid (ns can be anything else - namespace) - Joe
@@ -2679,4 +2722,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 
 	}); // end of widget code
-})(jQuery);
+});
+
+}());
+
