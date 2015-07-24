@@ -97,11 +97,13 @@ phenotype: function(tooltip) {
 	if ( ! tooltip.parent.state.preloadHPO){
 		if (hpoExpand){
 			returnHtml = "<br/><br/>Click icon to <b>collapse</b> HPO info";
-			returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"self._collapseHPO('" + tooltip.id + "')\"></i>";
+			//returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" onClick=\"self._collapseHPO('" + tooltip.id + "')\"></i>";
+			returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" id=\"collapseHPO_" + tooltip.id + "\"></i>";
 			returnHtml += hpoData;
 		} else {
 			returnHtml = "<br/><br/>Click icon to <b>expand</b> HPO info";
-			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"self._expandHPO('" + tooltip.id + "')\"></i>";
+			//returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" onClick=\"self._expandHPO('" + tooltip.id + "')\"></i>";
+			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" id=\"expandHPO_" + tooltip.id + "\"></i>";
 		}
 	}
 	else {
