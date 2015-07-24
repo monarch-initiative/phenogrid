@@ -2044,29 +2044,28 @@ var TooltipRender = require('./tooltiprender.js');
 			$("#sticky1").empty();
 			$("#sticky1").html(retData);
 
-			
-			
-			// https://api.jqueryui.com/jquery.widget/#method-_on
-			// Binds click event to the HPO tree expand icon - Joe
-			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="expandHPO_HP_0001300" - Joe
-			var expandHPO_icon = $('#expandHPO_' + concept);
-			this._on(expandHPO_icon, {
-				"click": function(event) {
-					this._expandHPO(concept);
-				}
-			});
-			
-			// Binds click event to the HPO tree collapse icon - Joe
-			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="collapseHPO_HP_0001300" - Joe
-			var expandHPO_icon = $('#collapseHPO_' + concept);
-			this._on(expandHPO_icon, {
-				"click": function(event) {
-					this._collapseHPO(concept);
-				}
-			});
-			
-			
-			
+			// For phenotype HPO tree 
+			if (type === 'phenotype') {
+				// https://api.jqueryui.com/jquery.widget/#method-_on
+				// Binds click event to the HPO tree expand icon - Joe
+				// In tooltiprender.js, the font awesome icon <i> element follows the form of id="expandHPO_HP_0001300" - Joe
+				var expandHPO_icon = $('#expandHPO_' + concept);
+				this._on(expandHPO_icon, {
+					"click": function(event) {
+						this._expandHPO(concept);
+					}
+				});
+				
+				// Binds click event to the HPO tree collapse icon - Joe
+				// In tooltiprender.js, the font awesome icon <i> element follows the form of id="collapseHPO_HP_0001300" - Joe
+				var expandHPO_icon = $('#collapseHPO_' + concept);
+				this._on(expandHPO_icon, {
+					"click": function(event) {
+						this._collapseHPO(concept);
+					}
+				});
+			}
+
 			// not really good to do this but, we need to be able to override some appearance attributes
 			return appearanceOverrides;
 		},
