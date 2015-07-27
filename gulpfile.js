@@ -15,6 +15,7 @@ var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var rename = require("gulp-rename");
 var mocha = require('gulp-mocha');
+var streamify = require('gulp-streamify');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
 var bump = require('gulp-bump');
@@ -60,9 +61,11 @@ gulp.task('create-index', ['clean'], function(cb) {
 
 // Bundle JS together with browserify
 gulp.task('js-bundle', function(cb) {
-    browserify('./js/phenogrid.js')
-    .bundle()
-    .pipe(source('./js/phenogrid.js'))
+    var bundleStream = browserify('./js/phenogrid.js').bundle();
+	
+	bundleStream
+	.pipe(source('./js/phenogrid.js'))
+	.pipe(streamify(uglify())) // Minify
     .pipe(rename('phenogrid-bundle.js'))
     .pipe(gulp.dest('./dist/'))
     .on('end', cb);
