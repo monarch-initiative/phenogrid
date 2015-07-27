@@ -2382,7 +2382,6 @@ var TooltipRender = require('./tooltiprender.js');
 
 					self._highlightIntersection(d, d3.mouse(this));
 					self._enableRowColumnRects(this);
-					self.state.currSelectedRect = this;
 
 					self._createHoverBoxForCell(d);
 				})
