@@ -2347,7 +2347,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var axisStatus = this.state.invertAxis;
 
 			var rectTranslation = "translate(" + ((this.state.textWidth + this.state.xOffsetOver + 30) + 4) + "," + (self.state.yoffsetOver + 15)+ ")";
-			var model_rects = this.state.svg.selectAll(".models")
+			var model_rects = this.state.svg.selectAll(".cell")
 				.data(data, function(d) {
 					return d.xID + d.yID;
 				});
@@ -2355,7 +2355,7 @@ var TooltipRender = require('./tooltiprender.js');
 			model_rects.enter()
 				.append("rect")
 				.attr("transform", rectTranslation) // moves the data cells to region - Joe
-				.attr("class", 'models')
+				.attr("class", 'cell')
 				.attr("id", function(d) { // e.g. id="cell_MGI_98331_HP_0000739" - Joe
 					var dConcept = (d.xID + '_' + d.yID);
 					var modelConcept = self._getConceptId(d.xID);
@@ -2521,7 +2521,7 @@ var TooltipRender = require('./tooltiprender.js');
 		_enableRowColumnRects: function(curr_rect) {
 			var self = this;
 
-			var model_rects = self.state.svg.selectAll("rect.models")
+			var model_rects = self.state.svg.selectAll("rect.cell")
 				.filter(function(d) {
 					return d.rowid == curr_rect.__data__.rowid;
 				});
@@ -2531,7 +2531,7 @@ var TooltipRender = require('./tooltiprender.js');
 				}
 				model_rects[0][i].parentNode.appendChild(model_rects[0][i]);
 			}
-			var data_rects = self.state.svg.selectAll("rect.models")
+			var data_rects = self.state.svg.selectAll("rect.cell")
 				.filter(function(d) {
 					return d.model_id == curr_rect.__data__.model_id;
 				});
