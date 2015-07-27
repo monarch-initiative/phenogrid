@@ -23,6 +23,7 @@ var shell = require('gulp-shell');
 var marked = require('marked');
 var jshint = require('gulp-jshint');
 var jshints = require('jshint-stylish');
+var fileinclude = require('gulp-file-include');
 
 function markdownHelper(text) {
   marked.setOptions({
@@ -36,8 +37,6 @@ function markdownHelper(text) {
   });
   return marked.parse(text);
 }
-var fileinclude = require('gulp-file-include');
-
 
 var paths = {
     readme: ['./README.md'],
