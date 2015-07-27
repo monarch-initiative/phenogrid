@@ -17,6 +17,7 @@ var rename = require("gulp-rename");
 var mocha = require('gulp-mocha');
 var streamify = require('gulp-streamify');
 var uglify = require('gulp-uglify');
+var minifyCSS = require('gulp-minify-css');
 var concat = require('gulp-concat');
 var bump = require('gulp-bump');
 var del = require('del');
@@ -65,7 +66,7 @@ gulp.task('js-bundle', function(cb) {
 	
 	bundleStream
 	.pipe(source('./js/phenogrid.js'))
-	.pipe(streamify(uglify())) // Minify
+	.pipe(streamify(uglify())) // Minify JS
     .pipe(rename('phenogrid-bundle.js'))
     .pipe(gulp.dest('./dist/'))
     .on('end', cb);
@@ -75,6 +76,7 @@ gulp.task('js-bundle', function(cb) {
 gulp.task('css-bundle', function(cb) {
   return gulp.src(['./css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css'])
     .pipe(concat('phenogrid-bundle.css'))
+	.pipe(minifyCSS()) //Minify CSS
     .pipe(gulp.dest('./dist/'));
 });
 
