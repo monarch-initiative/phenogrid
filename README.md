@@ -63,7 +63,6 @@ In the below sample code, you will see how to use phenogrid as a embeded widget 
 
 <script>
 var phenotypes = [
-	{id:"HP:0000726", observed:"positive"},
 	{id:"HP:0000746", observed:"positive"},
 	{id:"HP:0001300", observed:"positive"},
 	{id:"HP:0002367", observed:"positive"},
