@@ -1,6 +1,8 @@
 (function () {
 'use strict';
 
+var d3 = require('d3');
+
 /*
 	Package: axisgroup.js
 
@@ -227,10 +229,12 @@ AxisGroup.prototype = {
 	*/	
 
 	contains: function(key) {
-		if (this.get(key) != null)
+		if (this.get(key) !== null) {
 			return true;
-		else
+		}
+		else {
 			return false;
+		}
 	},
     /*
 		Function: sort
@@ -242,7 +246,7 @@ AxisGroup.prototype = {
 	*/	
     sort: function(by) {
     	var temp = this.groupEntries();
- 		if (by == 'Frequency') {
+ 		if (by === 'Frequency') {
 			//sortFunc = self._sortByFrequency;
 			//this.items.sort(function(a,b) {
 			temp.sort(function(a,b) {				
@@ -252,12 +256,12 @@ AxisGroup.prototype = {
 				}
 				return diff;
 			});
-		} else if (by == 'Frequency and Rarity') {
+		} else if (by === 'Frequency and Rarity') {
 			//this.items.sort(function(a,b) {
 			temp.sort(function(a,b) {				
 				return b.sum-a.sum;
 			});
-		} else if (by == 'Alphabetic') {
+		} else if (by === 'Alphabetic') {
 			//this.items.sort(function(a,b) {
 			  temp.sort(function(a,b) {				
 				var labelA = a.label, 
@@ -288,7 +292,7 @@ AxisGroup.prototype = {
 		var scale = d3.scale.ordinal()
 					.domain(values)
 					.rangeRoundBands([0,values.length]);
-		return scale
+		return scale;
     }
 };
 

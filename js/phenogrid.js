@@ -45,7 +45,6 @@
  *		"id_b":"MP:0001413",
  *		"model_id":"MGI_006446",
  *		"model_label":"B10.Cg-H2<sup>h4</sup>Sh3pxd2b<sup>nee</sup>/GrsrJ",
- *		"rowid":"HP_0000716_HP_0100851"
  *	},
  *
  *	These results will then be rendered in the phenogrid
@@ -226,7 +225,7 @@ var Utils = require('./utils.js');
 		// the initializer) come last
 		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
 		// default simServerURL value..
-		if (typeof(this.state.simServerURL) == 'undefined' || this.state.simServerURL ==="") {
+		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === "") {
 			this.state.simServerURL=this.state.serverURL;
 		}
 		this.state.data = {};
@@ -239,6 +238,13 @@ var Utils = require('./utils.js');
 		this._createTargetSpeciesIndices();
 		// index species
 		this._reset();
+
+		// @see for parameters:  https://github.com/HemantNegi/jquery.sumoselect
+		$('.SlectBox').SumoSelect({ triggerChangeCombined: false,
+       						selectAll: true,
+       						selectAlltext: 'Check All',
+       						forceCustomRendering: false	
+							});
 
 		console.log("in create func...");
 	},
@@ -274,7 +280,7 @@ var Utils = require('./utils.js');
 		//if (preloadHPO) {
 		// MKD: just testing one source id
 		var srcs = this.state.dataManager.keys("source");
-		this.state.hpoCacheHash = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth)
+		this.state.hpoCacheHash = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
 		//}
 		
 	    // initialize axis groups
@@ -301,7 +307,7 @@ var Utils = require('./utils.js');
 	_initDefaults: function() {
 		// must init the stickytooltip here initially, but then don't reinit later until in the redraw
 		// this is weird behavior, but need to figure out why later
-		if (typeof(this.state.stickyInitialized) == 'undefined') {
+		if (typeof(this.state.stickyInitialized) === 'undefined') {
 			this._addStickyTooltipAreaStub();
 			this.state.stickyInitialized = true;
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");
@@ -311,7 +317,7 @@ var Utils = require('./utils.js');
 		// MKD: NEEDS REFACTORED init a single instance of Expander
 		this.state.expander = new Expander(); 
 
-		if (this.state.owlSimFunction == 'exomiser') {
+		if (this.state.owlSimFunction === 'exomiser') {
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
 		}
 
@@ -333,7 +339,8 @@ var Utils = require('./utils.js');
        information for axis rendering. Then, switch source and target
        groups to be x or y depending on "flip axis" choice*/
     _createAxisRenderingGroups: function() {
-    
+    	var targetList = [];
+
 		// set default display limits based on displaying defaultSourceDisplayLimit
     	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
 
@@ -355,7 +362,7 @@ var Utils = require('./utils.js');
 			// calculate how many target values we can show using the number of selectedCompareSpecies
 			this.state.defaultVisibleModelCt = (this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length);
 			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);						
-		} else if (this.state.selectedCompareSpecies.length == 1) {
+		} else if (this.state.selectedCompareSpecies.length === 1) {
 
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
 
@@ -403,7 +410,6 @@ var Utils = require('./utils.js');
 	_reDraw: function() {
 		//var self = this;
 		if (this.state.dataManager.isInitialized()) {
-			var displayRangeCount = this.state.yAxisRender.displayLength();
 
 			this._initCanvas();
 			this._addLogoImage();
@@ -424,16 +430,7 @@ var Utils = require('./utils.js');
 
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
-			stickytooltip.init("*[data-tooltip]", "mystickytooltip");
-
-			$(document).ready(function() {
-				// @see for parameters:  https://github.com/HemantNegi/jquery.sumoselect
-				$('.SlectBox').SumoSelect({ triggerChangeCombined: false,
-			       						selectAll: true,
-			       						selectAlltext: 'Check All',
-			       						forceCustomRendering: false	
-										});
-			});
+			stickytooltip.init("*[data-tooltip]", "mystickytooltip");				
 
 		} else {
 			var msg = "There are no results available.";
@@ -449,10 +446,6 @@ var Utils = require('./utils.js');
 		var xvalues = self.state.xAxisRender.entries();   //keys();
 		var yvalues = self.state.yAxisRender.entries();
 		var gridRegion = self.state.gridRegion[0]; 
-		var invertAxis = self.state.invertAxis;
-		var lastRowHighlighted=0;
-		var gridWidth = gridRegion.x + (self.state.xAxisRender.displayLength() * gridRegion.cellwd)-5;
-
 		var xScale = self.state.xAxisRender.getScale();
 		var yScale = self.state.yAxisRender.getScale();
 
@@ -466,8 +459,8 @@ var Utils = require('./utils.js');
 			.attr("class", "row")	  			
 			.attr("id", function(d, i) { 
 				return "pg_grid_row_"+i;})
-  			.attr("transform", function(d, i) { 
-  				return "translate(" + gridRegion.x +"," + (gridRegion.y+yScale(i)*gridRegion.ypad) + ")"; })
+  			 .attr("transform", function(d, i) { 
+  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; })
   			.each(createrow);
 
 		 // row.append("line")
@@ -489,10 +482,8 @@ var Utils = require('./utils.js');
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
-					var coords = {x: d.xpos, y: d.ypos};
-		        	var data = self.state.yAxisRender.itemAt(i);
-		        	self._cellover(coords,data, self);
-		        	})
+				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
+				self._cellover(data, self);})
 			.on("mouseout", self._cellout);		    
 
 	    // create columns using the xvalues (targets)
@@ -502,11 +493,10 @@ var Utils = require('./utils.js');
 	      	.attr("class", "column")	  		    
 			.attr("id", function(d, i) { 
 				return "pg_grid_col_"+i;})	      	
-	      .attr("transform", function(d, i) { 
+	      .attr("transform", function(d) { 
 	      	var offset = gridRegion.colLabelOffset;
 	      	var xs = xScale(d.id);
-	      	if (self.state.invertAxis) {offset = 30;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores
-	      	//return "translate(" + (gridRegion.x + self.state.xScale(i)*gridRegion.xpad) +
+	      	if (self.state.invertAxis) {offset = 30;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
 			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
 	      				 "," + (gridRegion.y-offset) + ")rotate(-60)"; }); //-45
 
@@ -520,12 +510,7 @@ var Utils = require('./utils.js');
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
-		    .on("mouseover", function(d, i) { 
-		        	//var data = d[i];
-		        	var coords = {x: d.xpos, y: d.ypos};
-		        	var data = self.state.xAxisRender.itemAt(i);
-		        	self._cellover(coords, data, self);
-		        	})
+		    .on("mouseover", function(d) { self._cellover(d, self);})
 			.on("mouseout", self._cellout);		    
 	      	
 
@@ -548,28 +533,39 @@ var Utils = require('./utils.js');
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
 					return self._getColorForModelValue(self, d.species, el.value[self.state.selectedCalculation]);
 			        })
-		        .on("mouseover", function(d) { 
-		        	var coords = {x: d.xpos, y: d.ypos};
-		        	var data = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
-		        	self._cellover(coords, data, self);
-		        	//console.log(JSON.stringify(coords));
-		        	})
+		        .on("mouseover", function(d) { self._cellover(d, self);})
 		        .on("mouseout", self._cellout);
 		}
 	},
 
-	_cellover: function (coords, data, parent) {
+	_calcYCoord: function (d, i) {
+		var y = this.state.gridRegion[0].y;
+		var ypad = this.state.gridRegion[0].ypad;
 
-		// show tooltip
-		parent._createHoverBox(data);
+		return (y+(i*ypad));
+	},
 
-		// hightlight row/col
-	  	d3.select("#pg_grid_row_" + coords.y +" text")
-			  .classed("active", true);
- 		d3.select("#pg_grid_row_" + coords.y +" .cell")
-			  .classed("rowcolmatch", true);			  
-	  	d3.select("#pg_grid_col_" + coords.x +" text")
-			  .classed("active", true);
+	_cellover: function (d, parent) {
+
+		var data;
+
+		if (d.type === 'cell') {  
+       		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+			
+			// hightlight row/col labels
+		  	d3.select("#pg_grid_row_" + d.ypos +" text")
+				  .classed("active", true);
+	 		d3.select("#pg_grid_row_" + d.ypos +" .cell")
+				  .classed("rowcolmatch", true);			  
+		  	d3.select("#pg_grid_col_" + d.xpos +" text")
+				  .classed("active", true);
+		} else {
+			data = d;
+		}
+    
+	// show tooltip
+	parent._createHoverBox(data);
+
 	},
 
 	_cellout: function() {
@@ -585,6 +581,13 @@ var Utils = require('./utils.js');
 			stickytooltip.closetooltip();
 		}
 
+	},
+
+	_gridWidth: function() {
+		var gridRegion = self.state.gridRegion[0]; 
+		var axisLen = this.state.xAxisRender.displayLength();
+		var gridWidth = gridRegion.x + (axisLen * gridRegion.cellwd)-5;
+		return gridWidth;
 	},
 
 	_createTextScores: function () {
@@ -661,7 +664,7 @@ var Utils = require('./utils.js');
 		//this.state.svgContainer.append("<svg id='svg_area'></svg>");
 		//this.state.svg = d3.select("#svg_area");
 
-		var svgContainer = this.state.svgContainer;
+		//var svgContainer = this.state.svgContainer;
 		//svgContainer.append("<svg id='svg_area'></svg>");
 		//this.state.svg = d3.select("#svg_area")
 		//	.attr("width", this.state.emptySvgX)
@@ -674,8 +677,8 @@ var Utils = require('./utils.js');
 			html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><p><button id='button' type='button'>Return</button></p><br/></div>";
 			//this.element.append(html);
 			this.state.svgContainer.append(html);
-			var btn = d3.selectAll("#button")
-				.on("click", function(d,i){
+			d3.selectAll("#button")
+				.on("click", function(){
 					$("#return").remove();
 					$("#errmsg").remove();
 					d3.select("#pg_svg_area").remove();
@@ -775,7 +778,7 @@ var Utils = require('./utils.js');
 
 		// this should be the full set of cellData
 		var xvalues = self.state.xAxisRender.groupEntries();
-		console.log(JSON.stringify(xvalues));
+		//console.log(JSON.stringify(xvalues));
 		var yvalues = self.state.yAxisRender.groupEntries();		
 		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
 
@@ -850,10 +853,10 @@ var Utils = require('./utils.js');
 					var newY = curY + d3.event.dy;
 
 					// Restrict Movement if no need to move map
-					if (selectRectHeight == overviewRegionSize) {
+					if (selectRectHeight === overviewRegionSize) {
 						newY = overviewY;
 					}
-					if (selectRectWidth == overviewRegionSize) {
+					if (selectRectWidth === overviewRegionSize) {
 						newX = overviewX;
 					}
 
@@ -1167,7 +1170,7 @@ var Utils = require('./utils.js');
 			this.state.colorScale[species] = new Array(4);
 			for (var j = 0; j <4; j++) {
 				maxScore = 100;
-				if (j == 2) {
+				if (j === 2) {
 					maxScore = this.state.maxICScore;
 				}
 				if (typeof(this.state.colorRanges[i][j]) !== 'undefined') {
@@ -1383,7 +1386,7 @@ var Utils = require('./utils.js');
 		var matchingKeys = [];
 		for (var i in cellKeys){
 //			if (key == cellKeys[i].yID || key == cellKeys[i].xID){
-			if (key == cellKeys[i].source_id || key == cellKeys[i].target_id){
+			if (key === cellKeys[i].source_id || key === cellKeys[i].target_id){
 				matchingKeys.push(cellKeys[i]);
 			}
 		}
@@ -1423,8 +1426,8 @@ var Utils = require('./utils.js');
 				break;
 			}
 			// Currently only allows subClassOf relations.  When new relations are introducted, it should be simple to implement
-			if (edges[j].pred == "subClassOf" && this.state.ontologyTreesDone != this.state.ontologyTreeAmounts){
-				if (edges[j].sub == id){
+			if (edges[j].pred === "subClassOf" && this.state.ontologyTreesDone != this.state.ontologyTreeAmounts){
+				if (edges[j].sub === id){
 					if (this.state.ontologyTreeHeight < nextLevel){
 						this.state.ontologyTreeHeight++;
 					}
@@ -1483,7 +1486,7 @@ var Utils = require('./utils.js');
 
 
 		// Have temporarly until fix for below during Axis Flip
-		if (self.state.currentTargetSpeciesName == "Overview"){
+		if (self.state.currentTargetSpeciesName === "Overview"){
 			return;  //TEMP ONLY
 			if (this.state.invertAxis) {
 				list = self.state.selectedCompareSpecies;
@@ -1544,26 +1547,6 @@ var Utils = require('./utils.js');
 			}
 	},
 
-	_enableRowColumnRects: function(curr_rect){
-	    var self = this;
-		var cell_rects = self.state.svg.selectAll("rect.cells")
-			.filter(function (d) { return d.rowid == curr_rect.__data__.rowid;});
-		for (var i in cell_rects[0]){
-			if ( ! cell_rects[0].hasOwnProperty(i)) {
-				break;
-			}
-			cell_rects[0][i].parentNode.appendChild(cell_rects[0][i]);
-		}
-		var data_rects = self.state.svg.selectAll("rect.cells")
-			.filter(function (d) { return d.target_id == curr_rect.__data__.target_id;});
-		for (var j in data_rects[0]){
-			if ( ! data_rects[0].hasOwnProperty(j)) {
-				break;
-			}
-			data_rects[0][j].parentNode.appendChild(data_rects[0][j]);
-		}
-	},
-
 	/*
 	 * Change the list of phenotypes and filter the models accordingly. The 
 	 * Movecount is an integer and can be either positive or negative
@@ -1588,17 +1571,17 @@ var Utils = require('./utils.js');
 	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
-		console.log("curX:"+this.state.currXIdx + " curY:"+this.state.currYIdx);
+//		console.log("curX:"+this.state.currXIdx + " curY:"+this.state.currYIdx);
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);  //-this.state.targetDisplayLimit
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
-console.log("Xaxis start: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
-			+ " limit size: " + this.state.targetDisplayLimit);
+// console.log("Xaxis start: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
+// 			+ " limit size: " + this.state.targetDisplayLimit);
 
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.sourceDisplayLimit);
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
 
-console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end: "+this.state.yAxisRender.getRenderEndPos()+
-				" limit size: " + this.state.sourceDisplayLimit);
+// console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end: "+this.state.yAxisRender.getRenderEndPos()+
+// 				" limit size: " + this.state.sourceDisplayLimit);
 
 		this._clearGrid();
 		this._createGrid();
@@ -1641,7 +1624,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			.attr("x1", 0)
 			.attr("y1", 0)
 			.attr("x2", width)
-			.attr("y2", 0)
+			.attr("y2", 0);
 			// .attr("stroke", "#0F473E")
 			// .attr("stroke-width", 1);
 		}
@@ -1667,7 +1650,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			.attr("x1", 0)
 			.attr("y1", 0)
 			.attr("x2", 0)
-			.attr("y2", height)
+			.attr("y2", height);
 			// .attr("stroke", "#0F473E")
 			// .attr("stroke-width", 1);
 	},
@@ -1788,7 +1771,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			.attr("height", gridHeight)
 			.attr("id", function(d, i) {
 				if(i === 0) {return "leftrect";}
-				else if(i == 1) {return "centerrect";}
+				else if(i === 1) {return "centerrect";}
 				else {return "rightrect";}
 			})
 			.style("opacity", '0.4')
@@ -1811,14 +1794,14 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		// add an axis for each ordinal scale found in the data
 		for (var i = 0; i < 3; i++) {
 			// move the last accent over a bit for the scrollbar
-			if (i == 2) {
+			if (i === 2) {
 				// make sure it's not too narrow i
 				var w = this.state.modelWidth;
 				if(w < this.state.smallestModelWidth) {
 					w = this.state.smallestModelWidth;
 				}
 				this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
-			} else if (i == 1 ){
+			} else if (i === 1 ){
 				this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
 			} else {
 				this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
@@ -1861,7 +1844,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		// If this is the Overview, get gradients for all species with an index
 		// COMPARE CALL HACK - REFACTOR OUT
 		// MKD: NEEDS REFACTORED
-		if ((this.state.currentTargetSpeciesName == "Overview" || this.state.currentTargetSpeciesName == "All") || (this.state.currentTargetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {			
+		if ((this.state.currentTargetSpeciesName === "Overview" || this.state.currentTargetSpeciesName === "All") || (this.state.currentTargetSpeciesName === "Homo sapiens" && (this.state.owlSimFunction === "compare" || this.state.owlSimFunction === "exomiser"))) {			
 			//this.state.overviewCount tells us how many fit in the overview
 			for (var i = 0; i < this.state.overviewCount; i++) {
 				y = this._createGradients(i,y1);
@@ -1889,7 +1872,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	 * y1 is the baseline for computing the y position of the gradient
 	 */
 	_createGradients: function(i, y1){
-		self = this;
+		var self = this;
 		var y;
 		var gradientHeight = 20;
 		var gradient = this.state.svg.append("svg:linearGradient")
@@ -1984,7 +1967,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			.attr("y", yhighText)
 			.style("font-size", "10px")
 			.text(highText);
-		if (highText == "Max" || highText == "Highest"){
+		if (highText === "Max" || highText === "Highest"){
 			div_text3.attr("x", xhighText + 25);
 		} else {
 			div_text3.attr("x", xhighText);
@@ -2061,7 +2044,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	_createOrganismSelection: function() {
 		var selectedItem;
 		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism</label>" + 
-			//"<div class='SumoSelect' tabindex='0'>" +
+			"<div class='SumoSelect' tabindex='0'>" +
 			"<select id='pg_organism' multiple='multiple' class='SlectBox'>"; // select is inline level element, it's fine to use <span> - Joe
 		for (var idx in this.state.targetSpeciesList) {
 			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
@@ -2076,7 +2059,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + "</option>";
 			}
 		}
-		optionhtml += "</select></div>";
+		optionhtml += "</select></div></div>";
 		//return $(optionhtml);
 		return optionhtml;
 	},
@@ -2167,7 +2150,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		for (var l in unmatchedset){
 			var found = false;
 			for (var m in dupArray) {
-				if (dupArray[m].id == unmatchedset[l].id) {
+				if (dupArray[m].id === unmatchedset[l].id) {
 					found = true;
 				}
 			}
@@ -2238,7 +2221,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 				}
 				url_origin = self.document[0].location.origin;
 				text += "<td><a href='" + url_origin + "/phenotype/" + id + "' target='_blank'>" + label + "</a></td>";
-				if (i == unmatched.length) {
+				if (i === unmatched.length) {
 					break;
 				}
 			}
@@ -2306,7 +2289,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 			var hpoTree = this.buildHPOTree(fixedId, hpoCached.edges, 0);
 
-			if (hpoTree == "<br/>"){
+			if (hpoTree === "<br/>"){
 				hpoData += "<em>No HPO Data Found</em>";
 			} else {
 				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
@@ -2363,7 +2346,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var phenoTypes = [];
 		for (var i in models){
 			// models[i] is the matching model that contains all phenotypes
-			if (models[i].model_id == curModelId){
+			if (models[i].model_id === curModelId){
 				phenoTypes.push({id: models[i].id_a, label: models[i].label_a});
 			}
 		}
@@ -2374,13 +2357,13 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	_insertionModelList: function (insertPoint, insertions) {
 		var newModelList = []; //new Hashtable();  //MKD REFACTOR
 		//var sortedModelList= self._getSortedIDList( this.state.dataManager.getData("target")); 
-		var sortedModelList = self.state.xAxisRender.keys();
+		var sortedModelList = this.state.xAxisRender.keys();
 		var reorderPointOffset = insertions.size();
 		var insertionOccurred = false;
 
 		for (var i in sortedModelList){
 			var entry = this.state.dataManager.getElement("target", sortedModelList[i]);
-			if (entry.pos == insertPoint) {
+			if (entry.pos === insertPoint) {
 				// add the entry, or gene in this case	
 				newModelList.push(entry);   //put(sortedModelList[i], entry);
 				var insertsKeys = insertions.keys();
@@ -2407,7 +2390,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var newModelData = [];  
 		var removalKeys = removalList.genoTypes.keys();   // MKD: needs refactored
 		//var sortedModelList= self._getSortedIDList(this.state.dataManager.getData("target"));
-		var sortedModelList = self.state.xAxisRender.keys();
+		var sortedModelList = this.state.xAxisRender.keys();
 		var removeEntries = removalList.genoTypes.entries();
 
 		// get the max position that was inserted
@@ -2425,7 +2408,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 			// check list to make sure it needs removed
 			while (cnt < removalKeys.length && !found) {
-				if (removalKeys[cnt] == sortedModelList[i]) {
+				if (removalKeys[cnt] === sortedModelList[i]) {
 					found = true;
 				}
 				cnt++;
@@ -2462,13 +2445,13 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		if(typeof(concept) === 'undefined' ) return "#000000";
 		var info = this._getIDTypeDetail(concept);
 
-		if (info == 'gene') {
+		if (info === 'gene') {
 			var g = this.state.expandedHash.get(concept);
 			if (g !== null && g.expanded) {
 				return "#08594B";
 			}
 		}
-		else if (info == 'genotype') {
+		else if (info === 'genotype') {
 			return "#488B80"; //"#0F473E";
 		}
 		return "#000000";
@@ -2479,7 +2462,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var concept = this._getConceptId(data);
 		var info = this._getIDTypeDetail(concept);
 
-		if (info == 'gene') {
+		if (info === 'gene') {
 			var g = this.state.expandedHash.get(concept);
 			// if it was ever expanded
 			if (g !== null){
@@ -2530,6 +2513,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var type = this._getIDTypeDetail(curModel);
 		var curData = this.state.dataManager.getElement("target", curModel);
 		var modelData = {id: curModel, type: type, d: curData};
+		var returnObj;
 
 		// check cached hashtable first 
 		var cachedTargets = this.state.expandedHash.get(modelData.id);

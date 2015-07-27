@@ -27,8 +27,8 @@ TooltipRender.prototype = {
 	constructor:TooltipRender,
 
 	entityHreflink: function(ptype, pid, plabel) {
-		var s = "<a href=\"" + this.url +"/" +  ptype +"/"+ pid 
-				+ "\" target=\"_blank\">" + plabel + "</a>";
+		var s = "<a href=\"" + this.url +"/" +  ptype +"/"+ pid +
+				"\" target=\"_blank\">" + plabel + "</a>";
 		return s;
 	},
 
@@ -44,7 +44,8 @@ TooltipRender.prototype = {
 		var retInfo = "";
 
 		// making an assumption here that we want to display cell info
-		if ( typeof(this.data.type) == 'undefined') {
+		//if ( typeof(this.data.type) == 'undefined') {
+		if ( this.data.type === 'cell') {
 			retInfo = this.cell(this, this.data);
 		} else {
 			// this creates the standard information portion of the tooltip, 
@@ -89,8 +90,7 @@ TooltipRender.prototype = {
 		var hpoData = "<br/><br/>";
 		var fixedId = tooltip.id.replace("_", ":");
 		var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
-	var TEMP = tooltip.parent._expandHPO;
-
+	
 		if (hpoCached !== undefined) { //&& hpoCached.active == 1){
 			hpoExpand = true;
 
@@ -98,7 +98,7 @@ TooltipRender.prototype = {
 			tooltip.parent.state.ontologyTreesDone = 0;
 			tooltip.parent.state.ontologyTreeHeight = 0;
 			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-			if (hpoTree == "<br/>"){
+			if (hpoTree === "<br/>"){
 				hpoData += "<em>No HPO Data Found</em>";
 			} else {
 				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
@@ -127,7 +127,7 @@ TooltipRender.prototype = {
 		var returnHtml = "";	
 	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
 		// for gene and species mode only, show genotype link
-		if (tooltip.parent.state.targetSpeciesName != "Overview"){
+		if (tooltip.parent.state.targetSpeciesName !== "Overview"){
 			var isExpanded = false;
 			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
 			if (gtCached !== null) { isExpanded = gtCached.expanded;}
@@ -174,54 +174,56 @@ TooltipRender.prototype = {
 	cell: function(tooltip, d) {
 		var returnHtml = "";
 
-			var suffix = "";
-			var selCalc = tooltip.parent.state.selectedCalculation;
+		var suffix = "";
+		var selCalc = tooltip.parent.state.selectedCalculation;
 
-		var prefix, targetId, sourceId, type;
-			var species = d.species;
+		var prefix, targetId, sourceId;
 			//var taxon = d.taxon;
 
-			 if (tooltip.parent.state.invertAxis) {
-				sourceId = d.source_id;
+		if (tooltip.parent.state.invertAxis) {
+			sourceId = d.source_id;
 			targetId = d.target_id;
-	//			type = yInfo.type;
-			 } else {
-				sourceId = d.source_id;
+		 } else {
+			sourceId = d.source_id;
 			targetId = d.target_id;
-	//			type = xInfo.type;
-			 }
+		 }
 
+		 var targetInfo = tooltip.parent.state.xAxisRender.get(targetId);
 			// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
 			// 	if (taxon.indexOf("NCBITaxon:") != -1) {
 			// 		taxon = taxon.slice(10);
 			// 	}
 			// }
 
-			for (var idx in tooltip.parent.state.similarityCalculation) {	
-				if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
-					break;
-				}
-				if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
-					prefix = tooltip.parent.state.similarityCalculation[idx].label;
+		for (var idx in tooltip.parent.state.similarityCalculation) {	
+			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
 				break;
-				}
 			}
+			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+				prefix = tooltip.parent.state.similarityCalculation[idx].label;
+			break;
+			}
+		}
 
-			// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-			if ( selCalc != 2) {suffix = '%';}
+		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+		if ( selCalc !== 2) {suffix = '%';}
 
-			returnHtml = "<table class=\"pgtb\">" +
-				"<tbody><tr><td><u><b>Query</b></u><br>" +
-				this.entityHreflink(d.type, sourceId, d.a_label ) +  
-				" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br><b>Species:</b> " + d.species + "</td>" + 
-				"<tr><td><u><b><br>In-common</b></u><br>" + 
-			this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label )
-			+ Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
+		returnHtml = "<table class=\"pgtb\">" +
+			"<tbody><tr><td><u><b>Query</b></u><br>" +
+			Utils.capitalizeString(d.type) + ": " + this.entityHreflink(d.type, sourceId, d.a_label ) +  
+			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
+			"Species: " + d.species + "</td>" + 
+			"<tr><td><u><b><br>In-common</b></u><br>" + 
+		this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label ) +
+				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
 				"<tr><td><br><u><b>Match</b></u><br>" + 
-			this.entityHreflink(d.type, d.b_id, d.b_label )
-			+ Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
-				"</tbody>" + 
-				"</table>";
+		this.entityHreflink(d.type, d.b_id, d.b_label ) +
+			Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
+			"<tr><td><br><u><b>Target</b></u><br>" + 
+			"<b>Name:</b> " + 
+			this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) +
+			"</td></tr>" +
+			"</tbody>" + "</table>";
 
 				// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
 				// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +

@@ -63,7 +63,7 @@ DataManager.prototype = {
 			array of objects
 	*/	
 	getData: function(dataset, species) {
-		if (species != null) {
+		if (typeof(species) != 'undefined') {
 			return this[dataset][species];
 		}
 		return this[dataset];
@@ -81,7 +81,7 @@ DataManager.prototype = {
 	*/	
 	length: function(dataset, species) {
 		var len = 0, a;
-			if (species == null) {
+			if (typeof(species) === 'undefined') {
 				a = this[dataset];
 			} else {
 				a = this[dataset][species];
@@ -115,7 +115,7 @@ DataManager.prototype = {
 		     }
 		 }
 	     }
-	     return rec
+	     return rec;
 	 },
 
         // list of everything tht matches key - either as source or target.
@@ -124,7 +124,7 @@ DataManager.prototype = {
  	matches: function (key, species) {
 	    var matchList = [];
 	    var cd = this.cellData; // convenience pointer. Good for scoping
-	    if (typeof (cd[species]) != 'undefined')  {
+	    if (typeof (cd[species]) !== 'undefined')  {
 		// it's  a source. grab all of them
 		if (typeof (cd[species][key]) !=='undefined') {
 		    matchList = Object.keys(cd[species][key]).map(function(k) 
@@ -132,11 +132,11 @@ DataManager.prototype = {
 		}
 		else {
 		    /// it's a target. find the entry for each source.
-		    srcs = Object.keys(cd[species]);
-		    for (i in srcs) {
+		    var srcs = Object.keys(cd[species]);
+		    for (var i in srcs) {
 				var src = srcs[i];
 				if (typeof(cd[species][src]) !== 'undefined') {
-			    	if (cd[species][src][key] != 'undefined') {
+			    	if (cd[species][src][key] !== 'undefined') {
 						matchList.push(cd[species][src][key]);
 			    	}
 				}
@@ -154,7 +154,7 @@ DataManager.prototype = {
 		rec = this.source[key];
 
 		// if not check as target
-		if (typeof(rec) == 'undefined') {
+		if (typeof(rec) === 'undefined') {
 			var species = data.species;
 			rec = this.target[species][key];
 		}
@@ -235,7 +235,7 @@ DataManager.prototype = {
 	*/
 	contains: function(dataset, key, species) {
 		var el = this.getElement(dataset, key, species);
-		if (typeof(el) !== 'undefined') return false;
+		if (typeof(el) !== 'undefined') {return false;}
 		return true;
 	}, 	
 
@@ -253,9 +253,8 @@ DataManager.prototype = {
 			array
 	*/
 	getMatrix: function(xvals, yvals, flattened) {
-		var self = this;
 	    var xvalues = xvals, yvalues = yvals;     
-	    var matrix = [], species; 
+	    var matrix = []; 
 
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
@@ -265,7 +264,7 @@ DataManager.prototype = {
 				// does a match exist in the cells
 				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, species)) !== 'undefined') {
 					var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
-								ypos: y, species: species};
+								ypos: y, species: species, type: 'cell'};
 					// this will create a array as a 'flattened' list of data points
 					if (flattened) {
 						matrix.push(rec);
@@ -275,7 +274,7 @@ DataManager.prototype = {
 					
 				}
 			}
-			if (list.length > 0 && !flattened) matrix.push(list);	
+			if (list.length > 0 && !flattened) {matrix.push(list);}	
 		}
 	    return matrix;
 	},
@@ -336,7 +335,7 @@ DataManager.prototype = {
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];
 				i++;
-				if (i >= limit) break;
+				if (i >= limit) {break};
 			}
 		}
 		return combinedTargetList;
