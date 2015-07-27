@@ -2,6 +2,8 @@
 (function () {
 'use strict';
 
+var d3 = require('d3');
+
 /*
 	Package: axisgroup.js
 
@@ -228,10 +230,12 @@ AxisGroup.prototype = {
 	*/	
 
 	contains: function(key) {
-		if (this.get(key) != null)
+		if (this.get(key) !== null) {
 			return true;
-		else
+		}
+		else {
 			return false;
+		}
 	},
     /*
 		Function: sort
@@ -243,7 +247,7 @@ AxisGroup.prototype = {
 	*/	
     sort: function(by) {
     	var temp = this.groupEntries();
- 		if (by == 'Frequency') {
+ 		if (by === 'Frequency') {
 			//sortFunc = self._sortByFrequency;
 			//this.items.sort(function(a,b) {
 			temp.sort(function(a,b) {				
@@ -253,12 +257,12 @@ AxisGroup.prototype = {
 				}
 				return diff;
 			});
-		} else if (by == 'Frequency and Rarity') {
+		} else if (by === 'Frequency and Rarity') {
 			//this.items.sort(function(a,b) {
 			temp.sort(function(a,b) {				
 				return b.sum-a.sum;
 			});
-		} else if (by == 'Alphabetic') {
+		} else if (by === 'Alphabetic') {
 			//this.items.sort(function(a,b) {
 			  temp.sort(function(a,b) {				
 				var labelA = a.label, 
@@ -289,7 +293,7 @@ AxisGroup.prototype = {
 		var scale = d3.scale.ordinal()
 					.domain(values)
 					.rangeRoundBands([0,values.length]);
-		return scale
+		return scale;
     }
 };
 
@@ -297,7 +301,7 @@ AxisGroup.prototype = {
 module.exports = AxisGroup;
 
 }());
-},{}],2:[function(require,module,exports){
+},{"d3":9}],2:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -326,7 +330,7 @@ var DataLoader = function(serverUrl, simSearchQuery, qrySourceList, speciesList,
 	this.limit = limit;
 	this.apiEntityMap = apiEntityMap;
 	this.owlsimsData = [];
-	this.origSourceList;
+	this.origSourceList = [];
 	this.maxICScore = 0;
 	this.targetData = [];
 	this.sourceData = [];
@@ -356,10 +360,10 @@ DataLoader.prototype = {
 		// save the original source listing
 		this.origSourceList = qrySourceList;
 
-		if (typeof(species) == 'object') {
+		if (typeof(species) === 'object') {
 			speciesName = species;
 		}
-		else if (typeof(species) == 'string') {
+		else if (typeof(species) === 'string') {
 			speciesName = [species];
 		}
 
@@ -411,10 +415,10 @@ DataLoader.prototype = {
 				this.maxICScore = data.metadata.maxMaxIC;
 			}
 			this.cellData[species] = [];
-			this.targetData[species] = []
+			this.targetData[species] = [];
 			this.sourceData = [];
 
-			var variantNum = 0;
+			//var variantNum = 0;
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
@@ -429,9 +433,10 @@ DataLoader.prototype = {
 				// TODO: THIS NEEDS CHANGED TO CATEGORY (I THINK MONARCH TEAM MENTIONED ADDING THIS)
 				//type = this.parent.defaultApiEntity;
 
+				var type = '';
 				for (var j in this.apiEntityMap) {
 				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
-				 		var type = this.apiEntityMap[j].apifragment; // Added var - Joe
+				 		type = this.apiEntityMap[j].apifragment; // Added var - Joe
 				 	}
 				}
 				
@@ -446,7 +451,7 @@ DataLoader.prototype = {
 				this.targetData[species][targetID] = t;
 
 				var matches = data.b[idx].matches;
-				var curr_row, lcs, cellPoint, dataVals;
+				var curr_row, lcs, dataVals;
 				var sourceID_a, currID_b, currID_lcs;  // Added currID_b - Joe
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 
@@ -454,7 +459,7 @@ DataLoader.prototype = {
 					for (var matchIdx in matches) {
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
-						currID_b = Utils.getConceptId(curr_row.b.id)
+						currID_b = Utils.getConceptId(curr_row.b.id);
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
 						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
@@ -463,7 +468,7 @@ DataLoader.prototype = {
 						var srcElement = this.sourceData[sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
-						if (typeof(srcElement) == 'undefined') {
+						if (typeof(srcElement) === 'undefined') {
 						//if (!this.contains("source", sourceID_a)) {
 
 							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
@@ -502,11 +507,12 @@ DataLoader.prototype = {
 									"b_id": currID_b,
 									"b_label": curr_row.b.label, 
 									"b_IC": parseFloat(curr_row.b.IC),
-							    "rowid": sourceID_a + "_" + currID_lcs};						
-					    if (typeof(this.cellData[species][sourceID_a]) == 'undefined') {
+									"type": 'cell'};
+							    
+					    if (typeof(this.cellData[species][sourceID_a]) === 'undefined') {
 							this.cellData[species][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[species][sourceID_a][targetID]) == 'undefined') {
+					    if(typeof(this.cellData[species][sourceID_a][targetID]) === 'undefined') {
 							this.cellData[species][sourceID_a][targetID] = {};
 					    }
 					    this.cellData[species][sourceID_a][targetID] = dataVals;
@@ -553,7 +559,7 @@ DataLoader.prototype = {
 		var list = [], reloaded = false;
 		if (lazy) {
 			for (var idx in species) {
-				if (this.dataExists(species[idx].name) == false) {
+				if (this.dataExists(species[idx].name) === false) {
 					list.push(species[idx]); // load to list to be reloaded
 				}
 			}
@@ -570,7 +576,6 @@ DataLoader.prototype = {
 
 	// generic ajax call for all queries
 	fetch: function (url) {
-		var self = this;
 		var res;
 		jQuery.ajax({
 			url: url, 
@@ -591,10 +596,8 @@ DataLoader.prototype = {
 				case 504:
 				case 505:
 				default:
-					console.log("We're having some problems. Please try again soon.");
-					break;
-				case 0: 
-					console.log("Please check your network connection.");
+					console.log("error: " + errorType + " exception: " + exception);
+					console.log("We're having some problems. Please check your network connection.");
 					break;
 				}
 			} 
@@ -605,20 +608,19 @@ DataLoader.prototype = {
 	// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
 	// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
 	// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
-	getOntology: function(id, hpoDirection, hpoDepth) {
+	getOntology: function(id, ontologyDirection, ontologyDepth) {
 		// check cached hashtable first
 		var idClean = id.replace("_", ":");
 
-//		var HPOInfo = this.state.hpoCacheHash.get(idClean);
-        var HPOInfo; // Added var definiation - Joe
-		var hpoCacheLabels = [], hpoCache = [];
-		var direction = hpoDirection;
+//		var ontologyInfo = this.state.ontologyCacheHash.get(idClean);
+		var ontologyCacheLabels = [], ontologyCache = [];
+		var direction = ontologyDirection;
 		var relationship = "subClassOf";
-		var depth = hpoDepth;
+		var depth = ontologyDepth;
 		var nodes, edges;
 		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
-//		if (HPOInfo === null) {
-			HPOInfo = [];
+//		if (ontologyInfo === null) {
+			var ontologyInfo = [];
 			var url = this.simServerURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 			var results = this.fetch(url);
@@ -631,14 +633,14 @@ DataLoader.prototype = {
 					if ( ! nodes.hasOwnProperty(i)) {
 						break;
 					}
-					var lab = hpoCacheLabels[nodes[i].id];
+					var lab = ontologyCacheLabels[nodes[i].id];
 					if ( typeof(lab) !== 'undefined' &&
-						(nodes[i].id != "MP:0000001" &&
-						nodes[i].id != "OBO:UPHENO_0001001" &&
-						nodes[i].id != "OBO:UPHENO_0001002" &&
-						nodes[i].id != "HP:0000118" &&
-						nodes[i].id != "HP:0000001")) {
-						hpoCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
+						(nodes[i].id !== "MP:0000001" &&
+						nodes[i].id !== "OBO:UPHENO_0001001" &&
+						nodes[i].id !== "OBO:UPHENO_0001002" &&
+						nodes[i].id !== "HP:0000118" &&
+						nodes[i].id !== "HP:0000001")) {
+						ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
 					}
 				}
 
@@ -647,31 +649,31 @@ DataLoader.prototype = {
 					if ( ! edges.hasOwnProperty(j)) {
 						break;
 					}
-					if (edges[j].obj != "MP:0000001" &&
-						edges[j].obj != "OBO:UPHENO_0001001" &&
-						edges[j].obj != "OBO:UPHENO_0001002" &&
-						edges[j].obj != "HP:0000118" &&
-						edges[j].obj != "HP:0000001") {
-						HPOInfo.push(edges[j]);
+					if (edges[j].obj !== "MP:0000001" &&
+						edges[j].obj !== "OBO:UPHENO_0001001" &&
+						edges[j].obj !== "OBO:UPHENO_0001002" &&
+						edges[j].obj !== "HP:0000118" &&
+						edges[j].obj !== "HP:0000001") {
+						ontologyInfo.push(edges[j]);
 					}
 				}
 			}
 
 			// HACK:if we return a null just create a zero-length array for now to add it to hashtable
 			// this is for later so we don't have to lookup concept again
-			if (HPOInfo === null) {
-				HPOInfo = {};
+			if (ontologyInfo === null) {
+				ontologyInfo = {};
 			}
 
-			// save the HPO in cache for later
-			var hashData = {"edges": HPOInfo, "active": 1};
-			hpoCache[idClean] = hashData;
+			// save the ontology in cache for later
+			var hashData = {"edges": ontologyInfo, "active": 1};
+			ontologyCache[idClean] = hashData;
 		// } else {
 		// 	// If it does exist, make sure its set to visible
-		// 	HPOInfo.active = 1;
-		// 	hpoCache[idClean] = HPOInfo;
+		// 	ontologyInfo.active = 1;
+		// 	ontologyCache[idClean] = ontologyInfo;
 		// }
-		return hpoCache; 
+		return ontologyCache; 
 	}
 
 };
@@ -746,7 +748,7 @@ DataManager.prototype = {
 			array of objects
 	*/	
 	getData: function(dataset, species) {
-		if (species != null) {
+		if (typeof(species) != 'undefined') {
 			return this[dataset][species];
 		}
 		return this[dataset];
@@ -764,7 +766,7 @@ DataManager.prototype = {
 	*/	
 	length: function(dataset, species) {
 		var len = 0, a;
-			if (species == null) {
+			if (typeof(species) === 'undefined') {
 				a = this[dataset];
 			} else {
 				a = this[dataset][species];
@@ -798,7 +800,7 @@ DataManager.prototype = {
 		     }
 		 }
 	     }
-	     return rec
+	     return rec;
 	 },
 
         // list of everything tht matches key - either as source or target.
@@ -807,7 +809,7 @@ DataManager.prototype = {
  	matches: function (key, species) {
 	    var matchList = [];
 	    var cd = this.cellData; // convenience pointer. Good for scoping
-	    if (typeof (cd[species]) != 'undefined')  {
+	    if (typeof (cd[species]) !== 'undefined')  {
 		// it's  a source. grab all of them
 		if (typeof (cd[species][key]) !=='undefined') {
 		    matchList = Object.keys(cd[species][key]).map(function(k) 
@@ -815,11 +817,11 @@ DataManager.prototype = {
 		}
 		else {
 		    /// it's a target. find the entry for each source.
-		    srcs = Object.keys(cd[species]);
-		    for (i in srcs) {
+		    var srcs = Object.keys(cd[species]);
+		    for (var i in srcs) {
 				var src = srcs[i];
 				if (typeof(cd[species][src]) !== 'undefined') {
-			    	if (cd[species][src][key] != 'undefined') {
+			    	if (cd[species][src][key] !== 'undefined') {
 						matchList.push(cd[species][src][key]);
 			    	}
 				}
@@ -837,7 +839,7 @@ DataManager.prototype = {
 		rec = this.source[key];
 
 		// if not check as target
-		if (typeof(rec) == 'undefined') {
+		if (typeof(rec) === 'undefined') {
 			var species = data.species;
 			rec = this.target[species][key];
 		}
@@ -918,7 +920,7 @@ DataManager.prototype = {
 	*/
 	contains: function(dataset, key, species) {
 		var el = this.getElement(dataset, key, species);
-		if (typeof(el) !== 'undefined') return false;
+		if (typeof(el) !== 'undefined') {return false;}
 		return true;
 	}, 	
 
@@ -936,9 +938,8 @@ DataManager.prototype = {
 			array
 	*/
 	getMatrix: function(xvals, yvals, flattened) {
-		var self = this;
 	    var xvalues = xvals, yvalues = yvals;     
-	    var matrix = [], species; 
+	    var matrix = []; 
 
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
@@ -948,7 +949,7 @@ DataManager.prototype = {
 				// does a match exist in the cells
 				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, species)) !== 'undefined') {
 					var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
-								ypos: y, species: species};
+								ypos: y, species: species, type: 'cell'};
 					// this will create a array as a 'flattened' list of data points
 					if (flattened) {
 						matrix.push(rec);
@@ -958,7 +959,7 @@ DataManager.prototype = {
 					
 				}
 			}
-			if (list.length > 0 && !flattened) matrix.push(list);	
+			if (list.length > 0 && !flattened) {matrix.push(list);}	
 		}
 	    return matrix;
 	},
@@ -1019,7 +1020,7 @@ DataManager.prototype = {
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];
 				i++;
-				if (i >= limit) break;
+				if (i >= limit) {break};
 			}
 		}
 		return combinedTargetList;
@@ -1276,7 +1277,6 @@ module.exports = Expander;
  *		"id_b":"MP:0001413",
  *		"model_id":"MGI_006446",
  *		"model_label":"B10.Cg-H2<sup>h4</sup>Sh3pxd2b<sup>nee</sup>/GrsrJ",
- *		"rowid":"HP_0000716_HP_0100851"
  *	},
  *
  *	These results will then be rendered in the phenogrid
@@ -1399,17 +1399,18 @@ var Utils = require('./utils.js');
 		dummyModelName: "dummy",
 		simServerURL: "",  // URL of the server for similarity searches
 		preloadHPO: false,	// Boolean value that allows for preloading of all HPO data at start.  If false, the user will have to manually select what HPO relations to load via hoverbox.
-		selectedTargetSpecies: [],
+		selectedCompareSpecies: [],
 		titleOffsets: [{"main": {x:280, y:15}, "disease": {x:0, y:100}}],
 		gridRegion: [{x:254, y:200, // origin coordinates for grid region (matrix)
-						ypad:10, xpad:15, // x/y padding between the labels and grid
-						cellwd:9, cellht:9, // // cell width and height
+						ypad:13, xpad:15, // x/y padding between the labels and grid
+						cellwd:10, cellht:10, // // cell width and height
 						rowLabelOffset:-25, // offset of the row label (left side)
 						colLabelOffset: 45,  // offset of column label (adjusted for text score)
 						scoreOffset:30,  // score text offset
 						speciesLabelOffset: -10    // offset of the species label, above grid
 					}],
-		defaultTargetDisplayLimit: 30,//  defines the limit of the number of targets to display
+		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
+		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultVisibleModelCt: 10    // the number of visible targets per organisms to be displayed in overview mode
 	},
 
@@ -1427,7 +1428,6 @@ var Utils = require('./utils.js');
 		defaulTargetSpeciesName: "Overview",  // MKD: not sure this works setting it here, need to look into this
 		refSpecies: "Homo sapiens",
 		genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid
-		phenoCompareLimit: 10, // sets the limit for the number of phenotypes used for genotype expansion
 		// targetSpeciesList : [{ name: "Homo sapiens", taxon: "9606", crossComparisonView: true},
 		// 	{ name: "Mus musculus", taxon: "10090", crossComparisonView: true },
 		// 	{ name: "Danio rerio", taxon: "7955", crossComparisonView: false},
@@ -1450,13 +1450,6 @@ var Utils = require('./utils.js');
 	 */
 	_create: function() {
 
-		$(document).ready(function() {
-			$('.SlectBox').SumoSelect({ okCancelInMulti: true ,
- 										triggerChangeCombined: true,
-			       						forceCustomRendering: true	
-										});
-			});
-
 		// must be available from js loaded in a separate file...
 		this.configoptions = configoptions;
 		// check these 
@@ -1464,7 +1457,7 @@ var Utils = require('./utils.js');
 		// the initializer) come last
 		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
 		// default simServerURL value..
-		if (typeof(this.state.simServerURL) == 'undefined' || this.state.simServerURL ==="") {
+		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === "") {
 			this.state.simServerURL=this.state.serverURL;
 		}
 		this.state.data = {};
@@ -1472,11 +1465,18 @@ var Utils = require('./utils.js');
 		this.configoptions = undefined;
 
 		// set the current target species to the default
-		this.state.currentTargetSpeciesName = this.state.defaulTargetSpeciesName;
+		//this.state.currentTargetSpeciesName = this.state.defaulTargetSpeciesName;
 
 		this._createTargetSpeciesIndices();
 		// index species
 		this._reset();
+
+		// @see for parameters:  https://github.com/HemantNegi/jquery.sumoselect
+		$('.SlectBox').SumoSelect({ triggerChangeCombined: false,
+       						selectAll: true,
+       						selectAlltext: 'Check All',
+       						forceCustomRendering: false	
+							});
 
 		console.log("in create func...");
 	},
@@ -1490,33 +1490,31 @@ var Utils = require('./utils.js');
 		this._loadSpinner();
 
 		// target species name might be provided as a name or as taxon. Make sure that we translate to name
-		this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
+		//this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
 //		this.state.phenotypeData = this._parseQuerySourceList(this.state.phenotypeData);
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
-		this.state.selectedTargetSpecies = [];
+		this.state.selectedCompareSpecies = [];
 
 		// load the default selected target species list based on the crossComparisonView flag
 		for(var idx in this.state.targetSpeciesList) {
 			if (this.state.targetSpeciesList[idx].crossComparisonView && this.state.targetSpeciesList[idx].active) {
-				this.state.selectedTargetSpecies.push(this.state.targetSpeciesList[idx]);	
+				this.state.selectedCompareSpecies.push(this.state.targetSpeciesList[idx]);	
 			}			
 		}
 
 		// initialize data processing classes 
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.simSearchQuery, querySourceList, 
-				this.state.selectedTargetSpecies, this.state.apiEntityMap);
+				this.state.selectedCompareSpecies, this.state.apiEntityMap);
 
 		this.state.dataManager = new DataManager(this.state.dataLoader);
 
 		//if (preloadHPO) {
 		// MKD: just testing one source id
 		var srcs = this.state.dataManager.keys("source");
-		this.state.hpoCacheHash = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth)
+		this.state.hpoCacheHash = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
 		//}
 		
-
-
 	    // initialize axis groups
 	    this._createAxisRenderingGroups();
 
@@ -1541,7 +1539,7 @@ var Utils = require('./utils.js');
 	_initDefaults: function() {
 		// must init the stickytooltip here initially, but then don't reinit later until in the redraw
 		// this is weird behavior, but need to figure out why later
-		if (typeof(this.state.stickyInitialized) == 'undefined') {
+		if (typeof(this.state.stickyInitialized) === 'undefined') {
 			this._addStickyTooltipAreaStub();
 			this.state.stickyInitialized = true;
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");
@@ -1551,7 +1549,7 @@ var Utils = require('./utils.js');
 		// MKD: NEEDS REFACTORED init a single instance of Expander
 		this.state.expander = new Expander(); 
 
-		if (this.state.owlSimFunction == 'exomiser') {
+		if (this.state.owlSimFunction === 'exomiser') {
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
 		}
 
@@ -1573,68 +1571,65 @@ var Utils = require('./utils.js');
        information for axis rendering. Then, switch source and target
        groups to be x or y depending on "flip axis" choice*/
     _createAxisRenderingGroups: function() {
-    
-        /*** Build axis group here. */
-        /* remember, source = phenotype and target=model */
-   	    this._setAxisDisplayLimits();
+    	var targetList = [];
 
-    	/* only do this if the group doesn't exist - don't
-       	recreate on reload */
+		// set default display limits based on displaying defaultSourceDisplayLimit
+    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
+
+		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
+			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+		}
+	
        	// creates AxisGroup with full source and target lists with default rendering range
     	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
 					  this.state.dataManager.getData("source"));
 		// sort source with default sorting type
 		this.state.sourceAxis.sort(this.state.selectedSort); 
 
+		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareSpecies > 1 then it's Comparision mode 
+		if (this.state.selectedCompareSpecies.length > 1) {  
+			//this.state.targetDisplayLimit = (this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length)*this.state.selectedCompareSpecies.length;
+			this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
 
-		// for overview we need to build a combined target list of all species
-		var targetList;
-		if (this.state.currentTargetSpeciesName == 'Overview') {
-			// calculate how many target values we can show using the number of selectedTargetSpecies
-			this.state.defaultVisibleModelCt = (this.state.defaultTargetDisplayLimit / this.state.selectedTargetSpecies.length);
-			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedTargetSpecies, this.state.defaultVisibleModelCt);			
-		} else {
-			targetList = this.state.dataManager.getData("target", this.state.currentTargetSpeciesName);
+			// calculate how many target values we can show using the number of selectedCompareSpecies
+			this.state.defaultVisibleModelCt = (this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length);
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);						
+		} else if (this.state.selectedCompareSpecies.length === 1) {
+
+			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
+
+			targetList = this.state.dataManager.getData("target", singleSpeciesName);
+
+			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
+
+			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
+				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+			} 
+
 		}
-    	this.state.targetAxis =  new AxisGroup(0, this.state.defaultTargetDisplayLimit, targetList);
+    	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
 
     	this._setAxisRenderers();
 	},
 
     _setAxisRenderers: function() {
-	   var self= this;
+		var self= this;
 
-	   if (self.state.invertAxis) {
+	   	if (self.state.invertAxis) {
 	       self.state.xAxisRender = self.state.sourceAxis;
-	       self.state.yAxisRender= self.state.targetAxis;
-	   } else {
+	       self.state.yAxisRender = self.state.targetAxis;
+	   	} else {
 	       self.state.xAxisRender = self.state.targetAxis;
-	       self.state.yAxisRender= self.state.sourceAxis;
-	   }
+	       self.state.yAxisRender = self.state.sourceAxis;
+	   	}
+
+	   console.log("xaxis start:" + self.state.xAxisRender.getRenderStartPos() + " end: " +  self.state.xAxisRender.getRenderEndPos());
+	   console.log("yaxis start:" + self.state.yAxisRender.getRenderStartPos() + " end: " +  self.state.yAxisRender.getRenderEndPos());
     },
 
-    _setAxisDisplayLimits: function() {
-    	// set default display limits based on displaying 30, defaultTargetDisplayLimit
-		if (this.state.dataManager.length("source") > this.state.defaultTargetDisplayLimit) {
-			this.state.sourceDisplayLimit = this.state.defaultTargetDisplayLimit;
-		} else {
-			this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-		}
-		console.log('source display limit: '  + this.state.sourceDisplayLimit);
-
-		if (this.state.currentTargetSpeciesName == 'Overview') {
-			this.state.targetDisplayLimit = (this.state.defaultTargetDisplayLimit / this.state.selectedTargetSpecies.length)*this.state.selectedTargetSpecies.length;
-			//this.state.targetDisplayLimit = this.state.defaultVisibleModelCt;   //this.state.defaultTargetDisplayLimit;
-		} else {
-			var currentSpeciesSize = this.state.dataManager.length("target", this.state.currentTargetSpeciesName);
-
-			if ( currentSpeciesSize > this.state.defaultTargetDisplayLimit) {
-				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
-			} else {
-				this.state.targetDisplayLimit = currentSpeciesSize;
-			}
-		}
-		console.log('target display limit: '  + this.state.targetDisplayLimit);
+    _resetDisplayLimits: function() {
+    	this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit; 
+		this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
     },
 
 	_loadSpinner: function() {
@@ -1647,7 +1642,6 @@ var Utils = require('./utils.js');
 	_reDraw: function() {
 		//var self = this;
 		if (this.state.dataManager.isInitialized()) {
-			var displayRangeCount = this.state.yAxisRender.displayLength();
 
 			this._initCanvas();
 			this._addLogoImage();
@@ -1656,8 +1650,8 @@ var Utils = require('./utils.js');
 //			self._createGridlines();
 
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
-			this._createXLines();
-			this._createYLines();
+			// this._createXLines();
+			// this._createYLines();
 			this._addPhenogridControls();
 			this._createSpeciesBorderOutline();
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
@@ -1668,7 +1662,7 @@ var Utils = require('./utils.js');
 
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
-			stickytooltip.init("*[data-tooltip]", "mystickytooltip");
+			stickytooltip.init("*[data-tooltip]", "mystickytooltip");				
 
 		} else {
 			var msg = "There are no results available.";
@@ -1684,15 +1678,11 @@ var Utils = require('./utils.js');
 		var xvalues = self.state.xAxisRender.entries();   //keys();
 		var yvalues = self.state.yAxisRender.entries();
 		var gridRegion = self.state.gridRegion[0]; 
-		var invertAxis = self.state.invertAxis;
-		var lastRowHighlighted=0;
-		var gridWidth = gridRegion.x + (self.state.xAxisRender.displayLength() * gridRegion.cellwd)-5;
-
-		this.state.xScale = this.state.xAxisRender.getScale();
-		this.state.yScale = this.state.yAxisRender.getScale();
+		var xScale = self.state.xAxisRender.getScale();
+		var yScale = self.state.yAxisRender.getScale();
 
 		// use the x/y renders to generate the matrix
-	    var matrix = this.state.dataManager.getMatrix(xvalues, yvalues, false);
+	    var matrix = self.state.dataManager.getMatrix(xvalues, yvalues, false);
 
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
@@ -1701,8 +1691,8 @@ var Utils = require('./utils.js');
 			.attr("class", "row")	  			
 			.attr("id", function(d, i) { 
 				return "pg_grid_row_"+i;})
-  			.attr("transform", function(d, i) { 
-  				return "translate(" + gridRegion.x +"," + (gridRegion.y+self.state.yScale(i)*gridRegion.ypad) + ")"; })
+  			 .attr("transform", function(d, i) { 
+  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; })
   			.each(createrow);
 
 		 // row.append("line")
@@ -1714,22 +1704,18 @@ var Utils = require('./utils.js');
 	  		//.style("font-size", "11px")
 			.attr("x", gridRegion.rowLabelOffset)	  		
 	      	.attr("y",  function(d, i) {
-	      			 var rb = self.state.yScale.rangeBand(i)/2;
+	      			 var rb = yScale.rangeBand(i)/2;
 	      			 return rb;
 	      			 })  
-	        .attr("width", gridRegion.cellwd)
-	        .attr("height", gridRegion.cellht) 
-	      	.attr("dy", ".60em")  // this makes small adjustment in position	      	
+	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
 			.attr("data-tooltip", "sticky1")   				      
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
-					var coords = {x: d.xpos, y: d.ypos};
-		        	var data = self.state.yAxisRender.itemAt(i);
-		        	self._cellover(coords,data, self);
-		        	})
+				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
+				self._cellover(data, self);})
 			.on("mouseout", self._cellout);		    
 
 	    // create columns using the xvalues (targets)
@@ -1739,28 +1725,24 @@ var Utils = require('./utils.js');
 	      	.attr("class", "column")	  		    
 			.attr("id", function(d, i) { 
 				return "pg_grid_col_"+i;})	      	
-	      .attr("transform", function(d, i) { 
+	      .attr("transform", function(d) { 
 	      	var offset = gridRegion.colLabelOffset;
-	      	if (self.state.invertAxis) {offset = 30;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores
-	      	return "translate(" + (gridRegion.x + self.state.xScale(i)*gridRegion.xpad) +
+	      	var xs = xScale(d.id);
+	      	if (self.state.invertAxis) {offset = 30;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
+			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
 	      				 "," + (gridRegion.y-offset) + ")rotate(-60)"; }); //-45
 
 	    // create column labels
 	  	column.append("text")
 	  		//.style("font-size", "11px")
 	      	.attr("x", 0)
-	      	.attr("y", self.state.xScale.rangeBand()+2)  //2
+	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
 		    .attr("data-tooltip", "sticky1")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
-		    .on("mouseover", function(d, i) { 
-		        	//var data = d[i];
-		        	var coords = {x: d.xpos, y: d.ypos};
-		        	var data = self.state.xAxisRender.itemAt(i);
-		        	self._cellover(coords, data, self);
-		        	})
+		    .on("mouseover", function(d) { self._cellover(d, self);})
 			.on("mouseout", self._cellout);		    
 	      	
 
@@ -1768,11 +1750,9 @@ var Utils = require('./utils.js');
 	    self._createTextScores();
 
 		function createrow(row) {
-		 	//var self = this;
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
 		      .enter().append("rect")
-//		      	.attr("id", function(d) {return 'cell_' + d.source_id+d.target_id;})
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
 		        		return d.xpos * gridRegion.xpad;})
@@ -1781,33 +1761,43 @@ var Utils = require('./utils.js');
 				.attr("data-tooltip", "sticky1")   					        
 				// .attr("rx", "3")
 				// .attr("ry", "3")			        
-		        //.style("fill-opacity", function(d) { return z(d.z); })
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
-					//console.log(JSON.stringify(el));
 					return self._getColorForModelValue(self, d.species, el.value[self.state.selectedCalculation]);
 			        })
-		        .on("mouseover", function(d) { 
-		        	var coords = {x: d.xpos, y: d.ypos};
-		        	var data = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
-		        	self._cellover(coords, data, self);
-		        	})
+		        .on("mouseover", function(d) { self._cellover(d, self);})
 		        .on("mouseout", self._cellout);
 		}
 	},
 
-	_cellover: function (coords, data, parent) {
+	_calcYCoord: function (d, i) {
+		var y = this.state.gridRegion[0].y;
+		var ypad = this.state.gridRegion[0].ypad;
 
-		// show tooltip
-		parent._createHoverBox(data);
+		return (y+(i*ypad));
+	},
 
-		// hightlight row/col
-	  	d3.select("#pg_grid_row_" + coords.y +" text")
-			  .classed("active", true);
- 		d3.select("#pg_grid_row_" + coords.y +" .cell")
-			  .classed("rowcolmatch", true);			  
-	  	d3.select("#pg_grid_col_" + coords.x +" text")
-			  .classed("active", true);
+	_cellover: function (d, parent) {
+
+		var data;
+
+		if (d.type === 'cell') {  
+       		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+			
+			// hightlight row/col labels
+		  	d3.select("#pg_grid_row_" + d.ypos +" text")
+				  .classed("active", true);
+	 		d3.select("#pg_grid_row_" + d.ypos +" .cell")
+				  .classed("rowcolmatch", true);			  
+		  	d3.select("#pg_grid_col_" + d.xpos +" text")
+				  .classed("active", true);
+		} else {
+			data = d;
+		}
+    
+	// show tooltip
+	parent._createHoverBox(data);
+
 	},
 
 	_cellout: function() {
@@ -1825,6 +1815,13 @@ var Utils = require('./utils.js');
 
 	},
 
+	_gridWidth: function() {
+		var gridRegion = self.state.gridRegion[0]; 
+		var axisLen = this.state.xAxisRender.displayLength();
+		var gridWidth = gridRegion.x + (axisLen * gridRegion.cellwd)-5;
+		return gridWidth;
+	},
+
 	_createTextScores: function () {
 		var self = this;
 		var gridRegion = self.state.gridRegion[0]; 
@@ -1832,11 +1829,11 @@ var Utils = require('./utils.js');
 
 		if (self.state.invertAxis) {
 			list = self.state.yAxisRender.keys();  
-			scale = self.state.yScale;
+			scale = self.state.yAxisRender.getScale();
 			axRender = self.state.yAxisRender;
 		} else {
 			list = self.state.xAxisRender.keys(); 
-			scale = self.state.xScale;
+			scale = self.state.xAxisRender.getScale();
 			axRender = self.state.xAxisRender;
 		}
 	    var scores = this.state.svg.selectAll(".scores")
@@ -1845,7 +1842,7 @@ var Utils = require('./utils.js');
 	    	    .attr("class", "pg_score_text");
 
 	    scores.append("text")	 
-//		    .attr("dy", ".32em")
+		    //.attr("dy", ".32em")
 		    .attr("fill", function(d, i) {
 		    	var el = axRender.itemAt(i);
 				return self._getColorForCellValue(self, el.species, el.score);
@@ -1860,13 +1857,13 @@ var Utils = require('./utils.js');
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
 				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(i)*gridRegion.ypad+6) + ")"; })
+  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(i)*gridRegion.ypad+10) + ")"; })
 	      		.attr("x", gridRegion.rowLabelOffset)
 	      		.attr("y",  function(d, i) {return scale.rangeBand(i)/2;});  
 	    } else {
 	    	scores	      		
 	    	.attr("transform", function(d, i) { 
-	      			return "translate(" + (gridRegion.x + scale(i)*gridRegion.xpad) +
+	      			return "translate(" + (gridRegion.x + scale(i)*gridRegion.xpad-1) +
 	      				 "," + (gridRegion.y-gridRegion.scoreOffset ) +")"})
 	      		.attr("x", 0)
 	      		.attr("y", scale.rangeBand()+2);
@@ -1899,7 +1896,7 @@ var Utils = require('./utils.js');
 		//this.state.svgContainer.append("<svg id='svg_area'></svg>");
 		//this.state.svg = d3.select("#svg_area");
 
-		var svgContainer = this.state.svgContainer;
+		//var svgContainer = this.state.svgContainer;
 		//svgContainer.append("<svg id='svg_area'></svg>");
 		//this.state.svg = d3.select("#svg_area")
 		//	.attr("width", this.state.emptySvgX)
@@ -1907,18 +1904,19 @@ var Utils = require('./utils.js');
 
 		//var error = "<br /><div id='err'><h4>" + msg + "</h4></div><br /><div id='return'><button id='button' type='button'>Return</button></div>";
 		//this.element.append(error);
-		if (this.state.currentTargetSpeciesName != "Overview"){
+		//if (this.state.currentTargetSpeciesName != "Overview"){
+		if (!self._isCrossComparisonView()) {			
 			html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><p><button id='button' type='button'>Return</button></p><br/></div>";
 			//this.element.append(html);
 			this.state.svgContainer.append(html);
-			var btn = d3.selectAll("#button")
-				.on("click", function(d,i){
+			d3.selectAll("#button")
+				.on("click", function(){
 					$("#return").remove();
 					$("#errmsg").remove();
 					d3.select("#pg_svg_area").remove();
 
-					self._reset();
-					self.state.currentTargetSpeciesName = "Overview";
+					//self._reset();
+					//self.state.currentTargetSpeciesName = "Overview";
 					self._init();
 				});
 		}else{
@@ -2012,7 +2010,7 @@ var Utils = require('./utils.js');
 
 		// this should be the full set of cellData
 		var xvalues = self.state.xAxisRender.groupEntries();
-		console.log(JSON.stringify(xvalues));
+		//console.log(JSON.stringify(xvalues));
 		var yvalues = self.state.yAxisRender.groupEntries();		
 		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
 
@@ -2087,10 +2085,10 @@ var Utils = require('./utils.js');
 					var newY = curY + d3.event.dy;
 
 					// Restrict Movement if no need to move map
-					if (selectRectHeight == overviewRegionSize) {
+					if (selectRectHeight === overviewRegionSize) {
 						newY = overviewY;
 					}
-					if (selectRectWidth == overviewRegionSize) {
+					if (selectRectWidth === overviewRegionSize) {
 						newX = overviewX;
 					}
 
@@ -2243,11 +2241,11 @@ var Utils = require('./utils.js');
    	    sourceList = self.state.yAxisRender.groupIDs();
 	    targetList = self.state.xAxisRender.groupIDs();
 
-		this.state.smallYScale = d3.scale.ordinal()
+		self.state.smallYScale = d3.scale.ordinal()
 			.domain(sourceList.map(function (d) {return d; }))
 			.rangePoints([0,overviewRegionSize]);
 
-		this.state.smallXScale = d3.scale.ordinal()
+		self.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
 				var td = d;
 				return d; }))
@@ -2277,18 +2275,18 @@ var Utils = require('./utils.js');
 		return label;
 	}, 
 
-	_setComparisonType: function(){
-		var comp = this.state.defaultComparisonType;
-		for (var i in this.state.comparisonTypes) {
-			if ( ! this.state.comparisonTypes.hasOwnProperty(i)) {
-					break;
-				}
-			if (this.state.currentTargetSpeciesName === this.state.comparisonTypes[i].organism) {
-				comp = this.state.comparisonTypes[i];
-			}
-		}
-		this.state.comparisonType = comp;
-	},
+	// _setComparisonType: function(){
+	// 	var comp = this.state.defaultComparisonType;
+	// 	for (var i in this.state.comparisonTypes) {
+	// 		if ( ! this.state.comparisonTypes.hasOwnProperty(i)) {
+	// 				break;
+	// 			}
+	// 		if (this.state.currentTargetSpeciesName === this.state.comparisonTypes[i].organism) {
+	// 			comp = this.state.comparisonTypes[i];
+	// 		}
+	// 	}
+	// 	this.state.comparisonType = comp;
+	// },
 
 	_setSelectedCalculation: function(calc) {
 		var self = this;
@@ -2404,7 +2402,7 @@ var Utils = require('./utils.js');
 			this.state.colorScale[species] = new Array(4);
 			for (var j = 0; j <4; j++) {
 				maxScore = 100;
-				if (j == 2) {
+				if (j === 2) {
 					maxScore = this.state.maxICScore;
 				}
 				if (typeof(this.state.colorRanges[i][j]) !== 'undefined') {
@@ -2431,7 +2429,7 @@ var Utils = require('./utils.js');
 		svgContainer.append("<svg id='pg_svg_area'></svg>");
 		this.state.svg = d3.select("#pg_svg_area")
 				.attr("width", "100%")
-				.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+50));
+				.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+100));
 
 		 this._addGridTitle();
 		 this._createDiseaseTitleBox();
@@ -2499,7 +2497,8 @@ var Utils = require('./utils.js');
 
 		var titleText = "Cross-Species Comparison";
 
-		if (this.state.currentTargetSpeciesName !== "Overview") {
+		//if (this.state.currentTargetSpeciesName !== "Overview") {
+		if (!self._isCrossComparisonView()) {
 			species= this.state.currentTargetSpeciesName;
 			xoffset = this.state.nonOverviewGridTitleXOffset;
 			foffset = this.state.nonOverviewGridTitleFaqOffset;
@@ -2619,7 +2618,7 @@ var Utils = require('./utils.js');
 		var matchingKeys = [];
 		for (var i in cellKeys){
 //			if (key == cellKeys[i].yID || key == cellKeys[i].xID){
-			if (key == cellKeys[i].source_id || key == cellKeys[i].target_id){
+			if (key === cellKeys[i].source_id || key === cellKeys[i].target_id){
 				matchingKeys.push(cellKeys[i]);
 			}
 		}
@@ -2659,8 +2658,8 @@ var Utils = require('./utils.js');
 				break;
 			}
 			// Currently only allows subClassOf relations.  When new relations are introducted, it should be simple to implement
-			if (edges[j].pred == "subClassOf" && this.state.ontologyTreesDone != this.state.ontologyTreeAmounts){
-				if (edges[j].sub == id){
+			if (edges[j].pred === "subClassOf" && this.state.ontologyTreesDone != this.state.ontologyTreeAmounts){
+				if (edges[j].sub === id){
 					if (this.state.ontologyTreeHeight < nextLevel){
 						this.state.ontologyTreeHeight++;
 					}
@@ -2704,117 +2703,6 @@ var Utils = require('./utils.js');
 		return link;
 	},
 
-	_clickItem: function(url_origin,data) {
-		var url;
-		var apientity = this.state.defaultApiEntity;
-		if (this._getIDType(data) == "source"){
-			url = url_origin + "/phenotype/" + (data.replace("_", ":"));
-			var win = window.open(url, '_blank');
-
-		} else if (this._getIDType(data) == "target"){
-			apientity = this._getIDTypeDetail(data);
-
-			// if it's overview, then just allow view of the model clicked
-			if (this.state.currentTargetSpeciesName != "Overview" && apientity == 'gene') {
-				// TEMP: THIS HIDES THE GENOTYPE EXPANSION STUFF FOR NOW
-				//var expanded = this._isExpanded(data);
-				//if (expanded !== null && expanded) {
-				// 	this._collapse(data);
-				//} else if (expanded !== null && !expanded){
-				// 	this._expand(data);
-				//}
-			}
-		} else {
-			console.log ("URL CLICK ERROR");
-		}
-	},
-
-
-	
-	// _convertLabelHTML: function (self, t, label, data) {
-	// 	self = this;
-	// 	var width = 100,
-	// 	el = d3.select(t),
-	// 	p = d3.select(t.parentNode),
-	// 	x = +t.getAttribute("x"),
-	// 	y = +t.getAttribute("y");
-
-	// 	// this fixes the labels that are html encoded 
-	// 	label = Utils.decodeHtmlEntity(label);
-
-	// 	p.append("text")
-	// 		.attr('x', function(d) {
-	// 			var p = self._getAxisDataPosition(d);
-	// 			var x = p * self.state.widthOfSingleCell;  //x += 15;
-	// 			return x;})
-	// 		.attr('y', y)
-	// 		.attr("width", width)
-	// 		.attr("id", Utils.getConceptId(data))
-	// 		.attr("model_id", data)
-	// 		.attr("height", 60)
-	// 		.attr("transform", function(d) {
-	// 			return "rotate(-45)";
-	// 		})
-	// 		//.on("click", function(d) {
-	// 		//	self._clickItem(self.state.serverURL,data);
-	// 		//})
-	// 		.on("mouseover", function(d, event) {  
-	// 			self._selectXItem(data, this);
-	// 		})
-	// 		.on("mouseout", function(d) {
-	// 			self._deselectData(data);
-	// 		})
-	// 		.attr("class", this._getConceptId(data) + " model_label")
-	// 		// this activates the stickytool tip			
-	// 		.attr("data-tooltip", "sticky1")   			
-	// 		//.style("font-size", "12px")
-	// 		//.style("font-weight", "bold")
-	// 		.style("fill", this._getExpandStyling(data))
-	// 		// don't show the label if it is a dummy.
-	// 		.text( function(d) {
-	// 			if (label == self.state.dummyModelName){
-	// 				return ""; 
-	// 			} else {
-	// 				return label;
-	// 			}});
-
-	// 	// put a little icon indicator in front of the label
-	// 	if (this._hasChildrenForExpansion(data)) {
-	// 		p.append("image")
-	// 		.attr('x', x-3)
-	// 		.attr('y', y-10)
-	// 		.attr('width', 9)
-	// 		.attr('height', 9)
-	// 		.attr('xlink:href', '/widgets/phenogrid/image/downarrow.png');  
-	// 	} else if (this._isGenoType(data) ){
-	// 		p.append("image")
-	// 		.attr('x', x-3)
-	// 		.attr('y', y-10)
-	// 		.attr('width', 9)
-	// 		.attr('height', 9)
-	// 		.attr('xlink:href', '/widgets/phenogrid/image/checkmark-drk.png'); //small-bracket.png');
-	// 	}
-
-	// 	el.remove();
-	// },
-
-	_showThrobber: function() {
-		this.state.svg.selectAll("#pg_detail_content").remove();
-		this.state.svg.append("svg:text")
-			.attr("id", "pg_detail_content")
-			.attr("y", (26 + this.state.detailRectStrokeWidth))
-			.attr("x", (440+this.state.detailRectStrokeWidth))
-			.style("font-size", "12px")
-			.text("Searching for data");
-		this.state.svg.append("svg:image")
-			.attr("width", 16)
-			.attr("height", 16)
-			.attr("id", "pg_detail_content")
-			.attr("y", (16 + this.state.detailRectStrokeWidth))
-			.attr("x", (545 + this.state.detailRectStrokeWidth))
-			.attr("xlink:href","/widgets/phenogrid/image/throbber.gif");
-	},
-
 	_createSpeciesBorderOutline: function () {
 		// create the related model rectangles
 		var self = this;
@@ -2830,10 +2718,10 @@ var Utils = require('./utils.js');
 
 
 		// Have temporarly until fix for below during Axis Flip
-		if (self.state.currentTargetSpeciesName == "Overview"){
+		if (self.state.currentTargetSpeciesName === "Overview"){
 			return;  //TEMP ONLY
 			if (this.state.invertAxis) {
-				list = self.state.selectedTargetSpecies;
+				list = self.state.selectedCompareSpecies;
 				ct = self.state.defaultVisibleModelCt;
 				borderStroke = self.state.detailRectStrokeWidth / 2;
 				// width = gridRegion.x + hwidthAndGap * displayCountX;
@@ -2841,7 +2729,7 @@ var Utils = require('./utils.js');
 				width =  (gridRegion.xpad*ct) + hwidthAndGap + borderStroke*2;//(hwidthAndGap * ct) +   * 2;  
 				height = (gridRegion.ypad*displayCount)+ vwidthAndGap + borderStroke*2;			
 			} else {
-				list = self.state.selectedTargetSpecies;
+				list = self.state.selectedCompareSpecies;
 				ct = self.state.defaultVisibleModelCt;
 				borderStroke = self.state.detailRectStrokeWidth;
 				width =  (gridRegion.xpad*ct) + hwidthAndGap + borderStroke*2;//(hwidthAndGap * ct) +   * 2;  
@@ -2868,7 +2756,7 @@ var Utils = require('./utils.js');
 			.attr("stroke-width", borderStroke)
 			.attr("fill", "none");
 
-			if (self.state.currentTargetSpeciesName == "Overview" && this.state.invertAxis){
+			if (self._isCrossComparisonView() && this.state.invertAxis){
 				border_rect.attr("x", 0);
 				border_rect.attr("y", function(d,i) { 
 					totCt += ct;
@@ -2889,26 +2777,6 @@ var Utils = require('./utils.js');
 				});
 				//border_rect.attr("y", gridRegion.y + 1);
 			}
-	},
-
-	_enableRowColumnRects: function(curr_rect){
-	    var self = this;
-		var cell_rects = self.state.svg.selectAll("rect.cells")
-			.filter(function (d) { return d.rowid == curr_rect.__data__.rowid;});
-		for (var i in cell_rects[0]){
-			if ( ! cell_rects[0].hasOwnProperty(i)) {
-				break;
-			}
-			cell_rects[0][i].parentNode.appendChild(cell_rects[0][i]);
-		}
-		var data_rects = self.state.svg.selectAll("rect.cells")
-			.filter(function (d) { return d.target_id == curr_rect.__data__.target_id;});
-		for (var j in data_rects[0]){
-			if ( ! data_rects[0].hasOwnProperty(j)) {
-				break;
-			}
-			data_rects[0][j].parentNode.appendChild(data_rects[0][j]);
-		}
 	},
 
 	/*
@@ -2935,17 +2803,17 @@ var Utils = require('./utils.js');
 	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
-		console.log("curX:"+this.state.currXIdx + " curY:"+this.state.currYIdx);
-		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);
+//		console.log("curX:"+this.state.currXIdx + " curY:"+this.state.currYIdx);
+		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);  //-this.state.targetDisplayLimit
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
-console.log("Xaxis start: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
-			+ " limit size: " + this.state.targetDisplayLimit);
+// console.log("Xaxis start: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
+// 			+ " limit size: " + this.state.targetDisplayLimit);
 
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.sourceDisplayLimit);
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
 
-console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end: "+this.state.yAxisRender.getRenderEndPos()+
-				" limit size: " + this.state.sourceDisplayLimit);
+// console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end: "+this.state.yAxisRender.getRenderEndPos()+
+// 				" limit size: " + this.state.sourceDisplayLimit);
 
 		this._clearGrid();
 		this._createGrid();
@@ -2988,7 +2856,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			.attr("x1", 0)
 			.attr("y1", 0)
 			.attr("x2", width)
-			.attr("y2", 0)
+			.attr("y2", 0);
 			// .attr("stroke", "#0F473E")
 			// .attr("stroke-width", 1);
 		}
@@ -3014,7 +2882,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			.attr("x1", 0)
 			.attr("y1", 0)
 			.attr("x2", 0)
-			.attr("y2", height)
+			.attr("y2", height);
 			// .attr("stroke", "#0F473E")
 			// .attr("stroke-width", 1);
 	},
@@ -3023,7 +2891,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	// Add species labels to top of Overview
 	_createOverviewSpeciesLabels: function () {
 		var self = this;
-		var speciesList = this.state.selectedTargetSpecies.map( function(d) {return d.name;});  //[];
+		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
 		var len = self.state.xAxisRender.displayLength();
 		var width = (self.state.gridRegion[0].xpad*len) + self.state.gridRegion[0].cellwd;
 
@@ -3135,7 +3003,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			.attr("height", gridHeight)
 			.attr("id", function(d, i) {
 				if(i === 0) {return "leftrect";}
-				else if(i == 1) {return "centerrect";}
+				else if(i === 1) {return "centerrect";}
 				else {return "rightrect";}
 			})
 			.style("opacity", '0.4')
@@ -3158,14 +3026,14 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		// add an axis for each ordinal scale found in the data
 		for (var i = 0; i < 3; i++) {
 			// move the last accent over a bit for the scrollbar
-			if (i == 2) {
+			if (i === 2) {
 				// make sure it's not too narrow i
 				var w = this.state.modelWidth;
 				if(w < this.state.smallestModelWidth) {
 					w = this.state.smallestModelWidth;
 				}
 				this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
-			} else if (i == 1 ){
+			} else if (i === 1 ){
 				this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
 			} else {
 				this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
@@ -3174,7 +3042,6 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	},
 
 	_addPhenogridControls: function() {
-
 		var phenogridControls = $('<div id="phenogrid_controls"></div>');
 		this.element.append(phenogridControls);
 		this._createSelectionControls(phenogridControls);
@@ -3183,6 +3050,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	_addGradients: function() {
 		var self = this;
 		//var cellData = this.state.cellDataHash.values();
+		//MKD: NEEDS REFACTORED
 		var cellData = this.state.dataManager.getData("cellData", self.state.currentTargetSpeciesName);
 		var temp_data = cellData.map(function(d) { return d.value[self.state.selectedCalculation];} );
 		var diff = d3.max(temp_data) - d3.min(temp_data);
@@ -3207,7 +3075,8 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var y;
 		// If this is the Overview, get gradients for all species with an index
 		// COMPARE CALL HACK - REFACTOR OUT
-		if ((this.state.currentTargetSpeciesName == "Overview" || this.state.currentTargetSpeciesName == "All") || (this.state.currentTargetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {			
+		// MKD: NEEDS REFACTORED
+		if ((this.state.currentTargetSpeciesName === "Overview" || this.state.currentTargetSpeciesName === "All") || (this.state.currentTargetSpeciesName === "Homo sapiens" && (this.state.owlSimFunction === "compare" || this.state.owlSimFunction === "exomiser"))) {			
 			//this.state.overviewCount tells us how many fit in the overview
 			for (var i = 0; i < this.state.overviewCount; i++) {
 				y = this._createGradients(i,y1);
@@ -3235,7 +3104,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	 * y1 is the baseline for computing the y position of the gradient
 	 */
 	_createGradients: function(i, y1){
-		self = this;
+		var self = this;
 		var y;
 		var gradientHeight = 20;
 		var gradient = this.state.svg.append("svg:linearGradient")
@@ -3330,7 +3199,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			.attr("y", yhighText)
 			.style("font-size", "10px")
 			.text(highText);
-		if (highText == "Max" || highText == "Highest"){
+		if (highText === "Max" || highText === "Highest"){
 			div_text3.attr("x", xhighText + 25);
 		} else {
 			div_text3.attr("x", xhighText);
@@ -3355,19 +3224,22 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		// add the handler for the select control
 		$( "#pg_organism" ).change(function(d) {
 			console.log('in the change()..');
-			self.state.selectedTargetSpecies = [];
+			self.state.selectedCompareSpecies = [];
 			var opts = this.options;
 			for (var idx in opts) {
 				if (opts[idx].selected) {
 					var rec = self._getTargetSpeciesInfo(self, opts[idx].text);
-					self.state.selectedTargetSpecies.push(rec);
+					self.state.selectedCompareSpecies.push(rec);
 				}
-
 			}
-			self.state.dataManager.reinitialize(self.state.selectedTargetSpecies, true);
-			self._createAxisRenderingGroups();
-			self._initDefaults();
-			self._processDisplay();
+			if (self.state.selectedCompareSpecies.length > 0) {
+				self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
+				self._createAxisRenderingGroups();
+				self._initDefaults();
+				self._processDisplay();
+			} else {
+				alert("You must have at least 1 species selected.");
+			}
 		});
 
 		$( "#pg_calculation" ).change(function(d) {
@@ -3393,7 +3265,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		    self.state.invertAxis = !self.state.invertAxis;
 		    self._resetSelections("axisflip");
 		    self._setAxisRenderers();
-		    self._setAxisDisplayLimits();
+		    self._resetDisplayLimits();
 		    self._processDisplay();
 
 		});
@@ -3406,7 +3278,6 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism</label>" + 
 			"<div class='SumoSelect' tabindex='0'>" +
 			"<select id='pg_organism' multiple='multiple' class='SlectBox'>"; // select is inline level element, it's fine to use <span> - Joe
-
 		for (var idx in this.state.targetSpeciesList) {
 			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
 				break;
@@ -3421,7 +3292,8 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 			}
 		}
 		optionhtml += "</select></div></div>";
-		return $(optionhtml);
+		//return $(optionhtml);
+		return optionhtml;
 	},
 
 	// create the html necessary for selecting the calculation
@@ -3510,7 +3382,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		for (var l in unmatchedset){
 			var found = false;
 			for (var m in dupArray) {
-				if (dupArray[m].id == unmatchedset[l].id) {
+				if (dupArray[m].id === unmatchedset[l].id) {
 					found = true;
 				}
 			}
@@ -3581,7 +3453,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 				}
 				url_origin = self.document[0].location.origin;
 				text += "<td><a href='" + url_origin + "/phenotype/" + id + "' target='_blank'>" + label + "</a></td>";
-				if (i == unmatched.length) {
+				if (i === unmatched.length) {
 					break;
 				}
 			}
@@ -3649,7 +3521,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 			var hpoTree = this.buildHPOTree(fixedId, hpoCached.edges, 0);
 
-			if (hpoTree == "<br/>"){
+			if (hpoTree === "<br/>"){
 				hpoData += "<em>No HPO Data Found</em>";
 			} else {
 				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
@@ -3706,7 +3578,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var phenoTypes = [];
 		for (var i in models){
 			// models[i] is the matching model that contains all phenotypes
-			if (models[i].model_id == curModelId){
+			if (models[i].model_id === curModelId){
 				phenoTypes.push({id: models[i].id_a, label: models[i].label_a});
 			}
 		}
@@ -3717,13 +3589,13 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	_insertionModelList: function (insertPoint, insertions) {
 		var newModelList = []; //new Hashtable();  //MKD REFACTOR
 		//var sortedModelList= self._getSortedIDList( this.state.dataManager.getData("target")); 
-		var sortedModelList = self.state.xAxisRender.keys();
+		var sortedModelList = this.state.xAxisRender.keys();
 		var reorderPointOffset = insertions.size();
 		var insertionOccurred = false;
 
 		for (var i in sortedModelList){
 			var entry = this.state.dataManager.getElement("target", sortedModelList[i]);
-			if (entry.pos == insertPoint) {
+			if (entry.pos === insertPoint) {
 				// add the entry, or gene in this case	
 				newModelList.push(entry);   //put(sortedModelList[i], entry);
 				var insertsKeys = insertions.keys();
@@ -3750,7 +3622,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var newModelData = [];  
 		var removalKeys = removalList.genoTypes.keys();   // MKD: needs refactored
 		//var sortedModelList= self._getSortedIDList(this.state.dataManager.getData("target"));
-		var sortedModelList = self.state.xAxisRender.keys();
+		var sortedModelList = this.state.xAxisRender.keys();
 		var removeEntries = removalList.genoTypes.entries();
 
 		// get the max position that was inserted
@@ -3768,7 +3640,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 
 			// check list to make sure it needs removed
 			while (cnt < removalKeys.length && !found) {
-				if (removalKeys[cnt] == sortedModelList[i]) {
+				if (removalKeys[cnt] === sortedModelList[i]) {
 					found = true;
 				}
 				cnt++;
@@ -3805,13 +3677,13 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		if(typeof(concept) === 'undefined' ) return "#000000";
 		var info = this._getIDTypeDetail(concept);
 
-		if (info == 'gene') {
+		if (info === 'gene') {
 			var g = this.state.expandedHash.get(concept);
 			if (g !== null && g.expanded) {
 				return "#08594B";
 			}
 		}
-		else if (info == 'genotype') {
+		else if (info === 'genotype') {
 			return "#488B80"; //"#0F473E";
 		}
 		return "#000000";
@@ -3822,7 +3694,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var concept = this._getConceptId(data);
 		var info = this._getIDTypeDetail(concept);
 
-		if (info == 'gene') {
+		if (info === 'gene') {
 			var g = this.state.expandedHash.get(concept);
 			// if it was ever expanded
 			if (g !== null){
@@ -3873,6 +3745,7 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 		var type = this._getIDTypeDetail(curModel);
 		var curData = this.state.dataManager.getElement("target", curModel);
 		var modelData = {id: curModel, type: type, d: curData};
+		var returnObj;
 
 		// check cached hashtable first 
 		var cachedTargets = this.state.expandedHash.get(modelData.id);
@@ -3941,8 +3814,8 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	},
 
 	_isTargetSpeciesSelected: function(self, name) {
-		for (var i in self.state.selectedTargetSpecies) {
-			if (self.state.selectedTargetSpecies[i].name == name) {
+		for (var i in self.state.selectedCompareSpecies) {
+			if (self.state.selectedCompareSpecies[i].name == name) {
 				return true;
 			}
 		}
@@ -4053,6 +3926,13 @@ console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end
 	_getResourceUrl: function(name,type) {
 		var prefix = this.state.serverURL+'/widgets/phenogrid/js/';
 		return prefix + 'res/' + name + '.' + type;
+	},
+
+	_isCrossComparisonView: function() {
+		if (this.state.selectedCompareSpecies.length == 1) {
+			return false;
+		}
+		return true;
 	}
 
 
@@ -4246,10 +4126,14 @@ TooltipRender.prototype = {
 	constructor:TooltipRender,
 
 	entityHreflink: function(ptype, pid, plabel) {
-		var s = "<a href=\"" + this.url +"/" +  ptype +"/"+ pid 
-				+ "\" target=\"_blank\">" + plabel + "</a>";
+		var s = "<a href=\"" + this.url +"/" +  ptype +"/"+ pid +
+				"\" target=\"_blank\">" + plabel + "</a>";
 		return s;
 	},
+
+	test: function() {
+		console.log('test');
+	}, 
 
 	// main method for rendering tooltip content
 	html: function(parms) {
@@ -4259,7 +4143,8 @@ TooltipRender.prototype = {
 		var retInfo = "";
 
 		// making an assumption here that we want to display cell info
-		if ( typeof(this.data.type) == 'undefined') {
+		//if ( typeof(this.data.type) == 'undefined') {
+		if ( this.data.type === 'cell') {
 			retInfo = this.cell(this, this.data);
 		} else {
 			// this creates the standard information portion of the tooltip, 
@@ -4304,6 +4189,7 @@ TooltipRender.prototype = {
 		var hpoData = "<br/><br/>";
 		var fixedId = tooltip.id.replace("_", ":");
 		var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
+	
 		if (hpoCached !== undefined) { //&& hpoCached.active == 1){
 			hpoExpand = true;
 
@@ -4311,7 +4197,7 @@ TooltipRender.prototype = {
 			tooltip.parent.state.ontologyTreesDone = 0;
 			tooltip.parent.state.ontologyTreeHeight = 0;
 			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-			if (hpoTree == "<br/>"){
+			if (hpoTree === "<br/>"){
 				hpoData += "<em>No HPO Data Found</em>";
 			} else {
 				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
@@ -4326,6 +4212,7 @@ TooltipRender.prototype = {
 			} else {
 				returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
 				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"this._expandHPO('" + tooltip.id + "')\"></i>";
+
 			}
 		}
 		else {
@@ -4339,7 +4226,7 @@ TooltipRender.prototype = {
 		var returnHtml = "";	
 	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
 		// for gene and species mode only, show genotype link
-		if (tooltip.parent.state.targetSpeciesName != "Overview"){
+		if (tooltip.parent.state.targetSpeciesName !== "Overview"){
 			var isExpanded = false;
 			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
 			if (gtCached !== null) { isExpanded = gtCached.expanded;}
@@ -4386,52 +4273,56 @@ TooltipRender.prototype = {
 	cell: function(tooltip, d) {
 		var returnHtml = "";
 
-			var suffix = "";
-			var selCalc = tooltip.parent.state.selectedCalculation;
+		var suffix = "";
+		var selCalc = tooltip.parent.state.selectedCalculation;
 
-			var prefix, targetLabel, sourceId, type;
-			var species = d.species;
+		var prefix, targetId, sourceId;
 			//var taxon = d.taxon;
 
-			 if (tooltip.parent.state.invertAxis) {
-				sourceId = d.source_id;
-				targetLabel = d.target_id;
-	//			type = yInfo.type;
-			 } else {
-				sourceId = d.source_id;
-				targetLabel = d.target_id;
-	//			type = xInfo.type;
-			 }
+		if (tooltip.parent.state.invertAxis) {
+			sourceId = d.source_id;
+			targetId = d.target_id;
+		 } else {
+			sourceId = d.source_id;
+			targetId = d.target_id;
+		 }
 
+		 var targetInfo = tooltip.parent.state.xAxisRender.get(targetId);
 			// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
 			// 	if (taxon.indexOf("NCBITaxon:") != -1) {
 			// 		taxon = taxon.slice(10);
 			// 	}
 			// }
 
-			for (var idx in tooltip.parent.state.similarityCalculation) {	
-				if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
-					break;
-				}
-				if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
-					prefix = tooltip.parent.state.similarityCalculation[idx].label;
+		for (var idx in tooltip.parent.state.similarityCalculation) {	
+			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
 				break;
-				}
 			}
+			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+				prefix = tooltip.parent.state.similarityCalculation[idx].label;
+			break;
+			}
+		}
 
-			// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-			if ( selCalc != 2) {suffix = '%';}
+		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+		if ( selCalc !== 2) {suffix = '%';}
 
-			returnHtml = "<table class=\"pgtb\">" +
-				"<tbody><tr><td><u><b>Query</b></u><br>" +
-				this.entityHreflink(d.type, sourceId, d.a_label ) +  
-				" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br><b>Species:</b> " + d.species + "</td>" + 
-				"<tr><td><u><b><br>In-common</b></u><br>" + 
-				d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
+		returnHtml = "<table class=\"pgtb\">" +
+			"<tbody><tr><td><u><b>Query</b></u><br>" +
+			Utils.capitalizeString(d.type) + ": " + this.entityHreflink(d.type, sourceId, d.a_label ) +  
+			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
+			"Species: " + d.species + "</td>" + 
+			"<tr><td><u><b><br>In-common</b></u><br>" + 
+		this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label ) +
+				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
 				"<tr><td><br><u><b>Match</b></u><br>" + 
-				d.b_label + Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
-				"</tbody>" + 
-				"</table>";
+		this.entityHreflink(d.type, d.b_id, d.b_label ) +
+			Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
+			"<tr><td><br><u><b>Target</b></u><br>" + 
+			"<b>Name:</b> " + 
+			this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) +
+			"</td></tr>" +
+			"</tbody>" + "</table>";
 
 				// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
 				// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
@@ -38300,7 +38191,7 @@ return jQuery;
 },{}],12:[function(require,module,exports){
 (function (global){
 
-; require("/var/www/html/phenogrid/node_modules/jquery/dist/jquery.js");
+; require("/home/i2b2demo/monarch-dev/widgets/phenogrid/node_modules/jquery/dist/jquery.js");
 ; var __browserify_shim_require__=require;(function browserifyShim(module, define, require) {
 /*!
  * jquery.sumoselect - v2.1.0
@@ -38925,4 +38816,4 @@ return jQuery;
 }).call(global, module, undefined, undefined);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"/var/www/html/phenogrid/node_modules/jquery/dist/jquery.js":11}]},{},[5]);
+},{"/home/i2b2demo/monarch-dev/widgets/phenogrid/node_modules/jquery/dist/jquery.js":11}]},{},[5]);
