@@ -2919,6 +2919,9 @@ var TooltipRender = require('./tooltiprender.js');
 			var phenogridControls = $('<div id="phenogrid_controls"></div>');
 			this.element.append(phenogridControls);
 			this._createSelectionControls(phenogridControls);
+			
+			// Unmatched phenotypes and the display
+			this._buildUnmatchedPhenotypeDisplay();
 		},
 
 		_addGradients: function() {
@@ -3253,9 +3256,6 @@ var TooltipRender = require('./tooltiprender.js');
 					return self._decodeHtmlEntity(txt);
 				});
 
-			// Unmatched phenotypes and the display
-			this._buildUnmatchedPhenotypeDisplay();
-
 			rect_text
 				.attr("y", function(d) {
 					return self._getAxisData(d).ypos + self.state.yoffsetOver + pad;
@@ -3339,7 +3339,7 @@ var TooltipRender = require('./tooltiprender.js');
 												+ "<div id='pg_unmatched_phenotypes'>" + this._buildUnmatchedPhenotypes() + "</div>";
 			} else {
 				// No unmatched phenotypes
-				pg_unmatched_phenotypes_html = "<div class='clearfix'>No Unmatched Phenotypes</div>";
+				pg_unmatched_phenotypes_html += "<div class='clearfix'>No Unmatched Phenotypes</div>";
 			}
 
 			pg_unmatched_phenotypes_html += '</div>'; // closing tag
@@ -3366,6 +3366,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var self = this;
 
 			var unmatched = self.state.unmatchedPhenotypes;
+			console.log(unmatched);
 			var text = "";
 			var i = 0;
 			var label, id;
