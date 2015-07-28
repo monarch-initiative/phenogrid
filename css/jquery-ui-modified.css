@@ -509,3 +509,11 @@ button.ui-button::-moz-focus-inner {
 	filter: Alpha(Opacity=20); /* support: IE8 */
 	border-radius: 5px;
 }
+
+
+/* Phenogrid - Overwrite jquery-ui default style */
+.ui-dialog-content {
+font-size:11px;
+font-family: arial;
+color:#000;
+}

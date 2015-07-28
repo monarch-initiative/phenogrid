@@ -337,44 +337,8 @@ var TooltipRender = require('./tooltiprender.js');
 		 * [ "HP:12345", "HP:23451", ...]
 		 */
 		_create: function() {
-
-
-
-
-
-
-
-			// local model.js into local scope - Joe
-			//this.model = model;
-
-
-
-
-
-
-
-
-
 			// must be available from js loaded in a separate file...
 			// configoptions is defined in phenogrid_config.js - Joe
-
-			/* Content of phenogrid_config.js, just a copy for quick reference - Joe
-
-			var configoptions = {
-				"serverURL": "",
-				"selectedCalculation": "0",
-				"invertAxis": false,
-				"selectedSort": "Frequency",
-				"targetSpeciesName" : "Overview",
-				"refSpecies": "Homo sapiens",
-				"targetSpeciesList" : [
-					{ "name": "Homo sapiens", "taxon": "9606"},
-					{ "name": "Mus musculus", "taxon": "10090" },
-					{ "name": "Danio rerio", "taxon": "7955"}
-				]
-			};
-
-			*/
 
 			// loaded into local scope, should just remove the phenogrid_config.js and have those config options coded in this file. - Joe
 			this.configoptions = configoptions;
@@ -390,12 +354,9 @@ var TooltipRender = require('./tooltiprender.js');
 			// simsearch returned data b[] is stored in this.state['data'] - Joe
 			console.log(this.state);
 
-
-			// Do we need this? - Joe
-
 			// default simServerURL value..
 			if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
-				this.state.simServerURL=this.state.serverURL;
+				this.state.simServerURL = this.state.serverURL;
 			}
 
 			// contains all simsearch returned data - Joe
@@ -3129,7 +3090,7 @@ var TooltipRender = require('./tooltiprender.js');
 		// build controls for selecting organism and comparison. Install handlers
 		_createSelectionControls: function(container) {
 			var self = this;
-			var optionhtml ='<div id="selects"></div>'; // Can be merged with <div id="phenogrid_controls"></div> - Joe
+			var optionhtml ='<div id="selects" class="clearfix"></div>';
 			var options = $(optionhtml);
 			var orgSel = this._createOrganismSelection();
 			options.append(orgSel);
@@ -3300,8 +3261,8 @@ var TooltipRender = require('./tooltiprender.js');
 					return self._decodeHtmlEntity(txt);
 				});
 
+			// Unmatched phenotypes and the display
 			this._buildUnmatchedPhenotypeDisplay();
-
 
 			rect_text
 				.attr("y", function(d) {
@@ -3373,73 +3334,66 @@ var TooltipRender = require('./tooltiprender.js');
 			if (dupArray[0] === undefined) {
 				dupArray = [];
 			}
+
 			return dupArray;
 		},
 
 		_buildUnmatchedPhenotypeDisplay: function() {
-			var optionhtml;
-			var prebl = $("#pg_prebl");
-			if (prebl.length === 0) {
-				var preblHtml ="<div id='pg_prebl'></div>";
-				this.element.append(preblHtml);
-				prebl = $("#pg_prebl");
-			}
-			prebl.empty();
-
+			var pg_ctrl = $("#phenogrid_controls");
+			var pg_unmatched_phenotypes_html = '<div id="pg_unmatched_phenotypes_container" class="clearfix">';
+			
 			if (this.state.unmatchedPhenotypes !== undefined && this.state.unmatchedPhenotypes.length > 0) {
-				optionhtml = "<div class='clearfix'><form id='pg_matches'><input type='checkbox' name='unmatched' value='unmatched' >&nbsp;&nbsp;View Unmatched Phenotypes<br /><form><div id='clear'></div>";
-				var phenohtml = this._buildUnmatchedPhenotypeTable();
-				optionhtml = optionhtml + "<div id='pg_unmatched' style='display:none;'>" + phenohtml + "</div></div>";
-				prebl.append(optionhtml);
+				pg_unmatched_phenotypes_html += "<div class='clearfix'><input type='checkbox' id='pg_unmatched_checkbox'>View Unmatched Phenotypes</div>"
+												+ "<div id='pg_unmatched_phenotypes'>" + this._buildUnmatchedPhenotypes() + "</div>";
 			} else {
-				// no unmatched phenotypes
-				optionhtml = "<div id='pg_unmatched_label'>No Unmatched Phenotypes</div>"; // removed inline css style, since div is block element - Joe
-				prebl.append(optionhtml);
+				// No unmatched phenotypes
+				pg_unmatched_phenotypes_html = "<div class='clearfix'>No Unmatched Phenotypes</div>";
 			}
 
-			$("#pg_matches[type=checkbox]").click(function() {
+			pg_unmatched_phenotypes_html += '</div>'; // closing tag
+			
+			// Append to phenogrid controls
+			pg_ctrl.append(pg_unmatched_phenotypes_html);
+			
+			// By default hide the unmatched phenotype list
+			$("#pg_unmatched_phenotypes").hide();
+			
+			// Click and Toggle
+			$("#pg_unmatched_checkbox").click(function() {
 				var $this = $(this);
-				// $this will contain a reference to the checkbox
-				if ($this.is(':checked')) {
-					// the checkbox was checked
-					$("#pg_unmatched").show();
+
+				if ($this.prop('checked')) {
+					$("#pg_unmatched_phenotypes").show();
 				} else {
-					// the checkbox was unchecked
-					$("#pg_unmatched").hide();
+					$("#pg_unmatched_phenotypes").hide();
 				}
 			});
 		},
 
-		_buildUnmatchedPhenotypeTable: function() {
+		_buildUnmatchedPhenotypes: function() {
 			var self = this;
-			var columns = 4;
-			var outer1 = "<table id='phentable'>";
-			var outer2 = "</table>";
-			var inner = "";
 
 			var unmatched = self.state.unmatchedPhenotypes;
 			var text = "";
 			var i = 0;
-			var label, id, url_origin;
+			var label, id;
 			while (i < unmatched.length) {
-				inner += "<tr>";
-				text = "";
-				for (var j = 0; j < columns; j++){
-					id = self._getConceptId(unmatched[i++].id);
-					if (unmatched[i - 1].label !== undefined) {
-						label = unmatched[i - 1].label;
-					} else {
-						label = unmatched[i - 1].id;
-					}
-					url_origin = self.document[0].location.origin;
-					text += "<td><a href='" + url_origin + "/phenotype/" + id + "' target='_blank'>" + label + "</a></td>";
-					if (i == unmatched.length) {
-						break;
-					}
+				id = self._getConceptId(unmatched[i++].id);
+				if (unmatched[i - 1].label !== undefined) {
+					label = unmatched[i - 1].label;
+				} else {
+					label = unmatched[i - 1].id;
 				}
-				inner += text + "</tr>";
+
+				// Use serverURL
+				text += "<li><a href='" + this.state.serverURL + "/phenotype/" + id + "' target='_blank'>" + label + "</a></li>";
+				if (i == unmatched.length) {
+					break;
+				}
 			}
-			return outer1 + inner + outer2;
+			
+			// Wrap the content into a list
+			return "<ul>" + text + "</ul>";
 		},
 
 		_matchedClick: function(checkboxEl) {

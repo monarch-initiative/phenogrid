@@ -48,12 +48,6 @@ fill-opacity: 0.1;
 font-size: 9px;
 }
 
-#pg_prebl {
-clear:both;
-/*background-color: #9999FF;*/
-float:left;
-}
-
 #pg_scorelist {
 font-size:10px;
 fill: #0F473E;
@@ -145,45 +139,24 @@ text-align:center;
 font:bold 11px Arial;
 }
 
-/** Overwrite jquery-ui default style */
-
-.ui-dialog-content {
-font-size:11px;
-font-family: arial;
-color:#000;
-}
-
-/* End jquery-ui stuff*/
-
-/*#redtext,
-#bluetext,
-#greentext {
-fill: black;
-}
-
-#matches input {
-padding-top:5px;
-}*/
-
-#pg_matches,
-#pg_unmatchedlabel,
-#pg_unmatchedlabelhide {
-clear:both;
-font-weight: bold;
-color: rgb(68,162,147);
-margin-top: 5px;
-margin-left: 10px;
-margin-bottom:20px;
-}
-
-#pg_unmatched a {
-margin-left:19px;
-}
-
-#pg_unmatched table {
-font-size: 0.8em;
-padding-bottom:10px;
+#pg_unmatched_phenotypes_container{
 margin-top:10px;
+}
+
+/* Create some spacing between the checkbox and the label */
+#pg_unmatched_checkbox{
+margin-right:5px;
+}
+
+#pg_unmatched_phenotypes ul{
+margin-left: 0;
+padding-left: 0;
+}
+
+#pg_unmatched_phenotypes ul li{
+margin-left:1.8em;
+line-height:1.5;
+font-size:.85em;
 }
 
 #phenogrid_controls {
@@ -216,26 +189,6 @@ display: table; /* 2 */
 }
 
 .clearfix:after {
-clear: both;
-}
-
-#unmatchedimg,
-#unmatchedhideimg {
-font-size:1.1em;
-font-weight:bold;
-color: #428bca;
-vertical-align:middle;
-}
-
-#unmatchedimg {
-font-size:1.4em;
-}
-
-.clearfix:after {
-content: " "; /* Older browser do not support empty content */
-visibility: hidden;
-display: block;
-height: 0;
 clear: both;
 }
 
