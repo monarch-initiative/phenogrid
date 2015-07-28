@@ -3364,25 +3364,36 @@ var TooltipRender = require('./tooltiprender.js');
 
 		_buildUnmatchedPhenotypes: function() {
 			var self = this;
-
 			var unmatched = self.state.unmatchedPhenotypes;
-			console.log(unmatched);
+
 			var text = "";
-			var i = 0;
-			var label, id;
-			while (i < unmatched.length) {
-				id = self._getConceptId(unmatched[i++].id);
-				if (unmatched[i - 1].label !== undefined) {
-					label = unmatched[i - 1].label;
-				} else {
-					label = unmatched[i - 1].id;
-				}
+			var label;
+
+			// Note: json API id format needs to be HP:0000746, don't use HP_0000746
+			// For phenotype page, HP_0000746 will be redirected to HP:0000746  - Joe
+			for (var i in unmatched){
+				// Note: phenotype label is not in the unmatched array,
+				// so we need to fetch each label
+				// Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
+				$.ajax({
+					url: this.state.serverURL + "/phenotype/" + unmatched[i].id + ".json",
+					async: false,
+					dataType: 'json',
+					success: function(data) {
+						// Show id if label is not found
+						if (data.label !== undefined) {
+							label = data.label;
+						} else {
+							label = data.id;
+						}
+					},
+					error: function (xhr, errorType, exception) {
+						console.log("We are having problems with the server. Please try again soon. Error:" + xhr.status);
+					}
+				});
 
 				// Use serverURL
-				text += "<li><a href='" + this.state.serverURL + "/phenotype/" + id + "' target='_blank'>" + label + "</a></li>";
-				if (i == unmatched.length) {
-					break;
-				}
+				text += "<li><a href='" + this.state.serverURL + "/phenotype/" + unmatched[i].id + "' target='_blank'>" + label + "</a></li>";
 			}
 			
 			// Wrap the content into a list
