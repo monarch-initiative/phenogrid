@@ -252,7 +252,10 @@ var TooltipRender = require('./tooltiprender.js');
 		_getTargetSpeciesIndexByName: function(self, name) {
 			var index = -1;
 			if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
-				index = self.state.targetSpeciesByName[name].index;
+				// console.log(self.state.targetSpeciesByName);
+				// will show that the index is a string instead of a number
+				// Need to use parseInt() to convert string to int  - Joe
+				index = parseInt(self.state.targetSpeciesByName[name].index);
 			}
 			return index;
 		},
@@ -373,7 +376,7 @@ var TooltipRender = require('./tooltiprender.js');
 		// create a shortcut index for quick access to target species by name - to get index (position) and taxon
 		_createTargetSpeciesIndices: function() {
 			this.state.targetSpeciesByName = {};
-			for (var j in this.state.targetSpeciesList) {
+			for (var j=0 in this.state.targetSpeciesList) {
 				if ( ! this.state.targetSpeciesList.hasOwnProperty(j)) {
 					break;
 				}
@@ -2964,6 +2967,7 @@ var TooltipRender = require('./tooltiprender.js');
 			} else {
 				// This is not the overview - determine species and create single gradient
 				var j = this._getTargetSpeciesIndexByName(this, this.state.targetSpeciesName);
+
 				y = this._createGradients(j, y1);
 				if (y > ymax) {
 					ymax = y;
@@ -3019,11 +3023,10 @@ var TooltipRender = require('./tooltiprender.js');
 			x = self.state.axis_pos_list[2] + 100;
 			
 			
-			y = y1 + gradientHeight * i + gradientHeight + self.state.yoffset - 1; // magic number 1 to make it vertical aligined in center - Joe
-			
-			//var yy = y1 + gradientHeight * (i + 1) + self.state.yoffset - 1; // This will generate a different y value - Joe
-			//console.log(y, yy);
-			
+			// index value returned from _getTargetSpeciesIndexByName() was a string, caused bug#55 on github
+			// type casting used to convert string to int and resolved this issue - Joe
+			y = y1 + gradientHeight * (i + 1) + self.state.yoffset - 1; 
+
 			var gclass = "grad_text_" + i;
 			var specName = this.state.targetSpeciesList[i].name;
 			var grad_text = this.state.svg.append("svg:text")
