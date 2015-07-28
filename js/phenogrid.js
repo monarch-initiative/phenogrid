@@ -3369,8 +3369,11 @@ var TooltipRender = require('./tooltiprender.js');
 			var text = "";
 			var label;
 
-			// Note: json API id format needs to be HP:0000746, don't use HP_0000746
-			// For phenotype page, HP_0000746 will be redirected to HP:0000746  - Joe
+			// Notes:
+			// - For phenotype page, the id format in URL, e.g., HP_0000746 will be redirected to HP:0000746
+            // - For monarch-app json API, phenotype id format must be HP:0000746, don't use HP_0000746, 
+			// because http://beta.monarchinitiative.org/phenotype/HP_0000746.json will be redirected 
+			// to http://beta.monarchinitiative.org/phenotype/HP:0000746 (.json extension will be missing after redirection)
 			for (var i in unmatched){
 				// Note: phenotype label is not in the unmatched array,
 				// so we need to fetch each label
