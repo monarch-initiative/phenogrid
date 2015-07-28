@@ -376,7 +376,7 @@ var TooltipRender = require('./tooltiprender.js');
 		// create a shortcut index for quick access to target species by name - to get index (position) and taxon
 		_createTargetSpeciesIndices: function() {
 			this.state.targetSpeciesByName = {};
-			for (var j=0 in this.state.targetSpeciesList) {
+			for (var j in this.state.targetSpeciesList) {
 				if ( ! this.state.targetSpeciesList.hasOwnProperty(j)) {
 					break;
 				}
