@@ -3025,7 +3025,7 @@ var TooltipRender = require('./tooltiprender.js');
 				.attr("y", y)
 				.attr("x", x)
 				.attr("text-anchor", 'middle')
-				.attr('font-size', '10px')
+				.style("font-size", "10px")
 				.text(specName);
 			y += gradientHeight;
 			return y;
