@@ -1719,15 +1719,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 		_resetSelections: function(type) {
 			var self = this;
-			$("#pg_unmatched_label").remove();
-			$("#pg_unmatched_labelhide").remove();
-			$("#unmatched").remove();
-			$("#selects").remove();
-			$("#pg_org_div").remove();
-			$("#pg_calc_div").remove();
-			$("#pg_sort_div").remove();
-			$("#pg_axis_div").remove();
-			$("#mtitle").remove();
+
 			$("#pg_svg_area").remove();
 
 			if (type === 'organism') {
