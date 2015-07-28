@@ -247,6 +247,8 @@ AxisGroup.prototype = {
 	*/	
     sort: function(by) {
     	var temp = this.groupEntries();
+    	console.log('before: ' +JSON.stringify(temp));
+
  		if (by === 'Frequency') {
 			//sortFunc = self._sortByFrequency;
 			//this.items.sort(function(a,b) {
@@ -272,6 +274,8 @@ AxisGroup.prototype = {
 				return 0;
 			});
 		}
+
+		console.log('after: ' +JSON.stringify(temp));
 		// rebuild items
 		this.items = [];
 		for (var t in temp) {
@@ -1675,6 +1679,7 @@ var Utils = require('./utils.js');
 	// create the grid
 	_createGrid: function() {
 		var self = this;
+		var p = this;
 		var xvalues = self.state.xAxisRender.entries();   //keys();
 		var yvalues = self.state.yAxisRender.entries();
 		var gridRegion = self.state.gridRegion[0]; 
@@ -1683,6 +1688,9 @@ var Utils = require('./utils.js');
 
 		// use the x/y renders to generate the matrix
 	    var matrix = self.state.dataManager.getMatrix(xvalues, yvalues, false);
+
+	    // create a cell definition
+		var widget = d3.select(this);
 
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
@@ -1770,6 +1778,26 @@ var Utils = require('./utils.js');
 		}
 	},
 
+	// _createrow: function(row, self, w) {
+	//     var cell = w.selectAll(".cell")
+	//         .data(row)
+	//       .enter().append("rect")
+	//         .attr("class", "cell")
+	//         .attr("x", function(d) { 
+	//         		return d.xpos * self.state.gridRegion[0].xpad;})
+	//         .attr("width", self.state.gridRegion[0].cellwd)
+	//         .attr("height", self.state.gridRegion[0].cellht) 
+	// 		.attr("data-tooltip", "sticky1")   					        
+	// 		// .attr("rx", "3")
+	// 		// .attr("ry", "3")			        
+	//         .style("fill", function(d) { 
+	// 			var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+	// 			return self._getColorForModelValue(self, d.species, el.value[self.state.selectedCalculation]);
+	// 	        })
+	//         .on("mouseover", function(d) { self._cellover(d, self);})
+	//         .on("mouseout", self._cellout);
+	// },
+
 	_calcYCoord: function (d, i) {
 		var y = this.state.gridRegion[0].y;
 		var ypad = this.state.gridRegion[0].ypad;
@@ -1787,7 +1815,7 @@ var Utils = require('./utils.js');
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
 				  .classed("active", true);
-	 		d3.select("#pg_grid_row_" + d.ypos +" .cell")
+	 		d3.select("#pg_grid_row_" + d.ypos +" rect")
 				  .classed("rowcolmatch", true);			  
 		  	d3.select("#pg_grid_col_" + d.xpos +" text")
 				  .classed("active", true);
@@ -1795,8 +1823,8 @@ var Utils = require('./utils.js');
 			data = d;
 		}
     
-	// show tooltip
-	parent._createHoverBox(data);
+		// show tooltip
+		parent._createHoverBox(data);
 
 	},
 
@@ -1857,13 +1885,13 @@ var Utils = require('./utils.js');
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
 				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(i)*gridRegion.ypad+10) + ")"; })
+  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; })
 	      		.attr("x", gridRegion.rowLabelOffset)
 	      		.attr("y",  function(d, i) {return scale.rangeBand(i)/2;});  
 	    } else {
 	    	scores	      		
 	    	.attr("transform", function(d, i) { 
-	      			return "translate(" + (gridRegion.x + scale(i)*gridRegion.xpad-1) +
+	      			return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
 	      				 "," + (gridRegion.y-gridRegion.scoreOffset ) +")"})
 	      		.attr("x", 0)
 	      		.attr("y", scale.rangeBand()+2);
@@ -4276,18 +4304,20 @@ TooltipRender.prototype = {
 		var suffix = "";
 		var selCalc = tooltip.parent.state.selectedCalculation;
 
-		var prefix, targetId, sourceId;
+		var prefix, targetId, sourceId, targetInfo;
 			//var taxon = d.taxon;
 
 		if (tooltip.parent.state.invertAxis) {
-			sourceId = d.source_id;
-			targetId = d.target_id;
+			sourceId = d.target_id;
+			targetId = d.source_id;
+			targetInfo = tooltip.parent.state.yAxisRender.get(d.target_id); 
 		 } else {
 			sourceId = d.source_id;
 			targetId = d.target_id;
+			targetInfo = tooltip.parent.state.xAxisRender.get(d.target_id); 
 		 }
 
-		 var targetInfo = tooltip.parent.state.xAxisRender.get(targetId);
+		 
 			// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
 			// 	if (taxon.indexOf("NCBITaxon:") != -1) {
 			// 		taxon = taxon.slice(10);
@@ -4323,18 +4353,6 @@ TooltipRender.prototype = {
 			this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) +
 			"</td></tr>" +
 			"</tbody>" + "</table>";
-
-				// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-				// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-				// "<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
-
-
-			// returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
-			// 	"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
-			// 	"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
-			// 	"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-			// 	"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-			// 	"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
 		
 		return returnHtml;	
 

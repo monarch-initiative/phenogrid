@@ -177,18 +177,20 @@ TooltipRender.prototype = {
 		var suffix = "";
 		var selCalc = tooltip.parent.state.selectedCalculation;
 
-		var prefix, targetId, sourceId;
+		var prefix, targetId, sourceId, targetInfo;
 			//var taxon = d.taxon;
 
 		if (tooltip.parent.state.invertAxis) {
-			sourceId = d.source_id;
-			targetId = d.target_id;
+			sourceId = d.target_id;
+			targetId = d.source_id;
+			targetInfo = tooltip.parent.state.yAxisRender.get(d.target_id); 
 		 } else {
 			sourceId = d.source_id;
 			targetId = d.target_id;
+			targetInfo = tooltip.parent.state.xAxisRender.get(d.target_id); 
 		 }
 
-		 var targetInfo = tooltip.parent.state.xAxisRender.get(targetId);
+		 
 			// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
 			// 	if (taxon.indexOf("NCBITaxon:") != -1) {
 			// 		taxon = taxon.slice(10);
@@ -224,18 +226,6 @@ TooltipRender.prototype = {
 			this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) +
 			"</td></tr>" +
 			"</tbody>" + "</table>";
-
-				// "<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-				// "<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-				// "<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
-
-
-			// returnHtml = "<strong>Query: </strong> " + sourceLabel + Utils.formatScore(d.a_IC.toFixed(2)) +
-			// 	"<br/><strong>Match: </strong> " + d.b_label + Utils.formatScore(d.b_IC.toFixed(2)) +
-			// 	"<br/><strong>Common: </strong> " + d.subsumer_label + Utils.formatScore(d.subsumer_IC.toFixed(2)) +
-			// 	"<br/><strong>Target:</strong> " + d.a_label +  //+ Utils.capitalizeString(type)
-			// 	"<br/><strong>" + prefix + ":</strong> " + d.value[selCalc].toFixed(2) + suffix +
-			// 	"<br/><strong>Species: </strong> " + d.species;  // + " (" + taxon + ")";
 		
 		return returnHtml;	
 

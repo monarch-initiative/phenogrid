@@ -265,10 +265,10 @@ DataManager.prototype = {
 				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, species)) !== 'undefined') {
 					var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
 								ypos: y, species: species, type: 'cell'};
-					// this will create a array as a 'flattened' list of data points
+					// this will create a array as a 'flattened' list of data points, used by mini mapping
 					if (flattened) {
 						matrix.push(rec);
-					} else {  // else, just create an array of arrays
+					} else {  // else, just create an array of arrays, grid likes this format
 						list.push(rec);	
 					}
 					

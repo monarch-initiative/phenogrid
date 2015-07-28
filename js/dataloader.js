@@ -132,7 +132,7 @@ DataLoader.prototype = {
 				var type = '';
 				for (var j in this.apiEntityMap) {
 				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
-				 		type = this.apiEntityMap[j].apifragment; // Added var - Joe
+				 		type = this.apiEntityMap[j].apifragment; 
 				 	}
 				}
 				
