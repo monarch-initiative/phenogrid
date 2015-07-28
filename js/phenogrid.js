@@ -440,6 +440,8 @@ var TooltipRender = require('./tooltiprender.js');
 			// original spot for init of tooltip
 			this.state.phenoDisplayCount = this._calcPhenotypeDisplayCount();
 			// save a copy of the original phenotype data
+			// The slice() method returns the selected elements in an array, as a new array object.
+			// The original array will not be changed
 			this.state.origPhenotypeData = this.state.phenotypeData.slice();
 
 			// target species name might be provided as a name or as taxon. Make sure that we translate to name
@@ -1726,6 +1728,8 @@ var TooltipRender = require('./tooltiprender.js');
 			$("#pg_svg_area").remove();
 
 			if (type === 'organism') {
+				// The slice() method returns the selected elements in an array, as a new array object.
+				// The original array will not be changed
 				self.state.phenotypeData = self.state.origPhenotypeData.slice();
 				self._reset("organism");
 				self._init();
@@ -1734,6 +1738,8 @@ var TooltipRender = require('./tooltiprender.js');
 			} else if (type === "sortphenotypes") {
 				self._reset("sortphenotypes");
 			} else if (type === "axisflip") {
+				// The slice() method returns the selected elements in an array, as a new array object.
+				// The original array will not be changed
 				self.state.phenotypeData = self.state.origPhenotypeData.slice();
 				self._reset("axisflip");
 				self._init();
