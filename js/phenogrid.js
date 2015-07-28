@@ -3001,9 +3001,9 @@ var TooltipRender = require('./tooltiprender.js');
 					.style("stop-opacity", 1);
 			}
 
+			var x = self.state.axis_pos_list[2] + 12;
 			// gradient + gap is 20 pixels
 			y = y1 + (gradientHeight * i) + self.state.yoffset;
-			var x = self.state.axis_pos_list[2] + 12;
 			var translate = "translate(0,10)";
 			var legend = this.state.svg.append("rect")
 				.attr("transform", translate)
@@ -3015,9 +3015,15 @@ var TooltipRender = require('./tooltiprender.js');
 				.attr("height", 12)
 				.attr("fill", "url(#gradient_" + i + ")"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 
-			y = (gradientHeight * (i + 1)) + y1 + self.state.yoffset - 1; // magic number to make it vertical aligined in center - Joe
-			// [vaa12] BUG. IF LOOKING AT ONLY 1 SPECIES, SOMEHOW Y IS EITHER ADDED BY 180 OR 360 AT THIS POINT. NOT OTHER VARS CHANGED
+		    // Now for the species text in the gradient bar - Joe
 			x = self.state.axis_pos_list[2] + 100;
+			
+			
+			y = y1 + gradientHeight * i + gradientHeight + self.state.yoffset - 1; // magic number 1 to make it vertical aligined in center - Joe
+			
+			//var yy = y1 + gradientHeight * (i + 1) + self.state.yoffset - 1; // This will generate a different y value - Joe
+			//console.log(y, yy);
+			
 			var gclass = "grad_text_" + i;
 			var specName = this.state.targetSpeciesList[i].name;
 			var grad_text = this.state.svg.append("svg:text")
@@ -3027,6 +3033,7 @@ var TooltipRender = require('./tooltiprender.js');
 				.attr("text-anchor", 'middle')
 				.style("font-size", "10px")
 				.text(specName);
+				
 			y += gradientHeight;
 			return y;
 		},
