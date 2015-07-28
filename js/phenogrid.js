@@ -3009,8 +3009,8 @@ var TooltipRender = require('./tooltiprender.js');
 				.attr("transform", translate)
 				.attr("class", "legend_rect_" + i)
 				.attr("id","legendscale_" + i)
-				.attr("y", y)
 				.attr("x", x)
+				.attr("y", y)
 				.attr("width", 180)
 				.attr("height", 12)
 				.attr("fill", "url(#gradient_" + i + ")"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
@@ -3022,8 +3022,8 @@ var TooltipRender = require('./tooltiprender.js');
 			var specName = this.state.targetSpeciesList[i].name;
 			var grad_text = this.state.svg.append("svg:text")
 				.attr("class", gclass)
-				.attr("y", y)
 				.attr("x", x)
+				.attr("y", y)
 				.attr("text-anchor", 'middle')
 				.style("font-size", "10px")
 				.text(specName);
@@ -3054,8 +3054,8 @@ var TooltipRender = require('./tooltiprender.js');
 			var xlowText = self.state.axis_pos_list[2] + 10;
 			var div_text1 = self.state.svg.append("svg:text")
 				.attr("class", "pg_sim_text")
-				.attr("y", ylowText)
 				.attr("x", xlowText)
+				.attr("y", ylowText)
 				.style("font-size", "10px")
 				.text(lowText);
 
@@ -3063,8 +3063,8 @@ var TooltipRender = require('./tooltiprender.js');
 			var xlabelText = self.state.axis_pos_list[2] + 75;
 			var div_text2 = self.state.svg.append("svg:text")
 				.attr("class", "pg_sim_text")
-				.attr("y", ylabelText)
 				.attr("x", xlabelText)
+				.attr("y", ylabelText)
 				.style("font-size", "12px")
 				.text(labelText);
 
@@ -3072,14 +3072,16 @@ var TooltipRender = require('./tooltiprender.js');
 			var xhighText = self.state.axis_pos_list[2] + 125;
 			var div_text3 = self.state.svg.append("svg:text")
 				.attr("class", "pg_sim_text")
-				.attr("y", yhighText)
 				.style("font-size", "10px")
 				.text(highText);
+				
 			if (highText == 'Max' || highText == 'Highest') {
 				div_text3.attr("x", xhighText + 25);
 			} else {
 				div_text3.attr("x", xhighText);
 			}
+			
+			div_text3.attr("y", yhighText)
 		},
 
 		// build controls for selecting organism and comparison. Install handlers
