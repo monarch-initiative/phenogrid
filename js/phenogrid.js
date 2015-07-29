@@ -1586,7 +1586,7 @@ var TooltipRender = require('./tooltiprender.js');
         _ajaxPostData: function (target, url, postData) {
             var self = this;
             var res;
-            jQuery.ajax({
+            $.ajax({
                 url: url,
                 method: 'POST',
                 data: postData,
