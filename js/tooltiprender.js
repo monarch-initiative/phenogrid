@@ -73,165 +73,191 @@ TooltipRender.prototype = {
 		}
 	}, 
 
-phenotype: function(tooltip) {
-	
-	var returnHtml = "";
-	var hpoExpand = false;
-	var hpoData = "<br/><br/>";
-	var hpoCached = tooltip.parent.state.hpoCacheHash.get(tooltip.id.replace("_", ":"));
-	if (hpoCached !== null && hpoCached.active === 1){
-		hpoExpand = true;
+	phenotype: function(tooltip) {
+		
+		var returnHtml = "";
+		var hpoExpand = false;
+		var hpoData = "<br/><br/>";
+		var hpoCached = tooltip.parent.state.hpoCacheHash.get(tooltip.id.replace("_", ":"));
+		if (hpoCached !== null && hpoCached.active === 1){
+			hpoExpand = true;
 
-		//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
-		tooltip.parent.state.hpoTreesDone = 0;
-		tooltip.parent.state.hpoTreeHeight = 0;
-		var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-		if (hpoTree === "<br/>"){
-			hpoData += "<em>No HPO Data Found</em>";
-		} else {
-			hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
-		}
-	}
-	
-	// Used font awesome for expand/collapse buttons - Joe
-	if ( ! tooltip.parent.state.preloadHPO){
-		if (hpoExpand){
-			returnHtml = "<br/><br/>Click icon to <b>collapse</b> HPO info";
-			//returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" onClick=\"self._collapseHPO('" + tooltip.id + "')\"></i>";
-			returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" id=\"collapseHPO_" + tooltip.id + "\"></i>";
-			returnHtml += hpoData;
-		} else {
-			returnHtml = "<br/><br/>Click icon to <b>expand</b> HPO info";
-			//returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" onClick=\"self._expandHPO('" + tooltip.id + "')\"></i>";
-			returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" id=\"expandHPO_" + tooltip.id + "\"></i>";
-		}
-	}
-	else {
-		returnHtml = hpoData;
-	}
-return returnHtml;		
-
-},
-
-cell: function(tooltip, d) {
-	
-	var returnHtml, prefix, modelLabel, phenoLabel;
-
-	var yInfo = tooltip.parent._getAxisData(d.yID);
-	var xInfo = tooltip.parent._getAxisData(d.xID);
-	var fullInfo = $.extend({}, xInfo, yInfo); // jquery's $.extend() - Joe
-	var species = fullInfo.species;
-	var taxon = fullInfo.taxon;
-
-	//[vaa12] Could be done in a more sophisticated function, but this works and removed dependancy on invertAxis
-	if (tooltip.parent.state.phenotypeListHash.containsKey(d.xID)) {
-		phenoLabel = tooltip.parent.state.phenotypeListHash.get(d.xID).label;
-	} else if (tooltip.parent.state.phenotypeListHash.containsKey(d.yID)) {
-		phenoLabel = tooltip.parent.state.phenotypeListHash.get(d.yID).label;
-	} else {
-		phenoLabel = null;
-	}
-
-	if (tooltip.parent.state.modelListHash.containsKey(d.xID)) {
-		modelLabel = tooltip.parent.state.modelListHash.get(d.xID).label;
-	} else if (tooltip.parent.state.modelListHash.containsKey(d.yID)) {
-		modelLabel = tooltip.parent.state.modelListHash.get(d.yID).label;
-	} else {
-		modelLabel = null;
-	}
-
-	if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-		if (taxon.indexOf("NCBITaxon:") !== -1) {
-			taxon = taxon.slice(10);
-		}
-	}
-
-	for (var idx in tooltip.parent.state.similarityCalculation) {
-		if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
-			break;
-		}
-		if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
-			prefix = tooltip.parent.state.similarityCalculation[idx].label;
-			break;
-		}
-	}
-
-	// Hiding scores which are equal to 0
-	var formatScore =  function(score) {
-		if (score === 0) {
-			return "";
-		} else {
-			return " (IC: " + score + ")";
-		}
-	};
-
-	var suffix = "";
-	// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-	if (tooltip.parent.state.selectedCalculation !== 2) {
-		suffix = '%';
-	}
-
-	returnHtml = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
-		"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
-		"<br/><strong>Common: </strong> " + d.subsumer_label + formatScore(d.subsumer_IC.toFixed(2)) +
-		"<br/><strong>" + tooltip.parent._capitalizeString(fullInfo.type)+": </strong> " + modelLabel +
-		"<br/><strong>" + prefix + ":</strong> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + suffix +
-		"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
-
-
-	return returnHtml;
-},
-
-
-gene: function(tooltip) {
-	var returnHtml = "";	
-/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING
-	// for gene and species mode only, show genotype link
-	if (tooltip.parent.state.targetSpeciesName != "Overview"){
-		var isExpanded = false;
-		var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
-		if (gtCached !== null) { isExpanded = gtCached.expanded;}
-
-		//if found just return genotypes scores
-		if (isExpanded) {
-//					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
-			returnHtml = "<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
-				 "<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
-				 "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapseGenotypes('" + tooltip.id + "')\">" +
-				 "</button>";
-		} else {
-			if (gtCached !== null) {
-				returnHtml = "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
+			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
+			tooltip.parent.state.hpoTreesDone = 0;
+			tooltip.parent.state.hpoTreeHeight = 0;
+			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
+			if (hpoTree === "<br/>"){
+				hpoData += "<em>No HPO Data Found</em>";
 			} else {
-				returnHtml = "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
+				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
 			}
-			returnHtml += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expandGenotypes('" + tooltip.id + "')\"></button>";
 		}
-	}
-*/	
-	return returnHtml;	
-},
-
-/*
-genotype: function(tooltip) {
-	var returnHtml = "";
-	if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
-		var parentInfo = tooltip.parent.state.modelListHash.get(info.parent);
-		if (parentInfo !== null) {
-			// var alink = this.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":");
-			// var hyperLink = $("<a>")
-			// 	.attr("href", alink)
-			// 	.attr("target", "_blank")
-			// 	.text(parentInfo.label);
-			// return "<br/><strong>Gene:</strong> " + hyperLink;				
-
- 			var genehrefLink = "<a href=\"" + tooltip.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
- 			returnHtml = "<br/><strong>Gene:</strong> " + genehrefLink;
+		
+		// Used font awesome for expand/collapse buttons - Joe
+		if ( ! tooltip.parent.state.preloadHPO){
+			if (hpoExpand){
+				returnHtml = "<br/><br/>Click icon to <b>collapse</b> HPO info";
+				//returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" onClick=\"self._collapseHPO('" + tooltip.id + "')\"></i>";
+				returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" id=\"collapseHPO_" + tooltip.id + "\"></i>";
+				returnHtml += hpoData;
+			} else {
+				returnHtml = "<br/><br/>Click icon to <b>expand</b> HPO info";
+				//returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" onClick=\"self._expandHPO('" + tooltip.id + "')\"></i>";
+				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" id=\"expandHPO_" + tooltip.id + "\"></i>";
+			}
 		}
+		else {
+			returnHtml = hpoData;
+		}
+	return returnHtml;		
+
+	},
+
+	cell: function(tooltip, d) {
+		
+		var returnHtml, fullInfo, prefix, modelLabel, phenoLabel;
+
+		/* Sample xInfo
+		label: "Hemiplegic migraine, familial type 1"
+		pos: 16
+		rank: 16
+		score: 64
+		species: "Homo sapiens"
+		taxon: "NCBITaxon:9606"
+		type: "disease"
+		*/
+		var xInfo = tooltip.parent._getAxisData(d.xID);
+		
+		/* Sample yInfo
+		IC: 14.627721129873681
+		count: 8
+		label: "Fluctuations in consciousness"
+		pos: 13
+		sum: 60.89711102518358
+		type: "phenotype"
+		ypos: 384
+		*/
+		var yInfo = tooltip.parent._getAxisData(d.yID);
+
+		// When use jquery's $.extend({}, xInfo, yInfo), type in yInfo will overwrite type in xInfo - Joe
+		if (tooltip.parent.state.invertAxis) {
+			fullInfo = $.extend({}, xInfo, yInfo); // use type from yInfo
+		} else {
+			fullInfo = $.extend({}, yInfo, xInfo); // use type from xInfo
+		}
+
+		var species = fullInfo.species;
+		var taxon = fullInfo.taxon;
+
+		//[vaa12] Could be done in a more sophisticated function, but this works and removed dependancy on invertAxis
+		if (tooltip.parent.state.phenotypeListHash.containsKey(d.xID)) {
+			phenoLabel = tooltip.parent.state.phenotypeListHash.get(d.xID).label;
+		} else if (tooltip.parent.state.phenotypeListHash.containsKey(d.yID)) {
+			phenoLabel = tooltip.parent.state.phenotypeListHash.get(d.yID).label;
+		} else {
+			phenoLabel = null;
+		}
+
+		if (tooltip.parent.state.modelListHash.containsKey(d.xID)) {
+			modelLabel = tooltip.parent.state.modelListHash.get(d.xID).label;
+		} else if (tooltip.parent.state.modelListHash.containsKey(d.yID)) {
+			modelLabel = tooltip.parent.state.modelListHash.get(d.yID).label;
+		} else {
+			modelLabel = null;
+		}
+
+		if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
+			if (taxon.indexOf("NCBITaxon:") !== -1) {
+				taxon = taxon.slice(10);
+			}
+		}
+
+		for (var idx in tooltip.parent.state.similarityCalculation) {
+			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
+				break;
+			}
+			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
+				prefix = tooltip.parent.state.similarityCalculation[idx].label;
+				break;
+			}
+		}
+
+		// Hiding scores which are equal to 0
+		var formatScore =  function(score) {
+			if (score === 0) {
+				return "";
+			} else {
+				return " (IC: " + score + ")";
+			}
+		};
+
+		var suffix = "";
+		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
+		if (tooltip.parent.state.selectedCalculation !== 2) {
+			suffix = '%';
+		}
+
+		returnHtml = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
+			"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
+			"<br/><strong>Common: </strong> " + d.subsumer_label + formatScore(d.subsumer_IC.toFixed(2)) +
+			"<br/><strong>" + tooltip.parent._capitalizeString(fullInfo.type)+": </strong> " + modelLabel +
+			"<br/><strong>" + prefix + ":</strong> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + suffix +
+			"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
+
+
+		return returnHtml;
+	},
+
+
+	gene: function(tooltip) {
+		var returnHtml = "";	
+	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING
+		// for gene and species mode only, show genotype link
+		if (tooltip.parent.state.targetSpeciesName != "Overview"){
+			var isExpanded = false;
+			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
+			if (gtCached !== null) { isExpanded = gtCached.expanded;}
+
+			//if found just return genotypes scores
+			if (isExpanded) {
+	//					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
+				returnHtml = "<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
+					 "<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
+					 "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapseGenotypes('" + tooltip.id + "')\">" +
+					 "</button>";
+			} else {
+				if (gtCached !== null) {
+					returnHtml = "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
+				} else {
+					returnHtml = "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
+				}
+				returnHtml += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expandGenotypes('" + tooltip.id + "')\"></button>";
+			}
+		}
+	*/	
+		return returnHtml;	
+	},
+
+	/*
+	genotype: function(tooltip) {
+		var returnHtml = "";
+		if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
+			var parentInfo = tooltip.parent.state.modelListHash.get(info.parent);
+			if (parentInfo !== null) {
+				// var alink = this.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":");
+				// var hyperLink = $("<a>")
+				// 	.attr("href", alink)
+				// 	.attr("target", "_blank")
+				// 	.text(parentInfo.label);
+				// return "<br/><strong>Gene:</strong> " + hyperLink;				
+
+				var genehrefLink = "<a href=\"" + tooltip.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
+				returnHtml = "<br/><strong>Gene:</strong> " + genehrefLink;
+			}
+		}
+		return returnHtml;	
 	}
-	return returnHtml;	
-}
-*/
+	*/
 
 };
 
