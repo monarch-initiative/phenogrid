@@ -275,6 +275,9 @@ var Utils = require('./utils.js');
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.simSearchQuery, querySourceList, 
 				this.state.selectedCompareSpecies, this.state.apiEntityMap);
 
+		// MKD: not real sure about this.  I don't under how this is used
+		this.state.maxICScore = this.state.dataLoader.maxICScore;
+
 		this.state.dataManager = new DataManager(this.state.dataLoader);
 
 		//if (preloadHPO) {
@@ -448,6 +451,7 @@ var Utils = require('./utils.js');
 		var gridRegion = self.state.gridRegion[0]; 
 		var xScale = self.state.xAxisRender.getScale();
 		var yScale = self.state.yAxisRender.getScale();
+		console.log(JSON.stringify(yvalues));
 
 		// use the x/y renders to generate the matrix
 	    var matrix = self.state.dataManager.getMatrix(xvalues, yvalues, false);
@@ -508,7 +512,8 @@ var Utils = require('./utils.js');
 		    .attr("dy", ".32em")
 		    .attr("data-tooltip", "sticky1")   			
 	      	.attr("text-anchor", "start")
-	      		.text(function(d, i) { 		      	
+	      		.text(function(d, i) { 		
+	      		console.log(JSON.stringify(d));      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d) { self._cellover(d, self);})
 			.on("mouseout", self._cellout);		    
@@ -625,13 +630,13 @@ var Utils = require('./utils.js');
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
 				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(i)*gridRegion.ypad+10) + ")"; })
+  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; })
 	      		.attr("x", gridRegion.rowLabelOffset)
 	      		.attr("y",  function(d, i) {return scale.rangeBand(i)/2;});  
 	    } else {
 	    	scores	      		
 	    	.attr("transform", function(d, i) { 
-	      			return "translate(" + (gridRegion.x + scale(i)*gridRegion.xpad-1) +
+	      			return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
 	      				 "," + (gridRegion.y-gridRegion.scoreOffset ) +")"})
 	      		.attr("x", 0)
 	      		.attr("y", scale.rangeBand()+2);
@@ -845,6 +850,8 @@ var Utils = require('./utils.js');
 					var curX = parseFloat(current.attr("x"));
 					var curY = parseFloat(current.attr("y"));
 
+					console.log("curX:" + curX + " curY:"+ curY);
+
 					var rect = self.state.svg.select("#pg_selectionrect");
 					rect.attr("transform","translate(0,0)");
 
@@ -891,6 +898,8 @@ var Utils = require('./utils.js');
 
 					var jj = self._invertOverviewDragPosition(self.state.smallYScale,newY);
 					var newYPos = jj + yCount;
+
+					console.log("newXPos:" + newXPos + " newYPos:"+newYPos);
 
 					self._updateGrid(newXPos, newYPos);
 		}));
@@ -1571,14 +1580,17 @@ var Utils = require('./utils.js');
 	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
-//		console.log("curX:"+this.state.currXIdx + " curY:"+this.state.currYIdx);
+		console.log("calc for start x:"+(this.state.currXIdx-this.state.targetDisplayLimit));
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);  //-this.state.targetDisplayLimit
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
-// console.log("Xaxis start: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
-// 			+ " limit size: " + this.state.targetDisplayLimit);
+		console.log("xaxis end:" + this.state.currXIdx);
+	   //  console.log("Xaxis end: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
+ 			// + " limit size: " + this.state.targetDisplayLimit);
 
+		console.log("calc for start y:"+(this.state.currYIdx-this.state.sourceDisplayLimit));
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.sourceDisplayLimit);
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
+		console.log("yaxis end:" + this.state.currYIdx);
 
 // console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end: "+this.state.yAxisRender.getRenderEndPos()+
 // 				" limit size: " + this.state.sourceDisplayLimit);

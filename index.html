@@ -16,7 +16,6 @@ var phenotypes = [
     {id:"HP:0002367", observed:"positive"},
     {id:"HP:0000012", observed:"positive"},
     {id:"HP:0000716", observed:"positive"},
-    {id:"HP:0000726", observed:"positive"},
     {id:"HP:0000739", observed:"positive"},
     {id:"HP:0001332", observed:"positive"},
     {id:"HP:0001347", observed:"positive"},
@@ -29,7 +28,7 @@ var phenotypes = [
 
 window.onload = function() {
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
-        serverURL : "http://localhost:8082",
+        serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
         defaulTargetSpeciesName: "Overview",
         targetSpeciesList: [

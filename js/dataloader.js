@@ -63,20 +63,22 @@ DataLoader.prototype = {
 			speciesName = [species];
 		}
 
+		//this.simSearchQuery = 'input_items=';
+
 		for (var i=0; i < speciesName.length; i++) {
 
-	    	var url = this.simServerURL + this.simSearchQuery + qrySourceList.join("+");
+	    	var data = this.simSearchQuery + qrySourceList.join("+");
 
 		    if (typeof(speciesName[i]) !== 'undefined') {
-		    	url += "&target_species=" + speciesName[i].taxon;
+		    	data += "&target_species=" + speciesName[i].taxon;
 		    } 
 		    if (typeof(limit) !== 'undefined') {
-		    	url += "&limit=" + limit;
+		    	data += "&limit=" + limit;
 			}
-		    console.log(url);
+		    console.log(this.simServerURL, data);
 
 		    // make ajax call
-		    res = this.fetch(url);
+		    res = this.fetch(this.simServerURL, data);
 
 			// save the original owlsim data
 			this.owlsimsData[speciesName[i].name] = res;
@@ -152,43 +154,30 @@ DataLoader.prototype = {
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 
 					var sum =0, count=0;
-					for (var matchIdx in matches) {
+					for (var matchIdx in matches) 
+					{
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
 						currID_b = Utils.getConceptId(curr_row.b.id);
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
+						// get the normalized IC
 						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
 
-						//var srcElement = this.getElement("source", sourceID_a);
 						var srcElement = this.sourceData[sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
 						if (typeof(srcElement) === 'undefined') {
-						//if (!this.contains("source", sourceID_a)) {
-
 							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
 											"count": count, "sum": sum, "type": "phenotype"};
 							this.sourceData[sourceID_a] = dataVals;
-							//sourceData.put(sourceID_a, hashDataVals);
 							// if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
 							// 	this._getHPO(this.getConceptId(curr_row.a.id));
 							// }
 						} else {
 							this.sourceData[sourceID_a].count += 1;
-							this.sourceData[sourceID_a].sum += parseFloat(curr_row.lcs.IC);
-							
-							// console.log('source count: ' + sourceData[sourceID_a].count);
-							// console.log('source sum' + sourceData[sourceID_a].sum);
+							this.sourceData[sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
 						}
-
-						// update values for sorting
-						//var index = this.getElementIndex("source", sourceID_a);
-
-						//if(  index > -1) {
-							//sourceData[index].count += 1;
-							//sourceData[index].sum += parseFloat(curr_row.lcs.IC);
-
 
 						// building cell data points
 						dataVals = {"source_id": sourceID_a, 
@@ -210,8 +199,8 @@ DataLoader.prototype = {
 					    }
 					    if(typeof(this.cellData[species][sourceID_a][targetID]) === 'undefined') {
 							this.cellData[species][sourceID_a][targetID] = {};
-					    }
-					    this.cellData[species][sourceID_a][targetID] = dataVals;
+					    } 
+					 	this.cellData[species][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
 			} // for
@@ -271,10 +260,14 @@ DataLoader.prototype = {
 	},
 
 	// generic ajax call for all queries
-	fetch: function (url) {
+	fetch: function (url, data) {
 		var res;
+		var uurl = url + data;
+
+
 		jQuery.ajax({
-			url: url, 
+			url: uurl, 
+			//data: data,
 			async : false,
 			dataType : 'json',
 			success : function(data) {

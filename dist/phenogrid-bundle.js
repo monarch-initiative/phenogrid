@@ -371,20 +371,22 @@ DataLoader.prototype = {
 			speciesName = [species];
 		}
 
+		//this.simSearchQuery = 'input_items=';
+
 		for (var i=0; i < speciesName.length; i++) {
 
-	    	var url = this.simServerURL + this.simSearchQuery + qrySourceList.join("+");
+	    	var data = this.simSearchQuery + qrySourceList.join("+");
 
 		    if (typeof(speciesName[i]) !== 'undefined') {
-		    	url += "&target_species=" + speciesName[i].taxon;
+		    	data += "&target_species=" + speciesName[i].taxon;
 		    } 
 		    if (typeof(limit) !== 'undefined') {
-		    	url += "&limit=" + limit;
+		    	data += "&limit=" + limit;
 			}
-		    console.log(url);
+		    console.log(this.simServerURL, data);
 
 		    // make ajax call
-		    res = this.fetch(url);
+		    res = this.fetch(this.simServerURL, data);
 
 			// save the original owlsim data
 			this.owlsimsData[speciesName[i].name] = res;
@@ -440,7 +442,7 @@ DataLoader.prototype = {
 				var type = '';
 				for (var j in this.apiEntityMap) {
 				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
-				 		type = this.apiEntityMap[j].apifragment; // Added var - Joe
+				 		type = this.apiEntityMap[j].apifragment; 
 				 	}
 				}
 				
@@ -460,43 +462,30 @@ DataLoader.prototype = {
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 
 					var sum =0, count=0;
-					for (var matchIdx in matches) {
+					for (var matchIdx in matches) 
+					{
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
 						currID_b = Utils.getConceptId(curr_row.b.id);
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
+						// get the normalized IC
 						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
 
-						//var srcElement = this.getElement("source", sourceID_a);
 						var srcElement = this.sourceData[sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
 						if (typeof(srcElement) === 'undefined') {
-						//if (!this.contains("source", sourceID_a)) {
-
 							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
 											"count": count, "sum": sum, "type": "phenotype"};
 							this.sourceData[sourceID_a] = dataVals;
-							//sourceData.put(sourceID_a, hashDataVals);
 							// if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
 							// 	this._getHPO(this.getConceptId(curr_row.a.id));
 							// }
 						} else {
 							this.sourceData[sourceID_a].count += 1;
-							this.sourceData[sourceID_a].sum += parseFloat(curr_row.lcs.IC);
-							
-							// console.log('source count: ' + sourceData[sourceID_a].count);
-							// console.log('source sum' + sourceData[sourceID_a].sum);
+							this.sourceData[sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
 						}
-
-						// update values for sorting
-						//var index = this.getElementIndex("source", sourceID_a);
-
-						//if(  index > -1) {
-							//sourceData[index].count += 1;
-							//sourceData[index].sum += parseFloat(curr_row.lcs.IC);
-
 
 						// building cell data points
 						dataVals = {"source_id": sourceID_a, 
@@ -518,8 +507,8 @@ DataLoader.prototype = {
 					    }
 					    if(typeof(this.cellData[species][sourceID_a][targetID]) === 'undefined') {
 							this.cellData[species][sourceID_a][targetID] = {};
-					    }
-					    this.cellData[species][sourceID_a][targetID] = dataVals;
+					    } 
+					 	this.cellData[species][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
 			} // for
@@ -579,10 +568,14 @@ DataLoader.prototype = {
 	},
 
 	// generic ajax call for all queries
-	fetch: function (url) {
+	fetch: function (url, data) {
 		var res;
+		var uurl = url + data;
+
+
 		jQuery.ajax({
-			url: url, 
+			url: uurl, 
+			//data: data,
 			async : false,
 			dataType : 'json',
 			success : function(data) {
@@ -903,7 +896,6 @@ DataManager.prototype = {
 		try {
 			rec = this.cellData[species][s][t];
 		} catch (err) {
-			console.log(err);
 			// if error, check for inverted source and target keys
 			rec = this.cellData[species][t][s];
 		}
@@ -951,19 +943,22 @@ DataManager.prototype = {
 
 				var species = this._getSpecies(yvalues[y], xvalues[x]);
 				// does a match exist in the cells
-				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, species)) !== 'undefined') {
+				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, species)) !== 'undefined') 
+				{
 					var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
 								ypos: y, species: species, type: 'cell'};
-					// this will create a array as a 'flattened' list of data points
+					// this will create a array as a 'flattened' list of data points, used by mini mapping
 					if (flattened) {
 						matrix.push(rec);
-					} else {  // else, just create an array of arrays
+					} else {  // else, just create an array of arrays, grid likes this format
 						list.push(rec);	
 					}
 					
 				}
 			}
-			if (list.length > 0 && !flattened) {matrix.push(list);}	
+			if (!flattened) {  //list.length > 0 && 
+				matrix.push(list);
+			} 
 		}
 	    return matrix;
 	},
@@ -1511,6 +1506,9 @@ var Utils = require('./utils.js');
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.simSearchQuery, querySourceList, 
 				this.state.selectedCompareSpecies, this.state.apiEntityMap);
 
+		// MKD: not real sure about this.  I don't under how this is used
+		this.state.maxICScore = this.state.dataLoader.maxICScore;
+
 		this.state.dataManager = new DataManager(this.state.dataLoader);
 
 		//if (preloadHPO) {
@@ -1679,18 +1677,15 @@ var Utils = require('./utils.js');
 	// create the grid
 	_createGrid: function() {
 		var self = this;
-		var p = this;
 		var xvalues = self.state.xAxisRender.entries();   //keys();
 		var yvalues = self.state.yAxisRender.entries();
 		var gridRegion = self.state.gridRegion[0]; 
 		var xScale = self.state.xAxisRender.getScale();
 		var yScale = self.state.yAxisRender.getScale();
+		console.log(JSON.stringify(yvalues));
 
 		// use the x/y renders to generate the matrix
 	    var matrix = self.state.dataManager.getMatrix(xvalues, yvalues, false);
-
-	    // create a cell definition
-		var widget = d3.select(this);
 
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
@@ -1748,7 +1743,8 @@ var Utils = require('./utils.js');
 		    .attr("dy", ".32em")
 		    .attr("data-tooltip", "sticky1")   			
 	      	.attr("text-anchor", "start")
-	      		.text(function(d, i) { 		      	
+	      		.text(function(d, i) { 		
+	      		console.log(JSON.stringify(d));      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d) { self._cellover(d, self);})
 			.on("mouseout", self._cellout);		    
@@ -1778,26 +1774,6 @@ var Utils = require('./utils.js');
 		}
 	},
 
-	// _createrow: function(row, self, w) {
-	//     var cell = w.selectAll(".cell")
-	//         .data(row)
-	//       .enter().append("rect")
-	//         .attr("class", "cell")
-	//         .attr("x", function(d) { 
-	//         		return d.xpos * self.state.gridRegion[0].xpad;})
-	//         .attr("width", self.state.gridRegion[0].cellwd)
-	//         .attr("height", self.state.gridRegion[0].cellht) 
-	// 		.attr("data-tooltip", "sticky1")   					        
-	// 		// .attr("rx", "3")
-	// 		// .attr("ry", "3")			        
-	//         .style("fill", function(d) { 
-	// 			var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
-	// 			return self._getColorForModelValue(self, d.species, el.value[self.state.selectedCalculation]);
-	// 	        })
-	//         .on("mouseover", function(d) { self._cellover(d, self);})
-	//         .on("mouseout", self._cellout);
-	// },
-
 	_calcYCoord: function (d, i) {
 		var y = this.state.gridRegion[0].y;
 		var ypad = this.state.gridRegion[0].ypad;
@@ -1815,7 +1791,7 @@ var Utils = require('./utils.js');
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
 				  .classed("active", true);
-	 		d3.select("#pg_grid_row_" + d.ypos +" rect")
+	 		d3.select("#pg_grid_row_" + d.ypos +" .cell")
 				  .classed("rowcolmatch", true);			  
 		  	d3.select("#pg_grid_col_" + d.xpos +" text")
 				  .classed("active", true);
@@ -1823,8 +1799,8 @@ var Utils = require('./utils.js');
 			data = d;
 		}
     
-		// show tooltip
-		parent._createHoverBox(data);
+	// show tooltip
+	parent._createHoverBox(data);
 
 	},
 
@@ -2105,6 +2081,8 @@ var Utils = require('./utils.js');
 					var curX = parseFloat(current.attr("x"));
 					var curY = parseFloat(current.attr("y"));
 
+					console.log("curX:" + curX + " curY:"+ curY);
+
 					var rect = self.state.svg.select("#pg_selectionrect");
 					rect.attr("transform","translate(0,0)");
 
@@ -2151,6 +2129,8 @@ var Utils = require('./utils.js');
 
 					var jj = self._invertOverviewDragPosition(self.state.smallYScale,newY);
 					var newYPos = jj + yCount;
+
+					console.log("newXPos:" + newXPos + " newYPos:"+newYPos);
 
 					self._updateGrid(newXPos, newYPos);
 		}));
@@ -2831,14 +2811,17 @@ var Utils = require('./utils.js');
 	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
-//		console.log("curX:"+this.state.currXIdx + " curY:"+this.state.currYIdx);
+		console.log("calc for start x:"+(this.state.currXIdx-this.state.targetDisplayLimit));
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);  //-this.state.targetDisplayLimit
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
-// console.log("Xaxis start: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
-// 			+ " limit size: " + this.state.targetDisplayLimit);
+		console.log("xaxis end:" + this.state.currXIdx);
+	   //  console.log("Xaxis end: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
+ 			// + " limit size: " + this.state.targetDisplayLimit);
 
+		console.log("calc for start y:"+(this.state.currYIdx-this.state.sourceDisplayLimit));
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.sourceDisplayLimit);
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
+		console.log("yaxis end:" + this.state.currYIdx);
 
 // console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end: "+this.state.yAxisRender.getRenderEndPos()+
 // 				" limit size: " + this.state.sourceDisplayLimit);

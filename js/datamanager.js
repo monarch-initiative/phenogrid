@@ -214,7 +214,6 @@ DataManager.prototype = {
 		try {
 			rec = this.cellData[species][s][t];
 		} catch (err) {
-			console.log(err);
 			// if error, check for inverted source and target keys
 			rec = this.cellData[species][t][s];
 		}
@@ -262,7 +261,8 @@ DataManager.prototype = {
 
 				var species = this._getSpecies(yvalues[y], xvalues[x]);
 				// does a match exist in the cells
-				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, species)) !== 'undefined') {
+				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, species)) !== 'undefined') 
+				{
 					var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
 								ypos: y, species: species, type: 'cell'};
 					// this will create a array as a 'flattened' list of data points, used by mini mapping
@@ -274,7 +274,9 @@ DataManager.prototype = {
 					
 				}
 			}
-			if (list.length > 0 && !flattened) {matrix.push(list);}	
+			if (!flattened) {  //list.length > 0 && 
+				matrix.push(list);
+			} 
 		}
 	    return matrix;
 	},
