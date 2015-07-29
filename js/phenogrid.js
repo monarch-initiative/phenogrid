@@ -184,8 +184,8 @@ var TooltipRender = require('./tooltiprender.js');
 			serverURL: "",
 			// Do we need this? - Joe
 			simServerURL: "",  // URL of the server for similarity searches
-			simSearchQuery: "/simsearch/phenotype?input_items=", // All HP ids are appended to this URL - Joe
-			selectedCalculation: 0, // 4 calculations, default 0 means Similarity - Joe
+			simSearchQuery: "/simsearch/phenotype", // All HP ids are appended to this URL - Joe
+			selectedCalculation: 0,
 			invertAxis: false,
 			hpoDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
 			hpoDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "OUTGOING".
