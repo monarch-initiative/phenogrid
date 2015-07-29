@@ -1124,11 +1124,27 @@ var TooltipRender = require('./tooltiprender.js');
 			var phenotypeList = this.state.phenotypeData;
 			var taxon = this._getTargetSpeciesTaxonByName(this,speciesName);
 			var res;
+			var postData;
 			//console.log("this.state.simServerURL is..."+this.state.simServerURL);
 			// COMPARE CALL HACK - REFACTOR OUT
 			if ($.isEmptyObject(this.state.providedData)) {
 				var url = this._getLoadDataURL(phenotypeList, taxon, limit);
-				res = this._ajaxLoadData(speciesName, url);
+				
+                // NOTE: Here we configure calls to simsearch to be a POST, while calls
+				// to the compare function use a GET, the reason being that compare calls
+				// are not yet configured for POST in the monarch-app.  Configuring the compare
+				// function to handle a post will simplify this code
+				
+                if (this.state.owlSimFunction !== 'compare'){
+                    postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
+                    if (typeof(limit) !== 'undefined') {
+                        postData += "&limit=" + limit;
+                    }
+                    url = this.state.simServerURL + this.state.simSearchQuery;
+                    res = this._ajaxPostData(speciesName, url, postData);
+                } else {
+                    res = this._ajaxLoadData(speciesName,url);
+                }
 			} else {
 				res = this.state.providedData;
 			}
@@ -1565,6 +1581,27 @@ var TooltipRender = require('./tooltiprender.js');
 			});
 			return res;
 		},
+		
+        // generic ajax POST
+        _ajaxPostData: function (target, url, postData) {
+            var self = this;
+            var res;
+            jQuery.ajax({
+                url: url,
+                method: 'POST',
+                data: postData,
+                async : false,
+                dataType : 'json',
+                success : function(data) {
+                    res = data;
+                },
+                error: function (xhr, errorType, exception) {
+                // Triggered if an error communicating with server
+                    self._displayResult(xhr, errorType, exception);
+                }
+             });
+            return res;
+        },
 
 		_createColorScale: function() {
 			var maxScore = 0,
