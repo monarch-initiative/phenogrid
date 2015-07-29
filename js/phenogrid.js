@@ -3393,25 +3393,32 @@ var TooltipRender = require('./tooltiprender.js');
 			// because http://beta.monarchinitiative.org/phenotype/HP_0000746.json will be redirected 
 			// to http://beta.monarchinitiative.org/phenotype/HP:0000746 (.json extension will be missing after redirection)
 			for (var i in unmatched){
-				// Note: phenotype label is not in the unmatched array,
-				// so we need to fetch each label
-				// Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
-				$.ajax({
-					url: this.state.serverURL + "/phenotype/" + unmatched[i].id + ".json",
-					async: false,
-					dataType: 'json',
-					success: function(data) {
-						// Show id if label is not found
-						if (data.label !== undefined) {
-							label = data.label;
-						} else {
-							label = data.id;
+				if (unmatched[i].label !== undefined) {
+					// Note: phenotype label is in the unmatched array when this widget runs in monarch-app
+					// monarch-app's disease page and analyze/phenotype page returns the phenotype labels
+					label = unmatched[i].label;
+				} else {
+					// Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
+					// so we need to fetch each label from the monarch-app server
+					// Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
+					$.ajax({
+						url: this.state.serverURL + "/phenotype/" + unmatched[i].id + ".json",
+						async: false,
+						dataType: 'json',
+						success: function(data) {
+							// Show id if label is not found
+							if (data.label !== undefined) {
+								label = data.label;
+							} else {
+								label = data.id;
+							}
+						},
+						error: function (xhr, errorType, exception) {
+							console.log("We are having problems fetching the unmatched phenotypes from the server. Please try again later. Error:" + xhr.status);
 						}
-					},
-					error: function (xhr, errorType, exception) {
-						console.log("We are having problems with the server. Please try again soon. Error:" + xhr.status);
-					}
-				});
+					});
+
+				}
 
 				// Use serverURL
 				text += "<li><a href='" + this.state.serverURL + "/phenotype/" + unmatched[i].id + "' target='_blank'>" + label + "</a></li>";
