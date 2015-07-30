@@ -109,17 +109,15 @@ var TooltipRender = require('./tooltiprender.js');
 		config: {
 			imagePath: 'image/',
 			htmlPath: 'js/res/',
-			colorDomains: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1], // liner gradient stop positions used by offset attribute - Joe
+			colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1], // liner gradient stop positions used by offset attribute - Joe
 			// http://colorbrewer2.org/
 			colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
-				'rgb(255,255,229)',
-				'rgb(255,247,188)',
-				'rgb(254,227,145)',
-				'rgb(254,196,79)', 
-				'rgb(254,153,41)',
-				'rgb(236,112,20)',
-				'rgb(204,76,2)',
-				'rgb(140,45,4)'
+				'rgb(237,248,177)',
+				'rgb(199,233,180)',
+				'rgb(127,205,187)',
+				'rgb(65,182,196)', 
+				'rgb(29,145,192)',
+				'rgb(34,94,168)'
 			], // stop colors for corresponding stop points - Joe
 			overviewCount: 3,
 			colStartingPos: 10,
