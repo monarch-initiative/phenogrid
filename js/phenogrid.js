@@ -99,7 +99,6 @@ var TooltipRender = require('./tooltiprender.js');
 	// Later can be called using $().phenogrid(); - Joe
 	// Widget factory API documentation https://api.jqueryui.com/jquery.widget/ - Joe
 	$.widget("ui.phenogrid", {
-
 		// Why not prefixed with underscore? - Joe
 
 		// core commit. Not changeable by options.
@@ -110,13 +109,15 @@ var TooltipRender = require('./tooltiprender.js');
 		config: {
 			imagePath: 'image/',
 			htmlPath: 'js/res/',
-			colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
-			colorRanges: [
-				['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'], // blue - Joe
-				['rgb(252,248,227)','rgb(249,205,184)','rgb(234,118,59)','rgb(221,56,53)','rgb(181,92,85)','rgb(70,19,19)'], // brown/yellow - Joe
-				['rgb(230,209,178)','rgb(210,173,116)','rgb(148,114,60)','rgb(68,162,147)','rgb(31,128,113)','rgb(3,82,70)'], // beige - Joe
-				['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'] // Green - Joe
-			],
+			colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1], // liner gradient stop positions used by offset attribute - Joe
+			colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
+				'rgb(230,209,178)',
+				'rgb(210,173,116)',
+				'rgb(148,114,60)',
+				'rgb(68,162,147)',
+				'rgb(31,128,113)',
+				'rgb(3,82,70)'
+			], // stop colors for corresponding stop points - Joe
 			overviewCount: 3,
 			colStartingPos: 10,
 			detailRectStrokeWidth: 2,
@@ -127,7 +128,7 @@ var TooltipRender = require('./tooltiprender.js');
 			m :[ 30, 10, 10, 10 ],
 			multiOrganismCt: 10,
 			multiOrgModelLimit: 750,
-			phenotypeSort: ["Alphabetic", "Frequency and Rarity", "Frequency" ], // Dropdown menu - Joe
+			phenotypeSort: ["Alphabetic", "Frequency and Rarity", "Frequency" ], // Dropdown menu "Sort Phenotypes" - Joe
 			similarityCalculation: [
 				{label: "Similarity", calc: 0, high: "Max", low: "Min"},
 				{label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"},
@@ -183,7 +184,7 @@ var TooltipRender = require('./tooltiprender.js');
 			// Do we need this? - Joe
 			simServerURL: "",  // URL of the server for similarity searches
 			simSearchQuery: "/simsearch/phenotype?input_items=", // All HP ids are appended to this URL - Joe
-			selectedCalculation: 0,
+			selectedCalculation: 0, // 4 calculations, default 0 means Similarity - Joe
 			invertAxis: false,
 			hpoDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
 			hpoDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "OUTGOING".
@@ -707,7 +708,7 @@ var TooltipRender = require('./tooltiprender.js');
 					} else {
 						colorID = d.xID;
 					}
-					return self._getColorForModelValue(self,self._getAxisData(colorID).species,d.value[self.state.selectedCalculation]);
+					return self._getColorForModelValue(self, d.value[self.state.selectedCalculation]);
 				});
 
 			var lastYId = self._returnID(this.state.yAxis, yCount - 1);
@@ -824,10 +825,11 @@ var TooltipRender = require('./tooltiprender.js');
 			return merged;
 		},
 
-		// We only have 3 colors but that will do for now
-		_getColorForModelValue: function(self, species, score) {
+
+		// One color scale shared by all species - Joe
+		_getColorForModelValue: function(self, score) {
 			// This is for the new "Overview" target option
-			var selectedScale = self.state.colorScale[species][self.state.selectedCalculation];
+			var selectedScale = self.state.colorScale[self.state.selectedCalculation];
 			return selectedScale(score);
 		},
 
@@ -1565,10 +1567,10 @@ var TooltipRender = require('./tooltiprender.js');
 
 		_createColorScale: function() {
 			var maxScore = 0,
-			method = this.state.selectedCalculation;
+			method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
 
 			switch(method){
-				case 2: maxScore = this.state.maxICScore;
+				case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
 				break;
 				case 1: maxScore = 100;
 				break;
@@ -1582,29 +1584,25 @@ var TooltipRender = require('./tooltiprender.js');
 			// 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
 			this.state.colorScale = {};
 
-			for (var i in this.state.targetSpeciesList) {
-				if ( ! this.state.targetSpeciesList.hasOwnProperty(i)) {
-					break;
+
+			this.state.colorScale = new Array(4); // Why 4? Maybe one color scale per calculation method? - Joe
+			for (var j = 0; j < 4; j++) {
+				maxScore = 100;
+				if (j === 2) {
+					maxScore = this.state.maxICScore; // Uniqueness ? - Joe
 				}
-				var species = this.state.targetSpeciesList[i].name;
-				this.state.colorScale[species] = new Array(4);
-				for (var j = 0; j <4; j++) {
-					maxScore = 100;
-					if (j === 2) {
-						maxScore = this.state.maxICScore;
-					}
-					if (typeof(this.state.colorRanges[i][j]) !== 'undefined') {
-						this.state.colorScale[species][j] = this._getColorScale(i, maxScore);
-					}
+				if (typeof(this.state.colorRanges[j]) !== 'undefined') {
+					this.state.colorScale[j] = this._getColorScale(maxScore);
 				}
 			}
 		},
 
-		_getColorScale: function(speciesIndex,maxScore) {
+		// One color scale shared by all species - Joe
+		_getColorScale: function(maxScore) {
 			var cs = d3.scale.linear();
 			cs.domain([3, maxScore]);
 			cs.domain(this.state.colorDomains.map(cs.invert));
-			cs.range(this.state.colorRanges[speciesIndex]);
+			cs.range(this.state.colorRanges);
 			return cs;
 		},
 
@@ -2372,7 +2370,7 @@ var TooltipRender = require('./tooltiprender.js');
 					colorID = d.xID;
 				}
 				// The calculated color of the data model cell - Joe
-				return self._getColorForModelValue(self, self._getAxisData(colorID).species, d.value[self.state.selectedCalculation]);
+				return self._getColorForModelValue(self, d.value[self.state.selectedCalculation]);
 			});
 
 			// removed transition effect for a clean animation - Joe
@@ -2432,7 +2430,7 @@ var TooltipRender = require('./tooltiprender.js');
 				.attr("height", height)
 				.attr("stroke", "#333") // border color of the main data models region - Joe
 				.attr("stroke-width", borderStroke)
-				.attr("fill", "none");
+				.attr("fill", "none"); // Has to specify fill and use none - Joe
 
 				if (self.state.targetSpeciesName == 'Overview' && this.state.invertAxis) {
 					border_rect.attr("x", 0);
@@ -2711,7 +2709,7 @@ var TooltipRender = require('./tooltiprender.js');
 					}})
 				//.style("font-weight", "bold") // normal font-weight for scores may be better? - Joe
 				.style("fill", function(d) {
-					return self._getColorForModelValue(self, self._getAxisData(d).species, self._getAxisData(d).score);
+					return self._getColorForModelValue(self, self._getAxisData(d).score);
 				});
 
 				if (this.state.invertAxis) {
@@ -2950,52 +2948,21 @@ var TooltipRender = require('./tooltiprender.js');
 				} else {
 					y1 = 262;
 				}
-				this._buildGradientDisplays(y1);
+				this._createGradients(y1);
 				this._buildGradientTexts(y1);
 			}
 		},
 
-		// build the gradient displays used to show the range of colors
-		_buildGradientDisplays: function(y1) {
-			var ymax = 0;
-			var y;
-			// If this is the Overview, get gradients for all species with an index
-			// COMPARE CALL HACK - REFACTOR OUT
-			if ((this.state.targetSpeciesName == 'Overview' || this.state.targetSpeciesName == 'All') ||
-				(this.state.targetSpeciesName == "Homo sapiens" && (this.state.owlSimFunction == "compare" || this.state.owlSimFunction == "exomiser"))) {
-				//this.state.overviewCount tells us how many fit in the overview
-				for (var i = 0; i < this.state.overviewCount; i++) {
-					y = this._createGradients(i,y1);
-					if (y > ymax) {
-						ymax = y;
-					}
-				}
-			} else {
-				// This is not the overview - determine species and create single gradient
-				var j = this._getTargetSpeciesIndexByName(this, this.state.targetSpeciesName);
-
-				y = this._createGradients(j, y1);
-				if (y > ymax) {
-					ymax = y;
-				}
-			}
-			return ymax;
-		},
-
 		/*
-		 * Add the gradients to the grid, returning the max x so that
-		 * we know how much space the grid will need vertically on the
-		 * right. This is important because this region will extend
-		 * below the main grid if there are only a few phenotypes.
-		 *
+		 * Add the gradients to the grid
 		 * y1 is the baseline for computing the y position of the gradient
 		 */
-		_createGradients: function(i, y1){
+		_createGradients: function(y1){
 			var self = this;
-			var y;
-			var gradientHeight = 20;
+			var x, y;
+
 			var gradient = this.state.svg.append("svg:linearGradient") // The <linearGradient> element is used to define a linear gradient. - Joe
-				.attr("id", "gradient_" + i)
+				.attr("id", "gradient")
 				.attr("x1", "0")
 				.attr("x2", "100%")
 				.attr("y1", "0%")
@@ -3005,46 +2972,24 @@ var TooltipRender = require('./tooltiprender.js');
 				if ( ! this.state.colorDomains.hasOwnProperty(j)) {
 					break;
 				}
-				gradient.append("svg:stop")
-					.attr("offset", this.state.colorDomains[j])
-					.style("stop-color", this.state.colorRanges[i][j])
-					.style("stop-opacity", 1);
+				
+				gradient.append("svg:stop") // SVG stop element
+					.attr("offset", this.state.colorDomains[j]) // The offset attribute is used to define where the gradient color begin and end
+					.style("stop-color", this.state.colorRanges[j]);
 			}
 
-			var x = self.state.axis_pos_list[2] + 12;
-			// gradient + gap is 20 pixels
-			y = y1 + (gradientHeight * i) + self.state.yoffset;
-			var translate = "translate(0,10)";
+			x = self.state.axis_pos_list[2] + 12;
+			y = y1 + self.state.yoffset;
+			
 			var legend = this.state.svg.append("rect")
-				.attr("transform", translate)
-				.attr("class", "legend_rect_" + i)
-				.attr("id","legendscale_" + i)
+				.attr("transform", "translate(0,10)")
+				.attr("class", "legend_rect")
+				.attr("id","legendscale")
 				.attr("x", x)
 				.attr("y", y)
 				.attr("width", 180)
 				.attr("height", 12)
-				.attr("fill", "url(#gradient_" + i + ")"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
-
-		    // Now for the species text in the gradient bar - Joe
-			x = self.state.axis_pos_list[2] + 100;
-			
-			
-			// index value returned from _getTargetSpeciesIndexByName() was a string, caused bug#55 on github
-			// type casting used to convert string to int and resolved this issue - Joe
-			y = y1 + gradientHeight * (i + 1) + self.state.yoffset - 1; 
-
-			var gclass = "grad_text_" + i;
-			var specName = this.state.targetSpeciesList[i].name;
-			var grad_text = this.state.svg.append("svg:text")
-				.attr("class", gclass)
-				.attr("x", x)
-				.attr("y", y)
-				.attr("text-anchor", 'middle')
-				.style("font-size", "10px")
-				.text(specName);
-				
-			y += gradientHeight;
-			return y;
+				.attr("fill", "url(#gradient)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 		},
 
 		/*
