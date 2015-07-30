@@ -64,10 +64,13 @@ DataLoader.prototype = {
 		}
 
 		//this.simSearchQuery = 'input_items=';
+		// MKD: this may be a temporary formation of the url
+		var url = this.simServerURL + this.simSearchQuery
 
 		for (var i=0; i < speciesName.length; i++) {
 
-	    	var data = this.simSearchQuery + qrySourceList.join("+");
+	    	//var data = this.simSearchQuery + qrySourceList.join("+");
+	    	var data = 'input_items=' + qrySourceList.join("+");
 
 		    if (typeof(speciesName[i]) !== 'undefined') {
 		    	data += "&target_species=" + speciesName[i].taxon;
@@ -75,10 +78,10 @@ DataLoader.prototype = {
 		    if (typeof(limit) !== 'undefined') {
 		    	data += "&limit=" + limit;
 			}
-		    console.log(this.simServerURL, data);
+		    console.log(url, data);
 
 		    // make ajax call
-		    res = this.fetch(this.simServerURL, data);
+		    res = this.fetch(url, data);
 
 			// save the original owlsim data
 			this.owlsimsData[speciesName[i].name] = res;
@@ -260,14 +263,14 @@ DataLoader.prototype = {
 	},
 
 	// generic ajax call for all queries
-	fetch: function (url, data) {
+	fetch: function (url, postData) {
 		var res;
-		var uurl = url + data;
-
+		//var get_url = url + data;
 
 		jQuery.ajax({
-			url: uurl, 
-			//data: data,
+			url: url,
+			method: 'POST', 
+			data: postData,
 			async : false,
 			dataType : 'json',
 			success : function(data) {

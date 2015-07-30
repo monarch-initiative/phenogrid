@@ -186,7 +186,7 @@ var Utils = require('./utils.js');
 		/// good - legit options
 		serverURL: "",
 		simServerURL: "",  // URL of the server for similarity searches
-		simSearchQuery: "/simsearch/phenotype?input_items=",
+		simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",
 		selectedCalculation: 0,
 		ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
 		ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
