@@ -525,6 +525,9 @@ var TooltipRender = require('./tooltiprender.js');
 
 				this._createXRegion();
 				this._createYRegion();
+				
+				this._createModelScoresLegend();
+				
 				this._updateAxes();
 
 				this._addGradients();
@@ -834,43 +837,26 @@ var TooltipRender = require('./tooltiprender.js');
 			return selectedScale(score);
 		},
 
-		// model scores legend is not created after flipping the widget - Joe
+ 
+        // model scores legend is not created after flipping the widget - Joe
 		_createModelScoresLegend: function() {
 			// Make sure the legend is only created once - Joe
 			if (this.state.svg.select(".pg_tip")[0][0] === null) {
 				var self = this;
-				var scoreTipY = self.state.yoffset;
-				var faqY = scoreTipY - self.state.gridTitleYOffset;
-				var tipTextLength = 92;
-				var explYOffset = 15;
-				var explXOffset = 10;
 
-				var scoretip = self.state.svg.append("text")
-					.attr("transform", "translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY + ")")
-					.attr("x", 0)
-					.attr("y", 0)
-					.attr("class", "pg_tip")
-					.text("<- Model Scores"); // changed "<" to "<-" to make it look more like an arrow pointer - Joe
-
-				var tip	= self.state.svg
+				self.state.svg
 					.append("text")
 					.attr('font-family', 'FontAwesome')
 					.text(function(d) {
 						return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 					})
 					.attr("id", "modelscores")
-					.attr("x", self.state.axis_pos_list[2] + tipTextLength)
-					.attr("y", faqY + 20) // 20 padding - Joe
+					.attr("x", 210)
+					.attr("y", 154)
 					.style('cursor', 'pointer')
 					.on("click", function(d) {
 						self._showDialog("modelscores");
 					});
-
-				var expl = self.state.svg.append("text")
-					.attr("x", self.state.axis_pos_list[2] + explXOffset)
-					.attr("y", scoreTipY + explYOffset)
-					.attr("class", "pg_tip")
-					.text("Best matches high to low"); // uppercased best - > Best - Joe
 			}
 
 		},
@@ -2925,7 +2911,6 @@ var TooltipRender = require('./tooltiprender.js');
 			//[vaa12] These now darken when mini-map is moved
 			if ( ! this.state.invertAxis) {
 				this._createTextScores();
-				this._createModelScoresLegend();
 			}
 
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser') {
