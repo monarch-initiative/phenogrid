@@ -109,13 +109,14 @@ var Utils = require('./utils.js');
 		//scriptpath : $('script[src]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/',
 		scriptpath : $('script[src*="phenogrid"]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/',
 		colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
-		colorRanges: [['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'],
-			['rgb(252,248,227)','rgb(249,205,184)','rgb(234,118,59)','rgb(221,56,53)','rgb(181,92,85)','rgb(70,19,19)'],
-			['rgb(230,209,178)','rgb(210,173,116)','rgb(148,114,60)','rgb(68,162,147)','rgb(31,128,113)','rgb(3,82,70)'],
-			['rgb(229,229,229)','rgb(164,214,212)','rgb(68,162,147)','rgb(97,142,153)','rgb(66,139,202)','rgb(25,59,143)'],
-			['rgb(0,0,0)','rgb(0,0,0)','rgb(0,0,0)','rgb(0,0,0)','rgb(0,0,0)','rgb(0,0,0)'],  //	temp dummy color
-			],
-		emptySvgX: 1100,
+		colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
+				'rgb(237,248,177)',
+				'rgb(199,233,180)',
+				'rgb(127,205,187)',
+				'rgb(65,182,196)', 
+				'rgb(29,145,192)',
+				'rgb(34,94,168)'
+			], // stop colors for corresponding stop points - Joe
 		emptySvgY: 200,
 		overviewCount: 3,
 		colStartingPos: 10,
@@ -179,7 +180,11 @@ var Utils = require('./utils.js');
 					}],
 		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
-		defaultVisibleModelCt: 10    // the number of visible targets per organisms to be displayed in overview mode
+		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
+		gradientRegion: [{x:812, y:380,
+						  width:180,
+						  height:10
+						}]
 	},
 
 	internalOptions: {
@@ -271,11 +276,11 @@ var Utils = require('./utils.js');
 			}			
 		}
 
-		// initialize data processing classes 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.simSearchQuery, querySourceList, 
-				this.state.selectedCompareSpecies, this.state.apiEntityMap);
+		// initialize data processing classes,  MKD: may need to refactor this big parm list
+		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
+						querySourceList, this.state.selectedCompareSpecies, this.state.apiEntityMap);
 
-		// MKD: not real sure about this.  I don't under how this is used
+		// set a max IC score
 		this.state.maxICScore = this.state.dataLoader.maxICScore;
 
 		this.state.dataManager = new DataManager(this.state.dataLoader);
@@ -330,8 +335,6 @@ var Utils = require('./utils.js');
 		// shorthand for top of model region
 		this.state.yModelRegion = this.state.yoffsetOver + this.state.yoffset;
 
-	    
-//MKD: move to rendering code??    	
 		this._createColorScale();  
 	},
 
@@ -424,12 +427,14 @@ var Utils = require('./utils.js');
 			// this._createXLines();
 			// this._createYLines();
 			this._addPhenogridControls();
-			this._createSpeciesBorderOutline();
+			//this._createSpeciesBorderOutline();
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
 			 	this._createOverviewSpeciesLabels();
 			}
 			this._createGrid();
 			this._createOverviewSection();
+			this._addGradients();
+			this._createSpeciesDividerLines();
 
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
@@ -513,7 +518,7 @@ var Utils = require('./utils.js');
 		    .attr("data-tooltip", "sticky1")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
-	      		console.log(JSON.stringify(d));      	
+	      		//console.log(JSON.stringify(d));      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d) { self._cellover(d, self);})
 			.on("mouseout", self._cellout);		    
@@ -536,7 +541,7 @@ var Utils = require('./utils.js');
 				// .attr("ry", "3")			        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
-					return self._getColorForModelValue(self, d.species, el.value[self.state.selectedCalculation]);
+					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
 		        .on("mouseover", function(d) { self._cellover(d, self);})
 		        .on("mouseout", self._cellout);
@@ -589,10 +594,19 @@ var Utils = require('./utils.js');
 	},
 
 	_gridWidth: function() {
+		var self = this;		
 		var gridRegion = self.state.gridRegion[0]; 
-		var axisLen = this.state.xAxisRender.displayLength();
-		var gridWidth = gridRegion.x + (axisLen * gridRegion.cellwd)-5;
+		var axisLen = self.state.xAxisRender.displayLength();
+		var gridWidth = gridRegion.x + (axisLen * gridRegion.cellwd * gridRegion.xpad)-5;
 		return gridWidth;
+	},
+
+	_gridHeight: function() {
+		var self = this;
+		var gridRegion = self.state.gridRegion[0]; 
+		var axisLen = self.state.yAxisRender.displayLength();
+		var height = gridRegion.y + (axisLen * gridRegion.cellht * gridRegion.ypad)-5;
+		return height;
 	},
 
 	_createTextScores: function () {
@@ -616,16 +630,15 @@ var Utils = require('./utils.js');
 
 	    scores.append("text")	 
 		    //.attr("dy", ".32em")
-		    .attr("fill", function(d, i) {
-		    	var el = axRender.itemAt(i);
-				return self._getColorForCellValue(self, el.species, el.score);
-		    })
+		  //   .attr("fill", function(d, i) {
+		  //   	var el = axRender.itemAt(i);
+				// return self._getColorForCellValue(self, el.score);
+		  //   })
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		      	
 				var el = axRender.itemAt(i);
 	      		return el.score; 
-	      	})
-	      	;
+	      	});
 
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
@@ -642,9 +655,9 @@ var Utils = require('./utils.js');
 	      		.attr("y", scale.rangeBand()+2);
 	    }
 	}, 
-	_getColorForModelValue: function(self,species,score) {
+	_getColorForModelValue: function(self, score) {
 		// This is for the new "Overview" target option
-		var selectedScale = this.state.colorScale[species][self.state.selectedCalculation];
+		var selectedScale = this.state.colorScale[self.state.selectedCalculation];
 		return selectedScale(score);
 	},
 
@@ -813,7 +826,7 @@ var Utils = require('./utils.js');
 			.attr("height", linePad)
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
-				return self._getColorForModelValue(self, d.species, el.value[self.state.selectedCalculation]);			 
+				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
 			});
 
 		var yRenderedSize = this.state.yAxisRender.displayLength();
@@ -907,9 +920,9 @@ var Utils = require('./utils.js');
 	},
 
 	// We only have 3 color,s but that will do for now
-	_getColorForCellValue: function(self,species,score) {
+	_getColorForCellValue: function(self, score) {
 		// This is for the new "Overview" target option
-		var selectedScale = self.state.colorScale[species][self.state.selectedCalculation];
+		var selectedScale = self.state.colorScale[self.state.selectedCalculation];
 		return selectedScale(score);
 	},
 
@@ -1153,47 +1166,42 @@ var Utils = require('./utils.js');
 
 
 	_createColorScale: function() {
-		var maxScore = 0,
-		method = this.state.selectedCalculation;
+			var maxScore = 0,
+			method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
 
-		switch(method){
-			case 2: maxScore = this.state.maxICScore;
-			break;
-			case 1: maxScore = 100;
-			break;
-			case 0: maxScore = 100;
-			break;
-			case 3: maxScore = 100;
-			break;
-			default: maxScore = this.state.maxICScore;
-			break;
-		}	
-		// 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound. 
-		this.state.colorScale = {};
+			switch(method){
+				case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
+				break;
+				case 1: maxScore = 100;
+				break;
+				case 0: maxScore = 100;
+				break;
+				case 3: maxScore = 100;
+				break;
+				default: maxScore = this.state.maxICScore;
+				break;
+			}
+			// 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
+			this.state.colorScale = {};
 
-		for (var i in this.state.targetSpeciesList) {
-			if ( ! this.state.targetSpeciesList.hasOwnProperty(i)) {
-					break;
-				}
-			var species = this.state.targetSpeciesList[i].name;
-			this.state.colorScale[species] = new Array(4);
-			for (var j = 0; j <4; j++) {
+
+			this.state.colorScale = new Array(4); // Why 4? Maybe one color scale per calculation method? - Joe
+			for (var j = 0; j < 4; j++) {
 				maxScore = 100;
 				if (j === 2) {
-					maxScore = this.state.maxICScore;
+					maxScore = this.state.maxICScore; // Uniqueness ? - Joe
 				}
-				if (typeof(this.state.colorRanges[i][j]) !== 'undefined') {
-					this.state.colorScale[species][j] = this._getColorScale(i, maxScore);
+				if (typeof(this.state.colorRanges[j]) !== 'undefined') {
+					this.state.colorScale[j] = this._getColorScale(maxScore);
 				}
 			}
-		}
 	},
 
-	_getColorScale: function(speciesIndex,maxScore) {
+	_getColorScale: function(maxScore) {
 		var cs = d3.scale.linear();
 		cs.domain([3, maxScore]);
 		cs.domain(this.state.colorDomains.map(cs.invert));
-		cs.range(this.state.colorRanges[speciesIndex]);
+		cs.range(this.state.colorRanges);
 		return cs;
 	},
 
@@ -1479,6 +1487,70 @@ var Utils = require('./utils.js');
 		var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
 		return link;
 	},
+
+	_createSpeciesDividerLines: function() {
+		var self = this;
+		var gridRegion = self.state.gridRegion[0];
+		var x = gridRegion.x;     
+		var y = gridRegion.y-gridRegion.colLabelOffset;   
+		var height = self._gridHeight();
+		var width = self._gridWidth();
+
+		if (self._isCrossComparisonView() ) {
+			var numOfSpecies = self.state.selectedCompareSpecies.length;
+			var xScale = self.state.xAxisRender.getScale();
+
+			var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfSpecies);
+			var x1 = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd); 
+
+			for (var i=1; i < numOfSpecies; i++) {
+				var fudgeFactor = 3; //magic num
+				if (i > 1) {
+					fudgeFactor = 1;
+				}
+				x1 = (x1 * i)+ fudgeFactor;  // add a few extra padding so it won't overlap cells
+
+				this.state.svg.append("line")				
+				.attr("class", "pg_target_grp_divider")
+				.attr("transform","translate(" + x + "," + y+ ")")					
+				.attr("x1", x1)
+				.attr("y1", 0)
+				.attr("x2", x1)
+				.attr("y2", height);
+			}
+		}
+
+	},
+
+	// _createSpeciesDividerLines: function() {
+	// 	var self = this;
+	// 	var gridRegion = self.state.gridRegion[0];
+	// 	var x = gridRegion.x;     
+	// 	var y = gridRegion.y;   
+	// 	var offset = gridRegion.colLabelOffset;  
+	// 	var height = self._gridHeight();
+	// 	var width = self._gridWidth();
+
+	// 	if (self._isCrossComparisonView() ) {
+	// 		var numOfSpecies = self.state.selectedCompareSpecies.length;
+	// 		var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfSpecies);
+	// 		var adjustment = (cellsDisplayedPer * gridRegion.cellwd); 
+	// 		var x1 = (x + adjustment)+73;  // magic number
+
+	// 		for (var i=1; i < numOfSpecies; i++) {
+
+	// 			this.state.svg.append("line")
+	// 			.attr("class", "pg_target_grp_divider")
+	// 			.attr("x1", x1)
+	// 			.attr("y1", y-offset)
+	// 			.attr("x2", x1)
+	// 			.attr("y2", height);
+
+	// 			x1 = x1 + adjustment;
+	// 		}
+	// 	}
+
+	// },
 
 	_createSpeciesBorderOutline: function () {
 		// create the related model rectangles
@@ -1828,120 +1900,61 @@ var Utils = require('./utils.js');
 	},
  
 	_addGradients: function() {
-		var self = this;
-		//var cellData = this.state.cellDataHash.values();
-		//MKD: NEEDS REFACTORED
-		var cellData = this.state.dataManager.getData("cellData", self.state.currentTargetSpeciesName);
-		var temp_data = cellData.map(function(d) { return d.value[self.state.selectedCalculation];} );
-		var diff = d3.max(temp_data) - d3.min(temp_data);
-		var y1;
-
-		// only show the scale if there is more than one value represented in the scale
-		if (diff > 0) {
-			// baseline for gradient positioning
-			if (this.state.dataManager.length("source") < this.state.sourceDisplayLimit) {
-				y1 = 172;
-			} else {
-				y1 = 262;
-			}
-			this._buildGradientDisplays(y1);
-			this._buildGradientTexts(y1);
-		}
-	},
-
-	// build the gradient displays used to show the range of colors
-	_buildGradientDisplays: function(y1) {
-		var ymax = 0;
-		var y;
-		// If this is the Overview, get gradients for all species with an index
-		// COMPARE CALL HACK - REFACTOR OUT
-		// MKD: NEEDS REFACTORED
-		if ((this.state.currentTargetSpeciesName === "Overview" || this.state.currentTargetSpeciesName === "All") || (this.state.currentTargetSpeciesName === "Homo sapiens" && (this.state.owlSimFunction === "compare" || this.state.owlSimFunction === "exomiser"))) {			
-			//this.state.overviewCount tells us how many fit in the overview
-			for (var i = 0; i < this.state.overviewCount; i++) {
-				y = this._createGradients(i,y1);
-				if (y > ymax) {
-					ymax = y;
-				}
-			}
-		} else {	
-			// This is not the overview - determine species and create single gradient
-			var j = this._getTargetSpeciesIndexByName(this,this.state.currentTargetSpeciesName);
-			y = this._createGradients(j,y1);
-			if (y > ymax) {
-				ymax = y;
-			}
-		}
-		return ymax;
+		this._createGradients();
+		this._buildGradientTexts();
 	},
 
 	/*
-	 * Add the gradients to the grid, returning the max x so that
-	 * we know how much space the grid will need vertically on the
-	 * right. This is important because this region will extend 
-	 * below the main grid if there are only a few phenotypes.
-	 *
-	 * y1 is the baseline for computing the y position of the gradient
+	 * Add the gradients to the grid
 	 */
-	_createGradients: function(i, y1){
+	_createGradients: function(){
 		var self = this;
-		var y;
-		var gradientHeight = 20;
-		var gradient = this.state.svg.append("svg:linearGradient")
-			.attr("id", "gradient_" + i)
+
+		// baseline gradientRegion values
+		var x = self.state.gradientRegion[0].x;
+		var y = self.state.gradientRegion[0].y;
+		var width = self.state.gradientRegion[0].width;
+		var height = self.state.gradientRegion[0].height;
+
+		var gradient = this.state.svg.append("svg:linearGradient") // The <linearGradient> element is used to define a linear gradient. - Joe
+			.attr("id", "gradient")
 			.attr("x1", "0")
 			.attr("x2", "100%")
 			.attr("y1", "0%")
 			.attr("y2", "0%");
-		for (var j in this.state.colorDomains){
+
+		for (var j in this.state.colorDomains) {
 			if ( ! this.state.colorDomains.hasOwnProperty(j)) {
-					break;
-			}			
-			gradient.append("svg:stop")
-				.attr("offset", this.state.colorDomains[j])
-				.style("stop-color", this.state.colorRanges[i][j])
-				.style("stop-opacity", 1);
+				break;
+			}
+			
+			gradient.append("svg:stop") // SVG stop element
+				.attr("offset", this.state.colorDomains[j]) // The offset attribute is used to define where the gradient color begin and end
+				.style("stop-color", this.state.colorRanges[j]);
 		}
 
-		// gradient + gap is 20 pixels
-		y = y1 + (gradientHeight * i) + self.state.yoffset;
-		var x = self.state.axis_pos_list[2] + 12;
-		var translate = "translate(0,10)";
 		var legend = this.state.svg.append("rect")
-			.attr("transform",translate)
-			.attr("class", "legend_rect_" + i)
-			.attr("id","legendscale_" + i)
-			.attr("y", y)
-			.attr("x", x)
-			.attr("rx",8)
-			.attr("ry",8)
-			.attr("width", 180)
-			.attr("height", 12) 
-			.attr("fill", "url(#gradient_" + i + ")"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
-
-		// text is 20 below gradient
-		y = (gradientHeight * (i + 1)) + y1 + self.state.yoffset - 1; // magic number to make it vertical aligined in center - Joe
-		// [vaa12] BUG. IF LOOKING AT ONLY 1 SPECIES, SOMEHOW Y IS EITHER ADDED BY 180 OR 360 AT THIS POINT. NOT OTHER VARS CHANGED
-		x = self.state.axis_pos_list[2] + 100;  //205;
-		var gclass = "grad_text_" + i;
-		var specName = this.state.targetSpeciesList[i].name;
-		var grad_text = this.state.svg.append("svg:text")
-			.attr("class", gclass)
-			.attr("y", y)
-			.attr("x", x)
-			.attr("text-anchor", 'middle')
-			.attr("font-size", "10px")
-			.text(specName);
-		y += gradientHeight;
-		return y;
+			.attr("transform", "translate(" + x + "," + y +")")
+			.attr("class", "legend_rect")
+			.attr("id","legendscale")
+			.attr("width", width)
+			.attr("height", height) 
+			.attr("fill", "url(#gradient)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 	},
+
 
 	/*
 	 * Show the labels next to the gradients, including descriptions of min and max sides 
-	 * y1 is the baseline to work from
 	 */
-	_buildGradientTexts: function(y1) {
+	_buildGradientTexts: function() {
+		var self = this;
 		var lowText, highText, labelText;
+
+		// baseline gradientRegion
+		var x = self.state.gradientRegion[0].x;
+		var y = self.state.gradientRegion[0].y;
+
+
 		for (var idx in this.state.similarityCalculation) {	
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
 				break;
@@ -1954,36 +1967,28 @@ var Utils = require('./utils.js');
 			}
 		}
 
-		var ylowText = y1 + self.state.yoffset;
-		var xlowText = self.state.axis_pos_list[2] + 10;
+		// min label
 		var div_text1 = self.state.svg.append("svg:text")
+			.attr("transform", "translate(" + x + "," + y +")")		
 			.attr("class", "pg_detail_text")
-			.attr("y", ylowText)
-			.attr("x", xlowText)
 			.style("font-size", "10px")
 			.text(lowText);
 
-		var ylabelText = y1 + self.state.yoffset;
-		var xlabelText = self.state.axis_pos_list[2] + 75;
+		// calc the postion of the display type Label
+		var xLabelPos = (x + (self.state.gradientRegion[0].width/2) - labelText.length);		
 		var div_text2 = self.state.svg.append("svg:text")
+			.attr("transform", "translate(" + xLabelPos + "," + y +")")						
 			.attr("class", "pg_detail_text")
-			.attr("y", ylabelText)
-			.attr("x", xlabelText)
-			.style("font-size", "12px")
+			.style("font-size", "10px")
 			.text(labelText);
 
-		var yhighText = y1 + self.state.yoffset;
-		var xhighText = self.state.axis_pos_list[2] + 125;
+		// calc the postion of the High Label
+		var xHighPos = (x + self.state.gradientRegion[0].width)-20;
 		var div_text3 = self.state.svg.append("svg:text")
+			.attr("transform", "translate(" + xHighPos + "," + y +")")				
 			.attr("class", "pg_detail_text")
-			.attr("y", yhighText)
 			.style("font-size", "10px")
 			.text(highText);
-		if (highText === "Max" || highText === "Highest"){
-			div_text3.attr("x", xhighText + 25);
-		} else {
-			div_text3.attr("x", xhighText);
-		}
 	},
 
 	// build controls for selecting organism and comparison. Install handlers
@@ -2260,6 +2265,7 @@ var Utils = require('./utils.js');
 	 * refactor: _filterPhenotypeResults
 	 */
 	_parseQuerySourceList: function(phenotypelist) {
+		var filteredList = {};
 		var newlist = [];
 		var pheno;
 		for (var i in phenotypelist) {
@@ -2271,6 +2277,17 @@ var Utils = require('./utils.js');
 				newlist.push(pheno.id);
 			}
 		}
+
+		// Now we have all the phenotype IDs ('HP:23451' like strings) in array,
+		// since JavaScript Array push() doesn't remove duplicates,
+		// we need to get rid of the duplicates. There are many duplicates from the monarch-app returned json - Joe
+		// Based on "Smart" but naïve way - http://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array - Joe
+		// filter() calls a provided callback function once for each element in an array, 
+		// and constructs a new array of all the values for which callback returns a true value or a value that coerces to true.
+		newlist = newlist.filter(function(item) {
+			return filteredList.hasOwnProperty(item) ? false : (filteredList[item] = true);
+		});
+
 		return newlist;
 	},
 

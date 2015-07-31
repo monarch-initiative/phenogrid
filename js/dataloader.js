@@ -18,8 +18,9 @@ var Utils = require('./utils.js');
  		simSearchQuery - sim search query specific url string
  		apiEntityMap - entity map identifies the prefix maps (this is probably temporary)
  */
-var DataLoader = function(serverUrl, simSearchQuery, qrySourceList, speciesList, apiEntityMap, limit) {
-	this.simServerURL = serverUrl;
+var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList, speciesList, apiEntityMap, limit) {
+	this.simServerURL = simServerUrl;
+	this.serverURL = serverUrl;
 	this.simSearchQuery = simSearchQuery;
 	this.qrySourceList = qrySourceList;
 	this.speciesList = speciesList;
@@ -313,7 +314,7 @@ DataLoader.prototype = {
 		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 //		if (ontologyInfo === null) {
 			var ontologyInfo = [];
-			var url = this.simServerURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
+			var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 			var results = this.fetch(url);
 

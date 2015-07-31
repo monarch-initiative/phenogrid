@@ -3012,8 +3012,9 @@ height:1px;
 }
 
 .pg_score_text {
-  font-family: Verdana, Geneva, sans-serif;               
+  /*font-family: Verdana, Geneva, sans-serif;               */
   font-size: 10px;
+  fill: #8763A3; /* purple */
   /*letter-spacing:-2px;*/
 }
 
@@ -3039,6 +3040,11 @@ table.pgtb th
   padding:10px 5px;
   overflow:hidden;
   word-break:normal;
+}
+
+.pg_target_grp_divider {
+  stroke: black; /*#8763A3;  #0F473E;*/
+  stroke-width:1;
 }
 .SlectBox { width: 200px; padding: 2px 2px; font-size: small;}
 
