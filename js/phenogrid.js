@@ -2249,11 +2249,9 @@ var TooltipRender = require('./tooltiprender.js');
 				.on("mouseout", function(d) {
 					self._deselectData(data);
 				})
-				.attr("class", this._getConceptId(data) + " model_label")
-				.attr("data-tooltip", "sticky1")
-				// this activates the stickytool tip
+				.attr("class", "model_label")
+				.attr("data-tooltip", "sticky1") // this activates the stickytool tip
 				.style("font-size", "12px")
-				//.style("font-weight", "bold")
 				.style("fill", this._getExpandStyling(data))
 				// don't show the label if it is a dummy.
 				.text(function(d) {
