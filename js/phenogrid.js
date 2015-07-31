@@ -3409,12 +3409,13 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		/*
-		 * given an array of phenotype objects edit the object array.
-		 * items are either ontology ids as strings, in which case they are handled as is,
-		 * or they are objects of the form { "id": <id>, "observed": <obs>}.
+		 * Given an array of phenotype objects (either provided by users or monarch-app) edit the object array.
+		 * items are either ontology ids as strings,["HP:12345", "HP:23451"], in which case they are handled as is,
+		 * or they are objects of the form [{"id": "HP:12345", "observed":"positive"}, {"id: "HP:23451", "observed": "negative"}]
 		 * in that case take id if "observed" is "positive"
 		 */
 		_filterPhenotypeResults: function(phenotypelist) {
+			var filteredList = {};
 			var newlist = [];
 			var pheno;
 			for (var i in phenotypelist) {
@@ -3422,13 +3423,29 @@ var TooltipRender = require('./tooltiprender.js');
 					break;
 				}
 				pheno = phenotypelist[i];
+				
+				// The input can only be one of the two formats - Joe
+				// ["HP:12345", "HP:23451"] format
 				if (typeof pheno === 'string') {
 					newlist.push(pheno);
 				}
+				
+				// [{"id": "HP:12345", "observed":"positive"}, {"id: "HP:23451", "observed": "negative"}, ...] format
 				if (pheno.observed === "positive") {
 					newlist.push(pheno.id);
 				}
 			}
+			
+			// Now we have all the phenotype IDs ('HP:23451' like strings) in array,
+			// since JavaScript Array push() doesn't remove duplicates,
+			// we need to get rid of the duplicates. There are many duplicates from the monarch-app returned json - Joe
+			// Based on "Smart" but naïve way - http://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array - Joe
+			// filter() calls a provided callback function once for each element in an array, 
+			// and constructs a new array of all the values for which callback returns a true value or a value that coerces to true.
+			newlist = newlist.filter(function(item) {
+				return filteredList.hasOwnProperty(item) ? false : (filteredList[item] = true);
+			});
+
 			return newlist;
 		},
 
