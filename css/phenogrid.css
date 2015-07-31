@@ -32,8 +32,8 @@ font-size:10px;
 fill: #8763A3; /* purple */
 }
 
-.model_label,
-.phenotype_label {
+.pg_model_label,
+.pg_phenotype_label {
 font-size:12px;
 fill: #222;
 }

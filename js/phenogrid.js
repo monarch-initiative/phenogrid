@@ -1768,7 +1768,7 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_resetLinks: function() {
-			var link_lines = d3.selectAll(".phenotype_label");
+			var link_lines = d3.selectAll(".pg_phenotype_label");
 			for (var i in link_lines[0]) {
 				if ( ! link_lines[0].hasOwnProperty(i)) {
 					break;
@@ -1779,7 +1779,7 @@ var TooltipRender = require('./tooltiprender.js');
 			link_lines.style("font-weight", "normal");
 			link_lines.style("text-anchor", "end");
 
-			var link_labels = d3.selectAll(".model_label");
+			var link_labels = d3.selectAll(".pg_model_label");
 			for (var j in link_labels[0]){
 				if ( ! link_lines[0].hasOwnProperty(j)) {
 					break;
@@ -1814,16 +1814,16 @@ var TooltipRender = require('./tooltiprender.js');
 
 			if (dataType === "Phenotype") {
 				if (this.state.invertAxis) {
-					alabels = this.state.svg.selectAll("text.phenotype_label");
+					alabels = this.state.svg.selectAll("text.pg_phenotype_label");
 					highlightX = true;
 				} else {
-					alabels = this.state.svg.selectAll("text.model_label");
+					alabels = this.state.svg.selectAll("text.pg_model_label");
 				}
 			} else if (dataType === "Model") {
 				if (this.state.invertAxis) {
-					alabels = this.state.svg.selectAll("text.model_label");
+					alabels = this.state.svg.selectAll("text.pg_model_label");
 				} else {
-					alabels = this.state.svg.selectAll("text.phenotype_label");
+					alabels = this.state.svg.selectAll("text.pg_phenotype_label");
 					highlightX = true;
 				}
 			}
@@ -1861,26 +1861,26 @@ var TooltipRender = require('./tooltiprender.js');
 			var label, alabels, shortTxt, shrinkSize;
 			if (dataType === "Phenotype") {
 				if (this.state.invertAxis) {
-					alabels = this.state.svg.selectAll("text.phenotype_label");
+					alabels = this.state.svg.selectAll("text.pg_phenotype_label");
 					shrinkSize = self.state.textLength;
 				} else {
-					alabels = this.state.svg.selectAll("text.model_label");
+					alabels = this.state.svg.selectAll("text.pg_model_label");
 					shrinkSize = self.state.labelCharDisplayCount;
 				}
 			} else if (dataType === 'Model') {
 				if (this.state.invertAxis) {
-					alabels = this.state.svg.selectAll("text.model_label");
+					alabels = this.state.svg.selectAll("text.pg_model_label");
 					shrinkSize = self.state.labelCharDisplayCount;
 				} else {
-					alabels = this.state.svg.selectAll("text.phenotype_label");
+					alabels = this.state.svg.selectAll("text.pg_phenotype_label");
 					shrinkSize = self.state.textLength;
 				}
 			} else {
-				alabels = this.state.svg.selectAll("text.phenotype_label");
+				alabels = this.state.svg.selectAll("text.pg_phenotype_label");
 				shrinkSize = self.state.textLength;
 
 				// Clear both axis.  One here, one below
-				var blabels = this.state.svg.selectAll("text.model_label");
+				var blabels = this.state.svg.selectAll("text.pg_model_label");
 				for (var i in blabels[0]){
 					if ( ! blabels[0].hasOwnProperty(i)) {
 						break;
@@ -1977,7 +1977,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			//console.log("select y item.. "+txt);
 
-			var alabels = this.state.svg.selectAll("text.phenotype_label." + curr_data)
+			var alabels = this.state.svg.selectAll("text.pg_phenotype_label." + curr_data)
 				//.style("font-weight", "bold")
 				.style("fill", "blue");
 
@@ -2130,7 +2130,7 @@ var TooltipRender = require('./tooltiprender.js');
 					var label = this._getAxisData(data).label;
 
 					if ((IDType === "Phenotype" && !this.state.invertAxis) || (IDType === "Model" && this.state.invertAxis)) {
-						alabels = this.state.svg.selectAll("text.phenotype_label." + id);
+						alabels = this.state.svg.selectAll("text.pg_phenotype_label." + id);
 						alabels.html(this._getShortLabel(label));
 					} else if ((IDType === "Phenotype" && this.state.invertAxis) || (IDType === "Model" && !this.state.invertAxis)) {
 						alabels = this.state.svg.selectAll("text#" + id);
@@ -2249,7 +2249,7 @@ var TooltipRender = require('./tooltiprender.js');
 				.on("mouseout", function(d) {
 					self._deselectData(data);
 				})
-				.attr("class", "model_label")
+				.attr("class", "pg_model_label")
 				.attr("data-tooltip", "sticky1") // this activates the stickytool tip
 				// don't show the label if it is a dummy.
 				.text(function(d) {
@@ -2329,7 +2329,7 @@ var TooltipRender = require('./tooltiprender.js');
 					var modelConcept = self._getConceptId(d.xID);
 					// append the model id to all related items
 					if (d.value[self.state.selectedCalculation] > 0) {
-						var bla = self.state.svg.selectAll(".phenotype_label." + dConcept);
+						var bla = self.state.svg.selectAll(".pg_phenotype_label." + dConcept);
 						bla.classed(modelConcept, true);
 					}
 
@@ -3181,14 +3181,14 @@ var TooltipRender = require('./tooltiprender.js');
 			list = self._getSortedIDListStrict(self.state.filteredYAxis.entries());
 
 			// Updating nodes - Joe
-			var rect_text = this.state.svg.selectAll(".phenotype_label").data(list, function(d) {
+			var rect_text = this.state.svg.selectAll(".pg_phenotype_label").data(list, function(d) {
 					return d;
 				});
 
 			// Enter, create new nodes for incoming data - Joe
 			rect_text.enter()
 				.append("text")
-				.attr("class", "phenotype_label")
+				.attr("class", "pg_phenotype_label")
 			    // store the id for this item. This will be used on click events
 				.attr("ontology_id", function(d) {
 					return d;
