@@ -48,9 +48,9 @@ fill-opacity: 0.1;
 font-size: 9px;
 }
 
-#pg_scorelist {
+.pg_model_score {
 font-size:10px;
-fill: #0F473E;
+fill: #8763A3; /* purple */
 }
 
 

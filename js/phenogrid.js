@@ -2729,38 +2729,33 @@ var TooltipRender = require('./tooltiprender.js');
 				list = self._getSortedIDListStrict(this.state.filteredYAxis.entries());
 			}
 
-			this.state.svg.selectAll("text.scores")
+			this.state.svg.selectAll("text.pg_model_score")
 				.data(list)
 				.enter()
 				.append("text")
 				.attr("height", 10)
-				.attr("id", "pg_scorelist")
 				.attr("width", xWidth)
-				.attr("class", "scores")
+				.attr("class", "pg_model_score")
 				// don't show score if it is a dummy model.
 				.text(function(d) {
 					if (d === self.state.dummyModelName) {
 						return "";
 					} else {
 						return self._getAxisData(d).score;
-					}})
-				//.style("font-weight", "bold") // normal font-weight for scores may be better? - Joe
-				.style("fill", function(d) {
-					return self._getColorForModelValue(self, self._getAxisData(d).score);
-				});
+					}});
 
 				if (this.state.invertAxis) {
-					this.state.svg.selectAll("text.scores").attr("y", function(d) {
+					this.state.svg.selectAll("text.pg_model_score").attr("y", function(d) {
 						return self._getAxisData(d).ypos + 5;
 					});
-					this.state.svg.selectAll("text.scores").attr("x", 0);
-					this.state.svg.selectAll("text.scores").attr("transform", "translate(" + (this.state.textWidth + 20) + "," + 40 + ")");
+					this.state.svg.selectAll("text.pg_model_score").attr("x", 0);
+					this.state.svg.selectAll("text.pg_model_score").attr("transform", "translate(" + (this.state.textWidth + 20) + "," + 40 + ")");
 				} else {
-					this.state.svg.selectAll("text.scores").attr("x", function(d, i) {
+					this.state.svg.selectAll("text.pg_model_score").attr("x", function(d, i) {
 						return i * xWidth;
 					});
-					this.state.svg.selectAll("text.scores").attr("y", 0);
-					this.state.svg.selectAll("text.scores").attr("transform", "translate(" + (this.state.textWidth + 54) + "," + this.state.yoffset + ")");
+					this.state.svg.selectAll("text.pg_model_score").attr("y", 0);
+					this.state.svg.selectAll("text.pg_model_score").attr("transform", "translate(" + (this.state.textWidth + 54) + "," + this.state.yoffset + ")");
 				}
 		},
 
