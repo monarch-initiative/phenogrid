@@ -1134,7 +1134,6 @@ var TooltipRender = require('./tooltiprender.js');
 				// to the compare function use a GET, the reason being that compare calls
 				// are not yet configured for POST in the monarch-app.  Configuring the compare
 				// function to handle a post will simplify this code
-				
                 if (this.state.owlSimFunction !== 'compare'){
                     postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
                     if (typeof(limit) !== 'undefined') {
@@ -1576,7 +1575,7 @@ var TooltipRender = require('./tooltiprender.js');
 					res = data;
 				},
 				error: function(xhr, errorType, exception) { // removed space between function and the ( - Joe
-				    console.log('Server error.');
+				    self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
 				}
 			});
 			return res;
@@ -1596,8 +1595,8 @@ var TooltipRender = require('./tooltiprender.js');
                     res = data;
                 },
                 error: function (xhr, errorType, exception) {
-                // Triggered if an error communicating with server
-                    self._displayResult(xhr, errorType, exception);
+                	// Triggered if an error communicating with server
+                    self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
                 }
              });
             return res;
@@ -2811,7 +2810,7 @@ var TooltipRender = require('./tooltiprender.js');
 						self._populateDialog(self, name, data);
 					},
 					error: function (xhr, errorType, exception) {
-					// Triggered if an error communicating with server
+						// Triggered if an error communicating with server
 						self._populateDialog(self,"Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
 					}
 				});
