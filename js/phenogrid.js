@@ -889,9 +889,9 @@ var TooltipRender = require('./tooltiprender.js');
 			rect_instructions = self.state.svg.append("text")
 				.attr("x", self.state.axis_pos_list[2] + lineHeight)
 				// This changes for vertical positioning
-				.attr("y", y + 10)
+				.attr("y", y + 14) // padding
 				.attr("class", "pg_instruct")
-				.text("navigate the model view on the left");
+				.text("navigate the grid view on the left");
 		},
 
 		_createSmallScales: function(overviewRegionSize) {
