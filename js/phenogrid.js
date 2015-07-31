@@ -2251,8 +2251,6 @@ var TooltipRender = require('./tooltiprender.js');
 				})
 				.attr("class", "model_label")
 				.attr("data-tooltip", "sticky1") // this activates the stickytool tip
-				.style("font-size", "12px")
-				.style("fill", this._getExpandStyling(data))
 				// don't show the label if it is a dummy.
 				.text(function(d) {
 					if (label === self.state.dummyModelName) {
@@ -3202,7 +3200,6 @@ var TooltipRender = require('./tooltiprender.js');
 				.attr("y", function(d) {
 					return self._getAxisData(d).ypos + 10;
 				})
-				.style("font-size", "12px")
 				.style("text-anchor", "end")
 				.on("mouseover", function(d) {
 					self._selectYItem(d, d3.mouse(this));
@@ -3211,9 +3208,6 @@ var TooltipRender = require('./tooltiprender.js');
 					self._deselectData(d, d3.mouse(this));
 				})
 				.attr("data-tooltip", "sticky1")
-				.style("fill", function(d) {
-					return self._getExpandStyling(d);
-				})
 				.text(function(d) {
 					var txt = self._getAxisData(d).label;
 					if (txt === undefined) {
