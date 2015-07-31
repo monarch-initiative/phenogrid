@@ -1396,7 +1396,7 @@ var TooltipRender = require('./tooltiprender.js');
 			ics[1] = nic;
 
 			// 2 - uniquenss
-			nic = lIC;
+			nic = (lIC / this.state.maxICScore) * 100;
 			ics[2] = nic;
 
 			// 3 - ratio(t)
@@ -1603,31 +1603,20 @@ var TooltipRender = require('./tooltiprender.js');
         },
 
 		_createColorScale: function() {
-			var maxScore = 0,
-			method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
+			var maxScore = 100;
+			var method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
 
-			switch(method){
-				case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
-				break;
-				case 1: maxScore = 100;
-				break;
-				case 0: maxScore = 100;
-				break;
-				case 3: maxScore = 100;
-				break;
-				default: maxScore = this.state.maxICScore;
-				break;
+            // Currently, all 4 calculations are using percentage - Joe
+			if (method >= 4){
+				maxScore = this.state.maxICScore; // Based on the old code switch-default value - Joe
 			}
+
 			// 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
 			this.state.colorScale = {};
 
 
 			this.state.colorScale = new Array(4); // Why 4? Maybe one color scale per calculation method? - Joe
 			for (var j = 0; j < 4; j++) {
-				maxScore = 100;
-				if (j === 2) {
-					maxScore = this.state.maxICScore; // Uniqueness ? - Joe
-				}
 				if (typeof(this.state.colorRanges[j]) !== 'undefined') {
 					this.state.colorScale[j] = this._getColorScale(maxScore);
 				}

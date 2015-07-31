@@ -191,17 +191,11 @@ TooltipRender.prototype = {
 			}
 		};
 
-		var suffix = "";
-		// If the selected calculation isn't percentage based (aka similarity) make it a percentage
-		if (tooltip.parent.state.selectedCalculation !== 2) {
-			suffix = '%';
-		}
-
 		returnHtml = "<strong>Query: </strong> " + phenoLabel + formatScore(fullInfo.IC.toFixed(2)) +
 			"<br/><strong>Match: </strong> " + d.b_label + formatScore(d.b_IC.toFixed(2)) +
 			"<br/><strong>Common: </strong> " + d.subsumer_label + formatScore(d.subsumer_IC.toFixed(2)) +
 			"<br/><strong>" + tooltip.parent._capitalizeString(fullInfo.type)+": </strong> " + modelLabel +
-			"<br/><strong>" + prefix + ":</strong> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + suffix +
+			"<br/><strong>" + prefix + ":</strong> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + '%' +
 			"<br/><strong>Species: </strong> " + species + " (" + taxon + ")";
 
 
