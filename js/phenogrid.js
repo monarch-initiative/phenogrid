@@ -596,8 +596,9 @@ var Utils = require('./utils.js');
 	_gridWidth: function() {
 		var self = this;		
 		var gridRegion = self.state.gridRegion[0]; 
-		var axisLen = self.state.xAxisRender.displayLength();
-		var gridWidth = gridRegion.x + (axisLen * gridRegion.cellwd * gridRegion.xpad)-5;
+		var cellsDisplayedPer = self.state.xAxisRender.displayLength();
+
+		var gridWidth = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd);  //gridRegion.x +
 		return gridWidth;
 	},
 
@@ -1492,8 +1493,8 @@ var Utils = require('./utils.js');
 		var self = this;
 		var gridRegion = self.state.gridRegion[0];
 		var x = gridRegion.x;     
-		var y = gridRegion.y-gridRegion.colLabelOffset;   
-		var height = self._gridHeight();
+		var y = gridRegion.y;   
+		var height = self._gridHeight() - 10;
 		var width = self._gridWidth();
 
 		if (self._isCrossComparisonView() ) {
@@ -1501,22 +1502,53 @@ var Utils = require('./utils.js');
 			var xScale = self.state.xAxisRender.getScale();
 
 			var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfSpecies);
-			var x1 = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd); 
+
+			var x1 = 0;
+			if (self.state.invertAxis) {
+				x1 = ((gridRegion.ypad * (cellsDisplayedPer-1)) + gridRegion.cellht);  //-gridRegion.rowLabelOffset; 								
+			} else {
+				x1 = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd); 
+				y = y - gridRegion.colLabelOffset;  // offset the line to reach the labels
+			}
 
 			for (var i=1; i < numOfSpecies; i++) {
+
 				var fudgeFactor = 3; //magic num
-				if (i > 1) {
-					fudgeFactor = 1;
+						if (i > 1) {
+						fudgeFactor = 1;
 				}
 				x1 = (x1 * i)+ fudgeFactor;  // add a few extra padding so it won't overlap cells
 
-				this.state.svg.append("line")				
-				.attr("class", "pg_target_grp_divider")
-				.attr("transform","translate(" + x + "," + y+ ")")					
-				.attr("x1", x1)
-				.attr("y1", 0)
-				.attr("x2", x1)
-				.attr("y2", height);
+				if (self.state.invertAxis) {
+
+					this.state.svg.append("line")				
+					.attr("class", "pg_target_grp_divider")
+					.attr("transform","translate(" + x + "," + y+ ")")					
+					.attr("x1", gridRegion.rowLabelOffset)  // 0
+					.attr("y1", x1)
+					.attr("x2", width)   // adjust this for to go beyond the row label
+					.attr("y2", x1);
+
+				} else {
+
+
+					this.state.svg.append("line")				
+					.attr("class", "pg_target_grp_divider")
+					.attr("transform","translate(" + x + "," + y+ ")")					
+					.attr("x1", x1)
+					.attr("y1", 0)
+					.attr("x2", x1)
+					.attr("y2", height);
+
+					 this.state.svg.append("line")				
+					.attr("class", "pg_target_grp_divider")
+					.attr("transform","translate(" + x + "," + y + ")rotate(-62 " + x1 + " 0)")					
+					.attr("x1", x1)
+					.attr("y1", 0)
+					.attr("x2", x1 + 100)  // extend the line out to underline the labels					
+					.attr("y2", 0);
+
+				}
 			}
 		}
 

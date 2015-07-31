@@ -3043,8 +3043,8 @@ table.pgtb th
 }
 
 .pg_target_grp_divider {
-  stroke: black; /*#8763A3;  #0F473E;*/
-  stroke-width:1;
+  stroke: #0F473E; /*#8763A3;  #0F473E;*/
+  stroke-width:.9;
 }
 .SlectBox { width: 200px; padding: 2px 2px; font-size: small;}
 
