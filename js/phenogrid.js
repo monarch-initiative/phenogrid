@@ -2524,8 +2524,6 @@ var TooltipRender = require('./tooltiprender.js');
 				.attr("width", this.state.modelWidth - 4)
 				.attr("height", 12);
 
-			this._resetLinks();
-
 			/*
 			 * To get the phenotype label from the selected rect data, we need to concat the phenotype ids to the model id
 			 * that is in the 0th position in the grid. No labels exist with the curr_data.id except for the first column
