@@ -347,9 +347,11 @@ var TooltipRender = require('./tooltiprender.js');
 
 			// loaded into local scope, should just remove the phenogrid_config.js and have those config options coded in this file. - Joe
 			this.configoptions = configoptions;
-			// check these
-			// important that config options (from the file) and this. options (from
-			// the initializer) come last
+			
+			// configoptions (from the file) and this.options (from the initializer) come last, will overwrite the same names in internalOptions and config
+			// what are the options in initializer? - Joe
+			// phenotypeData, targetSpeciesName, owlSimFunction, geneList, providedData, imagePath, htmlPath
+			// what else?
 
 			// jquery $.extend(): Merge the contents of two or more objects together into the first object - Joe
 			// so now this.state contains all the config options - Joe
