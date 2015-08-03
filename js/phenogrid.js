@@ -1706,8 +1706,10 @@ var TooltipRender = require('./tooltiprender.js');
 				.append("text")
 				.attr('font-family', 'FontAwesome')
 				.attr("id", "pg_faqs")
-				.attr("x", 90 + 90)	// Logo width + padding
-				.attr("y", 20)		// Half logo height
+				// Position faq icon on title right + 10px padding 
+				// jQuery object doesn't have getBoundingClientRect() method, we need to use the array [] notation - Joe
+				.attr("x", xoffset + $("#pg_toptitle")[0].getBoundingClientRect().width + 10) 
+				.attr("y", this.state.gridTitleYOffset)		// Half logo height
 				.text(function(d) {
 					return "\uf05a"; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 				})
@@ -1715,7 +1717,6 @@ var TooltipRender = require('./tooltiprender.js');
 				.on("click", function(d) {
 					self._showDialog("faq");
 				});
-
 		},
 
 		_configureFaqs: function() {
