@@ -2030,15 +2030,6 @@ var TooltipRender = require('./tooltiprender.js');
 						this._expandHPO(concept);
 					}
 				});
-				
-				// Binds click event to the HPO tree collapse icon - Joe
-				// In tooltiprender.js, the font awesome icon <i> element follows the form of id="collapseHPO_HP_0001300" - Joe
-				var expandHPO_icon = $('#collapseHPO_' + concept);
-				this._on(expandHPO_icon, {
-					"click": function(event) {
-						this._collapseHPO(concept);
-					}
-				});
 			}
 
 			// not really good to do this but, we need to be able to override some appearance attributes
@@ -3456,16 +3447,6 @@ var TooltipRender = require('./tooltiprender.js');
 				// reshow the sticky with updated info
 				stickytooltip.show(null);
 			}
-		},
-
-		// Will hide the hpo info, not delete it.
-		// This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
-		_collapseHPO: function(id) {
-			var idClean = id.replace("_", ":");
-			var HPOInfo = this.state.hpoCacheHash.get(idClean);
-			HPOInfo.active = 0;
-			this.state.hpoCacheHash.put(idClean, HPOInfo);
-			stickytooltip.closetooltip();
 		},
 
 		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,

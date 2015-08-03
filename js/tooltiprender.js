@@ -77,7 +77,7 @@ TooltipRender.prototype = {
 		
 		var returnHtml = "";
 		var hpoExpand = false;
-		var hpoData = "<br><br>";
+		var hpoData = "<br>";
 		var hpoCached = tooltip.parent.state.hpoCacheHash.get(tooltip.id.replace("_", ":"));
 		if (hpoCached !== null && hpoCached.active === 1){
 			hpoExpand = true;
@@ -86,19 +86,14 @@ TooltipRender.prototype = {
 			tooltip.parent.state.hpoTreesDone = 0;
 			tooltip.parent.state.hpoTreeHeight = 0;
 			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-			if (hpoTree === "<br>"){
-				hpoData += "<em>No classification hierarchy data found</em>";
-			} else {
-				hpoData += "<strong>Classification hierarchy:</strong>" + hpoTree;
-			}
+			
+			hpoData += "<strong>Classification hierarchy:</strong>" + hpoTree;
 		}
 		
 		// Used font awesome for expand/collapse buttons - Joe
 		if ( ! tooltip.parent.state.preloadHPO){
 			if (hpoExpand){
-				returnHtml = "<br>Click icon to <b>collapse</b> classification hierarchy info";
-				returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" id=\"collapseHPO_" + tooltip.id + "\"></i>";
-				returnHtml += hpoData;
+				returnHtml = hpoData;
 			} else {
 				returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
 				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" id=\"expandHPO_" + tooltip.id + "\"></i>";
