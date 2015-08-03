@@ -2076,14 +2076,14 @@ var TooltipRender = require('./tooltiprender.js');
 						nextResult = this.buildHPOTree(edges[j].obj, edges, nextLevel);
 						if (nextResult === '') {
 							// Bolds the 'top of the line' to see what is the root or closet to the root.  It will hit this point either when it reaches the hpoDepth or there is no parents
-							results += "<br/>" + this._buildIndentMark(this.state.hpoTreeHeight - nextLevel) + "<strong>" + this._buildHPOHyperLink(edges[j].obj) + "</strong>";
+							results += "<br>" + this._buildIndentMark(this.state.hpoTreeHeight - nextLevel) + "<strong>" + this._buildHPOHyperLink(edges[j].obj) + "</strong>";
 							this.state.hpoTreesDone++;
 						} else {
-							results += nextResult + "<br/>" + this._buildIndentMark(this.state.hpoTreeHeight - nextLevel) + this._buildHPOHyperLink(edges[j].obj);
+							results += nextResult + "<br>" + this._buildIndentMark(this.state.hpoTreeHeight - nextLevel) + this._buildHPOHyperLink(edges[j].obj);
 						}
 
 						if (level === 0) {
-							results += "<br/>" + this._buildIndentMark(this.state.hpoTreeHeight) + this.state.hpoCacheLabels.get(id) + "<br/>";
+							results += "<br>" + this._buildIndentMark(this.state.hpoTreeHeight) + this.state.hpoCacheLabels.get(id) + "<br>";
 							this.state.hpoTreeHeight = 0;
 						}
 					}
@@ -3437,16 +3437,16 @@ var TooltipRender = require('./tooltiprender.js');
 				var info = this._getAxisData(id);
 				var type = this._getIDType(id);
 				var hrefLink = "<a href=\"" + this.state.serverURL+"/" + type +"/"+ id.replace("_", ":") + "\" target=\"_blank\">" + info.label + "</a>";
-				var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
-				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
+				var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br>";
+				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br><br>";
 
 				var hpoTree = this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0);
 
 
-				if (hpoTree == "<br/>") {
-					hpoData += "<em>No HPO Data Found</em>";
+				if (hpoTree === "<br>") {
+					hpoData += "<em>No classification hierarchy data found</em>";
 				} else {
-					hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
+					hpoData += "<strong>Classification hierarchy:</strong><br>" + hpoTree;
 				}
 				$("#sticky1").html(hpoData);
 

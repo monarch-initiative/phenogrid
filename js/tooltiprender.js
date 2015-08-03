@@ -39,7 +39,7 @@ TooltipRender.prototype = {
 			retInfo = this.cell(this, this.data);
 		} else {
 			// this creates the standard information portion of the tooltip, 
-			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + this.entityHreflink() + "<br/>" +
+			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + this.entityHreflink() + "<br>" +
 					   this._rank() + this._score() + this._ic();
 
 			// this creates the extended information for specialized tooltip info and functionality
@@ -53,16 +53,16 @@ TooltipRender.prototype = {
 	},
 	
 	_rank: function() {
-		return (typeof(this.data.rank) !== 'undefined'?"<strong>Rank:</strong> " + this.data.rank+"<br/>":"");
+		return (typeof(this.data.rank) !== 'undefined'?"<strong>Rank:</strong> " + this.data.rank+"<br>":"");
 	},
 	_score: function() {
-		return (typeof(this.data.score) !== 'undefined'?"<strong>Score:</strong> " + this.data.score+"<br/>":"");	
+		return (typeof(this.data.score) !== 'undefined'?"<strong>Score:</strong> " + this.data.score+"<br>":"");	
 	},
 	_ic: function() {
-		return (typeof(this.data.IC) !== 'undefined'?"<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br/>":"");
+		return (typeof(this.data.IC) !== 'undefined'?"<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br>":"");
 	},
 	_species: function() {
-		return (typeof(this.data.species) !== 'undefined'?"<strong>Species:</strong> " + this.data.species+"<br/>":"");
+		return (typeof(this.data.species) !== 'undefined'?"<strong>Species:</strong> " + this.data.species+"<br>":"");
 	},
 
 	_capitalizeString: function(word){
@@ -77,7 +77,7 @@ TooltipRender.prototype = {
 		
 		var returnHtml = "";
 		var hpoExpand = false;
-		var hpoData = "<br/><br/>";
+		var hpoData = "<br><br>";
 		var hpoCached = tooltip.parent.state.hpoCacheHash.get(tooltip.id.replace("_", ":"));
 		if (hpoCached !== null && hpoCached.active === 1){
 			hpoExpand = true;
@@ -86,23 +86,21 @@ TooltipRender.prototype = {
 			tooltip.parent.state.hpoTreesDone = 0;
 			tooltip.parent.state.hpoTreeHeight = 0;
 			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-			if (hpoTree === "<br/>"){
-				hpoData += "<em>No HPO Data Found</em>";
+			if (hpoTree === "<br>"){
+				hpoData += "<em>No classification hierarchy data found</em>";
 			} else {
-				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
+				hpoData += "<strong>Classification hierarchy:</strong>" + hpoTree;
 			}
 		}
 		
 		// Used font awesome for expand/collapse buttons - Joe
 		if ( ! tooltip.parent.state.preloadHPO){
 			if (hpoExpand){
-				returnHtml = "<br/><br/>Click icon to <b>collapse</b> HPO info";
-				//returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" onClick=\"self._collapseHPO('" + tooltip.id + "')\"></i>";
+				returnHtml = "<br>Click icon to <b>collapse</b> classification hierarchy info";
 				returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer\" id=\"collapseHPO_" + tooltip.id + "\"></i>";
 				returnHtml += hpoData;
 			} else {
-				returnHtml = "<br/><br/>Click icon to <b>expand</b> HPO info";
-				//returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" onClick=\"self._expandHPO('" + tooltip.id + "')\"></i>";
+				returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
 				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" id=\"expandHPO_" + tooltip.id + "\"></i>";
 			}
 		}
