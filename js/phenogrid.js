@@ -2289,7 +2289,7 @@ var TooltipRender = require('./tooltiprender.js');
 		_getXYPos: function(obj) {
 			var tform = { x: 0, y: 0};
 			// if a transform exisits, apply it
-			if (typeof obj.attributes.transform != 'undefined') {
+			if (typeof obj.attributes.transform !== 'undefined') {
 				var transform_str = obj.attributes.transform.value;
 				tform = this._extractTransform(transform_str);
 			}

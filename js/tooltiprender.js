@@ -35,7 +35,7 @@ TooltipRender.prototype = {
 		var retInfo = "";
 
 		// making an assumption here that we want to display cell info
-		if ( typeof(this.data.type) == 'undefined') {
+		if ( typeof(this.data.type) === 'undefined') {
 			retInfo = this.cell(this, this.data);
 		} else {
 			// this creates the standard information portion of the tooltip, 
