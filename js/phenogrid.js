@@ -1978,8 +1978,8 @@ var TooltipRender = require('./tooltiprender.js');
 
 			//console.log("select y item.. "+txt);
 
-			this.state.svg.selectAll("text.pg_phenotype_label." + curr_data)
-				//.style("font-weight", "bold")
+			this.state.svg.selectAll("#" + curr_data)
+				.style("font-weight", "bold")
 				.style("fill", "blue");
 
 			appearanceOverrides = self._createHoverBox(curr_data);
