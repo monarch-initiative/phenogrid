@@ -44,7 +44,13 @@ This will create a local `/node_modules` folder in the phenogrid root directory,
 gulp bundle
 ```
 
-This command will use browserify to bundle up phenogrid core and its dependencies into `phenogrid-bundle.js` and create the merge `phenogrid-bundle.css` and put both files under `dist` folder.
+This command will use browserify to bundle up phenogrid core and its dependencies into `phenogrid-bundle.js` and create the merged `phenogrid-bundle.css` and put both files under `dist` folder. And both bundled files will be minified.
+
+It's helpful to have unminified versions of `phenogrid-bundle.js` and `phenogrid-bundle.css` for development and debugging. If this is the case, you can run the following command.
+
+```
+gulp dev-bundle
+```
 
 ## 4. Add phenogrid in your target page
 
@@ -123,7 +129,7 @@ This parameter defaults to 10090 (mus musculus). Change this parameter if you wa
 
 # Testing and further configuration
 
-Open the modified `index.html` or your target web page that has the phenogrid embeded in a web browser. This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.
+Open the modified `index.html` or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files cia ajax call, so you may find out that the FAQ popup dialog won't show the content if you open `index.html` in the `file:///` format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.
 
 # Web Browser Support
 

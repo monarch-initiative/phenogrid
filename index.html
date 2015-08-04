@@ -66,8 +66,10 @@ yum install -y nodejs
 </code></pre><p>This will create a local <code>/node_modules</code> folder in the phenogrid root directory, and download/install all the dependencies(jquery, jquery-ui, d3, and jshashtable) and tools (gulp, browserify, etc.) into the local <code>/node_modules</code> folder.</p>
 <h2 id="3-run-gulp-to-build-bundled-js-and-css">3. Run gulp to build bundled JS and CSS</h2>
 <pre><code>gulp bundle
-</code></pre><p>This command will use browserify to bundle up phenogrid core and its dependencies into <code>phenogrid-bundle.js</code> and create the merge <code>phenogrid-bundle.css</code> and put both files under <code>dist</code> folder.</p>
-<h2 id="4-add-phenogrid-in-your-target-page">4. Add phenogrid in your target page</h2>
+</code></pre><p>This command will use browserify to bundle up phenogrid core and its dependencies into <code>phenogrid-bundle.js</code> and create the merged <code>phenogrid-bundle.css</code> and put both files under <code>dist</code> folder. And both bundled files will be minified.</p>
+<p>It’s helpful to have unminified versions of <code>phenogrid-bundle.js</code> and <code>phenogrid-bundle.css</code> for development and debugging. If this is the case, you can run the following command.</p>
+<pre><code>gulp dev-bundle
+</code></pre><h2 id="4-add-phenogrid-in-your-target-page">4. Add phenogrid in your target page</h2>
 <p>In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the <code>&lt;meta charset=&quot;UTF-8&quot;&gt;</code> tag in your HTML head.</p>
 <pre><code class="lang-html">&lt;html&gt;
 &lt;head&gt;
@@ -133,7 +135,7 @@ window.onload = function() {
 <li>Name: Drosophila melanogaster Taxon: 7227</li>
 </ul>
 <h1 id="testing-and-further-configuration">Testing and further configuration</h1>
-<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser. This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
+<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files cia ajax call, so you may find out that the FAQ popup dialog won’t show the content if you open <code>index.html</code> in the <code>file:///</code> format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
 <h1 id="web-browser-support">Web Browser Support</h1>
 <p>Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.</p>
 
