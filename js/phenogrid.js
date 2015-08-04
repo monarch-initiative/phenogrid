@@ -1932,7 +1932,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var appearanceOverrides;
 
 			// Show that model label is selected. Change styles to bold, blue and full-length label
-			self.state.svg.selectAll("text#" + concept)
+			self.state.svg.select("#" + concept)
 				.style("font-weight", "bold")
 				.style("fill", "blue");
 
@@ -1978,7 +1978,8 @@ var TooltipRender = require('./tooltiprender.js');
 
 			//console.log("select y item.. "+txt);
 
-			this.state.svg.selectAll("#" + curr_data)
+			// highlight Y label
+			this.state.svg.select("#" + curr_data)
 				.style("font-weight", "bold")
 				.style("fill", "blue");
 
@@ -2351,12 +2352,12 @@ var TooltipRender = require('./tooltiprender.js');
 					self.state.svg.selectAll(".pg_col_accent").remove();
 
 					// Reset model label
-					var model_label = self.state.svg.selectAll("#" + self._getConceptId(d.xID));
+					var model_label = self.state.svg.select("#" + self._getConceptId(d.xID));
 					model_label.style("font-weight", "normal");
 					model_label.style("fill", "black");
 
 					// Reset phenotype label
-					var phenotype_label = self.state.svg.selectAll("#" + self._getConceptId(d.yID));
+					var phenotype_label = self.state.svg.select("#" + self._getConceptId(d.yID));
 					phenotype_label.style("font-weight", "normal");
 					phenotype_label.style("fill", "black");
 					
@@ -2522,12 +2523,12 @@ var TooltipRender = require('./tooltiprender.js');
 			 * For the overview, there will be a 0th position for each species so we need to get the right model_id
 			 */
 
-			var phen_label = this.state.svg.selectAll("text#" + this._getConceptId(curr_data.yID));
-			phen_label.style("font-weight", "bold");
-			phen_label.style("fill", "blue");
+			var phenotype_label = this.state.svg.select("#" + this._getConceptId(curr_data.yID));
+			phenotype_label.style("font-weight", "bold");
+			phenotype_label.style("fill", "blue");
 
 			// Highlight Column
-			var model_label = self.state.svg.selectAll("text#" + this._getConceptId(curr_data.xID));
+			var model_label = self.state.svg.select("#" + this._getConceptId(curr_data.xID));
 			model_label.style("font-weight", "bold");
 			model_label.style("fill", "blue");
 
