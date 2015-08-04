@@ -41,7 +41,9 @@ var stickytooltip={
 
 	// wrapper function
 	show:function(e) {
-		if (e === null) e = stickytooltip.lastEvent;
+		if (e === null) {
+			e = stickytooltip.lastEvent;
+		}
 		var $tooltip=$('#mystickytooltip');
 		stickytooltip.isdocked = true;
 		stickytooltip.showbox($, $tooltip, e);
@@ -72,11 +74,13 @@ var stickytooltip={
 			var self = this;			
 			var $targets=$(targetselector);
 			var $tooltip=$('#'+tipid).appendTo(document.body);
-			if ($targets.length===0)
+			if ($targets.length===0) {
 				return;
+			}
 			var $alltips=$tooltip.find('div.atip');
-			if (!stickytooltip.rightclickstick)
+			if (!stickytooltip.rightclickstick) {
 				stickytooltip.stickynotice1[1]='';
+			}
 
 			stickytooltip.hidebox($, $tooltip);
 			
