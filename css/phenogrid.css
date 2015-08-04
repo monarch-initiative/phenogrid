@@ -93,6 +93,7 @@ font-weight:bold;
 #pg_axis_div {
 float: left;
 margin-right:10px;
+display: inline-table;
 }
 
 #pg_org_div {
@@ -199,8 +200,9 @@ margin-top:40px;
 }
 
 #pg_specieslist {
-font-weight:bold;
-font-size:1.2em;
+  font-weight: bold;
+  font-size: 20px;
+  opacity: .1;
 }
 
 /* Cursor for mini map */
@@ -242,17 +244,6 @@ clear: both;
 /* Background color of jquery-ui dialog */
 .faqdialog_bg_color {
 background-color: #fff !important;
-}
-
-.HPO_icon{
-margin-left:5px;
-}
-
-em.HPO_tree_indent{
-width:12px;
-float:left;
-display:inline-block;
-height:1px;
 }
 
 .row,
@@ -304,6 +295,31 @@ table.pgtb th
 }
 
 .pg_target_grp_divider {
-  stroke: #0F473E; /*#8763A3;  #0F473E;*/
-  stroke-width:.9;
+  stroke: #969696; /*#8763A3;  #0F473E;*/
+  stroke-width:.35;
+}
+
+.pg_expandHPO{
+  text-decoration: underline;
+  color:#DC4945;
+  cursor:pointer;
+}
+
+.pg_HPO_icon{
+  margin-left:2px;
+}
+
+em.pg_tree_indent{
+  width:12px;
+  float:left;
+  display:inline-block;
+  height:1px;
+}
+
+.pg_cursor_pointer {
+  cursor:pointer;
+}
+
+#pg_org_sel {
+  margin-right: 5px;
 }

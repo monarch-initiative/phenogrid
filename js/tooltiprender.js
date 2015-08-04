@@ -86,38 +86,35 @@ TooltipRender.prototype = {
 	phenotype: function(tooltip) {
 		
 		var returnHtml = "";
-		var hpoExpand = false;
-		var hpoData = "<br/><br/>";
+		var expand = false;
+		var ontologyData = "<br>";
 		var fixedId = tooltip.id.replace("_", ":");
-		var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
+		var cached = tooltip.parent.state.ontologyCache[fixedId];
 	
-		if (hpoCached !== undefined) { //&& hpoCached.active == 1){
-			hpoExpand = true;
+		if (cached !== undefined) { //&& hpoCached.active == 1){
+			expand = true;
 
 			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 			tooltip.parent.state.ontologyTreesDone = 0;
 			tooltip.parent.state.ontologyTreeHeight = 0;
-			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-			if (hpoTree === "<br/>"){
-				hpoData += "<em>No HPO Data Found</em>";
+			var tree = "<div id='hpoDiv'>" + tooltip.parent.buildOntologyTree(tooltip.id.replace("_", ":"), cached.edges, 0) + "</div>";
+			if (tree === "<br>"){
+				ontologyData += "<em>No Classification hierarchy Found</em>";
 			} else {
-				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
+				ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
 			}
 		}
-		// Used font awesome for expand/collapse buttons - Joe
+		// Used font awesome for expand buttons - Joe
 		if (!tooltip.parent.state.preloadHPO){
-			if (hpoExpand){
-				returnHtml = "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
-				returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"this._collapseHPO('" + tooltip.id + "')\"></i>";
-				returnHtml += hpoData;
+			if (expand){
+				returnHtml += ontologyData;
 			} else {
-				returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
-				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"this._expandHPO('" + tooltip.id + "')\"></i>";
-
+				//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
+				returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + tooltip.id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
 			}
 		}
 		else {
-			returnHtml = hpoData;
+			returnHtml = ontologyData;
 		}
 	return returnHtml;		
 

@@ -341,6 +341,10 @@ DataManager.prototype = {
 			}
 		}
 		return combinedTargetList;
+	},
+
+	getOntologyLabel: function(id) {
+		return this.dataLoader.getOntologyLabel(id);
 	}
 };
 

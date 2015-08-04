@@ -340,7 +340,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList
 	this.targetData = [];
 	this.sourceData = [];
 	this.cellData = [];
-	this.hpoCache = [];
+	this.ontologyCacheLabels = [];
 
 	this.load(this.qrySourceList, this.speciesList, this.limit);
 
@@ -531,6 +531,10 @@ DataLoader.prototype = {
 		return this.cellData;
 	},
 
+	getOntologyCacheLabels: function() {
+		return this.ontologyCacheLabels;
+	},
+
 	getMaxICScore: function() {
 		return this.maxICScore;
 	},
@@ -576,33 +580,62 @@ DataLoader.prototype = {
 		var res;
 		//var get_url = url + data;
 
-		jQuery.ajax({
-			url: url,
-			method: 'POST', 
-			data: postData,
-			async : false,
-			dataType : 'json',
-			success : function(data) {
-				res = data;
-			},
-			error: function (xhr, errorType, exception) { 
-			// Triggered if an error communicating with server
+		if (typeof(postData) != 'undefined') {
+			jQuery.ajax({
+				url: url,
+				method: 'POST', 
+				data: postData,
+				async : false,
+				dataType : 'json',
+				success : function(data) {
+					res = data;
+				},
+				error: function (xhr, errorType, exception) { 
+				// Triggered if an error communicating with server
 
-			switch(xhr.status){
-				case 404:
-				case 500:
-				case 501:
-				case 502:
-				case 503:
-				case 504:
-				case 505:
-				default:
-					console.log("error: " + errorType + " exception: " + exception);
-					console.log("We're having some problems. Please check your network connection.");
-					break;
-				}
-			} 
-		});
+				switch(xhr.status){
+					case 404:
+					case 500:
+					case 501:
+					case 502:
+					case 503:
+					case 504:
+					case 505:
+					default:
+						console.log("exception: " + xhr.status + " " + exception);
+						console.log("We're having some problems. Please check your network connection.");
+						break;
+					}
+				} 
+			});
+		} else {
+			jQuery.ajax({
+				url: url,
+				method: 'GET', 
+				async : false,
+				dataType : 'json',
+				success : function(data) {
+					res = data;
+				},
+				error: function (xhr, errorType, exception) { 
+				// Triggered if an error communicating with server
+
+				switch(xhr.status){
+					case 404:
+					case 500:
+					case 501:
+					case 502:
+					case 503:
+					case 504:
+					case 505:
+					default:
+						console.log("exception: " + xhr.status + " " + exception);
+						console.log("We're having some problems. Please check your network connection.");
+						break;
+					}
+				} 
+			});
+		}
 		return res;
 	},
 
@@ -614,14 +647,14 @@ DataLoader.prototype = {
 		var idClean = id.replace("_", ":");
 
 //		var ontologyInfo = this.state.ontologyCacheHash.get(idClean);
-		var ontologyCacheLabels = [], ontologyCache = [];
+		var ontologyCache = [];
 		var direction = ontologyDirection;
 		var relationship = "subClassOf";
 		var depth = ontologyDepth;
 		var nodes, edges;
 		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 //		if (ontologyInfo === null) {
-			var ontologyInfo = [];
+			var ontologyInfo = [];			
 			var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 			var results = this.fetch(url);
@@ -634,14 +667,14 @@ DataLoader.prototype = {
 					if ( ! nodes.hasOwnProperty(i)) {
 						break;
 					}
-					var lab = ontologyCacheLabels[nodes[i].id];
-					if ( typeof(lab) !== 'undefined' &&
+					var lab = this.ontologyCacheLabels[nodes[i].id];
+					if ( typeof(lab) == 'undefined' ||
 						(nodes[i].id !== "MP:0000001" &&
 						nodes[i].id !== "OBO:UPHENO_0001001" &&
 						nodes[i].id !== "OBO:UPHENO_0001002" &&
 						nodes[i].id !== "HP:0000118" &&
 						nodes[i].id !== "HP:0000001")) {
-						ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
+						this.ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
 					}
 				}
 
@@ -675,6 +708,10 @@ DataLoader.prototype = {
 		// 	ontologyCache[idClean] = ontologyInfo;
 		// }
 		return ontologyCache; 
+	},
+
+	getOntologyLabel: function(id) {
+		return this.ontologyCacheLabels[id];
 	}
 
 };
@@ -1027,6 +1064,10 @@ DataManager.prototype = {
 			}
 		}
 		return combinedTargetList;
+	},
+
+	getOntologyLabel: function(id) {
+		return this.dataLoader.getOntologyLabel(id);
 	}
 };
 
@@ -1409,9 +1450,9 @@ var Utils = require('./utils.js');
 						ypad:13, xpad:15, // x/y padding between the labels and grid
 						cellwd:10, cellht:10, // // cell width and height
 						rowLabelOffset:-25, // offset of the row label (left side)
-						colLabelOffset: 45,  // offset of column label (adjusted for text score)
-						scoreOffset:30,  // score text offset
-						speciesLabelOffset: -10    // offset of the species label, above grid
+						colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
+						scoreOffset:5,  // score text offset from the top of grid squares
+						speciesLabelOffset: 200    // -100offset of the species label, above grid
 					}],
 		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
@@ -1424,7 +1465,7 @@ var Utils = require('./utils.js');
 
 	internalOptions: {
 		/// good - legit options
-		serverURL: "",
+		serverURL: "http://beta.monarchinitiative.org",
 		simServerURL: "",  // URL of the server for similarity searches
 		simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",
 		selectedCalculation: 0,
@@ -1479,13 +1520,6 @@ var Utils = require('./utils.js');
 		// index species
 		this._reset();
 
-		// @see for parameters:  https://github.com/HemantNegi/jquery.sumoselect
-		$('.SlectBox').SumoSelect({ triggerChangeCombined: false,
-       						selectAll: true,
-       						selectAlltext: 'Check All',
-       						forceCustomRendering: false	
-							});
-
 		console.log("in create func...");
 	},
 
@@ -1523,7 +1557,7 @@ var Utils = require('./utils.js');
 		//if (preloadHPO) {
 		// MKD: just testing one source id
 		var srcs = this.state.dataManager.keys("source");
-		this.state.hpoCacheHash = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
+		this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
 		//}
 		
 	    // initialize axis groups
@@ -1673,7 +1707,15 @@ var Utils = require('./utils.js');
 
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
-			stickytooltip.init("*[data-tooltip]", "mystickytooltip");				
+			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
+			// @see for parameters:  https://github.com/HemantNegi/jquery.sumoselect
+			$('.SlectBox').SumoSelect({ triggerChangeCombined: false,
+       						selectAll: true,
+       						selectAlltext: 'Check All',
+       						forceCustomRendering: false	
+							});		
+			$('.NormalSlectBox').SumoSelect();		
+
 
 		} else {
 			var msg = "There are no results available.";
@@ -1740,7 +1782,7 @@ var Utils = require('./utils.js');
 	      .attr("transform", function(d) { 
 	      	var offset = gridRegion.colLabelOffset;
 	      	var xs = xScale(d.id);
-	      	if (self.state.invertAxis) {offset = 30;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
+	      	if (self.state.invertAxis) {offset = 5;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
 			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
 	      				 "," + (gridRegion.y-offset) + ")rotate(-60)"; }); //-45
 
@@ -1808,8 +1850,8 @@ var Utils = require('./utils.js');
 			data = d;
 		}
     
-	// show tooltip
-	parent._createHoverBox(data);
+		// show tooltip
+		parent._createHoverBox(data);
 
 	},
 
@@ -2217,7 +2259,7 @@ var Utils = require('./utils.js');
 		var disease = dtitle.replace(/ *\([^)]*\) */g,"");
 		var shortDis = Utils.getShortLabel(disease,60);	// [vaa12] magic number needs removed
 
-		// Use until SVG2. Word Wraps the Disease Title
+	// Use until SVG2. Word Wraps the Disease Title
 		this.state.svg.append("foreignObject")
 			.attr("width", 205)
 			.attr("height", 50)
@@ -2227,6 +2269,7 @@ var Utils = require('./utils.js');
 			.attr("y", y)
 			.append("xhtml:div")
 			.html(shortDis);
+
 	},
 
 	_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
@@ -2372,19 +2415,6 @@ var Utils = require('./utils.js');
 		    return this.state.xAxisRender.position(key);
 		}
 		else { return -1; }
-	},
-
-	// Determines if an ID belongs to the SOURCE or TARGET
-	// MKD: MOVE TIS TO DATAMANAGER;  use type attribute instead of this hard-code
-	_getIDType: function(key) {
-		if (this.state.dataManager.contains("target",key, this.state.currentTargetSpeciesName)){
-			return "target";
-		}
-		//else if (this.state.phenotypeListHash.containsKey(key)){
-		else if (this.state.dataManager.contains("source", key)) {
-			return "source";
-		}
-		else { return false; }
 	},
 
 	_getIDTypeDetail: function(key) {
@@ -2651,11 +2681,16 @@ var Utils = require('./utils.js');
 
 		var id;
 
-		 if (this.state.invertAxis) {
-			id = data.target_id;
-		 } else {
-			id = data.source_id;
-		 }
+		// for cells we need to check the invertAxis to adjust for correct id
+		if (data.type == 'cell') {
+			 if (this.state.invertAxis) {
+				id = data.target_id;
+			 } else {
+				id = data.source_id;
+			 }
+		} else {
+			id = data.id;
+		}
 
 		// format data for rendering in a tooltip
 		var retData = this.state.tooltipRender.html({parent: this, id:id, data: data});   
@@ -2664,12 +2699,25 @@ var Utils = require('./utils.js');
 		$("#sticky1").empty();
 		$("#sticky1").html(retData);
 
+		// For phenotype HPO tree 
+		if (data.type === 'phenotype') {
+			// https://api.jqueryui.com/jquery.widget/#method-_on
+			// Binds click event to the HPO tree expand icon - Joe
+			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="expandHPO_HP_0001300" - Joe
+			var expandOntol_icon = $('#pg_expandOntology_' + id);
+			this._on(expandOntol_icon, {
+				"click": function(event) {
+					this._expandOntology(id);
+				}
+			});
+		}
+
 		// not really good to do this but, we need to be able to override some appearance attributes		
 		return appearanceOverrides;
 	},
 
 	// This builds the string to show the relations of the HPO nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
-	buildHPOTree: function(id, edges, level) {
+	buildOntologyTree: function(id, edges, level) {
 		var results = "";
 		var nextResult;
 		var nextLevel = level + 1;
@@ -2684,17 +2732,17 @@ var Utils = require('./utils.js');
 					if (this.state.ontologyTreeHeight < nextLevel){
 						this.state.ontologyTreeHeight++;
 					}
-					nextResult = this.buildHPOTree(edges[j].obj, edges, nextLevel);
+					nextResult = this.buildOntologyTree(edges[j].obj, edges, nextLevel);
 					if (nextResult === ""){
 						// Bolds the 'top of the line' to see what is the root or closet to the root.  It will hit this point either when it reaches the ontologyDepth or there are no parents
-						results += "<br/>" + this._buildIndentMark(this.state.ontologyTreeHeight - nextLevel) + "<strong>" + this._buildHPOHyperLink(edges[j].obj) + "</strong>";
+						results += "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight - nextLevel) + "<strong>" + this._buildOntologyHyperLink(edges[j].obj) + "</strong>";
 						this.state.ontologyTreesDone++;
 					} else {
-						results += nextResult + "<br/>" + this._buildIndentMark(this.state.ontologyTreeHeight - nextLevel) + this._buildHPOHyperLink(edges[j].obj);
+						results += nextResult + "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight - nextLevel) + this._buildOntologyHyperLink(edges[j].obj);
 					}
 					
 					if (level === 0){
-						results += "<br/>" + this._buildIndentMark(this.state.ontologyTreeHeight) + this.state.hpoCacheLabels.get(id) + "<br/>";
+						results += "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight) + this._getOntologyLabel(id) + "<br>";
 						this.state.ontologyTreeHeight = 0;
 					}
 				}
@@ -2704,22 +2752,28 @@ var Utils = require('./utils.js');
 	},
 
 	_buildIndentMark: function (treeHeight){
-		var indent = "<em class='HPO_tree_indent'></em>";
+		var indent = "<em class='pg_tree_indent'></em>";
 
 		if (treeHeight === 0) {
 			return indent;
 		}
 
 		for (var i = 1; i < treeHeight; i++){
-			indent += "<em class='HPO_tree_indent'></em>";
+			indent += "<em class='pg_tree_indent'></em>";
 		}
 			 
 		return indent + '&#8627'; // HTML entity - Joe
 	},
 
+	_getOntologyLabel: function(id) {
+		var label = this.state.dataManager.getOntologyLabel(id);
+		return label;
+	},
+
 	// Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
-	_buildHPOHyperLink: function(id){
-		var label = this.state.hpoCacheLabels.get(id);
+	_buildOntologyHyperLink: function(id){
+		//var label = this.state.hpoCacheLabels.get(id);
+		var label = this._getOntologyLabel(id);
 		var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
 		return link;
 	},
@@ -2760,9 +2814,9 @@ var Utils = require('./utils.js');
 					.attr("class", "pg_target_grp_divider")
 					.attr("transform","translate(" + x + "," + y+ ")")					
 					.attr("x1", gridRegion.rowLabelOffset)  // 0
-					.attr("y1", x1)
+					.attr("y1", x1-2)
 					.attr("x2", width)   // adjust this for to go beyond the row label
-					.attr("y2", x1);
+					.attr("y2", x1-2);
 
 				} else {
 
@@ -2789,36 +2843,7 @@ var Utils = require('./utils.js');
 
 	},
 
-	// _createSpeciesDividerLines: function() {
-	// 	var self = this;
-	// 	var gridRegion = self.state.gridRegion[0];
-	// 	var x = gridRegion.x;     
-	// 	var y = gridRegion.y;   
-	// 	var offset = gridRegion.colLabelOffset;  
-	// 	var height = self._gridHeight();
-	// 	var width = self._gridWidth();
-
-	// 	if (self._isCrossComparisonView() ) {
-	// 		var numOfSpecies = self.state.selectedCompareSpecies.length;
-	// 		var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfSpecies);
-	// 		var adjustment = (cellsDisplayedPer * gridRegion.cellwd); 
-	// 		var x1 = (x + adjustment)+73;  // magic number
-
-	// 		for (var i=1; i < numOfSpecies; i++) {
-
-	// 			this.state.svg.append("line")
-	// 			.attr("class", "pg_target_grp_divider")
-	// 			.attr("x1", x1)
-	// 			.attr("y1", y-offset)
-	// 			.attr("x2", x1)
-	// 			.attr("y2", height);
-
-	// 			x1 = x1 + adjustment;
-	// 		}
-	// 	}
-
-	// },
-
+	
 	_createSpeciesBorderOutline: function () {
 		// create the related model rectangles
 		var self = this;
@@ -3013,9 +3038,16 @@ var Utils = require('./utils.js');
 		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
 		var len = self.state.xAxisRender.displayLength();
 		var width = (self.state.gridRegion[0].xpad*len) + self.state.gridRegion[0].cellwd;
+		var y = self.state.gridRegion[0].speciesLabelOffset;
 
 		// position relative to the grid
-		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y) + ")";
+		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y);
+			if (self.state.invertAxis){
+				translation = "translate(" + self.state.gridRegion[0].x + "," + (self.state.gridRegion[0].y) + ")rotate(-90)";
+				speciesList = speciesList.reverse();  // need to do this to match order of the species order
+			} else {
+		 		translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y) +")";	
+			}
 
 		var xPerModel = width/speciesList.length;  //self.state.modelWidth
 		var species = self.state.svg.selectAll("#pg_specieslist")
@@ -3023,14 +3055,11 @@ var Utils = require('./utils.js');
 			.enter()
 			.append("text")
 			.attr("transform",translation)
-			.attr("x", function(d,i){ return (i + 1 / 2 ) * xPerModel;})
+			.attr("x", function(d,i){ return ((i + 1 / 2 ) * xPerModel) + 5;})
 			.attr("id", "pg_specieslist")
-			.attr("y", self.state.gridRegion[0].speciesLabelOffset)
-			.attr("width", xPerModel)
-			.attr("height", 5)
-			.style("font-size", "11px")
-		//	.attr("fill", "#0F473E")
-		//	.attr("stroke-width", 1)
+			.attr("y", y)
+			//.attr("width", xPerModel)
+			//.attr("height", 5)
 			.text(function (d,i){return speciesList[i];})
 			.attr("text-anchor","middle");
 	},
@@ -3313,7 +3342,15 @@ var Utils = require('./utils.js');
 			self._processDisplay();
 		});
 
-		$( "#pg_axisflip" ).click(function(d) {
+		$( "#pg_axisflip" ).click(function(d) {	
+//		$( "#pg_axisflip[type=checkbox]" ).click(function(d) {
+			// var $this = $(this);
+			// // $this will contain a reference to the checkbox 
+			// if ($this.is(':checked')) {
+			// 	self.state.invertAxis = true;
+			// } else {
+			// 	self.state.invertAxis = false;
+			// }
 		    self.state.invertAxis = !self.state.invertAxis;
 		    self._resetSelections("axisflip");
 		    self._setAxisRenderers();
@@ -3328,14 +3365,14 @@ var Utils = require('./utils.js');
 	_createOrganismSelection: function() {
 		var selectedItem;
 		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism</label>" + 
-			"<div class='SumoSelect' tabindex='0'>" +
-			"<select id='pg_organism' multiple='multiple' class='SlectBox'>"; // select is inline level element, it's fine to use <span> - Joe
+			//"<span><div class='SumoSelect' tabindex='0'>" +
+			"<span id='pg_org_sel'><select id='pg_organism' multiple='multiple' class='SlectBox'>"; // select is inline level element, it's fine to use <span> - Joe
 		for (var idx in this.state.targetSpeciesList) {
 			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
 				break;
 			}
 			selectedItem = "";
-			if (this.state.targetSpeciesList[idx].active) {  //MKD: NEEDS CHANGED AFTER MULTIPLE SELCTION WIDGET
+			if (this.state.targetSpeciesList[idx].active) { 
 				if (this._isTargetSpeciesSelected(this, this.state.targetSpeciesList[idx].name)) {
 					selectedItem = "selected";
 				}
@@ -3343,16 +3380,37 @@ var Utils = require('./utils.js');
 				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + "</option>";
 			}
 		}
-		optionhtml += "</select></div></div>";
-		//return $(optionhtml);
-		return optionhtml;
+		optionhtml += "</select></span></div>";
+
+				// add the handler for the select control
+		$( "#pg_organism" ).change(function(d) {
+			console.log('in the change()..');
+			self.state.selectedCompareSpecies = [];
+			var opts = this.options;
+			for (var idx in opts) {
+				if (opts[idx].selected) {
+					var rec = self._getTargetSpeciesInfo(self, opts[idx].text);
+					self.state.selectedCompareSpecies.push(rec);
+				}
+			}
+			if (self.state.selectedCompareSpecies.length > 0) {
+				self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
+				self._createAxisRenderingGroups();
+				self._initDefaults();
+				self._processDisplay();
+			} else {
+				alert("You must have at least 1 species selected.");
+			}
+		});
+
+		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
 		var optionhtml = "<div id='pg_calc_div'><label class='pg_ctrl_label'>Display</label>"+ // changed span to div since the CSS name has "_div" - Joe
 				"<span id='pg_calcs'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<span id='calc_sel'><select id='pg_calculation'>";
+				"<span id='calc_sel'><select id='pg_calculation' class='NormalSlectBox'>";
 
 		for (var idx in this.state.similarityCalculation) {
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
@@ -3373,7 +3431,7 @@ var Utils = require('./utils.js');
 	_createSortPhenotypeSelection: function () {
 		var optionhtml ="<div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + // changed span to div since the CSS name has "_div" - Joe
 				"<span id='pg_sorts'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<span><select id='pg_sortphenotypes'>";
+				"<span><select id='pg_sortphenotypes' class='NormalSlectBox'>";
 
 		for (var idx in this.state.phenotypeSort) {
 			if ( ! this.state.phenotypeSort.hasOwnProperty(idx)) {
@@ -3394,7 +3452,8 @@ var Utils = require('./utils.js');
 	_createAxisSelection: function () {
 		var optionhtml = "<div id='pg_axis_div'><label class='pg_ctrl_label'>Axis Flip</label>" +
 			"<span id='org_sel'><button type='button' id='pg_axisflip'>Flip Axis</button></span></div>"; // <button> is an inline tag - Joe
-			
+//			"<form><input type='checkbox' id='pg_axisflip'/>Flip Axis</form></div>"; 
+			 
 		return $(optionhtml);
 	},
 
@@ -3559,16 +3618,15 @@ var Utils = require('./utils.js');
 	},
 
 	// Will call the getHPO function to either load the HPO info or to make it visible if it was previously hidden.  Not available if preloading
-	_expandHPO: function(id){
+	_expandOntology: function(id){
 		
 		var displayIt = false;
 		var fixedId = id.replace("_", ":");
-		var hpoCached = this.state.hpoCacheHash[fixedId];
+		var cache = this.state.ontologyCache[fixedId];
 
-		if (hpoCached == null){
+		if (typeof(cache) == 'undefined'){
 			var hpoInfo = this.state.dataLoader.getOntology(fixedId, this.state.ontologyDirection, this.state.ontologyDepth);			
-			this.state.hpoCacheHash[fixedId] = hpoInfo;
-			hpoCached = hpoInfo;
+			cache = this.state.ontologyCache[fixedId] = {edges: hpoInfo[fixedId].edges};
 			displayIt = true;
 		} else {
 			displayIt = true;
@@ -3578,19 +3636,18 @@ var Utils = require('./utils.js');
 			this.state.ontologyTreesDone = 0;
 			this.state.ontologyTreeHeight = 0;
 			var info = this._getAxisData(id);
-			var type = this._getIDType(id);
-			var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype" + type +"/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
-			var hpoData = "<strong>" + Utils.capitalizeString(type) + ": </strong> " + hrefLink + "<br/>";
-			hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
+			var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
+			var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
+			ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
 
-			var hpoTree = this.buildHPOTree(fixedId, hpoCached.edges, 0);
+			var classTree = this.buildOntologyTree(fixedId, cache.edges, 0);
 
-			if (hpoTree === "<br/>"){
-				hpoData += "<em>No HPO Data Found</em>";
+			if (classTree === "<br>"){
+				ontologyData += "<em>No classification hierarchy data found</em>";
 			} else {
-				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
+				ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 			}
-			$("#sticky1").html(hpoData);
+			$("#sticky1").html(ontologyData);
 
 			// reshow the sticky with updated info
 			stickytooltip.show(null);
@@ -3600,9 +3657,9 @@ var Utils = require('./utils.js');
 	// Will hide the hpo info, not delete it.  This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
 	_collapseHPO: function(id){
 		var idClean = id.replace("_", ":");
-		var HPOInfo = this.state.hpoCacheHash.get(idClean);
+		var HPOInfo = this.state.ontologyCache.get(idClean);
 		HPOInfo.active = 0;
-		this.state.hpoCacheHash.put(idClean,HPOInfo);
+		this.state.ontologyCache.put(idClean,HPOInfo);
 		stickytooltip.closetooltip();
 	},
 
@@ -4109,10 +4166,12 @@ var stickytooltip = {
 			 $targets.bind('mouseout', function(e){  // mouseleave
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				//console.log("sticky:mouseout: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
-				if (elem.id != 'mystickytooltip' && elem.id != "") {
-				    //console.log("hiding...");
-					stickytooltip.isdocked = false;
-			 		stickytooltip.hidebox($, $tooltip);
+				if (typeof(elem.id) !== 'undefined' ) {
+					if (elem.id != 'mystickytooltip' && elem.id != "") {
+					    //console.log("hiding...");
+						stickytooltip.isdocked = false;
+				 		stickytooltip.hidebox($, $tooltip);
+					}
 				}
 			 });
 			// $targets.bind('mousemove', function(e){
@@ -4249,38 +4308,35 @@ TooltipRender.prototype = {
 	phenotype: function(tooltip) {
 		
 		var returnHtml = "";
-		var hpoExpand = false;
-		var hpoData = "<br/><br/>";
+		var expand = false;
+		var ontologyData = "<br>";
 		var fixedId = tooltip.id.replace("_", ":");
-		var hpoCached = tooltip.parent.state.hpoCacheHash[fixedId];
+		var cached = tooltip.parent.state.ontologyCache[fixedId];
 	
-		if (hpoCached !== undefined) { //&& hpoCached.active == 1){
-			hpoExpand = true;
+		if (cached !== undefined) { //&& hpoCached.active == 1){
+			expand = true;
 
 			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 			tooltip.parent.state.ontologyTreesDone = 0;
 			tooltip.parent.state.ontologyTreeHeight = 0;
-			var hpoTree = "<div id='hpoDiv'>" + tooltip.parent.buildHPOTree(tooltip.id.replace("_", ":"), hpoCached.edges, 0) + "</div>";
-			if (hpoTree === "<br/>"){
-				hpoData += "<em>No HPO Data Found</em>";
+			var tree = "<div id='hpoDiv'>" + tooltip.parent.buildOntologyTree(tooltip.id.replace("_", ":"), cached.edges, 0) + "</div>";
+			if (tree === "<br>"){
+				ontologyData += "<em>No Classification hierarchy Found</em>";
 			} else {
-				hpoData += "<strong>HPO Structure:</strong>" + hpoTree;
+				ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
 			}
 		}
-		// Used font awesome for expand/collapse buttons - Joe
+		// Used font awesome for expand buttons - Joe
 		if (!tooltip.parent.state.preloadHPO){
-			if (hpoExpand){
-				returnHtml = "<br/><br/>Click button to <b>collapse</b> HPO info &nbsp;&nbsp;";
-				returnHtml += "<i class=\"HPO_icon fa fa-minus-circle cursor_pointer \" onClick=\"this._collapseHPO('" + tooltip.id + "')\"></i>";
-				returnHtml += hpoData;
+			if (expand){
+				returnHtml += ontologyData;
 			} else {
-				returnHtml = "<br/><br/>Click button to <b>expand</b> HPO info &nbsp;&nbsp;";
-				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer \" onClick=\"this._expandHPO('" + tooltip.id + "')\"></i>";
-
+				//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
+				returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + tooltip.id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
 			}
 		}
 		else {
-			returnHtml = hpoData;
+			returnHtml = ontologyData;
 		}
 	return returnHtml;		
 

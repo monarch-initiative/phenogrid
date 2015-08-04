@@ -2832,6 +2832,7 @@ font-weight:bold;
 #pg_axis_div {
 float: left;
 margin-right:10px;
+display: inline-table;
 }
 
 #pg_org_div {
@@ -2938,8 +2939,9 @@ margin-top:40px;
 }
 
 #pg_specieslist {
-font-weight:bold;
-font-size:1.2em;
+  font-weight: bold;
+  font-size: 20px;
+  opacity: .1;
 }
 
 /* Cursor for mini map */
@@ -2981,17 +2983,6 @@ clear: both;
 /* Background color of jquery-ui dialog */
 .faqdialog_bg_color {
 background-color: #fff !important;
-}
-
-.HPO_icon{
-margin-left:5px;
-}
-
-em.HPO_tree_indent{
-width:12px;
-float:left;
-display:inline-block;
-height:1px;
 }
 
 .row,
@@ -3043,10 +3034,36 @@ table.pgtb th
 }
 
 .pg_target_grp_divider {
-  stroke: #0F473E; /*#8763A3;  #0F473E;*/
-  stroke-width:.9;
+  stroke: #969696; /*#8763A3;  #0F473E;*/
+  stroke-width:.35;
 }
-.SlectBox { width: 200px; padding: 2px 2px; font-size: small;}
+
+.pg_expandHPO{
+  text-decoration: underline;
+  color:#DC4945;
+  cursor:pointer;
+}
+
+.pg_HPO_icon{
+  margin-left:2px;
+}
+
+em.pg_tree_indent{
+  width:12px;
+  float:left;
+  display:inline-block;
+  height:1px;
+}
+
+.pg_cursor_pointer {
+  cursor:pointer;
+}
+
+#pg_org_sel {
+  margin-right: 5px;
+}
+/* this customizes the overall appearance of the dropdown */
+.SlectBox { width: 200px; font-size: inherit;}
 
 /*this is applied on that hidden select. DO NOT USE display:none; or visiblity:hidden; and Do not override any of these properties. */
 .SelectClass { position: absolute; top: 0px; left: 0px; right: 0px; height: 100%; width: 100%; border: none; z-index: 1; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)"; filter: alpha(opacity=0); -moz-opacity: 0; -khtml-opacity: 0; opacity: 0; }
@@ -3126,11 +3143,11 @@ table.pgtb th
      .SumoSelect.disabled > .CaptionCont{border-color:#ccc;box-shadow:none;}
 
     /**Select all button**/
-    .SumoSelect .select-all{border-radius: 3px 3px 0px 0px;position: relative;border-bottom: 1px solid #ddd;background-color: #fff;padding: 8px 0px 3px 35px;height: 20px;}
+    .SumoSelect .select-all{border-radius: 3px 3px 0px 0px;position: relative;border-bottom: 1px solid #ddd;background-color: #fff;padding: 8px 0px 3px 35px;}  /* height: 20px; causes the label to go to new line */
     .SumoSelect .select-all > span i{cursor:pointer;}
     .SumoSelect .select-all.partial > span i{background-color:#ccc;}
-    .SumoSelect .select-all.partial > label { position: absolute; font-size: 10px;}   /* top: -2px; */
-    .SumoSelect .select-all.selected > label { position: absolute; font-size: 10px;}
+    .SumoSelect .select-all.partial > label { font-size: 10px;}   /* position: absolute; top: -2px; */
+    .SumoSelect .select-all.selected > label { font-size: 10px;}  /*position: absolute;*/
 
 
      /*styling for optgroups*/

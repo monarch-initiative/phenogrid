@@ -99,10 +99,12 @@ var stickytooltip = {
 			 $targets.bind('mouseout', function(e){  // mouseleave
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				//console.log("sticky:mouseout: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
-				if (elem.id != 'mystickytooltip' && elem.id != "") {
-				    //console.log("hiding...");
-					stickytooltip.isdocked = false;
-			 		stickytooltip.hidebox($, $tooltip);
+				if (typeof(elem.id) !== 'undefined' ) {
+					if (elem.id != 'mystickytooltip' && elem.id != "") {
+					    //console.log("hiding...");
+						stickytooltip.isdocked = false;
+				 		stickytooltip.hidebox($, $tooltip);
+					}
 				}
 			 });
 			// $targets.bind('mousemove', function(e){

@@ -32,7 +32,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList
 	this.targetData = [];
 	this.sourceData = [];
 	this.cellData = [];
-	this.hpoCache = [];
+	this.ontologyCacheLabels = [];
 
 	this.load(this.qrySourceList, this.speciesList, this.limit);
 
@@ -223,6 +223,10 @@ DataLoader.prototype = {
 		return this.cellData;
 	},
 
+	getOntologyCacheLabels: function() {
+		return this.ontologyCacheLabels;
+	},
+
 	getMaxICScore: function() {
 		return this.maxICScore;
 	},
@@ -268,33 +272,62 @@ DataLoader.prototype = {
 		var res;
 		//var get_url = url + data;
 
-		jQuery.ajax({
-			url: url,
-			method: 'POST', 
-			data: postData,
-			async : false,
-			dataType : 'json',
-			success : function(data) {
-				res = data;
-			},
-			error: function (xhr, errorType, exception) { 
-			// Triggered if an error communicating with server
+		if (typeof(postData) != 'undefined') {
+			jQuery.ajax({
+				url: url,
+				method: 'POST', 
+				data: postData,
+				async : false,
+				dataType : 'json',
+				success : function(data) {
+					res = data;
+				},
+				error: function (xhr, errorType, exception) { 
+				// Triggered if an error communicating with server
 
-			switch(xhr.status){
-				case 404:
-				case 500:
-				case 501:
-				case 502:
-				case 503:
-				case 504:
-				case 505:
-				default:
-					console.log("error: " + errorType + " exception: " + exception);
-					console.log("We're having some problems. Please check your network connection.");
-					break;
-				}
-			} 
-		});
+				switch(xhr.status){
+					case 404:
+					case 500:
+					case 501:
+					case 502:
+					case 503:
+					case 504:
+					case 505:
+					default:
+						console.log("exception: " + xhr.status + " " + exception);
+						console.log("We're having some problems. Please check your network connection.");
+						break;
+					}
+				} 
+			});
+		} else {
+			jQuery.ajax({
+				url: url,
+				method: 'GET', 
+				async : false,
+				dataType : 'json',
+				success : function(data) {
+					res = data;
+				},
+				error: function (xhr, errorType, exception) { 
+				// Triggered if an error communicating with server
+
+				switch(xhr.status){
+					case 404:
+					case 500:
+					case 501:
+					case 502:
+					case 503:
+					case 504:
+					case 505:
+					default:
+						console.log("exception: " + xhr.status + " " + exception);
+						console.log("We're having some problems. Please check your network connection.");
+						break;
+					}
+				} 
+			});
+		}
 		return res;
 	},
 
@@ -306,14 +339,14 @@ DataLoader.prototype = {
 		var idClean = id.replace("_", ":");
 
 //		var ontologyInfo = this.state.ontologyCacheHash.get(idClean);
-		var ontologyCacheLabels = [], ontologyCache = [];
+		var ontologyCache = [];
 		var direction = ontologyDirection;
 		var relationship = "subClassOf";
 		var depth = ontologyDepth;
 		var nodes, edges;
 		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 //		if (ontologyInfo === null) {
-			var ontologyInfo = [];
+			var ontologyInfo = [];			
 			var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 			var results = this.fetch(url);
@@ -326,14 +359,14 @@ DataLoader.prototype = {
 					if ( ! nodes.hasOwnProperty(i)) {
 						break;
 					}
-					var lab = ontologyCacheLabels[nodes[i].id];
-					if ( typeof(lab) !== 'undefined' &&
+					var lab = this.ontologyCacheLabels[nodes[i].id];
+					if ( typeof(lab) == 'undefined' ||
 						(nodes[i].id !== "MP:0000001" &&
 						nodes[i].id !== "OBO:UPHENO_0001001" &&
 						nodes[i].id !== "OBO:UPHENO_0001002" &&
 						nodes[i].id !== "HP:0000118" &&
 						nodes[i].id !== "HP:0000001")) {
-						ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
+						this.ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
 					}
 				}
 
@@ -367,6 +400,10 @@ DataLoader.prototype = {
 		// 	ontologyCache[idClean] = ontologyInfo;
 		// }
 		return ontologyCache; 
+	},
+
+	getOntologyLabel: function(id) {
+		return this.ontologyCacheLabels[id];
 	}
 
 };
