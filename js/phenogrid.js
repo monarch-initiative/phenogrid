@@ -2022,7 +2022,7 @@ var TooltipRender = require('./tooltiprender.js');
 				// https://api.jqueryui.com/jquery.widget/#method-_on
 				// Binds click event to the HPO tree expand icon - Joe
 				// In tooltiprender.js, the font awesome icon <i> element follows the form of id="expandHPO_HP_0001300" - Joe
-				var expandHPO_icon = $('#expandHPO_' + concept);
+				var expandHPO_icon = $('#pg_expandHPO_' + concept);
 				this._on(expandHPO_icon, {
 					"click": function(event) {
 						this._expandHPO(concept);

@@ -171,8 +171,14 @@ clear: both;
 background-color: #fff !important;
 }
 
+.pg_expandHPO{
+text-decoration: underline;
+color:#DC4945;
+cursor:pointer;
+}
+
 .pg_HPO_icon{
-margin-left:5px;
+margin-left:2px;
 }
 
 em.pg_HPO_tree_indent{
