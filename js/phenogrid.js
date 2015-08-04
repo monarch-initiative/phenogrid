@@ -292,6 +292,8 @@ var Utils = require('./utils.js');
 
 		// this._initDefaults();   
 		// this._processDisplay();
+		
+	
 
 	},
 
@@ -463,6 +465,28 @@ var Utils = require('./utils.js');
        						forceCustomRendering: false	
 							});		
 			$('.NormalSlectBox').SumoSelect();		
+			
+			
+			
+			
+			
+			
+			// Push control panel - Joe
+			$("#button_push_left").on( "click", function(){
+				// Opens and closes the menu
+				$("#phenogrid_controls").toggleClass("push_left_open");
+				
+				// Moves the page content to side when menu is open - the "Push" part
+				$("#pg_svg_container").toggleClass("container_open_left");
+				
+				if($("#phenogrid_controls").hasClass("push_left_open")){
+					// If the menu is open, then Change the menu button icon
+					$("#bpleft").attr('src', this.state.scriptpath + '../image/close_left.png');
+				}else{
+					// If the menu is closed, change to the original button icon
+					$("#bpleft").attr('src', this.state.scriptpath + '../image/menu_icon.png');
+				}
+			});
 
 
 		} else {
@@ -1939,7 +1963,7 @@ var Utils = require('./utils.js');
 	},
 
 	_addPhenogridControls: function() {
-		var phenogridControls = $('<div id="phenogrid_controls"></div>');
+		var phenogridControls = $('<div id="phenogrid_controls" class="push_left_close"></div>');
 		this.element.append(phenogridControls);
 		this._createSelectionControls(phenogridControls);
 	},
@@ -2040,6 +2064,13 @@ var Utils = require('./utils.js');
 	_createSelectionControls: function(container) {
 		var self = this;
 		var optionhtml ='<div id="selects"></div>';
+		
+		// Push button - Joe
+		var pushBtn ='<button id="button_push_left" class="button pbutton">' + 
+					'<img id="bpleft" src="' + this.state.scriptpath + '../image/menu_icon.png"/>' + 
+					'</button>';
+		
+		
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
 		options.append(orgSel);
@@ -2051,6 +2082,10 @@ var Utils = require('./utils.js');
 		options.append(axisSel);
 
 		container.append(options);
+		
+		// Append push button - Joe
+		container.append(pushBtn);
+		
 		// add the handler for the select control
 		$( "#pg_organism" ).change(function(d) {
 			console.log('in the change()..');

@@ -189,6 +189,10 @@ margin-top:10px;
 
 #phenogrid_controls {
 margin-left:10px;
+width:220px;
+position:absolute;
+top:40px;
+border:1px solid #ddd;
 }
 
 .cursor_pointer {
@@ -197,6 +201,9 @@ cursor:pointer;
 
 #pg_svg_container {
 margin-top:40px;
+
+width:800px;
+margin:100px auto;
 }
 
 #pg_specieslist {
@@ -322,4 +329,86 @@ em.pg_tree_indent{
 
 #pg_org_sel {
   margin-right: 5px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Layout testing */
+
+#pg_svg_container{
+    width:800px;
+    margin:100px auto;
+	border:1px solid #ddd;
+}
+
+#button_push_left{
+width:40px;
+height:40px;
+}
+
+/* PUSH LEFT MENU */
+
+.push_left_close{
+    position:fixed;
+    left:200px;
+}
+
+.push_left_open{
+    left:0px;
+}
+
+
+
+.container_close{
+    overflow:hidden;
+    position:relative;
+    left:0;
+}
+
+.container_open_left{
+    left:220px;
+}
+
+
+/* BUTTONS */
+
+.button{
+    border:none;
+    outline:none;
+    width:45px;
+    height:45px;
+    padding:0;
+    cursor:pointer;
+}
+
+.button img{
+    margin-right:2px;
+    margin-top:4px;
+}
+
+.pbutton{
+    background-color:#3498db;
+    border-bottom:solid 1px #2980b9;
+}
+
+/* TRANSITIONS */
+
+.push_left_open,
+.push_left_close,
+.container_close,
+.container_open_left{
+	-webkit-transition: all 0.3s ease;
+	-moz-transition: all 0.3s ease;
+	transition: all 0.3s ease;
 }
