@@ -40,7 +40,8 @@ fill: #222;
 
 #pg_selectionrect {
 fill: grey;
-opacity: 0.5
+opacity: 0.5;
+cursor:move; /* Cursor for mini map */
 }
 
 .pg_instruct {
@@ -141,7 +142,7 @@ font-size:.85em;
 margin-left:10px;
 }
 
-.cursor_pointer {
+.pg_cursor_pointer {
 cursor:pointer;
 }
 
@@ -152,11 +153,6 @@ margin-top:40px;
 #pg_specieslist {
 font-weight:bold;
 font-size:1.2em;
-}
-
-/* Cursor for mini map */
-.draggable{
-cursor:move;
 }
 
 /* clearfix hack http://nicolasgallagher.com/micro-clearfix-hack/ */
@@ -171,15 +167,15 @@ clear: both;
 }
 
 /* Background color of jquery-ui dialog */
-.faqdialog_bg_color {
+.pg_faqdialog_bg_color {
 background-color: #fff !important;
 }
 
-.HPO_icon{
+.pg_HPO_icon{
 margin-left:5px;
 }
 
-em.HPO_tree_indent{
+em.pg_HPO_tree_indent{
 width:12px;
 float:left;
 display:inline-block;

@@ -96,7 +96,7 @@ TooltipRender.prototype = {
 				returnHtml = hpoData;
 			} else {
 				returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
-				returnHtml += "<i class=\"HPO_icon fa fa-plus-circle cursor_pointer\" id=\"expandHPO_" + tooltip.id + "\"></i>";
+				returnHtml += "<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\" id=\"expandHPO_" + tooltip.id + "\"></i>";
 			}
 		}
 		else {

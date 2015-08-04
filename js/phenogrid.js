@@ -733,7 +733,6 @@ var TooltipRender = require('./tooltiprender.js');
 				.attr("id", "pg_selectionrect") // id of the draggable shaded rect - Joe
 				.attr("height", selectRectHeight + 4)
 				.attr("width", selectRectWidth + 4)
-				.attr("class", "draggable")
 				.call(d3.behavior.drag().on("drag", function(d) {
 						/*
 						 * drag the highlight in the overview window
@@ -2087,14 +2086,14 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_buildIndentMark: function (hpoTreeHeight) {
-			var indent = "<em class='HPO_tree_indent'></em>";
+			var indent = "<em class='pg_HPO_tree_indent'></em>";
 
 			if (hpoTreeHeight === 0) {
 				return indent;
 			}
 
 			for (var i = 1; i < hpoTreeHeight; i++){
-				indent += "<em class='HPO_tree_indent'></em>";
+				indent += "<em class='pg_HPO_tree_indent'></em>";
 			}
 
 			return indent + '&#8627'; // HTML entity - Joe
@@ -2787,7 +2786,7 @@ var TooltipRender = require('./tooltiprender.js');
 					width:400,
 					height: 260,
 					draggable: true,
-					dialogClass: "faqdialog_bg_color",
+					dialogClass: "pg_faqdialog_bg_color",
 					position: {
 						my: "top",
 						at: "top+25%",
@@ -3118,7 +3117,7 @@ var TooltipRender = require('./tooltiprender.js');
 		_createCalculationSelection: function () {
 
 			var optionhtml = "<div id='pg_calc_div'><label class='pg_ctrl_label'>Display</label>"+ // changed span to div since the CSS name has "_div" - Joe
-				"<span id='pg_calcs'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+				"<span id='pg_calcs'> <i class='fa fa-info-circle pg_cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<span id='calc_sel'><select id='pg_calculation'>";
 
 			for (var idx in this.state.similarityCalculation) {
@@ -3139,7 +3138,7 @@ var TooltipRender = require('./tooltiprender.js');
 		// create the html necessary for selecting the sort
 		_createSortPhenotypeSelection: function () {
 			var optionhtml ="<div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + // changed span to div since the CSS name has "_div" - Joe
-				"<span id='pg_sorts'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+				"<span id='pg_sorts'> <i class='fa fa-info-circle pg_cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<span><select id='pg_sortphenotypes'>";
 
 			for (var idx in this.state.phenotypeSort) {
