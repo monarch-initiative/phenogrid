@@ -866,7 +866,7 @@ var TooltipRender = require('./tooltiprender.js');
 		_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
 			var self = this;
 			// rectangular border for overview
-			var globalview = self.state.svg.append("rect")
+			self.state.svg.append("rect")
 				.attr("x", overviewX)
 				.attr("y", overviewY)
 				.attr("id", "pg_globalview")
@@ -1696,14 +1696,14 @@ var TooltipRender = require('./tooltiprender.js');
 				titleText = "Phenotype Comparison";
 			}
 
-			var mtitle = this.state.svg.append("svg:text")
+			this.state.svg.append("svg:text")
 				.attr("class", "gridtitle")
 				.attr("id", "pg_toptitle")
 				.attr("x", xoffset)
 				.attr("y", this.state.gridTitleYOffset)
 				.text(titleText);
 
-			var faq	= this.state.svg
+			this.state.svg
 				.append("text")
 				.attr('font-family', 'FontAwesome')
 				.attr("id", "pg_faqs")
@@ -1722,13 +1722,12 @@ var TooltipRender = require('./tooltiprender.js');
 
 		_configureFaqs: function() {
 			var self = this;
-			var sorts = $("#pg_sorts")
+			$("#pg_sorts")
 				.on("click", function(d, i) {
 					self._showDialog("sorts");
 				});
 
-			//var calcs = d3.selectAll("#calcs")
-			var calcs = $("#pg_calcs")
+			$("#pg_calcs")
 				.on("click", function(d) {
 					self._showDialog("calcs");
 				});
@@ -1933,7 +1932,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var appearanceOverrides;
 
 			// Show that model label is selected. Change styles to bold, blue and full-length label
-			var model_label = self.state.svg.selectAll("text#" + concept)
+			self.state.svg.selectAll("text#" + concept)
 				.style("font-weight", "bold")
 				.style("fill", "blue");
 
@@ -1979,14 +1978,14 @@ var TooltipRender = require('./tooltiprender.js');
 
 			//console.log("select y item.. "+txt);
 
-			var alabels = this.state.svg.selectAll("text.pg_phenotype_label." + curr_data)
+			this.state.svg.selectAll("text.pg_phenotype_label." + curr_data)
 				//.style("font-weight", "bold")
 				.style("fill", "blue");
 
 			appearanceOverrides = self._createHoverBox(curr_data);
 
 			// create the related row rectangle
-			var highlight_rect = self.state.svg.append("svg:rect")
+			self.state.svg.append("svg:rect")
 				.attr("transform","translate(" + (self.state.axis_pos_list[1]) + "," + (self.state.yoffsetOver + 4) + ")")
 				.attr("x", 12)
 				.attr("y", function(d) {
@@ -2533,7 +2532,7 @@ var TooltipRender = require('./tooltiprender.js');
 			model_label.style("fill", "blue");
 
 			// create the related model rectangles
-			var highlight_rect2 = self.state.svg.append("svg:rect")
+			self.state.svg.append("svg:rect")
 				.attr("transform", "translate(" + (self.state.textWidth + self.state.xOffsetOver + 36) + "," + (self.state.yoffsetOver + 1) +  ")") // position control -Joe
 				.attr("x", function(d) {
 					return (self.state.xScale(curr_data.xID) - 1);
@@ -2734,7 +2733,7 @@ var TooltipRender = require('./tooltiprender.js');
 			var translation = "translate(" + (self.state.textWidth + self.state.xOffsetOver + 30) + "," + (self.state.yoffset + 10) + ")";
 
 			var xPerModel = self.state.modelWidth/speciesList.length;
-			var species = self.state.svg.selectAll("#pg_specieslist")
+			self.state.svg.selectAll("#pg_specieslist")
 				.data(speciesList)
 				.enter()
 				.append("text")
@@ -3006,7 +3005,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			var ylowText = y1 + self.state.yoffset;
 			var xlowText = self.state.axis_pos_list[2] + 10;
-			var div_text1 = self.state.svg.append("svg:text")
+			self.state.svg.append("svg:text")
 				.attr("class", "pg_sim_text")
 				.attr("x", xlowText)
 				.attr("y", ylowText)
@@ -3015,7 +3014,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			var ylabelText = y1 + self.state.yoffset;
 			var xlabelText = self.state.axis_pos_list[2] + 75;
-			var div_text2 = self.state.svg.append("svg:text")
+			self.state.svg.append("svg:text")
 				.attr("class", "pg_sim_text")
 				.attr("x", xlabelText)
 				.attr("y", ylabelText)
@@ -3732,6 +3731,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 		// insert into the model list
 		_insertionModelList: function (insertPoint, insertions) {
+			var self = this;
 			var newModelList = new Hashtable();
 			var sortedModelList= self._getSortedIDList(this.state.modelListHash.entries());
 			var reorderPointOffset = insertions.size();
@@ -3765,6 +3765,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 		// remove a models children from the model list
 		_removalFromModelList: function (removalList) {
+			var self = this;
 			var newModelList = new Hashtable();
 			var newModelData = [];
 			var removalKeys = removalList.genoTypes.keys();
