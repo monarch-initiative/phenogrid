@@ -2916,7 +2916,7 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_addPhenogridControls: function() {
-			var phenogridControls = $('<div id="phenogrid_controls"></div>');
+			var phenogridControls = $('<div id="pg_controls"></div>');
 			this.element.append(phenogridControls);
 			this._createSelectionControls(phenogridControls);
 			
@@ -3283,7 +3283,7 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_buildUnmatchedPhenotypeDisplay: function() {
-			var pg_ctrl = $("#phenogrid_controls");
+			var pg_ctrl = $("#pg_controls");
 			var pg_unmatched_phenotypes_html = '<div id="pg_unmatched_phenotypes_container" class="clearfix">';
 			
 			if (this.state.unmatchedPhenotypes !== undefined && this.state.unmatchedPhenotypes.length > 0) {
