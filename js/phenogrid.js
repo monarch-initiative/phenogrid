@@ -453,6 +453,9 @@ var TooltipRender = require('./tooltiprender.js');
 			this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 
 			this._loadData();
+		},
+	    
+	        _postLoad: function() {
 
 			this._setLoadedValues();
 
@@ -1093,21 +1096,22 @@ var TooltipRender = require('./tooltiprender.js');
 			// At time being, overview is made up of three calls, which it repeats these calls with a larger limit if you decided to view single species
 			// Might be more efficent to load those three, cache them and then make an overview dataset and cache that as well.
 			// This is also called when axis is flipped, so might need to create those cached as well (which would be very simple)
+		    var self = this;
 			if (this.state.targetSpeciesName === 'Overview') {
 				this._loadOverviewData();
-				this._finishOverviewLoad();
+				//this._finishOverviewLoad();
 			} else {
-				this._loadSpeciesData(this.state.targetSpeciesName);
+				this._loadSpeciesData(self.state.targetSpeciesName,function(d) {self._finishLoad(self,d);});
 				// [vaa12] line below can be used to force a different limit.  It can be loaded above the API default (100) but has a
 				// noticable time delay when trying to load.  There may be a conflict at the API level when trying to go higher than default
 				//this._loadSpeciesData(this.state.targetSpeciesName,20);
-				this._finishLoad();
+				//this._finishLoad();
 			}
 
 			this.state.hpoCacheBuilt = true;
 		},
 
-		_loadSpeciesData: function(speciesName, limit) {
+		_loadSpeciesData: function(speciesName, callback,limit) {
 			var phenotypeList = this.state.phenotypeData;
 			var taxon = this._getTargetSpeciesTaxonByName(this,speciesName);
 			var res;
@@ -1117,19 +1121,22 @@ var TooltipRender = require('./tooltiprender.js');
 			if ($.isEmptyObject(this.state.providedData)) {
 				var url = this._getLoadDataURL(phenotypeList, taxon, limit);
 				
-                // NOTE: Here we configure calls to simsearch to be a POST, while calls
+                // NOTE: Here we configu're calls to simsearch to be a POST, while calls
 				// to the compare function use a GET, the reason being that compare calls
 				// are not yet configured for POST in the monarch-app.  Configuring the compare
 				// function to handle a post will simplify this code
+			    console.log("in loadSpeciesData...owlSimFunction is.."+this.state.owlSimFunction);
                 if (this.state.owlSimFunction !== 'compare'){
                     postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
                     if (typeof(limit) !== 'undefined') {
                         postData += "&limit=" + limit;
                     }
                     url = this.state.simServerURL + this.state.simSearchQuery;
-                    res = this._ajaxPostData(speciesName, url, postData);
+		    console.log("calling ajaxpost data");
+                    this._ajaxPostData(speciesName, url, postData,callback);
                 } else {
-                    res = this._ajaxLoadData(speciesName,url);
+		    console.log("calling ajaxloaddata..");
+                    this._ajaxLoadData(speciesName,url,callback);
                 }
 			} else {
 				res = this.state.providedData;
@@ -1140,7 +1147,7 @@ var TooltipRender = require('./tooltiprender.js');
 					res = this._padSpeciesData(res,speciesName,limit);
 				}
 			}
-			this.state.data[speciesName] = res;
+		        callback(res);
 		},
 
 
@@ -1189,7 +1196,7 @@ var TooltipRender = require('./tooltiprender.js');
 					break;
 				}
 				var species = this.state.targetSpeciesList[i].name;
-				this._loadSpeciesData(species, limit);
+				this._loadSpeciesData(species, limit,callback);
 				if (species === this.state.refSpecies && typeof(species) !== 'undefined') {
 				// if it's the one we're reffering to
 					if (typeof(this.state.data[species].metadata) !== 'undefined') {
@@ -1211,32 +1218,32 @@ var TooltipRender = require('./tooltiprender.js');
 			var type, ID, hashData;
 			var variantNum = 0;
 
-			for (var i in this.state.targetSpeciesList) {
-				if ( ! this.state.targetSpeciesList.hasOwnProperty(i)) {
+			for (var i in self.state.targetSpeciesList) {
+				if ( ! self.state.targetSpeciesList.hasOwnProperty(i)) {
 					break;
 				}
-				var species = this.state.targetSpeciesList[i].name;
-				var specData = this.state.data[species];
+				var species = self.state.targetSpeciesList[i].name;
+				var specData = self.state.data[species];
 				if (specData !== null && typeof(specData.b) !== 'undefined' && specData.b.length > 0) {
 					for (var idx in specData.b) {
 						if(!specData.b.hasOwnProperty(i)){break;}
 						var item = specData.b[idx];
-						ID = this._getConceptId(item.id);
+						ID = self._getConceptId(item.id);
 
 						// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
 						// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-						if (this.state.modelListHash.containsKey(ID)) {
+						if (self.state.modelListHash.containsKey(ID)) {
 							ID += "_" + variantNum;
 							variantNum++;
 						}
 
-						type = this.state.defaultApiEntity;
-						for (var j in this.state.apiEntityMap) {
-							if ( ! this.state.apiEntityMap.hasOwnProperty(i)) {
+						type = self.state.defaultApiEntity;
+						for (var j in self.state.apiEntityMap) {
+							if ( ! self.state.apiEntityMap.hasOwnProperty(i)) {
 								break;
 							}
-							if (ID.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
-								type = this.state.apiEntityMap[j].apifragment;
+							if (ID.indexOf(self.state.apiEntityMap[j].prefix) === 0) {
+								type = self.state.apiEntityMap[j].apifragment;
 							}
 						}
 
@@ -1250,16 +1257,16 @@ var TooltipRender = require('./tooltiprender.js');
 							"score": item.score.score
 						};
 						// use put(key, value) to add a key/value pair to the hashtable, and get() to retrieve a value - Joe
-						this.state.modelListHash.put(ID, hashData);
-						this._loadDataForModel(ID, item);
+						self.state.modelListHash.put(ID, hashData);
+						self._loadDataForModel(ID, item);
 						posID++;
 					}
-					this.state.multiOrganismCt = specData.b.length;
+					self.state.multiOrganismCt = specData.b.length;
 					speciesList.push(species);
 				}
 			}
 
-			this.state.speciesList = speciesList;
+			self.state.speciesList = speciesList;
 		},
 
 		/*
@@ -1267,8 +1274,12 @@ var TooltipRender = require('./tooltiprender.js');
 		 * Create the modelList array: model_id, model_label, model_score, model_rank
 		 * Call _loadDataForModel to put the matches in an array
 		 */
-		_finishLoad: function() {
-			var species = this.state.targetSpeciesName;
+		_finishLoad: function(self,data) {
+		   //  console.log("data is..."+JSON.stringify(data));
+		    console.log("species is " +this.state.targetSpeciesName);
+		    console.log("self.state is.."+JSON.stringify(self.state));
+			var species = self.state.targetSpeciesName;
+		        self.state.data[species] = data;
 			var retData = this.state.data[species];
 			var hashData, ID, type, z;
 			var variantNum = 0;
@@ -1278,7 +1289,7 @@ var TooltipRender = require('./tooltiprender.js');
 			}
 			// extract the maxIC score
 			if (typeof (retData.metadata) !== 'undefined') {
-				this.state.maxICScore = retData.metadata.maxMaxIC;
+				self.state.maxICScore = retData.metadata.maxMaxIC;
 			}
 
 			if (typeof (retData.b) !== 'undefined') {
@@ -1287,30 +1298,31 @@ var TooltipRender = require('./tooltiprender.js');
 						break;
 					}
 					var item = retData.b[idx];
-					ID = this._getConceptId(item.id);
+					ID = self._getConceptId(item.id);
 
 					// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
 					// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-					if (this.state.modelListHash.containsKey(ID)) {
+					if (self.state.modelListHash.containsKey(ID)) {
 						ID += "_" + variantNum;
 						variantNum++;
 					}
 
-					type = this.state.defaultApiEntity;
-					for (var j in this.state.apiEntityMap) {
-						if( ! this.state.apiEntityMap.hasOwnProperty(j)) {
+					type = self.state.defaultApiEntity;
+					for (var j in self.state.apiEntityMap) {
+						if( ! self.state.apiEntityMap.hasOwnProperty(j)) {
 							break;
 						}
-						if (ID.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
-							type = this.state.apiEntityMap[j].apifragment;
+						if (ID.indexOf(self.state.apiEntityMap[j].prefix) === 0) {
+							type = self.state.apiEntityMap[j].apifragment;
 						}
 					}
 
 					hashData = {"label": item.label, "species": species, "taxon": item.taxon.id, "type": type, "pos": parseInt(idx), "rank": parseInt(idx), "score": item.score.score};
-					this.state.modelListHash.put(ID, hashData);
-					this._loadDataForModel(ID, item);
+					self.state.modelListHash.put(ID, hashData);
+					self._loadDataForModel(ID, item);
 				}
 			}
+		    self._postLoad();
 		},
 
 		/*
@@ -1551,15 +1563,15 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		// generic ajax call for all queries
-		_ajaxLoadData: function(target, url) { // removed space between function and the ( - Joe
+		_ajaxLoadData: function(target, url,callback) { // removed space between function and the ( - Joe
 			var self = this;
 			var res;
 			$.ajax({
 				url: url,
-				async : false,
+				async : true,
 				dataType : 'json',
 				success : function(data) {
-					res = data;
+					callback(data);
 				},
 				error: function(xhr, errorType, exception) { // removed space between function and the ( - Joe
 				    self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
@@ -1569,23 +1581,24 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 		
         // generic ajax POST
-        _ajaxPostData: function (target, url, postData) {
+        _ajaxPostData: function (target, url, postData,callback) {
             var self = this;
             var res;
             $.ajax({
                 url: url,
                 method: 'POST',
                 data: postData,
-                async : false,
+                async : true,
                 dataType : 'json',
                 success : function(data) {
-                    res = data;
+                    callback(data);
                 },
                 error: function (xhr, errorType, exception) {
                 	// Triggered if an error communicating with server
                     self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
                 }
              });
+	    console.log("data is.."+JSON.stringify(res));
             return res;
         },
 
@@ -3465,6 +3478,7 @@ var TooltipRender = require('./tooltiprender.js');
 				HPOInfo = [];
 				var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 				var taxon = this._getTargetSpeciesTaxonByName(this, this.state.targetSpeciesName);
+			    /** HSH 8/5/15 REFACTOR FOR ASYNC **/
 				var results = this._ajaxLoadData(taxon, url);
 				if (typeof (results) !== 'undefined') {
 					edges = results.edges;
@@ -3542,6 +3556,7 @@ var TooltipRender = require('./tooltiprender.js');
 							"/genotype/nodes.json";
 				console.log("Getting Gene " + url);
 				//console.profile("genotypes call");
+			        /** 8/5/15 REFACTOR FOR ASYNC **/
 				var res = this._ajaxLoadData(modelInfo.d.species, url);
 
 				res = this._filterGenotypeGraphList(res);
@@ -3613,6 +3628,7 @@ var TooltipRender = require('./tooltiprender.js');
 				url = this.state.serverURL + "/compare/" + phenotypeIds + "/" + genotypeIds;
 				console.log("Comparing " + url);
 				//console.profile("compare call");
+			    /*** 8/5/15/ REFACTOR FOR ASYNC **/
 				compareScores = this._ajaxLoadData(modelInfo.d.species, url);
 				//console.profileEnd();
 				console.log("Done with ajaxLoadData...");
@@ -3866,7 +3882,7 @@ var TooltipRender = require('./tooltiprender.js');
 			if (gta === null) {
 				var url = this.state.serverURL+"/gene/"+ curModel.model_id + ".json";
 				//var url = "http://stage-monarch.monarchinitiative.org/gene/"+ gene + ".json";
-
+			        /*** REFACTOR FOR ASYNC **/
 				var res = this._ajaxLoadData(curModel.species, url);
 				if (typeof (res)  !== 'undefined') {
 					gta = res.genotype_associations;
