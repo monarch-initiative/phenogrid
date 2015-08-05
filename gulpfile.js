@@ -50,6 +50,10 @@ var paths = {
 // The default task is to build the different distributions.
 gulp.task('bundle', ['lint', 'create-index', 'js-bundle', 'css-bundle']);
 
+
+// an alternate task that won't uglify. useful for debugging
+gulp.task('dev-bundle', ['lint', 'create-index', 'js-dev-bundle', 'css-bundle']);
+
 gulp.task('create-index', ['clean'], function(cb) {
   gulp.src(['templates/index.html'])
     .pipe(fileinclude({
@@ -67,6 +71,18 @@ gulp.task('js-bundle', function(cb) {
 	bundleStream
 	.pipe(source('./js/phenogrid.js'))
 	.pipe(streamify(uglify())) // Minify JS
+    .pipe(rename('phenogrid-bundle.js'))
+    .pipe(gulp.dest('./dist/'))
+    .on('end', cb);
+});
+
+
+// Bundle JS together with browserify
+gulp.task('js-dev-bundle', function(cb) {
+    var bundleStream = browserify('./js/phenogrid.js').bundle();
+	
+	bundleStream
+	.pipe(source('./js/phenogrid.js'))
     .pipe(rename('phenogrid-bundle.js'))
     .pipe(gulp.dest('./dist/'))
     .on('end', cb);

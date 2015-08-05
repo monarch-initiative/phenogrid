@@ -1121,35 +1121,36 @@ var TooltipRender = require('./tooltiprender.js');
 			if ($.isEmptyObject(this.state.providedData)) {
 				var url = this._getLoadDataURL(phenotypeList, taxon, limit);
 				
-                // NOTE: Here we configu're calls to simsearch to be a POST, while calls
+			    // NOTE: Here we configu're calls to simsearch to be a POST, while calls
 				// to the compare function use a GET, the reason being that compare calls
-				// are not yet configured for POST in the monarch-app.  Configuring the compare
-				// function to handle a post will simplify this code
+			    // are not yet configured for POST in the monarch-app.  Configuring the compare
+			    // function to handle a post will simplify this code
 			    console.log("in loadSpeciesData...owlSimFunction is.."+this.state.owlSimFunction);
-                if (this.state.owlSimFunction !== 'compare'){
-                    postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
-                    if (typeof(limit) !== 'undefined') {
-                        postData += "&limit=" + limit;
-                    }
-                    url = this.state.simServerURL + this.state.simSearchQuery;
-		    console.log("calling ajaxpost data");
-                    this._ajaxPostData(speciesName, url, postData,callback);
-                } else {
-		    console.log("calling ajaxloaddata..");
-                    this._ajaxLoadData(speciesName,url,callback);
-                }
-			} else {
-				res = this.state.providedData;
-			}
-
-			if (typeof (res) !=='undefined' && res !== null) {
-				if (typeof(limit) !== 'undefined' && typeof(res.b) !== 'undefined' && res.b !== null && res.b.length < limit) {
-					res = this._padSpeciesData(res,speciesName,limit);
+			    if (this.state.owlSimFunction !== 'compare'){
+				postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
+				if (typeof(limit) !== 'undefined') {
+				    postData += "&limit=" + limit;
 				}
+				url = this.state.simServerURL + this.state.simSearchQuery;
+				console.log("calling ajaxpost data");
+				this._ajaxPostData(speciesName, url, postData,callback);
+			    } else {
+				console.log("calling ajaxloaddata..");
+				this._ajaxLoadData(speciesName,url,callback);
+			    }
+			} else {
+			    res = this.state.providedData;
+		            callback(res);
+			    
 			}
-		        callback(res);
+		    
+		    if (typeof (res) !=='undefined' && res !== null) {
+			if (typeof(limit) !== 'undefined' && typeof(res.b) !== 'undefined' && res.b !== null && res.b.length < limit) {
+			    res = this._padSpeciesData(res,speciesName,limit);
+			}
+		    }
 		},
-
+	    
 
 		_getLoadDataURL : function(phenotypeList, taxon, limit) {
 			var url = this.state.simServerURL; // do we need state.simServerURL? - Joe
@@ -1189,34 +1190,84 @@ var TooltipRender = require('./tooltiprender.js');
 			return res;
 		},
 
+
+	        /*** 
+		 * sets the stage for loading all of the targets through async calls - 
+                 * create a list of targets and pass with the limit to the overview Loader.
+                 */
 		_loadOverviewData: function() {
-			var limit = this.state.multiOrganismCt;
-			for (var i in this.state.targetSpeciesList) {
-				if ( ! this.state.targetSpeciesList.hasOwnProperty(i)) {
-					break;
-				}
-				var species = this.state.targetSpeciesList[i].name;
-				this._loadSpeciesData(species, limit,callback);
-				if (species === this.state.refSpecies && typeof(species) !== 'undefined') {
-				// if it's the one we're reffering to
-					if (typeof(this.state.data[species].metadata) !== 'undefined') {
-						this.state.maxICScore = this.state.data[species].metadata.maxMaxIC;
-					}
-				}
-				else {
-					var data = this.state.data[species];
-					if(typeof(data) !== 'undefined' && data.length < limit) {
-						limit = (limit - data.length);
-					}
-				}
+		    var limit = this.state.multiOrganismCt;
+		    var targets=[];
+			
+		    for (var i in this.state.targetSpeciesList) {
+			if (  this.state.targetSpeciesList.hasOwnProperty(i)) {
+			    var species = this.state.targetSpeciesList[i].name;
+			    targets.push(species);
 			}
+		    }
+		    var self=this;
+		    console.log("load overview data... "+JSON.stringify(targets));
+   		    this._overviewLoad(self,targets,limit);
 		},
 
-		_finishOverviewLoad: function () {
+	        /***
+		 * Here is where we have some fun. if there's anything left on my list
+		 * call loadSpeciesData with a callback that will invoke finishOverviewLoadForOneTarget
+		 * otherwise,call finishOverviewLoad.
+		 *
+		 * together, this function and finishOverviewLoadForOneTarget
+		 * constintute a paired loop around the async call associated with _loadSpeciesData()
+		 **/
+	       _overviewLoad: function(self,targets,limit) {
+		   if (targets.length > 0) {
+		       // get first item
+		       var target = targets[0];
+		       console.log("trying overview load for..."+target);
+		       // targets is all but last
+		       var targets  = targets.slice(1);
+		       //  call loadSpeciesData with the
+  		       // call back to finish this load
+		      var cb = function(d) {self._finishOverviewLoadForOneTarget(self,target,limit,targets,d);};
+		       self._loadSpeciesData(target,cb,limit);
+		   }
+		   else {
+		       // when the list is done, call finishOverviewLoad();
+		       self._finishOverviewLoad(self);
+		   }
+	       },
+       
+		 
+
+
+
+	       /*** 
+                * the callback for the overview load for each target. gests the data,
+                * adjusts the maxICScore and limit as needed,
+                * and then returns to continue the overviewLoad on the remaining list 
+                */
+	        _finishOverviewLoadForOneTarget: function(self,target,limit,targets,data) {
+		    console.log("finishing overview load for..."+target);
+		    self.state.data[target] = data;
+		    if (target === self.state.refTarget && typeof(target) !== 'undefined') {
+			// if it's the one we're reffering to
+			if (typeof(self.state.data[target].metadata) !== 'undefined') {
+			    self.state.maxICScore = self.state.data[target].metadata.maxMaxIC;
+			}
+		    }
+   		    else {
+			if(typeof(data) !== 'undefined' && data.length < limit) {
+			    limit = (limit - data.length);
+			}
+		    }
+		    self._overviewLoad(self,targets,limit);
+		},
+
+		_finishOverviewLoad: function (self) {
 			var speciesList = [];
 			var posID = 0;
 			var type, ID, hashData;
 			var variantNum = 0;
+		    console.log("finishing overview load");
 
 			for (var i in self.state.targetSpeciesList) {
 				if ( ! self.state.targetSpeciesList.hasOwnProperty(i)) {
@@ -1267,6 +1318,7 @@ var TooltipRender = require('./tooltiprender.js');
 			}
 
 			self.state.speciesList = speciesList;
+		    self._postLoad();
 		},
 
 		/*
@@ -1591,6 +1643,7 @@ var TooltipRender = require('./tooltiprender.js');
                 async : true,
                 dataType : 'json',
                 success : function(data) {
+		    console.log("success in ajax post data.. calling callback..");
                     callback(data);
                 },
                 error: function (xhr, errorType, exception) {
@@ -1598,7 +1651,6 @@ var TooltipRender = require('./tooltiprender.js');
                     self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
                 }
              });
-	    console.log("data is.."+JSON.stringify(res));
             return res;
         },
 
@@ -2775,7 +2827,7 @@ var TooltipRender = require('./tooltiprender.js');
 				$.ajax({
 					url: url,
 					dataType: 'html',
-					async: 'false',
+					async: 'true',
 					success: function(data) {
 						self._populateDialog(self, name, data);
 					},
@@ -3350,7 +3402,7 @@ var TooltipRender = require('./tooltiprender.js');
 					// Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
 					$.ajax({
 						url: this.state.serverURL + "/phenotype/" + unmatched[i].id + ".json",
-						async: false,
+						async: true,
 						dataType: 'json',
 						success: function(data) {
 							// Show id if label is not found
