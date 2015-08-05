@@ -359,7 +359,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			// Added by Joe - Joe
 			// simsearch returned data b[] is stored in this.state['data'] - Joe
-			console.log(this.state);
+			//console.log(this.state);
 
 			// default simServerURL value..
 			if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
@@ -1125,17 +1125,14 @@ var TooltipRender = require('./tooltiprender.js');
 				// to the compare function use a GET, the reason being that compare calls
 			    // are not yet configured for POST in the monarch-app.  Configuring the compare
 			    // function to handle a post will simplify this code
-			    console.log("in loadSpeciesData...owlSimFunction is.."+this.state.owlSimFunction);
 			    if (this.state.owlSimFunction !== 'compare'){
 				postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
 				if (typeof(limit) !== 'undefined') {
 				    postData += "&limit=" + limit;
 				}
 				url = this.state.simServerURL + this.state.simSearchQuery;
-				console.log("calling ajaxpost data");
 				this._ajaxPostData(speciesName, url, postData,callback);
 			    } else {
-				console.log("calling ajaxloaddata..");
 				this._ajaxLoadData(speciesName,url,callback);
 			    }
 			} else {
@@ -1200,7 +1197,6 @@ var TooltipRender = require('./tooltiprender.js');
 			}
 		    }
 		    var self=this;
-		    console.log("load overview data... "+JSON.stringify(targets));
    		    this._overviewLoad(self,targets,limit);
 		},
 
@@ -1216,7 +1212,6 @@ var TooltipRender = require('./tooltiprender.js');
 		   if (targets.length > 0) {
 		       // get first item
 		       var target = targets[0];
-		       console.log("trying overview load for..."+target);
 		       // targets is all but last
 		       var targets  = targets.slice(1);
 		       //  call loadSpeciesData with the
@@ -1240,7 +1235,6 @@ var TooltipRender = require('./tooltiprender.js');
                 * and then returns to continue the overviewLoad on the remaining list 
                 */
 	        _finishOverviewLoadForOneTarget: function(self,target,limit,targets,data) {
-		    console.log("finishing overview load for..."+target);
 
 		    if (typeof (data) !=='undefined' && data !== null) {
 			if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
@@ -1268,7 +1262,6 @@ var TooltipRender = require('./tooltiprender.js');
 			var posID = 0;
 			var type, ID, hashData;
 			var variantNum = 0;
-		    console.log("finishing overview load");
 
 			for (var i in self.state.targetSpeciesList) {
 				if ( ! self.state.targetSpeciesList.hasOwnProperty(i)) {
@@ -1328,9 +1321,6 @@ var TooltipRender = require('./tooltiprender.js');
 		 * Call _loadDataForModel to put the matches in an array
 		 */
 		_finishLoad: function(self,data,limit) {
-		   //  console.log("data is..."+JSON.stringify(data));
-		    console.log("species is " +this.state.targetSpeciesName);
-		    console.log("self.state is.."+JSON.stringify(self.state));
 
 		    var species = self.state.targetSpeciesName;
 		    if (typeof (data) !=='undefined' && data !== null) {
@@ -1650,7 +1640,6 @@ var TooltipRender = require('./tooltiprender.js');
                 async : true,
                 dataType : 'json',
                 success : function(data) {
-		    console.log("success in ajax post data.. calling callback..");
                     callback(data);
                 },
                 error: function (xhr, errorType, exception) {
@@ -3493,10 +3482,95 @@ var TooltipRender = require('./tooltiprender.js');
 		_expandHPO: function(id) {
 			this._getHPO(id);
 
-			// this code refreshes the stickytooltip so that tree appears instantly
-			var hpoCached = this.state.hpoCacheHash.get(id.replace("_", ":"));
 
-			if (hpoCached !== null) {
+		},
+
+		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
+		// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
+		// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
+		_getHPO: function(id) {
+			// check cached hashtable first
+			var idClean = id.replace("_", ":");
+			var HPOInfo = this.state.hpoCacheHash.get(idClean);
+		        var self = this;
+
+			var direction = this.state.hpoDirection;
+			var relationship = "subClassOf";
+			var depth = this.state.hpoDepth;
+		   
+			// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
+			if (HPOInfo === null) {
+				var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
+				var taxon = this._getTargetSpeciesTaxonByName(this, this.state.targetSpeciesName);
+			    /** HSH 8/5/15 REFACTOR FOR ASYNC **/
+				this._ajaxLoadData(taxon, url,function(d) { self._completeOntologyRetrieval(self,idClean,d);});;
+				
+			} else {
+				// If it does exist, make sure its set to visible
+				HPOInfo.active = 1;
+				this.state.hpoCacheHash.put(idClean, HPOInfo);
+			        this._showOntologyTooltip(idClean,HPOInfo);
+			}
+		},
+
+	         /* completion callback for handling retrieved hPO results.
+		  */
+		_completeOntologyRetrieval: function(self,idClean,results) {
+
+		    var nodes, edges;
+		    var HPOInfo = [];
+
+		    if (typeof (results) !== 'undefined') {
+			edges = results.edges;
+			nodes = results.nodes;
+			// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
+			for (var i in nodes){
+			    if ( ! nodes.hasOwnProperty(i)) {
+				break;
+			    }
+			    if ( ! self.state.hpoCacheLabels.containsKey(nodes[i].id) &&
+				 (nodes[i].id != "MP:0000001" &&
+				  nodes[i].id != "OBO:UPHENO_0001001" &&
+				  nodes[i].id != "OBO:UPHENO_0001002" &&
+				  nodes[i].id != "HP:0000118" &&
+				  nodes[i].id != "HP:0000001")) {
+				self.state.hpoCacheLabels.put(nodes[i].id, self._capitalizeString(nodes[i].lbl));
+			    }
+			}
+			
+			// Used to prevent breaking objects
+			for (var j in edges) {
+			    if ( ! edges.hasOwnProperty(j)) {
+				break;
+			    }
+			    if (edges[j].obj != "MP:0000001" &&
+				edges[j].obj != "OBO:UPHENO_0001001" &&
+				edges[j].obj != "OBO:UPHENO_0001002" &&
+				edges[j].obj != "HP:0000118" &&
+				edges[j].obj != "HP:0000001") {
+				HPOInfo.push(edges[j]);
+			    }
+			}
+		    }
+		    
+		    // HACK:if we return a null just create a zero-length array for now to add it to hashtable
+		    // this is for later so we don't have to lookup concept again
+		    if (HPOInfo === null) {
+			HPOInfo = {};
+		    }
+		    
+		    // save the HPO in cache for later
+		    var hashData = {"edges": HPOInfo, "active": 1};
+		    self.state.hpoCacheHash.put(idClean, hashData);
+		    self._showOntologyTooltip(idClean,hashData);
+		},
+
+
+	        /* takes the cleaned id, so we must put the "_" back instead of the ":"*/
+	       _showOntologyTooltip: function(id,ontologyData) {
+
+		   id = id.replace(":","_"); /*HACK*/
+			if (ontologyData !== null) {
 				this.state.hpoTreesDone = 0;
 				this.state.hpoTreeHeight = 0;
 				var info = this._getAxisData(id);
@@ -3505,7 +3579,7 @@ var TooltipRender = require('./tooltiprender.js');
 				var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br>";
 				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br><br>";
 
-				var hpoTree = this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0);
+				var hpoTree = this.buildHPOTree(id.replace("_", ":"), ontologyData.edges, 0);
 
 
 				if (hpoTree === "<br>") {
@@ -3518,76 +3592,8 @@ var TooltipRender = require('./tooltiprender.js');
 				// reshow the sticky with updated info
 				stickytooltip.show(null);
 			}
-		},
-
-		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
-		// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
-		// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
-		_getHPO: function(id) {
-			// check cached hashtable first
-			var idClean = id.replace("_", ":");
-			var HPOInfo = this.state.hpoCacheHash.get(idClean);
-
-			var direction = this.state.hpoDirection;
-			var relationship = "subClassOf";
-			var depth = this.state.hpoDepth;
-			var nodes, edges;
-			// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
-			if (HPOInfo === null) {
-				HPOInfo = [];
-				var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
-				var taxon = this._getTargetSpeciesTaxonByName(this, this.state.targetSpeciesName);
-			    /** HSH 8/5/15 REFACTOR FOR ASYNC **/
-				var results = this._ajaxLoadData(taxon, url);
-				if (typeof (results) !== 'undefined') {
-					edges = results.edges;
-					nodes = results.nodes;
-					// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
-					for (var i in nodes){
-						if ( ! nodes.hasOwnProperty(i)) {
-							break;
-						}
-						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id) &&
-							(nodes[i].id != "MP:0000001" &&
-							nodes[i].id != "OBO:UPHENO_0001001" &&
-							nodes[i].id != "OBO:UPHENO_0001002" &&
-							nodes[i].id != "HP:0000118" &&
-							nodes[i].id != "HP:0000001")) {
-							this.state.hpoCacheLabels.put(nodes[i].id, this._capitalizeString(nodes[i].lbl));
-						}
-					}
-
-					// Used to prevent breaking objects
-					for (var j in edges) {
-						if ( ! edges.hasOwnProperty(j)) {
-							break;
-						}
-						if (edges[j].obj != "MP:0000001" &&
-							edges[j].obj != "OBO:UPHENO_0001001" &&
-							edges[j].obj != "OBO:UPHENO_0001002" &&
-							edges[j].obj != "HP:0000118" &&
-							edges[j].obj != "HP:0000001") {
-							HPOInfo.push(edges[j]);
-						}
-					}
-				}
-
-				// HACK:if we return a null just create a zero-length array for now to add it to hashtable
-				// this is for later so we don't have to lookup concept again
-				if (HPOInfo === null) {
-					HPOInfo = {};
-				}
-
-				// save the HPO in cache for later
-				var hashData = {"edges": HPOInfo, "active": 1};
-				this.state.hpoCacheHash.put(idClean, hashData);
-			} else {
-				// If it does exist, make sure its set to visible
-				HPOInfo.active = 1;
-				this.state.hpoCacheHash.put(idClean, HPOInfo);
-			}
-		},
-
+	       },
+	    
 		// expand the model with the associated genotypes
 		_expandGenotypes: function(curModel) {
 			$('#wait').show();
