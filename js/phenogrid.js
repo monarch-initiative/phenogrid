@@ -1143,12 +1143,6 @@ var TooltipRender = require('./tooltiprender.js');
 		            callback(res);
 			    
 			}
-		    
-		    if (typeof (res) !=='undefined' && res !== null) {
-			if (typeof(limit) !== 'undefined' && typeof(res.b) !== 'undefined' && res.b !== null && res.b.length < limit) {
-			    res = this._padSpeciesData(res,speciesName,limit);
-			}
-		    }
 		},
 	    
 
@@ -1247,6 +1241,13 @@ var TooltipRender = require('./tooltiprender.js');
                 */
 	        _finishOverviewLoadForOneTarget: function(self,target,limit,targets,data) {
 		    console.log("finishing overview load for..."+target);
+
+		    if (typeof (data) !=='undefined' && data !== null) {
+			if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
+			    data = this._padSpeciesData(data,target,limit);
+			}
+		    }
+
 		    self.state.data[target] = data;
 		    if (target === self.state.refTarget && typeof(target) !== 'undefined') {
 			// if it's the one we're reffering to
@@ -1326,11 +1327,17 @@ var TooltipRender = require('./tooltiprender.js');
 		 * Create the modelList array: model_id, model_label, model_score, model_rank
 		 * Call _loadDataForModel to put the matches in an array
 		 */
-		_finishLoad: function(self,data) {
+		_finishLoad: function(self,data,limit) {
 		   //  console.log("data is..."+JSON.stringify(data));
 		    console.log("species is " +this.state.targetSpeciesName);
 		    console.log("self.state is.."+JSON.stringify(self.state));
-			var species = self.state.targetSpeciesName;
+
+		    var species = self.state.targetSpeciesName;
+		    if (typeof (data) !=='undefined' && data !== null) {
+			if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
+			    data = self._padSpeciesData(data,species,limit);
+			}
+		    }
 		        self.state.data[species] = data;
 			var retData = this.state.data[species];
 			var hashData, ID, type, z;
