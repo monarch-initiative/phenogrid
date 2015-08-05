@@ -1243,7 +1243,7 @@ var TooltipRender = require('./tooltiprender.js');
 		    }
 
 		    self.state.data[target] = data;
-		    if (target === self.state.refTarget && typeof(target) !== 'undefined') {
+		    if (target === self.state.refSpecies && typeof(target) !== 'undefined') {
 			// if it's the one we're reffering to
 			if (typeof(self.state.data[target].metadata) !== 'undefined') {
 			    self.state.maxICScore = self.state.data[target].metadata.maxMaxIC;
