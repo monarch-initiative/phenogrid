@@ -455,10 +455,8 @@ var TooltipRender = require('./tooltiprender.js');
 			this._loadData();
 		},
 	    
-	        _postLoad: function() {
-
+	    _postLoad: function() {
 			this._setLoadedValues();
-
 			this._processDisplay();
 		},
 
@@ -1125,19 +1123,19 @@ var TooltipRender = require('./tooltiprender.js');
 				// to the compare function use a GET, the reason being that compare calls
 			    // are not yet configured for POST in the monarch-app.  Configuring the compare
 			    // function to handle a post will simplify this code
-			    if (this.state.owlSimFunction !== 'compare'){
-				postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
-				if (typeof(limit) !== 'undefined') {
-				    postData += "&limit=" + limit;
-				}
-				url = this.state.simServerURL + this.state.simSearchQuery;
-				this._ajaxPostData(speciesName, url, postData,callback);
+			    if (this.state.owlSimFunction !== 'compare') {
+					postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
+					if (typeof(limit) !== 'undefined') {
+						postData += "&limit=" + limit;
+					}
+					url = this.state.simServerURL + this.state.simSearchQuery;
+					this._ajaxPostData(speciesName, url, postData,callback);
 			    } else {
-				this._ajaxLoadData(speciesName,url,callback);
+					this._ajaxLoadData(speciesName,url,callback);
 			    }
 			} else {
 			    res = this.state.providedData;
-		            callback(res);
+		        callback(res);
 			    
 			}
 		},
@@ -1320,15 +1318,14 @@ var TooltipRender = require('./tooltiprender.js');
 		 * Create the modelList array: model_id, model_label, model_score, model_rank
 		 * Call _loadDataForModel to put the matches in an array
 		 */
-		_finishLoad: function(self,data,limit) {
-
+		_finishLoad: function(self, data, limit) {
 		    var species = self.state.targetSpeciesName;
 		    if (typeof (data) !=='undefined' && data !== null) {
-			if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
-			    data = self._padSpeciesData(data,species,limit);
-			}
+				if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
+					data = self._padSpeciesData(data,species,limit);
+				}
 		    }
-		        self.state.data[species] = data;
+		    self.state.data[species] = data;
 			var retData = this.state.data[species];
 			var hashData, ID, type, z;
 			var variantNum = 0;
@@ -1358,7 +1355,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 					type = self.state.defaultApiEntity;
 					for (var j in self.state.apiEntityMap) {
-						if( ! self.state.apiEntityMap.hasOwnProperty(j)) {
+						if ( ! self.state.apiEntityMap.hasOwnProperty(j)) {
 							break;
 						}
 						if (ID.indexOf(self.state.apiEntityMap[j].prefix) === 0) {
@@ -2823,7 +2820,7 @@ var TooltipRender = require('./tooltiprender.js');
 				$.ajax({
 					url: url,
 					dataType: 'html',
-					async: 'true',
+					async: true,
 					success: function(data) {
 						self._populateDialog(self, name, data);
 					},
