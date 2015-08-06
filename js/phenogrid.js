@@ -1097,12 +1097,13 @@ var TooltipRender = require('./tooltiprender.js');
 			if (this.state.targetSpeciesName === 'Overview') {
 				this._loadOverviewData();
 			} else {
-				this._loadSpeciesData(self.state.targetSpeciesName, function(d) {
-					self._finishLoad(self, d);
-				});
+				var cb = function(d) {
+					self._finishLoad(self, d); // use self to refer the global this since it's not accessible directly in scope of cb - Joe
+				};
+				this._loadSpeciesData(self.state.targetSpeciesName, cb);
 				// [vaa12] line below can be used to force a different limit.  It can be loaded above the API default (100) but has a
 				// noticable time delay when trying to load.  There may be a conflict at the API level when trying to go higher than default
-				//this._loadSpeciesData(this.state.targetSpeciesName,20);
+				//this._loadSpeciesData(this.state.targetSpeciesName, callback, 20);
 			}
 
 			this.state.hpoCacheBuilt = true;
