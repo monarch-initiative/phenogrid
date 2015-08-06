@@ -250,17 +250,6 @@ var TooltipRender = require('./tooltiprender.js');
 			return pCount;
 		},
 
-		// Several procedures for various aspects of filtering/identifying appropriate entries in the target species list..
-		_getTargetSpeciesIndexByName: function(self, name) {
-			var index = -1;
-			if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
-				// console.log(self.state.targetSpeciesByName);
-				// will show that the index is a string instead of a number
-				// Need to use parseInt() to convert string to int  - Joe
-				index = parseInt(self.state.targetSpeciesByName[name].index);
-			}
-			return index;
-		},
 
 		_getTargetSpeciesNameByIndex: function(index) {
 			var species;
