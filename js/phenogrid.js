@@ -262,21 +262,21 @@ var TooltipRender = require('./tooltiprender.js');
 			return index;
 		},
 
-		_getTargetSpeciesNameByIndex: function(self,index) {
+		_getTargetSpeciesNameByIndex: function(index) {
 			var species;
-			if (typeof(self.state.targetSpeciesList[index]) !== 'undefined') {
-				species = self.state.targetSpeciesList[index].name;
+			if (typeof(this.state.targetSpeciesList[index]) !== 'undefined') {
+				species = this.state.targetSpeciesList[index].name;
 			} else {
 				species = 'Overview';
 			}
 			return species;
 		},
 
-		_getTargetSpeciesTaxonByName: function(self, name) {
+		_getTargetSpeciesTaxonByName: function(name) {
 			var taxon;
 			// first, find something that matches by name
-			if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
-				taxon = self.state.targetSpeciesByName[name].taxon;
+			if (typeof(this.state.targetSpeciesByName[name]) !== 'undefined') {
+				taxon = this.state.targetSpeciesByName[name].taxon;
 			}
 			// default to overview, so as to always do something sensible
 			if (typeof(taxon) === 'undefined') {
@@ -1112,7 +1112,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 		_loadSpeciesData: function(speciesName, callback, limit) {
 			var phenotypeList = this.state.phenotypeData;
-			var taxon = this._getTargetSpeciesTaxonByName(this, speciesName);
+			var taxon = this._getTargetSpeciesTaxonByName(speciesName);
 			var res;
 			var postData;
 			//console.log("this.state.simServerURL is..."+this.state.simServerURL);
@@ -3491,7 +3491,6 @@ var TooltipRender = require('./tooltiprender.js');
 			// check cached hashtable first
 			var idClean = id.replace("_", ":");
 			var HPOInfo = this.state.hpoCacheHash.get(idClean);
-		        var self = this;
 
 			var direction = this.state.hpoDirection;
 			var relationship = "subClassOf";
@@ -3500,21 +3499,23 @@ var TooltipRender = require('./tooltiprender.js');
 			// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 			if (HPOInfo === null) {
 				var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
-				var taxon = this._getTargetSpeciesTaxonByName(this, this.state.targetSpeciesName);
+				var taxon = this._getTargetSpeciesTaxonByName(this.state.targetSpeciesName);
 			    /** HSH 8/5/15 REFACTOR FOR ASYNC **/
-				this._ajaxLoadData(taxon, url,function(d) { self._completeOntologyRetrieval(self,idClean,d);});;
-				
+				var self = this;
+				this._ajaxLoadData(taxon, url, function(d) { 
+					self._completeOntologyRetrieval(self, idClean, d);
+				});
 			} else {
 				// If it does exist, make sure its set to visible
 				HPOInfo.active = 1;
 				this.state.hpoCacheHash.put(idClean, HPOInfo);
-			        this._showOntologyTooltip(idClean,HPOInfo);
+			        this._showOntologyTooltip(idClean, HPOInfo);
 			}
 		},
 
 	         /* completion callback for handling retrieved hPO results.
 		  */
-		_completeOntologyRetrieval: function(self,idClean,results) {
+		_completeOntologyRetrieval: function(self, idClean, results) {
 
 		    var nodes, edges;
 		    var HPOInfo = [];
