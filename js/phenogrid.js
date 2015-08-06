@@ -3518,42 +3518,43 @@ var TooltipRender = require('./tooltiprender.js');
 		    var HPOInfo = [];
 
 		    if (typeof (results) !== 'undefined') {
-			edges = results.edges;
-			nodes = results.nodes;
-			// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
-			for (var i in nodes){
-			    if ( ! nodes.hasOwnProperty(i)) {
-				break;
-			    }
-			    if ( ! self.state.hpoCacheLabels.containsKey(nodes[i].id) &&
-				 (nodes[i].id != "MP:0000001" &&
-				  nodes[i].id != "OBO:UPHENO_0001001" &&
-				  nodes[i].id != "OBO:UPHENO_0001002" &&
-				  nodes[i].id != "HP:0000118" &&
-				  nodes[i].id != "HP:0000001")) {
-				self.state.hpoCacheLabels.put(nodes[i].id, self._capitalizeString(nodes[i].lbl));
-			    }
-			}
-			
-			// Used to prevent breaking objects
-			for (var j in edges) {
-			    if ( ! edges.hasOwnProperty(j)) {
-				break;
-			    }
-			    if (edges[j].obj != "MP:0000001" &&
-				edges[j].obj != "OBO:UPHENO_0001001" &&
-				edges[j].obj != "OBO:UPHENO_0001002" &&
-				edges[j].obj != "HP:0000118" &&
-				edges[j].obj != "HP:0000001") {
-				HPOInfo.push(edges[j]);
-			    }
-			}
+				edges = results.edges;
+				nodes = results.nodes;
+				// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
+				for (var i in nodes){
+					if ( ! nodes.hasOwnProperty(i)) {
+					break;
+					}
+					if ( ! self.state.hpoCacheLabels.containsKey(nodes[i].id) &&
+					 (nodes[i].id != "MP:0000001" &&
+					  nodes[i].id != "OBO:UPHENO_0001001" &&
+					  nodes[i].id != "OBO:UPHENO_0001002" &&
+					  nodes[i].id != "HP:0000118" &&
+					  nodes[i].id != "HP:0000001")) {
+					self.state.hpoCacheLabels.put(nodes[i].id, self._capitalizeString(nodes[i].lbl));
+					}
+				}
+				
+				// Used to prevent breaking objects
+				for (var j in edges) {
+					if ( ! edges.hasOwnProperty(j)) {
+						break;
+					}
+					
+					if (edges[j].obj != "MP:0000001" &&
+						edges[j].obj != "OBO:UPHENO_0001001" &&
+						edges[j].obj != "OBO:UPHENO_0001002" &&
+						edges[j].obj != "HP:0000118" &&
+						edges[j].obj != "HP:0000001") {
+							HPOInfo.push(edges[j]);
+					}
+				}
 		    }
 		    
 		    // HACK:if we return a null just create a zero-length array for now to add it to hashtable
 		    // this is for later so we don't have to lookup concept again
 		    if (HPOInfo === null) {
-			HPOInfo = {};
+				HPOInfo = {};
 		    }
 		    
 		    // save the HPO in cache for later
@@ -3564,9 +3565,8 @@ var TooltipRender = require('./tooltiprender.js');
 
 
 	        /* takes the cleaned id, so we must put the "_" back instead of the ":"*/
-	       _showOntologyTooltip: function(id,ontologyData) {
-
-		   id = id.replace(":","_"); /*HACK*/
+	    _showOntologyTooltip: function(id,ontologyData) {
+		   id = id.replace(":", "_"); /*HACK*/
 			if (ontologyData !== null) {
 				this.state.hpoTreesDone = 0;
 				this.state.hpoTreeHeight = 0;
@@ -3609,16 +3609,14 @@ var TooltipRender = require('./tooltiprender.js');
 
 			// if cached info not found need to try and get genotypes and scores
 			if (cache === null) {
-
 				// go get the assocated genotypes
 				//var url = this.state.serverURL+"/gene/"+ modelInfo.id.replace('_', ':') + ".json";
 				//var url = this.state.serverURL+"/genotypes/"+ modelInfo.id.replace('_', ':');
 				// HARDCODE ALERT - REFACTOR
-				var url = "http://beta.monarchinitiative.org/dynamic/gene/" + modelInfo.id.replace('_', ':') +
-							"/genotype/nodes.json";
-				console.log("Getting Gene " + url);
+				var url = "http://beta.monarchinitiative.org/dynamic/gene/" + modelInfo.id.replace('_', ':') + "/genotype/nodes.json";
+				//console.log("Getting Gene " + url);
 				//console.profile("genotypes call");
-			        /** 8/5/15 REFACTOR FOR ASYNC **/
+			    /** 8/5/15 REFACTOR FOR ASYNC **/
 				var res = this._ajaxLoadData(modelInfo.d.species, url);
 
 				res = this._filterGenotypeGraphList(res);
