@@ -15,7 +15,9 @@ var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var rename = require("gulp-rename");
 var mocha = require('gulp-mocha');
+var streamify = require('gulp-streamify');
 var uglify = require('gulp-uglify');
+var minifyCSS = require('gulp-minify-css');
 var concat = require('gulp-concat');
 var bump = require('gulp-bump');
 var del = require('del');
@@ -23,6 +25,7 @@ var shell = require('gulp-shell');
 var marked = require('marked');
 var jshint = require('gulp-jshint');
 var jshints = require('jshint-stylish');
+var fileinclude = require('gulp-file-include');
 
 function markdownHelper(text) {
   marked.setOptions({
@@ -36,8 +39,6 @@ function markdownHelper(text) {
   });
   return marked.parse(text);
 }
-var fileinclude = require('gulp-file-include');
-
 
 var paths = {
     readme: ['./README.md'],
@@ -48,6 +49,10 @@ var paths = {
 
 // The default task is to build the different distributions.
 gulp.task('bundle', ['lint', 'create-index', 'js-bundle', 'css-bundle']);
+
+
+// an alternate task that won't uglify. useful for debugging
+gulp.task('dev-bundle', ['lint', 'create-index', 'js-dev-bundle', 'css-bundle']);
 
 gulp.task('create-index', ['clean'], function(cb) {
   gulp.src(['templates/index.html'])
@@ -61,8 +66,22 @@ gulp.task('create-index', ['clean'], function(cb) {
 
 // Bundle JS together with browserify
 gulp.task('js-bundle', function(cb) {
-    browserify('./js/phenogrid.js')
-    .bundle()
+    var bundleStream = browserify('./js/phenogrid.js').bundle();
+    
+    bundleStream
+    .pipe(source('./js/phenogrid.js'))
+    .pipe(streamify(uglify())) // Minify JS
+    .pipe(rename('phenogrid-bundle.js'))
+    .pipe(gulp.dest('./dist/'))
+    .on('end', cb);
+});
+
+
+// Bundle JS together with browserify
+gulp.task('js-dev-bundle', function(cb) {
+    var bundleStream = browserify('./js/phenogrid.js').bundle();
+    
+    bundleStream
     .pipe(source('./js/phenogrid.js'))
     .pipe(rename('phenogrid-bundle.js'))
     .pipe(gulp.dest('./dist/'))
@@ -71,8 +90,9 @@ gulp.task('js-bundle', function(cb) {
 
 // Bundle CSS together with gulp concat
 gulp.task('css-bundle', function(cb) {
-  return gulp.src(['./css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css', './css/sumoselect.css'])
+  return gulp.src(['./css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css'])
     .pipe(concat('phenogrid-bundle.css'))
+    .pipe(minifyCSS()) //Minify CSS
     .pipe(gulp.dest('./dist/'));
 });
 
@@ -81,22 +101,22 @@ gulp.task('build', ['bundle', 'patch-bump']);
 
 gulp.task('patch-bump', function(cb){
     gulp.src('./package.json')
-	.pipe(bump({type: 'patch'}))
-	.pipe(gulp.dest('./'));
+    .pipe(bump({type: 'patch'}))
+    .pipe(gulp.dest('./'));
     cb(null);
 });
 
 gulp.task('minor-bump', function(cb){
     gulp.src('./package.json')
-	.pipe(bump({type: 'minor'}))
-	.pipe(gulp.dest('./'));
+    .pipe(bump({type: 'minor'}))
+    .pipe(gulp.dest('./'));
     cb(null);
 });
 
 gulp.task('major-bump', function(cb){
     gulp.src('./package.json')
-	.pipe(bump({type: 'major'}))
-	.pipe(gulp.dest('./'));
+    .pipe(bump({type: 'major'}))
+    .pipe(gulp.dest('./'));
     cb(null);
 });
 
@@ -108,11 +128,11 @@ gulp.task('clean', function(cb) {
 // Testing with mocha/chai.
 gulp.task('tests', function() {
     return gulp.src(paths.tests, { read: false }).pipe(mocha({
-	reporter: 'spec',
-	globals: {
-	    // Use a different should.
-	    should: require('chai').should()
-	}
+    reporter: 'spec',
+    globals: {
+        // Use a different should.
+        should: require('chai').should()
+    }
     }));
 });
 
@@ -122,8 +142,8 @@ gulp.task('release', ['build', 'publish-npm']);
 gulp.task('publish-npm', function() {
     var npm = require("npm");
     npm.load(function (er, npm) {
-	// NPM
-	npm.commands.publish();
+    // NPM
+    npm.commands.publish();
     });
 });
 
