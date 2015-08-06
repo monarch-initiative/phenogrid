@@ -1199,10 +1199,10 @@ var TooltipRender = require('./tooltiprender.js');
 
 	    /***
 		 * Here is where we have some fun. if there's anything left on my list
-		 * call loadSpeciesData with a callback that will invoke finishOverviewLoadForOneTarget
-		 * otherwise,call finishOverviewLoad.
+		 * call _loadSpeciesData() with a callback that will invoke _finishOverviewLoadForOneTarget()
+		 * otherwise, call _finishOverviewLoad().
 		 *
-		 * together, this function and finishOverviewLoadForOneTarget
+		 * together, this function and _finishOverviewLoadForOneTarget()
 		 * constintute a paired loop around the async call associated with _loadSpeciesData()
 		 **/
 	    _overviewLoad: function(self, targets, limit) {
@@ -1211,12 +1211,14 @@ var TooltipRender = require('./tooltiprender.js');
 				var target = targets[0];
 				// targets is all but last
 				var targets  = targets.slice(1);
-				//  call loadSpeciesData with the
-				// call back to finish this load
-				var cb = function(d) {self._finishOverviewLoadForOneTarget(self,target,limit,targets,d);};
-				self._loadSpeciesData(target,cb,limit);
+				// call _loadSpeciesData() with the
+				// callback to finish this load
+				var cb = function(d) {
+					self._finishOverviewLoadForOneTarget(self, target, limit, targets, d);
+				};
+				self._loadSpeciesData(target, cb, limit);
 			} else {
-				// when the list is done, call finishOverviewLoad();
+				// when the list is done, call _finishOverviewLoad();
 				self._finishOverviewLoad(self);
 			}
 		},
