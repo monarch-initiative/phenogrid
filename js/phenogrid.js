@@ -226,7 +226,7 @@ var TooltipRender = require('./tooltiprender.js');
 			}
 
 			// target species name might be provided as a name or as taxon. Make sure that we translate to name
-			this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this, this.state.targetSpeciesName);
+			this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this.state.targetSpeciesName);
 
 			this.state.yAxisMax = 0;
 			this.state.yoffset = this.state.baseYOffset;
@@ -281,7 +281,7 @@ var TooltipRender = require('./tooltiprender.js');
 		* this might be somewhat inefficient, as we will later translate to taxon, but it will
 		* make other calls easier to be consitently talking in terms of species name
 		*/
-		_getTargetSpeciesNameByTaxon: function(self, name) {
+		_getTargetSpeciesNameByTaxon: function(name) {
 			// default - it actually was a species name
 			var species = name;
 			var found = false;
@@ -292,8 +292,8 @@ var TooltipRender = require('./tooltiprender.js');
 			 * if, however, it matches the taxon, take the index in the array.
 			 */
 
-			for (var sname in self.state.targetSpeciesByName) {
-				if ( ! self.state.targetSpeciesByName.hasOwnProperty(sname)) {
+			for (var sname in this.state.targetSpeciesByName) {
+				if ( ! this.state.targetSpeciesByName.hasOwnProperty(sname)) {
 					break;
 				}
 				// we've found a matching name.
@@ -301,7 +301,7 @@ var TooltipRender = require('./tooltiprender.js');
 					found = true;
 				}
 
-				if (name === self.state.targetSpeciesByName[sname].taxon) {
+				if (name === this.state.targetSpeciesByName[sname].taxon) {
 					found = true;
 					species = sname;
 					break;
@@ -438,7 +438,7 @@ var TooltipRender = require('./tooltiprender.js');
 			this.state.origPhenotypeData = this.state.phenotypeData.slice();
 
 			// target species name might be provided as a name or as taxon. Make sure that we translate to name
-			this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this, this.state.targetSpeciesName);
+			this.state.targetSpeciesName = this._getTargetSpeciesNameByTaxon(this.state.targetSpeciesName);
 			this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 
 			this._loadData();
