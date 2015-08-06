@@ -1098,7 +1098,7 @@ var TooltipRender = require('./tooltiprender.js');
 				this._loadOverviewData();
 			} else {
 				var cb = function(d) {
-					self._finishLoad(self, d); // use self to refer the global this since it's not accessible directly in scope of cb - Joe
+					self._finishLoad(d); // use self to refer the global this since it's not accessible directly in scope of cb - Joe
 				};
 				this._loadSpeciesData(self.state.targetSpeciesName, cb);
 				// [vaa12] line below can be used to force a different limit.  It can be loaded above the API default (100) but has a
@@ -1317,8 +1317,10 @@ var TooltipRender = require('./tooltiprender.js');
 		 * Create the modelList array: model_id, model_label, model_score, model_rank
 		 * Call _loadDataForModel to put the matches in an array
 		 */
-		_finishLoad: function(self, data, limit) {
-		    var species = self.state.targetSpeciesName;
+		_finishLoad: function(data, limit) {
+		    var self = this;
+			
+			var species = self.state.targetSpeciesName;
 		    if (typeof (data) !=='undefined' && data !== null) {
 				if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
 					data = self._padSpeciesData(data,species,limit);
