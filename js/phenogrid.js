@@ -1093,14 +1093,15 @@ var TooltipRender = require('./tooltiprender.js');
 			// At time being, overview is made up of three calls, which it repeats these calls with a larger limit if you decided to view single species
 			// Might be more efficent to load those three, cache them and then make an overview dataset and cache that as well.
 			// This is also called when axis is flipped, so might need to create those cached as well (which would be very simple)
-		    var self = this;
+		    
 			if (this.state.targetSpeciesName === 'Overview') {
 				this._loadOverviewData();
 			} else {
+				var self = this; // use self to refer the global this since it's not accessible directly in scope of cb - Joe
 				var cb = function(d) {
-					self._finishLoad(d); // use self to refer the global this since it's not accessible directly in scope of cb - Joe
+					self._finishLoad(d); 
 				};
-				this._loadSpeciesData(self.state.targetSpeciesName, cb);
+				this._loadSpeciesData(this.state.targetSpeciesName, cb);
 				// [vaa12] line below can be used to force a different limit.  It can be loaded above the API default (100) but has a
 				// noticable time delay when trying to load.  There may be a conflict at the API level when trying to go higher than default
 				//this._loadSpeciesData(this.state.targetSpeciesName, callback, 20);
