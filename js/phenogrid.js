@@ -1059,7 +1059,6 @@ var TooltipRender = require('./tooltiprender.js');
 		// given a list of phenotypes, find the top n models
 		// I may need to rename this method "getModelData". It should extract the models and reformat the data
 		_loadData: function() {
-
 			/*
 			 * set the owlsimFunction
 			 * there are three possibilities
@@ -1097,21 +1096,21 @@ var TooltipRender = require('./tooltiprender.js');
 		    var self = this;
 			if (this.state.targetSpeciesName === 'Overview') {
 				this._loadOverviewData();
-				//this._finishOverviewLoad();
 			} else {
-				this._loadSpeciesData(self.state.targetSpeciesName,function(d) {self._finishLoad(self,d);});
+				this._loadSpeciesData(self.state.targetSpeciesName, function(d) {
+					self._finishLoad(self, d);
+				});
 				// [vaa12] line below can be used to force a different limit.  It can be loaded above the API default (100) but has a
 				// noticable time delay when trying to load.  There may be a conflict at the API level when trying to go higher than default
 				//this._loadSpeciesData(this.state.targetSpeciesName,20);
-				//this._finishLoad();
 			}
 
 			this.state.hpoCacheBuilt = true;
 		},
 
-		_loadSpeciesData: function(speciesName, callback,limit) {
+		_loadSpeciesData: function(speciesName, callback, limit) {
 			var phenotypeList = this.state.phenotypeData;
-			var taxon = this._getTargetSpeciesTaxonByName(this,speciesName);
+			var taxon = this._getTargetSpeciesTaxonByName(this, speciesName);
 			var res;
 			var postData;
 			//console.log("this.state.simServerURL is..."+this.state.simServerURL);
@@ -1129,9 +1128,9 @@ var TooltipRender = require('./tooltiprender.js');
 						postData += "&limit=" + limit;
 					}
 					url = this.state.simServerURL + this.state.simSearchQuery;
-					this._ajaxPostData(speciesName, url, postData,callback);
+					this._ajaxPostData(speciesName, url, postData, callback);
 			    } else {
-					this._ajaxLoadData(speciesName,url,callback);
+					this._ajaxLoadData(speciesName, url, callback);
 			    }
 			} else {
 			    res = this.state.providedData;
@@ -1180,25 +1179,25 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 
-	        /*** 
+		/*** 
 		 * sets the stage for loading all of the targets through async calls - 
-                 * create a list of targets and pass with the limit to the overview Loader.
-                 */
+		 * create a list of targets and pass with the limit to the overview Loader.
+		 */
 		_loadOverviewData: function() {
 		    var limit = this.state.multiOrganismCt;
 		    var targets=[];
 			
 		    for (var i in this.state.targetSpeciesList) {
-			if (  this.state.targetSpeciesList.hasOwnProperty(i)) {
-			    var species = this.state.targetSpeciesList[i].name;
-			    targets.push(species);
-			}
+				if (this.state.targetSpeciesList.hasOwnProperty(i)) {
+					var species = this.state.targetSpeciesList[i].name;
+					targets.push(species);
+				}
 		    }
 		    var self=this;
-   		    this._overviewLoad(self,targets,limit);
+   		    this._overviewLoad(self, targets, limit);
 		},
 
-	        /***
+	    /***
 		 * Here is where we have some fun. if there's anything left on my list
 		 * call loadSpeciesData with a callback that will invoke finishOverviewLoadForOneTarget
 		 * otherwise,call finishOverviewLoad.
@@ -1206,53 +1205,50 @@ var TooltipRender = require('./tooltiprender.js');
 		 * together, this function and finishOverviewLoadForOneTarget
 		 * constintute a paired loop around the async call associated with _loadSpeciesData()
 		 **/
-	       _overviewLoad: function(self,targets,limit) {
-		   if (targets.length > 0) {
-		       // get first item
-		       var target = targets[0];
-		       // targets is all but last
-		       var targets  = targets.slice(1);
-		       //  call loadSpeciesData with the
-  		       // call back to finish this load
-		      var cb = function(d) {self._finishOverviewLoadForOneTarget(self,target,limit,targets,d);};
-		       self._loadSpeciesData(target,cb,limit);
-		   }
-		   else {
-		       // when the list is done, call finishOverviewLoad();
-		       self._finishOverviewLoad(self);
-		   }
-	       },
+	    _overviewLoad: function(self, targets, limit) {
+			if (targets.length > 0) {
+				// get first item
+				var target = targets[0];
+				// targets is all but last
+				var targets  = targets.slice(1);
+				//  call loadSpeciesData with the
+				// call back to finish this load
+				var cb = function(d) {self._finishOverviewLoadForOneTarget(self,target,limit,targets,d);};
+				self._loadSpeciesData(target,cb,limit);
+			} else {
+				// when the list is done, call finishOverviewLoad();
+				self._finishOverviewLoad(self);
+			}
+		},
        
 		 
 
 
 
-	       /*** 
-                * the callback for the overview load for each target. gests the data,
-                * adjusts the maxICScore and limit as needed,
-                * and then returns to continue the overviewLoad on the remaining list 
-                */
-	        _finishOverviewLoadForOneTarget: function(self,target,limit,targets,data) {
+		/*** 
+		 * the callback for the overview load for each target. gests the data,
+		 * adjusts the maxICScore and limit as needed,
+		 * and then returns to continue the overviewLoad on the remaining list 
+		 */
+		_finishOverviewLoadForOneTarget: function(self, target, limit, targets, data) {
+			if (typeof (data) !=='undefined' && data !== null) {
+				if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
+					data = this._padSpeciesData(data,target,limit);
+				}
+			}
 
-		    if (typeof (data) !=='undefined' && data !== null) {
-			if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
-			    data = this._padSpeciesData(data,target,limit);
+			self.state.data[target] = data;
+			if (target === self.state.refSpecies && typeof(target) !== 'undefined') {
+				// if it's the one we're reffering to
+				if (typeof(self.state.data[target].metadata) !== 'undefined') {
+					self.state.maxICScore = self.state.data[target].metadata.maxMaxIC;
+				}
+			} else {
+				if(typeof(data) !== 'undefined' && data.length < limit) {
+					limit = (limit - data.length);
+				}
 			}
-		    }
-
-		    self.state.data[target] = data;
-		    if (target === self.state.refSpecies && typeof(target) !== 'undefined') {
-			// if it's the one we're reffering to
-			if (typeof(self.state.data[target].metadata) !== 'undefined') {
-			    self.state.maxICScore = self.state.data[target].metadata.maxMaxIC;
-			}
-		    }
-   		    else {
-			if(typeof(data) !== 'undefined' && data.length < limit) {
-			    limit = (limit - data.length);
-			}
-		    }
-		    self._overviewLoad(self,targets,limit);
+			self._overviewLoad(self,targets,limit);
 		},
 
 		_finishOverviewLoad: function (self) {
@@ -1340,7 +1336,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			if (typeof (retData.b) !== 'undefined') {
 				for (var idx in retData.b) {
-					if(!retData.b.hasOwnProperty(idx)) {
+					if ( ! retData.b.hasOwnProperty(idx)) {
 						break;
 					}
 					var item = retData.b[idx];
