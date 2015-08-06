@@ -18,12 +18,13 @@ var Utils = require('./utils.js');
  		simSearchQuery - sim search query specific url string
  		apiEntityMap - entity map identifies the prefix maps (this is probably temporary)
  */
-var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList, speciesList, apiEntityMap, limit) {
+var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList, targetGroupList, apiEntityMap, callback, limit) {
 	this.simServerURL = simServerUrl;
-	this.serverURL = serverUrl;
-	this.simSearchQuery = simSearchQuery;
+	this.serverURL = serverUrl;	
+	this.simSearchURL = serverUrl + simSearchQuery;
 	this.qrySourceList = qrySourceList;
-	this.speciesList = speciesList;
+	this.qryString = '';
+	this.targetGroupList = targetGroupList;
 	this.limit = limit;
 	this.apiEntityMap = apiEntityMap;
 	this.owlsimsData = [];
@@ -33,8 +34,9 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList
 	this.sourceData = [];
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
+	this.postCallback = callback;
 
-	this.load(this.qrySourceList, this.speciesList, this.limit);
+	this.load(this.qrySourceList, this.targetGroupList, this.limit);
 
 };
 
@@ -48,51 +50,68 @@ DataLoader.prototype = {
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			species - list of species
+			targetGroup - list of targetGroup
 			limit - value to limit targets returned
 	*/
-	load: function(qrySourceList, species, limit) {
-		var res, speciesName = [];
+	load: function(qrySourceList, targetGroup, limit) {
+		var targetGroupList = [];
 
 		// save the original source listing
 		this.origSourceList = qrySourceList;
 
-		if (typeof(species) === 'object') {
-			speciesName = species;
+		if (typeof(targetGroup) === 'object') {
+			targetGroupList = targetGroup;
 		}
-		else if (typeof(species) === 'string') {
-			speciesName = [species];
+		else if (typeof(targetGroup) === 'string') { // for just string passed place it into an array
+			targetGroupList = [targetGroup];
 		}
 
-		//this.simSearchQuery = 'input_items=';
-		// MKD: this may be a temporary formation of the url
-		var url = this.simServerURL + this.simSearchQuery
+	    this.qryString = 'input_items=' + qrySourceList.join("+");
 
-		for (var i=0; i < speciesName.length; i++) {
+		if (typeof(limit) !== 'undefined') {
+	    	this.qryString += "&limit=" + limit;
+		}
 
-	    	//var data = this.simSearchQuery + qrySourceList.join("+");
-	    	var data = 'input_items=' + qrySourceList.join("+");
+		// begin processing
+		this.process(targetGroupList, this.qryString);
 
-		    if (typeof(speciesName[i]) !== 'undefined') {
-		    	data += "&target_species=" + speciesName[i].taxon;
-		    } 
-		    if (typeof(limit) !== 'undefined') {
-		    	data += "&limit=" + limit;
-			}
-		    console.log(url, data);
+	},
 
-		    // make ajax call
-		    res = this.fetch(url, data);
+	process: function(targetGrpList, qryString) {
+		var postData = '';
+		var self = this;
 
-			// save the original owlsim data
-			this.owlsimsData[speciesName[i].name] = res;
+		if (targetGrpList.length > 0) {
+			var target = targetGrpList[0];  // pull off the first to start processing
+			targetGrpList = targetGrpList.slice(1);
+	    	
+	    	// need to add on target targetGroup id
+	    	postData = qryString + "&target_species=" + target.taxon;
 
-			if (typeof (res) !=='undefined' && res !== null) {
+	    	var callback = this.postSimsFetchCb;
+
+			this.fetch(self, this.simSearchURL, target, targetGrpList, callback, postData);
+		} else {
+			this.postCallback();  // make a call back to post data init function
+		}
+	},
+
+	/*
+		Function: postSimsFetchCb
+		Callback function for the post async ajax call
+	*/
+	postSimsFetchCb: function(s, target, targetGrpList, data) {
+		var self = s;
+		// save the original owlsim data
+			self.owlsimsData[target.name] = data;
+
+			if (typeof (data) !=='undefined' && data !== null) {
 				// now transform data to there basic data structures
-				this.transform(speciesName[i].name);   //res, speciesName[i].name);  
+				self.transform(target.name, data);  
 			}
-		}
 
+			// iterative back to process to make sure we processed all the targetGrpList
+			self.process(targetGrpList, self.qryString);
 	},
 
 	/*
@@ -102,11 +121,10 @@ DataLoader.prototype = {
 	
 	 	Parameters:
 
+	 		targetGroup - targetGroup name
 	 		data - owlsims structured data
-	 		species - species name
 	*/
-	transform: function(species) {      
-		var data = this.owlsimsData[species];
+	transform: function(targetGroup, data) {      		
 
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
@@ -116,8 +134,8 @@ DataLoader.prototype = {
 			if (typeof (data.metadata) !== 'undefined') {
 				this.maxICScore = data.metadata.maxMaxIC;
 			}
-			this.cellData[species] = [];
-			this.targetData[species] = [];
+			this.cellData[targetGroup] = [];
+			this.targetData[targetGroup] = [];
 			this.sourceData = [];
 
 			//var variantNum = 0;
@@ -145,12 +163,12 @@ DataLoader.prototype = {
 				// build the target list
 				var t = {"id":targetID, 
 					 "label": item.label, 
-					 "species": item.taxon.label, 
+					 "targetGroup": item.taxon.label, 
 					 "taxon": item.taxon.id, 
 					 "type": type, 
 					 "rank": parseInt(idx)+1,  // start with 1 not zero
 					 "score": item.score.score};  
-				this.targetData[species][targetID] = t;
+				this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -186,7 +204,7 @@ DataLoader.prototype = {
 						// building cell data points
 						dataVals = {"source_id": sourceID_a, 
 									"target_id": targetID, 
-									"species": item.taxon.label,									
+									"targetGroup": item.taxon.label,									
 									"value": lcs, 
 									"a_IC" : curr_row.a.IC,  
 									"a_label" : curr_row.a.label,
@@ -198,46 +216,18 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'};
 							    
-					    if (typeof(this.cellData[species][sourceID_a]) === 'undefined') {
-							this.cellData[species][sourceID_a] = {};
+					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[species][sourceID_a][targetID]) === 'undefined') {
-							this.cellData[species][sourceID_a][targetID] = {};
+					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a][targetID] = {};
 					    } 
-					 	this.cellData[species][sourceID_a][targetID] = dataVals;
+					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
 			} // for
 		} // if
 	}, 
-
-	getTargets: function() {
-		return this.targetData;
-	},
-
-	getSources: function() {
-		return this.sourceData;
-	},
-
-	getCellData: function() {
-		return this.cellData;
-	},
-
-	getOntologyCacheLabels: function() {
-		return this.ontologyCacheLabels;
-	},
-
-	getMaxICScore: function() {
-		return this.maxICScore;
-	},
-
-	dataExists: function(species) {
-		var t = this.cellData[species]  || this.targetData[species];
-		if (typeof(t) === 'undefined') {
-			return false;
-		}
-		return true;
-	},
 
 	/*
 		Function: refresh
@@ -245,21 +235,21 @@ DataLoader.prototype = {
 			freshes the data 
 	
 	 	Parameters:
-			species - list of species to fetch
+			targetGroup - list of targetGroup to fetch
 	 		lazy - performs a lazy load of the data checking for existing data
 	*/
-	refresh: function(species, lazy) {
+	refresh: function(targetGroup, lazy) {
 		var list = [], reloaded = false;
 		if (lazy) {
-			for (var idx in species) {
-				if (this.dataExists(species[idx].name) === false) {
-					list.push(species[idx]); // load to list to be reloaded
+			for (var idx in targetGroup) {
+				if (this.dataExists(targetGroup[idx].name) === false) {
+					list.push(targetGroup[idx]); // load to list to be reloaded
 				}
 			}
 		} else {
-			list = species;
+			list = targetGroup;
 		}
-		// if list is empty, that means we already have data loaded for species, or possible none were passed in
+		// if list is empty, that means we already have data loaded for targetGroup, or possible none were passed in
 		if (list.length > 0) {
 			this.load(this.origSourceList, list, this.limit);
 			reloaded = true;
@@ -267,20 +257,31 @@ DataLoader.prototype = {
 		return reloaded;
 	},
 
-	// generic ajax call for all queries
-	fetch: function (url, postData) {
+	/*
+		Function: fetch		
+	 		generic ajax call for all queries
+
+	 	Parameters:
+	 		url - server url
+	 		callback
+	 		postData - data to be posted
+	 */ 
+	fetch: function (s, url, target, targets, callback, postData) {
 		var res;
+		var self = s;
 		//var get_url = url + data;
 
 		if (typeof(postData) != 'undefined') {
+			console.log('POST:' + url);
 			jQuery.ajax({
 				url: url,
 				method: 'POST', 
 				data: postData,
-				async : false,
+				async : true,
 				dataType : 'json',
 				success : function(data) {
-					res = data;
+					//res = data;
+					callback(self, target, targets, data);
 				},
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
@@ -301,13 +302,14 @@ DataLoader.prototype = {
 				} 
 			});
 		} else {
+			console.log('GET:' + url);
 			jQuery.ajax({
 				url: url,
 				method: 'GET', 
-				async : false,
+				async : true,
 				dataType : 'json',
 				success : function(data) {
-					res = data;
+					res = callback(self, data);					
 				},
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
@@ -335,23 +337,32 @@ DataLoader.prototype = {
 	// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
 	// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
 	getOntology: function(id, ontologyDirection, ontologyDepth) {
+		var self = this;
 		// check cached hashtable first
 		var idClean = id.replace("_", ":");
-
-//		var ontologyInfo = this.state.ontologyCacheHash.get(idClean);
-		var ontologyCache = [];
 		var direction = ontologyDirection;
 		var relationship = "subClassOf";
 		var depth = ontologyDepth;
-		var nodes, edges;
+
 		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
-//		if (ontologyInfo === null) {
-			var ontologyInfo = [];			
-			var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
-			var results = this.fetch(url);
+		var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
-			if (typeof (results) !== 'undefined') {
+		//var results = this.fetch(url);
+		var cb = function(d) {this.postOntologyCb(self, idClean, d);};
+
+		// not postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
+		this.fetch(self, this.simSearchURL, target, targetGrpList, cb);
+
+	},
+
+	postOntologyCb: function(s, id, results) {
+		var ontologyInfo = [];	
+		var ontologyCache = [];
+		var self = s;
+		var nodes, edges;
+
+		if (typeof (results) !== 'undefined') {
 				edges = results.edges;
 				nodes = results.nodes;
 				// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
@@ -359,14 +370,14 @@ DataLoader.prototype = {
 					if ( ! nodes.hasOwnProperty(i)) {
 						break;
 					}
-					var lab = this.ontologyCacheLabels[nodes[i].id];
+					var lab = self.ontologyCacheLabels[nodes[i].id];
 					if ( typeof(lab) == 'undefined' ||
 						(nodes[i].id !== "MP:0000001" &&
 						nodes[i].id !== "OBO:UPHENO_0001001" &&
 						nodes[i].id !== "OBO:UPHENO_0001002" &&
 						nodes[i].id !== "HP:0000118" &&
 						nodes[i].id !== "HP:0000001")) {
-						this.ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
+						self.ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
 					}
 				}
 
@@ -393,7 +404,7 @@ DataLoader.prototype = {
 
 			// save the ontology in cache for later
 			var hashData = {"edges": ontologyInfo, "active": 1};
-			ontologyCache[idClean] = hashData;
+			ontologyCache[id] = hashData;
 		// } else {
 		// 	// If it does exist, make sure its set to visible
 		// 	ontologyInfo.active = 1;
@@ -404,7 +415,36 @@ DataLoader.prototype = {
 
 	getOntologyLabel: function(id) {
 		return this.ontologyCacheLabels[id];
+	}, 
+
+	getTargets: function() {
+		return this.targetData;
+	},
+
+	getSources: function() {
+		return this.sourceData;
+	},
+
+	getCellData: function() {
+		return this.cellData;
+	},
+
+	getOntologyCacheLabels: function() {
+		return this.ontologyCacheLabels;
+	},
+
+	getMaxICScore: function() {
+		return this.maxICScore;
+	},
+
+	dataExists: function(targetGroup) {
+		var t = this.cellData[targetGroup]  || this.targetData[targetGroup];
+		if (typeof(t) === 'undefined') {
+			return false;
+		}
+		return true;
 	}
+
 
 };
 

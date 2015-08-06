@@ -326,12 +326,13 @@ var Utils = require('./utils.js');
  		simSearchQuery - sim search query specific url string
  		apiEntityMap - entity map identifies the prefix maps (this is probably temporary)
  */
-var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList, speciesList, apiEntityMap, limit) {
+var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList, targetGroupList, apiEntityMap, callback, limit) {
 	this.simServerURL = simServerUrl;
-	this.serverURL = serverUrl;
-	this.simSearchQuery = simSearchQuery;
+	this.serverURL = serverUrl;	
+	this.simSearchURL = serverUrl + simSearchQuery;
 	this.qrySourceList = qrySourceList;
-	this.speciesList = speciesList;
+	this.qryString = '';
+	this.targetGroupList = targetGroupList;
 	this.limit = limit;
 	this.apiEntityMap = apiEntityMap;
 	this.owlsimsData = [];
@@ -341,8 +342,9 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList
 	this.sourceData = [];
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
+	this.postCallback = callback;
 
-	this.load(this.qrySourceList, this.speciesList, this.limit);
+	this.load(this.qrySourceList, this.targetGroupList, this.limit);
 
 };
 
@@ -356,51 +358,68 @@ DataLoader.prototype = {
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			species - list of species
+			targetGroup - list of targetGroup
 			limit - value to limit targets returned
 	*/
-	load: function(qrySourceList, species, limit) {
-		var res, speciesName = [];
+	load: function(qrySourceList, targetGroup, limit) {
+		var targetGroupList = [];
 
 		// save the original source listing
 		this.origSourceList = qrySourceList;
 
-		if (typeof(species) === 'object') {
-			speciesName = species;
+		if (typeof(targetGroup) === 'object') {
+			targetGroupList = targetGroup;
 		}
-		else if (typeof(species) === 'string') {
-			speciesName = [species];
+		else if (typeof(targetGroup) === 'string') { // for just string passed place it into an array
+			targetGroupList = [targetGroup];
 		}
 
-		//this.simSearchQuery = 'input_items=';
-		// MKD: this may be a temporary formation of the url
-		var url = this.simServerURL + this.simSearchQuery
+	    this.qryString = 'input_items=' + qrySourceList.join("+");
 
-		for (var i=0; i < speciesName.length; i++) {
+		if (typeof(limit) !== 'undefined') {
+	    	this.qryString += "&limit=" + limit;
+		}
 
-	    	//var data = this.simSearchQuery + qrySourceList.join("+");
-	    	var data = 'input_items=' + qrySourceList.join("+");
+		// begin processing
+		this.process(targetGroupList, this.qryString);
 
-		    if (typeof(speciesName[i]) !== 'undefined') {
-		    	data += "&target_species=" + speciesName[i].taxon;
-		    } 
-		    if (typeof(limit) !== 'undefined') {
-		    	data += "&limit=" + limit;
-			}
-		    console.log(url, data);
+	},
 
-		    // make ajax call
-		    res = this.fetch(url, data);
+	process: function(targetGrpList, qryString) {
+		var postData = '';
+		var self = this;
 
-			// save the original owlsim data
-			this.owlsimsData[speciesName[i].name] = res;
+		if (targetGrpList.length > 0) {
+			var target = targetGrpList[0];  // pull off the first to start processing
+			targetGrpList = targetGrpList.slice(1);
+	    	
+	    	// need to add on target targetGroup id
+	    	postData = qryString + "&target_species=" + target.taxon;
 
-			if (typeof (res) !=='undefined' && res !== null) {
+	    	var callback = this.postSimsFetchCb;
+
+			this.fetch(self, this.simSearchURL, target, targetGrpList, callback, postData);
+		} else {
+			this.postCallback();  // make a call back to post data init function
+		}
+	},
+
+	/*
+		Function: postSimsFetchCb
+		Callback function for the post async ajax call
+	*/
+	postSimsFetchCb: function(s, target, targetGrpList, data) {
+		var self = s;
+		// save the original owlsim data
+			self.owlsimsData[target.name] = data;
+
+			if (typeof (data) !=='undefined' && data !== null) {
 				// now transform data to there basic data structures
-				this.transform(speciesName[i].name);   //res, speciesName[i].name);  
+				self.transform(target.name, data);  
 			}
-		}
 
+			// iterative back to process to make sure we processed all the targetGrpList
+			self.process(targetGrpList, self.qryString);
 	},
 
 	/*
@@ -410,11 +429,10 @@ DataLoader.prototype = {
 	
 	 	Parameters:
 
+	 		targetGroup - targetGroup name
 	 		data - owlsims structured data
-	 		species - species name
 	*/
-	transform: function(species) {      
-		var data = this.owlsimsData[species];
+	transform: function(targetGroup, data) {      		
 
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
@@ -424,8 +442,8 @@ DataLoader.prototype = {
 			if (typeof (data.metadata) !== 'undefined') {
 				this.maxICScore = data.metadata.maxMaxIC;
 			}
-			this.cellData[species] = [];
-			this.targetData[species] = [];
+			this.cellData[targetGroup] = [];
+			this.targetData[targetGroup] = [];
 			this.sourceData = [];
 
 			//var variantNum = 0;
@@ -453,12 +471,12 @@ DataLoader.prototype = {
 				// build the target list
 				var t = {"id":targetID, 
 					 "label": item.label, 
-					 "species": item.taxon.label, 
+					 "targetGroup": item.taxon.label, 
 					 "taxon": item.taxon.id, 
 					 "type": type, 
 					 "rank": parseInt(idx)+1,  // start with 1 not zero
 					 "score": item.score.score};  
-				this.targetData[species][targetID] = t;
+				this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -494,7 +512,7 @@ DataLoader.prototype = {
 						// building cell data points
 						dataVals = {"source_id": sourceID_a, 
 									"target_id": targetID, 
-									"species": item.taxon.label,									
+									"targetGroup": item.taxon.label,									
 									"value": lcs, 
 									"a_IC" : curr_row.a.IC,  
 									"a_label" : curr_row.a.label,
@@ -506,46 +524,18 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'};
 							    
-					    if (typeof(this.cellData[species][sourceID_a]) === 'undefined') {
-							this.cellData[species][sourceID_a] = {};
+					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[species][sourceID_a][targetID]) === 'undefined') {
-							this.cellData[species][sourceID_a][targetID] = {};
+					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a][targetID] = {};
 					    } 
-					 	this.cellData[species][sourceID_a][targetID] = dataVals;
+					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
 			} // for
 		} // if
 	}, 
-
-	getTargets: function() {
-		return this.targetData;
-	},
-
-	getSources: function() {
-		return this.sourceData;
-	},
-
-	getCellData: function() {
-		return this.cellData;
-	},
-
-	getOntologyCacheLabels: function() {
-		return this.ontologyCacheLabels;
-	},
-
-	getMaxICScore: function() {
-		return this.maxICScore;
-	},
-
-	dataExists: function(species) {
-		var t = this.cellData[species]  || this.targetData[species];
-		if (typeof(t) === 'undefined') {
-			return false;
-		}
-		return true;
-	},
 
 	/*
 		Function: refresh
@@ -553,21 +543,21 @@ DataLoader.prototype = {
 			freshes the data 
 	
 	 	Parameters:
-			species - list of species to fetch
+			targetGroup - list of targetGroup to fetch
 	 		lazy - performs a lazy load of the data checking for existing data
 	*/
-	refresh: function(species, lazy) {
+	refresh: function(targetGroup, lazy) {
 		var list = [], reloaded = false;
 		if (lazy) {
-			for (var idx in species) {
-				if (this.dataExists(species[idx].name) === false) {
-					list.push(species[idx]); // load to list to be reloaded
+			for (var idx in targetGroup) {
+				if (this.dataExists(targetGroup[idx].name) === false) {
+					list.push(targetGroup[idx]); // load to list to be reloaded
 				}
 			}
 		} else {
-			list = species;
+			list = targetGroup;
 		}
-		// if list is empty, that means we already have data loaded for species, or possible none were passed in
+		// if list is empty, that means we already have data loaded for targetGroup, or possible none were passed in
 		if (list.length > 0) {
 			this.load(this.origSourceList, list, this.limit);
 			reloaded = true;
@@ -575,20 +565,31 @@ DataLoader.prototype = {
 		return reloaded;
 	},
 
-	// generic ajax call for all queries
-	fetch: function (url, postData) {
+	/*
+		Function: fetch		
+	 		generic ajax call for all queries
+
+	 	Parameters:
+	 		url - server url
+	 		callback
+	 		postData - data to be posted
+	 */ 
+	fetch: function (s, url, target, targets, callback, postData) {
 		var res;
+		var self = s;
 		//var get_url = url + data;
 
 		if (typeof(postData) != 'undefined') {
+			console.log('POST:' + url);
 			jQuery.ajax({
 				url: url,
 				method: 'POST', 
 				data: postData,
-				async : false,
+				async : true,
 				dataType : 'json',
 				success : function(data) {
-					res = data;
+					//res = data;
+					callback(self, target, targets, data);
 				},
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
@@ -609,13 +610,14 @@ DataLoader.prototype = {
 				} 
 			});
 		} else {
+			console.log('GET:' + url);
 			jQuery.ajax({
 				url: url,
 				method: 'GET', 
-				async : false,
+				async : true,
 				dataType : 'json',
 				success : function(data) {
-					res = data;
+					res = callback(self, data);					
 				},
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
@@ -643,23 +645,32 @@ DataLoader.prototype = {
 	// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
 	// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
 	getOntology: function(id, ontologyDirection, ontologyDepth) {
+		var self = this;
 		// check cached hashtable first
 		var idClean = id.replace("_", ":");
-
-//		var ontologyInfo = this.state.ontologyCacheHash.get(idClean);
-		var ontologyCache = [];
 		var direction = ontologyDirection;
 		var relationship = "subClassOf";
 		var depth = ontologyDepth;
-		var nodes, edges;
+
 		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
-//		if (ontologyInfo === null) {
-			var ontologyInfo = [];			
-			var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
-			var results = this.fetch(url);
+		var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
-			if (typeof (results) !== 'undefined') {
+		//var results = this.fetch(url);
+		var cb = function(d) {this.postOntologyCb(self, idClean, d);};
+
+		// not postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
+		this.fetch(self, this.simSearchURL, target, targetGrpList, cb);
+
+	},
+
+	postOntologyCb: function(s, id, results) {
+		var ontologyInfo = [];	
+		var ontologyCache = [];
+		var self = s;
+		var nodes, edges;
+
+		if (typeof (results) !== 'undefined') {
 				edges = results.edges;
 				nodes = results.nodes;
 				// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
@@ -667,14 +678,14 @@ DataLoader.prototype = {
 					if ( ! nodes.hasOwnProperty(i)) {
 						break;
 					}
-					var lab = this.ontologyCacheLabels[nodes[i].id];
+					var lab = self.ontologyCacheLabels[nodes[i].id];
 					if ( typeof(lab) == 'undefined' ||
 						(nodes[i].id !== "MP:0000001" &&
 						nodes[i].id !== "OBO:UPHENO_0001001" &&
 						nodes[i].id !== "OBO:UPHENO_0001002" &&
 						nodes[i].id !== "HP:0000118" &&
 						nodes[i].id !== "HP:0000001")) {
-						this.ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
+						self.ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
 					}
 				}
 
@@ -701,7 +712,7 @@ DataLoader.prototype = {
 
 			// save the ontology in cache for later
 			var hashData = {"edges": ontologyInfo, "active": 1};
-			ontologyCache[idClean] = hashData;
+			ontologyCache[id] = hashData;
 		// } else {
 		// 	// If it does exist, make sure its set to visible
 		// 	ontologyInfo.active = 1;
@@ -712,7 +723,36 @@ DataLoader.prototype = {
 
 	getOntologyLabel: function(id) {
 		return this.ontologyCacheLabels[id];
+	}, 
+
+	getTargets: function() {
+		return this.targetData;
+	},
+
+	getSources: function() {
+		return this.sourceData;
+	},
+
+	getCellData: function() {
+		return this.cellData;
+	},
+
+	getOntologyCacheLabels: function() {
+		return this.ontologyCacheLabels;
+	},
+
+	getMaxICScore: function() {
+		return this.maxICScore;
+	},
+
+	dataExists: function(targetGroup) {
+		var t = this.cellData[targetGroup]  || this.targetData[targetGroup];
+		if (typeof(t) === 'undefined') {
+			return false;
+		}
+		return true;
 	}
+
 
 };
 
@@ -780,14 +820,14 @@ DataManager.prototype = {
 
 		Parameters:
 			dataset - which data set array to return (i.e., source, target, cellData)
-			species - optional, species name
+			targetGroup - optional, targetGroup name
 
 		Returns:
 			array of objects
 	*/	
-	getData: function(dataset, species) {
-		if (typeof(species) != 'undefined') {
-			return this[dataset][species];
+	getData: function(dataset, targetGroup) {
+		if (typeof(targetGroup) != 'undefined') {
+			return this[dataset][targetGroup];
 		}
 		return this[dataset];
 	},
@@ -797,17 +837,17 @@ DataManager.prototype = {
 
 		Parameters:
 			dataset - which data set array to return (i.e., source, target, cellData)
-			species - optional, species name
+			targetGroup - optional, targetGroup name
 
 		Return:
 			length
 	*/	
-	length: function(dataset, species) {
+	length: function(dataset, targetGroup) {
 		var len = 0, a;
-			if (typeof(species) === 'undefined') {
+			if (typeof(targetGroup) === 'undefined') {
 				a = this[dataset];
 			} else {
-				a = this[dataset][species];
+				a = this[dataset][targetGroup];
 			}
 			len = Object.keys(a).length;
 		return len;
@@ -819,22 +859,22 @@ DataManager.prototype = {
 		Parameters:
 			key1 - first key to match
 			key2  - second key to match
-			species - species name
+			targetGroup - targetGroup name
 
 		Returns:
 			match - matching object
 	*/
- 	cellPointMatch: function (key1, key2, species) {
+ 	cellPointMatch: function (key1, key2, targetGroup) {
 
 	     var rec;
-	     if (typeof(this.cellData[species]) !== 'undefined') {
-		 if (typeof(this.cellData[species][key1]) !== 'undefined') {
-		     if (typeof (this.cellData[species][key1][key2]) !== 'undefined') {
-			 rec = this.cellData[species][key1][key2];
+	     if (typeof(this.cellData[targetGroup]) !== 'undefined') {
+		 if (typeof(this.cellData[targetGroup][key1]) !== 'undefined') {
+		     if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
+			 rec = this.cellData[targetGroup][key1][key2];
 		     }
-		 } else if (typeof(this.cellData[species][key2]) !== 'undefined') {
-		     if (typeof(this.cellData[species][key2][key1]) !== 'undefined') {
-			 rec = this.cellData[species][key2][key1];
+		 } else if (typeof(this.cellData[targetGroup][key2]) !== 'undefined') {
+		     if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
+			 rec = this.cellData[targetGroup][key2][key1];
 		     }
 		 }
 	     }
@@ -844,23 +884,23 @@ DataManager.prototype = {
         // list of everything tht matches key - either as source or target.
         // two possibilities - either key is a source, in which case I get the whole list
         // or its a target, in which case I look in each source... 
- 	matches: function (key, species) {
+ 	matches: function (key, targetGroup) {
 	    var matchList = [];
 	    var cd = this.cellData; // convenience pointer. Good for scoping
-	    if (typeof (cd[species]) !== 'undefined')  {
+	    if (typeof (cd[targetGroup]) !== 'undefined')  {
 		// it's  a source. grab all of them
-		if (typeof (cd[species][key]) !=='undefined') {
-		    matchList = Object.keys(cd[species][key]).map(function(k) 
-		    						{return cd[species][key][k];});
+		if (typeof (cd[targetGroup][key]) !=='undefined') {
+		    matchList = Object.keys(cd[targetGroup][key]).map(function(k) 
+		    						{return cd[targetGroup][key][k];});
 		}
 		else {
 		    /// it's a target. find the entry for each source.
-		    var srcs = Object.keys(cd[species]);
+		    var srcs = Object.keys(cd[targetGroup]);
 		    for (var i in srcs) {
 				var src = srcs[i];
-				if (typeof(cd[species][src]) !== 'undefined') {
-			    	if (cd[species][src][key] !== 'undefined') {
-						matchList.push(cd[species][src][key]);
+				if (typeof(cd[targetGroup][src]) !== 'undefined') {
+			    	if (cd[targetGroup][src][key] !== 'undefined') {
+						matchList.push(cd[targetGroup][src][key]);
 			    	}
 				}
 		    }
@@ -878,8 +918,8 @@ DataManager.prototype = {
 
 		// if not check as target
 		if (typeof(rec) === 'undefined') {
-			var species = data.species;
-			rec = this.target[species][key];
+			var targetGroup = data.targetGroup;
+			rec = this.target[targetGroup][key];
 		}
 		return rec;
 	},
@@ -910,10 +950,10 @@ DataManager.prototype = {
 		Returns:
 			object
 	*/	
-	getElement: function (dataset, key, species) {
+	getElement: function (dataset, key, targetGroup) {
 		var el;
-		if (typeof(species) !== 'undefined') {
-		 	el = this[dataset][species][key]; 
+		if (typeof(targetGroup) !== 'undefined') {
+		 	el = this[dataset][targetGroup][key]; 
 		} else {
 			el = this[dataset][key];
 		}
@@ -927,18 +967,18 @@ DataManager.prototype = {
 		Parameters:
 			s - source key
 			t - target key 
-			species - species
+			targetGroup - targetGroup
 
 		Returns:
 			object
 	*/	
-	getCellDetail: function (s, t, species) {
+	getCellDetail: function (s, t, targetGroup) {
 		var rec;
 		try {
-			rec = this.cellData[species][s][t];
+			rec = this.cellData[targetGroup][s][t];
 		} catch (err) {
 			// if error, check for inverted source and target keys
-			rec = this.cellData[species][t][s];
+			rec = this.cellData[targetGroup][t][s];
 		}
 	 	return rec;
 	},
@@ -955,8 +995,8 @@ DataManager.prototype = {
 		Returns:
 			boolean
 	*/
-	contains: function(dataset, key, species) {
-		var el = this.getElement(dataset, key, species);
+	contains: function(dataset, key, targetGroup) {
+		var el = this.getElement(dataset, key, targetGroup);
 		if (typeof(el) !== 'undefined') {return false;}
 		return true;
 	}, 	
@@ -982,12 +1022,12 @@ DataManager.prototype = {
     		var list = [];
 			for (var x=0; x < xvalues.length; x++ ) {
 
-				var species = this._getSpecies(yvalues[y], xvalues[x]);
+				var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
 				// does a match exist in the cells
-				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, species)) !== 'undefined') 
+				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') 
 				{
 					var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
-								ypos: y, species: species, type: 'cell'};
+								ypos: y, targetGroup: targetGroup, type: 'cell'};
 					// this will create a array as a 'flattened' list of data points, used by mini mapping
 					if (flattened) {
 						matrix.push(rec);
@@ -1004,31 +1044,31 @@ DataManager.prototype = {
 	    return matrix;
 	},
 
-	// simple internal function for extracting out the species
-	_getSpecies: function(el1, el2) {
-		if (typeof(el1.species) !== 'undefined') {
-			return el1.species;
+	// simple internal function for extracting out the targetGroup
+	_getTargetGroup: function(el1, el2) {
+		if (typeof(el1.targetGroup) !== 'undefined') {
+			return el1.targetGroup;
 		}
-		if (typeof(el2.species) !== 'undefined') {
-			return el2.species;
+		if (typeof(el2.targetGroup) !== 'undefined') {
+			return el2.targetGroup;
 		}		
 	},
 
 	/*
 		Function: reinitialize
 
-			reinitializes the source, target and cellData for a specied species
+			reinitializes the source, target and cellData for a specied targetGroup
 
 		Parameters:
-			species - species name
+			targetGroup - targetGroup name
 	 		lazy - performs a lazy load of the data checking for existing data			
 
 	*/
-	reinitialize: function(species, lazy) {
+	reinitialize: function(targetGroup, lazy) {
 		console.log("reinitialize dataManager...");
 
 		// tell dataLoader to refresh data, if data was reloaded, then reinject data 
-		if (this.dataLoader.refresh(species, lazy) ) {
+		if (this.dataLoader.refresh(targetGroup, lazy) ) {
 			this.source = [];
 			this.target = [];
 			this.cellData = [];
@@ -1043,19 +1083,19 @@ DataManager.prototype = {
 	/*
 		Function: createCombinedTargetList
 
-			generates a combined target list for multiple organisms/species
+			generates a combined target list for multiple organisms/targetGroup
 
 		Parameters:
-			targetSpeciesList - species list
-			limit - specify the number limit of targets from each species
+			targetGroupList - targetGroup list
+			limit - specify the number limit of targets from each targetGroup
 
 	*/
-	createCombinedTargetList: function(targetSpeciesList, limit) {
+	createCombinedTargetList: function(targetGroupList, limit) {
 		var combinedTargetList = [];
 		// loop thru for the number of comparisons
 
-		for (var e in targetSpeciesList) {
-			var data = this.getData("target", targetSpeciesList[e].name);
+		for (var e in targetGroupList) {
+			var data = this.getData("target", targetGroupList[e].name);
 			var i=0;
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];
@@ -1529,7 +1569,9 @@ var Utils = require('./utils.js');
 
 		console.log("init...");
 		this.element.empty();
-		this._loadSpinner();
+
+		// show loading spinner - Joe
+		this._showLoadingSpinner();		
 
 		// target species name might be provided as a name or as taxon. Make sure that we translate to name
 		//this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
@@ -1545,26 +1587,50 @@ var Utils = require('./utils.js');
 			}			
 		}
 
+		var callback = this._postDataInitCB(this);
+
 		// initialize data processing classes,  MKD: may need to refactor this big parm list
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
-						querySourceList, this.state.selectedCompareSpecies, this.state.apiEntityMap);
+						querySourceList, this.state.selectedCompareSpecies, this.state.apiEntityMap, callback);
+
+		// // set a max IC score
+		// this.state.maxICScore = this.state.dataLoader.maxICScore;
+
+		// this.state.dataManager = new DataManager(this.state.dataLoader);
+
+		// // if (preloadHPO) {
+		// // // MKD: just testing one source id
+		// // var srcs = this.state.dataManager.keys("source");
+		// // this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
+		// // }
+		
+	 //    // initialize axis groups
+	 //    this._createAxisRenderingGroups();
+
+		// this._initDefaults();   
+		// this._processDisplay();
+
+	},
+
+	_postDataInitCB: function (self) {
+		//var self = this;
 
 		// set a max IC score
-		this.state.maxICScore = this.state.dataLoader.maxICScore;
+		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
 
-		this.state.dataManager = new DataManager(this.state.dataLoader);
+		self.state.dataManager = new DataManager(self.state.dataLoader);
 
-		//if (preloadHPO) {
-		// MKD: just testing one source id
-		var srcs = this.state.dataManager.keys("source");
-		this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
-		//}
+		// if (preloadHPO) {
+		// // MKD: just testing one source id
+		// var srcs = this.state.dataManager.keys("source");
+		// this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
+		// }
 		
 	    // initialize axis groups
-	    this._createAxisRenderingGroups();
+	    self._createAxisRenderingGroups();
 
-		this._initDefaults();   
-		this._processDisplay();
+		self._initDefaults();   
+		self._processDisplay();
 
 	},
 
@@ -1675,12 +1741,12 @@ var Utils = require('./utils.js');
 		this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
     },
 
-	_loadSpinner: function() {
-		var element =$('<div><h3>Loading...</h3><div class="cube1"></div><div class="cube2"></div></div>');
+	// Loading spinner image from font awesome - Joe
+	_showLoadingSpinner: function() {
+		var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
 		this._createSvgContainer();
 		element.appendTo(this.state.svgContainer);
 	},
-
 	
 	_reDraw: function() {
 		//var self = this;
@@ -4433,7 +4499,7 @@ TooltipRender.prototype = {
 			"<tbody><tr><td><u><b>Query</b></u><br>" +
 			Utils.capitalizeString(d.type) + ": " + this.entityHreflink(d.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
-			"Species: " + d.species + "</td>" + 
+			"Species: " + d.targetGroup + "</td>" + 
 			"<tr><td><u><b><br>In-common</b></u><br>" + 
 		this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label ) +
 				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +

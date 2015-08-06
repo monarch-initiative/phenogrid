@@ -253,7 +253,9 @@ var Utils = require('./utils.js');
 
 		console.log("init...");
 		this.element.empty();
-		this._loadSpinner();
+
+		// show loading spinner - Joe
+		this._showLoadingSpinner();		
 
 		// target species name might be provided as a name or as taxon. Make sure that we translate to name
 		//this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
@@ -269,26 +271,50 @@ var Utils = require('./utils.js');
 			}			
 		}
 
+		var callback = this._postDataInitCB(this);
+
 		// initialize data processing classes,  MKD: may need to refactor this big parm list
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
-						querySourceList, this.state.selectedCompareSpecies, this.state.apiEntityMap);
+						querySourceList, this.state.selectedCompareSpecies, this.state.apiEntityMap, callback);
+
+		// // set a max IC score
+		// this.state.maxICScore = this.state.dataLoader.maxICScore;
+
+		// this.state.dataManager = new DataManager(this.state.dataLoader);
+
+		// // if (preloadHPO) {
+		// // // MKD: just testing one source id
+		// // var srcs = this.state.dataManager.keys("source");
+		// // this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
+		// // }
+		
+	 //    // initialize axis groups
+	 //    this._createAxisRenderingGroups();
+
+		// this._initDefaults();   
+		// this._processDisplay();
+
+	},
+
+	_postDataInitCB: function (self) {
+		//var self = this;
 
 		// set a max IC score
-		this.state.maxICScore = this.state.dataLoader.maxICScore;
+		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
 
-		this.state.dataManager = new DataManager(this.state.dataLoader);
+		self.state.dataManager = new DataManager(self.state.dataLoader);
 
-		//if (preloadHPO) {
-		// MKD: just testing one source id
-		var srcs = this.state.dataManager.keys("source");
-		this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
-		//}
+		// if (preloadHPO) {
+		// // MKD: just testing one source id
+		// var srcs = this.state.dataManager.keys("source");
+		// this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
+		// }
 		
 	    // initialize axis groups
-	    this._createAxisRenderingGroups();
+	    self._createAxisRenderingGroups();
 
-		this._initDefaults();   
-		this._processDisplay();
+		self._initDefaults();   
+		self._processDisplay();
 
 	},
 
@@ -399,12 +425,12 @@ var Utils = require('./utils.js');
 		this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
     },
 
-	_loadSpinner: function() {
-		var element =$('<div><h3>Loading...</h3><div class="cube1"></div><div class="cube2"></div></div>');
+	// Loading spinner image from font awesome - Joe
+	_showLoadingSpinner: function() {
+		var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
 		this._createSvgContainer();
 		element.appendTo(this.state.svgContainer);
 	},
-
 	
 	_reDraw: function() {
 		//var self = this;

@@ -211,7 +211,7 @@ TooltipRender.prototype = {
 			"<tbody><tr><td><u><b>Query</b></u><br>" +
 			Utils.capitalizeString(d.type) + ": " + this.entityHreflink(d.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
-			"Species: " + d.species + "</td>" + 
+			"Species: " + d.targetGroup + "</td>" + 
 			"<tr><td><u><b><br>In-common</b></u><br>" + 
 		this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label ) +
 				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
