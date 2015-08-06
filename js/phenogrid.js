@@ -1184,8 +1184,8 @@ var TooltipRender = require('./tooltiprender.js');
 					targets.push(species);
 				}
 		    }
-		    var self=this;
-   		    this._overviewLoad(self, targets, limit);
+
+   		    this._overviewLoad(targets, limit);
 		},
 
 	    /***
@@ -1196,7 +1196,7 @@ var TooltipRender = require('./tooltiprender.js');
 		 * together, this function and _finishOverviewLoadForOneTarget()
 		 * constintute a paired loop around the async call associated with _loadSpeciesData()
 		 **/
-	    _overviewLoad: function(self, targets, limit) {
+	    _overviewLoad: function(targets, limit) {
 			if (targets.length > 0) {
 				// get first item
 				var target = targets[0];
@@ -1204,13 +1204,14 @@ var TooltipRender = require('./tooltiprender.js');
 				var targets  = targets.slice(1);
 				// call _loadSpeciesData() with the
 				// callback to finish this load
+				var self = this;
 				var cb = function(d) {
 					self._finishOverviewLoadForOneTarget(self, target, limit, targets, d);
 				};
-				self._loadSpeciesData(target, cb, limit);
+				this._loadSpeciesData(target, cb, limit);
 			} else {
 				// when the list is done, call _finishOverviewLoad();
-				self._finishOverviewLoad(self);
+				this._finishOverviewLoad();
 			}
 		},
        
@@ -1241,10 +1242,11 @@ var TooltipRender = require('./tooltiprender.js');
 					limit = (limit - data.length);
 				}
 			}
-			self._overviewLoad(self,targets,limit);
+			self._overviewLoad(targets, limit);
 		},
 
-		_finishOverviewLoad: function (self) {
+		_finishOverviewLoad: function() {
+			var self = this;
 			var speciesList = [];
 			var posID = 0;
 			var type, ID, hashData;
@@ -3498,7 +3500,7 @@ var TooltipRender = require('./tooltiprender.js');
 				// If it does exist, make sure its set to visible
 				HPOInfo.active = 1;
 				this.state.hpoCacheHash.put(idClean, HPOInfo);
-			        this._showOntologyTooltip(idClean, HPOInfo);
+			    this._showOntologyTooltip(idClean, HPOInfo);
 			}
 		},
 
