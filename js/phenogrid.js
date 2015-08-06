@@ -359,7 +359,7 @@ var TooltipRender = require('./tooltiprender.js');
 
 			// Added by Joe - Joe
 			// simsearch returned data b[] is stored in this.state['data'] - Joe
-			console.log(this.state);
+			//console.log(this.state);
 
 			// default simServerURL value..
 			if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
@@ -453,6 +453,9 @@ var TooltipRender = require('./tooltiprender.js');
 			this.state.phenotypeData = this._filterPhenotypeResults(this.state.phenotypeData);
 
 			this._loadData();
+		},
+	    
+	        _postLoad: function() {
 
 			this._setLoadedValues();
 
@@ -1093,21 +1096,22 @@ var TooltipRender = require('./tooltiprender.js');
 			// At time being, overview is made up of three calls, which it repeats these calls with a larger limit if you decided to view single species
 			// Might be more efficent to load those three, cache them and then make an overview dataset and cache that as well.
 			// This is also called when axis is flipped, so might need to create those cached as well (which would be very simple)
+		    var self = this;
 			if (this.state.targetSpeciesName === 'Overview') {
 				this._loadOverviewData();
-				this._finishOverviewLoad();
+				//this._finishOverviewLoad();
 			} else {
-				this._loadSpeciesData(this.state.targetSpeciesName);
+				this._loadSpeciesData(self.state.targetSpeciesName,function(d) {self._finishLoad(self,d);});
 				// [vaa12] line below can be used to force a different limit.  It can be loaded above the API default (100) but has a
 				// noticable time delay when trying to load.  There may be a conflict at the API level when trying to go higher than default
 				//this._loadSpeciesData(this.state.targetSpeciesName,20);
-				this._finishLoad();
+				//this._finishLoad();
 			}
 
 			this.state.hpoCacheBuilt = true;
 		},
 
-		_loadSpeciesData: function(speciesName, limit) {
+		_loadSpeciesData: function(speciesName, callback,limit) {
 			var phenotypeList = this.state.phenotypeData;
 			var taxon = this._getTargetSpeciesTaxonByName(this,speciesName);
 			var res;
@@ -1117,32 +1121,27 @@ var TooltipRender = require('./tooltiprender.js');
 			if ($.isEmptyObject(this.state.providedData)) {
 				var url = this._getLoadDataURL(phenotypeList, taxon, limit);
 				
-                // NOTE: Here we configure calls to simsearch to be a POST, while calls
+			    // NOTE: Here we configu're calls to simsearch to be a POST, while calls
 				// to the compare function use a GET, the reason being that compare calls
-				// are not yet configured for POST in the monarch-app.  Configuring the compare
-				// function to handle a post will simplify this code
-                if (this.state.owlSimFunction !== 'compare'){
-                    postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
-                    if (typeof(limit) !== 'undefined') {
-                        postData += "&limit=" + limit;
-                    }
-                    url = this.state.simServerURL + this.state.simSearchQuery;
-                    res = this._ajaxPostData(speciesName, url, postData);
-                } else {
-                    res = this._ajaxLoadData(speciesName,url);
-                }
-			} else {
-				res = this.state.providedData;
-			}
-
-			if (typeof (res) !=='undefined' && res !== null) {
-				if (typeof(limit) !== 'undefined' && typeof(res.b) !== 'undefined' && res.b !== null && res.b.length < limit) {
-					res = this._padSpeciesData(res,speciesName,limit);
+			    // are not yet configured for POST in the monarch-app.  Configuring the compare
+			    // function to handle a post will simplify this code
+			    if (this.state.owlSimFunction !== 'compare'){
+				postData = 'input_items='+ phenotypeList.join("+") + "&target_species=" + taxon;
+				if (typeof(limit) !== 'undefined') {
+				    postData += "&limit=" + limit;
 				}
+				url = this.state.simServerURL + this.state.simSearchQuery;
+				this._ajaxPostData(speciesName, url, postData,callback);
+			    } else {
+				this._ajaxLoadData(speciesName,url,callback);
+			    }
+			} else {
+			    res = this.state.providedData;
+		            callback(res);
+			    
 			}
-			this.state.data[speciesName] = res;
 		},
-
+	    
 
 		_getLoadDataURL : function(phenotypeList, taxon, limit) {
 			var url = this.state.simServerURL; // do we need state.simServerURL? - Joe
@@ -1182,61 +1181,114 @@ var TooltipRender = require('./tooltiprender.js');
 			return res;
 		},
 
+
+	        /*** 
+		 * sets the stage for loading all of the targets through async calls - 
+                 * create a list of targets and pass with the limit to the overview Loader.
+                 */
 		_loadOverviewData: function() {
-			var limit = this.state.multiOrganismCt;
-			for (var i in this.state.targetSpeciesList) {
-				if ( ! this.state.targetSpeciesList.hasOwnProperty(i)) {
-					break;
-				}
-				var species = this.state.targetSpeciesList[i].name;
-				this._loadSpeciesData(species, limit);
-				if (species === this.state.refSpecies && typeof(species) !== 'undefined') {
-				// if it's the one we're reffering to
-					if (typeof(this.state.data[species].metadata) !== 'undefined') {
-						this.state.maxICScore = this.state.data[species].metadata.maxMaxIC;
-					}
-				}
-				else {
-					var data = this.state.data[species];
-					if(typeof(data) !== 'undefined' && data.length < limit) {
-						limit = (limit - data.length);
-					}
-				}
+		    var limit = this.state.multiOrganismCt;
+		    var targets=[];
+			
+		    for (var i in this.state.targetSpeciesList) {
+			if (  this.state.targetSpeciesList.hasOwnProperty(i)) {
+			    var species = this.state.targetSpeciesList[i].name;
+			    targets.push(species);
 			}
+		    }
+		    var self=this;
+   		    this._overviewLoad(self,targets,limit);
 		},
 
-		_finishOverviewLoad: function () {
+	        /***
+		 * Here is where we have some fun. if there's anything left on my list
+		 * call loadSpeciesData with a callback that will invoke finishOverviewLoadForOneTarget
+		 * otherwise,call finishOverviewLoad.
+		 *
+		 * together, this function and finishOverviewLoadForOneTarget
+		 * constintute a paired loop around the async call associated with _loadSpeciesData()
+		 **/
+	       _overviewLoad: function(self,targets,limit) {
+		   if (targets.length > 0) {
+		       // get first item
+		       var target = targets[0];
+		       // targets is all but last
+		       var targets  = targets.slice(1);
+		       //  call loadSpeciesData with the
+  		       // call back to finish this load
+		      var cb = function(d) {self._finishOverviewLoadForOneTarget(self,target,limit,targets,d);};
+		       self._loadSpeciesData(target,cb,limit);
+		   }
+		   else {
+		       // when the list is done, call finishOverviewLoad();
+		       self._finishOverviewLoad(self);
+		   }
+	       },
+       
+		 
+
+
+
+	       /*** 
+                * the callback for the overview load for each target. gests the data,
+                * adjusts the maxICScore and limit as needed,
+                * and then returns to continue the overviewLoad on the remaining list 
+                */
+	        _finishOverviewLoadForOneTarget: function(self,target,limit,targets,data) {
+
+		    if (typeof (data) !=='undefined' && data !== null) {
+			if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
+			    data = this._padSpeciesData(data,target,limit);
+			}
+		    }
+
+		    self.state.data[target] = data;
+		    if (target === self.state.refSpecies && typeof(target) !== 'undefined') {
+			// if it's the one we're reffering to
+			if (typeof(self.state.data[target].metadata) !== 'undefined') {
+			    self.state.maxICScore = self.state.data[target].metadata.maxMaxIC;
+			}
+		    }
+   		    else {
+			if(typeof(data) !== 'undefined' && data.length < limit) {
+			    limit = (limit - data.length);
+			}
+		    }
+		    self._overviewLoad(self,targets,limit);
+		},
+
+		_finishOverviewLoad: function (self) {
 			var speciesList = [];
 			var posID = 0;
 			var type, ID, hashData;
 			var variantNum = 0;
 
-			for (var i in this.state.targetSpeciesList) {
-				if ( ! this.state.targetSpeciesList.hasOwnProperty(i)) {
+			for (var i in self.state.targetSpeciesList) {
+				if ( ! self.state.targetSpeciesList.hasOwnProperty(i)) {
 					break;
 				}
-				var species = this.state.targetSpeciesList[i].name;
-				var specData = this.state.data[species];
+				var species = self.state.targetSpeciesList[i].name;
+				var specData = self.state.data[species];
 				if (specData !== null && typeof(specData.b) !== 'undefined' && specData.b.length > 0) {
 					for (var idx in specData.b) {
 						if(!specData.b.hasOwnProperty(i)){break;}
 						var item = specData.b[idx];
-						ID = this._getConceptId(item.id);
+						ID = self._getConceptId(item.id);
 
 						// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
 						// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-						if (this.state.modelListHash.containsKey(ID)) {
+						if (self.state.modelListHash.containsKey(ID)) {
 							ID += "_" + variantNum;
 							variantNum++;
 						}
 
-						type = this.state.defaultApiEntity;
-						for (var j in this.state.apiEntityMap) {
-							if ( ! this.state.apiEntityMap.hasOwnProperty(i)) {
+						type = self.state.defaultApiEntity;
+						for (var j in self.state.apiEntityMap) {
+							if ( ! self.state.apiEntityMap.hasOwnProperty(i)) {
 								break;
 							}
-							if (ID.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
-								type = this.state.apiEntityMap[j].apifragment;
+							if (ID.indexOf(self.state.apiEntityMap[j].prefix) === 0) {
+								type = self.state.apiEntityMap[j].apifragment;
 							}
 						}
 
@@ -1250,16 +1302,17 @@ var TooltipRender = require('./tooltiprender.js');
 							"score": item.score.score
 						};
 						// use put(key, value) to add a key/value pair to the hashtable, and get() to retrieve a value - Joe
-						this.state.modelListHash.put(ID, hashData);
-						this._loadDataForModel(ID, item);
+						self.state.modelListHash.put(ID, hashData);
+						self._loadDataForModel(ID, item);
 						posID++;
 					}
-					this.state.multiOrganismCt = specData.b.length;
+					self.state.multiOrganismCt = specData.b.length;
 					speciesList.push(species);
 				}
 			}
 
-			this.state.speciesList = speciesList;
+			self.state.speciesList = speciesList;
+		    self._postLoad();
 		},
 
 		/*
@@ -1267,8 +1320,15 @@ var TooltipRender = require('./tooltiprender.js');
 		 * Create the modelList array: model_id, model_label, model_score, model_rank
 		 * Call _loadDataForModel to put the matches in an array
 		 */
-		_finishLoad: function() {
-			var species = this.state.targetSpeciesName;
+		_finishLoad: function(self,data,limit) {
+
+		    var species = self.state.targetSpeciesName;
+		    if (typeof (data) !=='undefined' && data !== null) {
+			if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
+			    data = self._padSpeciesData(data,species,limit);
+			}
+		    }
+		        self.state.data[species] = data;
 			var retData = this.state.data[species];
 			var hashData, ID, type, z;
 			var variantNum = 0;
@@ -1278,7 +1338,7 @@ var TooltipRender = require('./tooltiprender.js');
 			}
 			// extract the maxIC score
 			if (typeof (retData.metadata) !== 'undefined') {
-				this.state.maxICScore = retData.metadata.maxMaxIC;
+				self.state.maxICScore = retData.metadata.maxMaxIC;
 			}
 
 			if (typeof (retData.b) !== 'undefined') {
@@ -1287,30 +1347,31 @@ var TooltipRender = require('./tooltiprender.js');
 						break;
 					}
 					var item = retData.b[idx];
-					ID = this._getConceptId(item.id);
+					ID = self._getConceptId(item.id);
 
 					// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
 					// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-					if (this.state.modelListHash.containsKey(ID)) {
+					if (self.state.modelListHash.containsKey(ID)) {
 						ID += "_" + variantNum;
 						variantNum++;
 					}
 
-					type = this.state.defaultApiEntity;
-					for (var j in this.state.apiEntityMap) {
-						if( ! this.state.apiEntityMap.hasOwnProperty(j)) {
+					type = self.state.defaultApiEntity;
+					for (var j in self.state.apiEntityMap) {
+						if( ! self.state.apiEntityMap.hasOwnProperty(j)) {
 							break;
 						}
-						if (ID.indexOf(this.state.apiEntityMap[j].prefix) === 0) {
-							type = this.state.apiEntityMap[j].apifragment;
+						if (ID.indexOf(self.state.apiEntityMap[j].prefix) === 0) {
+							type = self.state.apiEntityMap[j].apifragment;
 						}
 					}
 
 					hashData = {"label": item.label, "species": species, "taxon": item.taxon.id, "type": type, "pos": parseInt(idx), "rank": parseInt(idx), "score": item.score.score};
-					this.state.modelListHash.put(ID, hashData);
-					this._loadDataForModel(ID, item);
+					self.state.modelListHash.put(ID, hashData);
+					self._loadDataForModel(ID, item);
 				}
 			}
+		    self._postLoad();
 		},
 
 		/*
@@ -1551,15 +1612,15 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		// generic ajax call for all queries
-		_ajaxLoadData: function(target, url) { // removed space between function and the ( - Joe
+		_ajaxLoadData: function(target, url,callback) { // removed space between function and the ( - Joe
 			var self = this;
 			var res;
 			$.ajax({
 				url: url,
-				async : false,
+				async : true,
 				dataType : 'json',
 				success : function(data) {
-					res = data;
+					callback(data);
 				},
 				error: function(xhr, errorType, exception) { // removed space between function and the ( - Joe
 				    self._populateDialog(self, "Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
@@ -1569,17 +1630,17 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 		
         // generic ajax POST
-        _ajaxPostData: function (target, url, postData) {
+        _ajaxPostData: function (target, url, postData,callback) {
             var self = this;
             var res;
             $.ajax({
                 url: url,
                 method: 'POST',
                 data: postData,
-                async : false,
+                async : true,
                 dataType : 'json',
                 success : function(data) {
-                    res = data;
+                    callback(data);
                 },
                 error: function (xhr, errorType, exception) {
                 	// Triggered if an error communicating with server
@@ -2762,7 +2823,7 @@ var TooltipRender = require('./tooltiprender.js');
 				$.ajax({
 					url: url,
 					dataType: 'html',
-					async: 'false',
+					async: 'true',
 					success: function(data) {
 						self._populateDialog(self, name, data);
 					},
@@ -3337,7 +3398,7 @@ var TooltipRender = require('./tooltiprender.js');
 					// Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
 					$.ajax({
 						url: this.state.serverURL + "/phenotype/" + unmatched[i].id + ".json",
-						async: false,
+						async: true,
 						dataType: 'json',
 						success: function(data) {
 							// Show id if label is not found
@@ -3421,10 +3482,95 @@ var TooltipRender = require('./tooltiprender.js');
 		_expandHPO: function(id) {
 			this._getHPO(id);
 
-			// this code refreshes the stickytooltip so that tree appears instantly
-			var hpoCached = this.state.hpoCacheHash.get(id.replace("_", ":"));
 
-			if (hpoCached !== null) {
+		},
+
+		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
+		// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
+		// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
+		_getHPO: function(id) {
+			// check cached hashtable first
+			var idClean = id.replace("_", ":");
+			var HPOInfo = this.state.hpoCacheHash.get(idClean);
+		        var self = this;
+
+			var direction = this.state.hpoDirection;
+			var relationship = "subClassOf";
+			var depth = this.state.hpoDepth;
+		   
+			// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
+			if (HPOInfo === null) {
+				var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
+				var taxon = this._getTargetSpeciesTaxonByName(this, this.state.targetSpeciesName);
+			    /** HSH 8/5/15 REFACTOR FOR ASYNC **/
+				this._ajaxLoadData(taxon, url,function(d) { self._completeOntologyRetrieval(self,idClean,d);});;
+				
+			} else {
+				// If it does exist, make sure its set to visible
+				HPOInfo.active = 1;
+				this.state.hpoCacheHash.put(idClean, HPOInfo);
+			        this._showOntologyTooltip(idClean,HPOInfo);
+			}
+		},
+
+	         /* completion callback for handling retrieved hPO results.
+		  */
+		_completeOntologyRetrieval: function(self,idClean,results) {
+
+		    var nodes, edges;
+		    var HPOInfo = [];
+
+		    if (typeof (results) !== 'undefined') {
+			edges = results.edges;
+			nodes = results.nodes;
+			// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
+			for (var i in nodes){
+			    if ( ! nodes.hasOwnProperty(i)) {
+				break;
+			    }
+			    if ( ! self.state.hpoCacheLabels.containsKey(nodes[i].id) &&
+				 (nodes[i].id != "MP:0000001" &&
+				  nodes[i].id != "OBO:UPHENO_0001001" &&
+				  nodes[i].id != "OBO:UPHENO_0001002" &&
+				  nodes[i].id != "HP:0000118" &&
+				  nodes[i].id != "HP:0000001")) {
+				self.state.hpoCacheLabels.put(nodes[i].id, self._capitalizeString(nodes[i].lbl));
+			    }
+			}
+			
+			// Used to prevent breaking objects
+			for (var j in edges) {
+			    if ( ! edges.hasOwnProperty(j)) {
+				break;
+			    }
+			    if (edges[j].obj != "MP:0000001" &&
+				edges[j].obj != "OBO:UPHENO_0001001" &&
+				edges[j].obj != "OBO:UPHENO_0001002" &&
+				edges[j].obj != "HP:0000118" &&
+				edges[j].obj != "HP:0000001") {
+				HPOInfo.push(edges[j]);
+			    }
+			}
+		    }
+		    
+		    // HACK:if we return a null just create a zero-length array for now to add it to hashtable
+		    // this is for later so we don't have to lookup concept again
+		    if (HPOInfo === null) {
+			HPOInfo = {};
+		    }
+		    
+		    // save the HPO in cache for later
+		    var hashData = {"edges": HPOInfo, "active": 1};
+		    self.state.hpoCacheHash.put(idClean, hashData);
+		    self._showOntologyTooltip(idClean,hashData);
+		},
+
+
+	        /* takes the cleaned id, so we must put the "_" back instead of the ":"*/
+	       _showOntologyTooltip: function(id,ontologyData) {
+
+		   id = id.replace(":","_"); /*HACK*/
+			if (ontologyData !== null) {
 				this.state.hpoTreesDone = 0;
 				this.state.hpoTreeHeight = 0;
 				var info = this._getAxisData(id);
@@ -3433,7 +3579,7 @@ var TooltipRender = require('./tooltiprender.js');
 				var hpoData = "<strong>" + this._capitalizeString(type) + ": </strong> " + hrefLink + "<br>";
 				hpoData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br><br>";
 
-				var hpoTree = this.buildHPOTree(id.replace("_", ":"), hpoCached.edges, 0);
+				var hpoTree = this.buildHPOTree(id.replace("_", ":"), ontologyData.edges, 0);
 
 
 				if (hpoTree === "<br>") {
@@ -3446,75 +3592,8 @@ var TooltipRender = require('./tooltiprender.js');
 				// reshow the sticky with updated info
 				stickytooltip.show(null);
 			}
-		},
-
-		// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
-		// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
-		// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
-		_getHPO: function(id) {
-			// check cached hashtable first
-			var idClean = id.replace("_", ":");
-			var HPOInfo = this.state.hpoCacheHash.get(idClean);
-
-			var direction = this.state.hpoDirection;
-			var relationship = "subClassOf";
-			var depth = this.state.hpoDepth;
-			var nodes, edges;
-			// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
-			if (HPOInfo === null) {
-				HPOInfo = [];
-				var url = this.state.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
-				var taxon = this._getTargetSpeciesTaxonByName(this, this.state.targetSpeciesName);
-				var results = this._ajaxLoadData(taxon, url);
-				if (typeof (results) !== 'undefined') {
-					edges = results.edges;
-					nodes = results.nodes;
-					// Labels/Nodes are done seperately to reduce redunancy as there might be multiple phenotypes with the same related nodes
-					for (var i in nodes){
-						if ( ! nodes.hasOwnProperty(i)) {
-							break;
-						}
-						if ( ! this.state.hpoCacheLabels.containsKey(nodes[i].id) &&
-							(nodes[i].id != "MP:0000001" &&
-							nodes[i].id != "OBO:UPHENO_0001001" &&
-							nodes[i].id != "OBO:UPHENO_0001002" &&
-							nodes[i].id != "HP:0000118" &&
-							nodes[i].id != "HP:0000001")) {
-							this.state.hpoCacheLabels.put(nodes[i].id, this._capitalizeString(nodes[i].lbl));
-						}
-					}
-
-					// Used to prevent breaking objects
-					for (var j in edges) {
-						if ( ! edges.hasOwnProperty(j)) {
-							break;
-						}
-						if (edges[j].obj != "MP:0000001" &&
-							edges[j].obj != "OBO:UPHENO_0001001" &&
-							edges[j].obj != "OBO:UPHENO_0001002" &&
-							edges[j].obj != "HP:0000118" &&
-							edges[j].obj != "HP:0000001") {
-							HPOInfo.push(edges[j]);
-						}
-					}
-				}
-
-				// HACK:if we return a null just create a zero-length array for now to add it to hashtable
-				// this is for later so we don't have to lookup concept again
-				if (HPOInfo === null) {
-					HPOInfo = {};
-				}
-
-				// save the HPO in cache for later
-				var hashData = {"edges": HPOInfo, "active": 1};
-				this.state.hpoCacheHash.put(idClean, hashData);
-			} else {
-				// If it does exist, make sure its set to visible
-				HPOInfo.active = 1;
-				this.state.hpoCacheHash.put(idClean, HPOInfo);
-			}
-		},
-
+	       },
+	    
 		// expand the model with the associated genotypes
 		_expandGenotypes: function(curModel) {
 			$('#wait').show();
@@ -3542,6 +3621,7 @@ var TooltipRender = require('./tooltiprender.js');
 							"/genotype/nodes.json";
 				console.log("Getting Gene " + url);
 				//console.profile("genotypes call");
+			        /** 8/5/15 REFACTOR FOR ASYNC **/
 				var res = this._ajaxLoadData(modelInfo.d.species, url);
 
 				res = this._filterGenotypeGraphList(res);
@@ -3613,6 +3693,7 @@ var TooltipRender = require('./tooltiprender.js');
 				url = this.state.serverURL + "/compare/" + phenotypeIds + "/" + genotypeIds;
 				console.log("Comparing " + url);
 				//console.profile("compare call");
+			    /*** 8/5/15/ REFACTOR FOR ASYNC **/
 				compareScores = this._ajaxLoadData(modelInfo.d.species, url);
 				//console.profileEnd();
 				console.log("Done with ajaxLoadData...");
@@ -3866,7 +3947,7 @@ var TooltipRender = require('./tooltiprender.js');
 			if (gta === null) {
 				var url = this.state.serverURL+"/gene/"+ curModel.model_id + ".json";
 				//var url = "http://stage-monarch.monarchinitiative.org/gene/"+ gene + ".json";
-
+			        /*** REFACTOR FOR ASYNC **/
 				var res = this._ajaxLoadData(curModel.species, url);
 				if (typeof (res)  !== 'undefined') {
 					gta = res.genotype_associations;
