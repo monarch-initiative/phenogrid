@@ -1206,7 +1206,7 @@ var TooltipRender = require('./tooltiprender.js');
 				// callback to finish this load
 				var self = this;
 				var cb = function(d) {
-					self._finishOverviewLoadForOneTarget(self, target, limit, targets, d);
+					self._finishOverviewLoadForOneTarget(target, limit, targets, d);
 				};
 				this._loadSpeciesData(target, cb, limit);
 			} else {
@@ -1224,7 +1224,9 @@ var TooltipRender = require('./tooltiprender.js');
 		 * adjusts the maxICScore and limit as needed,
 		 * and then returns to continue the overviewLoad on the remaining list 
 		 */
-		_finishOverviewLoadForOneTarget: function(self, target, limit, targets, data) {
+		_finishOverviewLoadForOneTarget: function(target, limit, targets, data) {
+			var self = this;
+			
 			if (typeof (data) !=='undefined' && data !== null) {
 				if (typeof(limit) !== 'undefined' && typeof(data.b) !== 'undefined' && data.b !== null && data.b.length < limit) {
 					data = this._padSpeciesData(data,target,limit);
@@ -3106,7 +3108,7 @@ var TooltipRender = require('./tooltiprender.js');
 			container.append(options);
 			// add the handler for the select control
 			$("#pg_organism" ).change(function(d) {
-				self.state.targetSpeciesName = self._getTargetSpeciesNameByIndex(self, d.target.selectedIndex);
+				self.state.targetSpeciesName = self._getTargetSpeciesNameByIndex(d.target.selectedIndex);
 				self._resetSelections("organism");
 			});
 
