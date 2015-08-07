@@ -2076,8 +2076,9 @@ var Utils = require('./utils.js');
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
 			console.log('in the change()..');
-			self.state.selectedCompareSpecies = [];
+//			self.state.selectedCompareSpecies = [];
 			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
+			var temp = [];
 			for (var idx in items) {
 				// We need this check since idx may be 'length' which is not in items - Joe
 				if ( ! items.hasOwnProperty(idx)) {
@@ -2086,30 +2087,33 @@ var Utils = require('./utils.js');
 				
 				if (items[idx].childNodes[0].checked) {
 					var rec = self._getTargetSpeciesInfo(self, items[idx].textContent);
-					self.state.selectedCompareSpecies.push(rec);
+					//self.state.selectedCompareSpecies.push(rec);
+					temp.push(rec);
 				}
 			}
 			
-			if (self.state.selectedCompareSpecies.length > 0) {
-				self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
-				self._createAxisRenderingGroups();
-				self._initDefaults();
-				self._processDisplay();
+			//if (self.state.selectedCompareSpecies.length > 0) {
+			if (temp.length > 0) {
+				self.state.selectedCompareSpecies = temp;				
 			} else {
 				alert("You must have at least 1 species selected.");
-				// Need to make sure that only one checkbox is checked again - Joe
 			}
+			// That last checked checkbox will be checked again after rerendering - Joe
+			self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
+			self._createAxisRenderingGroups();
+			self._initDefaults();
+			self._processDisplay();
 		});
 
 		$("#pg_calculation").change(function(d) {
-			self.state.selectedCalculation = self.state.similarityCalculation[d.target.value].calc;
+			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
 			self._resetSelections("calculation");
 			self._processDisplay();
 		});
 
 		// add the handler for the select control
 		$("#pg_sortphenotypes").change(function(d) {
-			self.state.selectedSort = self.state.phenotypeSort[d.target.value];
+			self.state.selectedSort = d.target.value;
 			// sort source with default sorting type
 			if (self.state.invertAxis){
 				self.state.xAxisRender.sort(self.state.selectedSort); 
@@ -2140,20 +2144,19 @@ var Utils = require('./utils.js');
 	},
 
 	_createOrganismSelection: function() {
-		var selectedItem;
 		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism(s)</label>" + 
 			"<span id='pg_org_sel'><div id='pg_organism'>";
 		for (var idx in this.state.targetSpeciesList) {
 			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
 				break;
 			}
-			selectedItem = "";
+			var checked = "";
 			if (this.state.targetSpeciesList[idx].active) { 
 				if (this._isTargetSpeciesSelected(this, this.state.targetSpeciesList[idx].name)) {
-					selectedItem = "checked";
+					checked = "checked";
 				}
 				optionhtml += "<div class='pg_select_item'><input type='checkbox' value=\"" + this.state.targetSpeciesList[idx].name +
-				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + '</div>';
+				"\" " + checked + ">" + this.state.targetSpeciesList[idx].name + '</div>';
 			}
 		}
 		optionhtml += "</div></span></div>";
@@ -2184,20 +2187,20 @@ var Utils = require('./utils.js');
 
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
-		var optionhtml = "<div id='pg_calc_div'><label class='pg_ctrl_label'>Calculation Method</label>"+
+		var optionhtml = "<div class='pg_hr'></div><div id='pg_calc_div'><label class='pg_ctrl_label'>Calculation Method</label>"+
 				"<span id='pg_calcs'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_calculation'>";
 
 		for (var idx in this.state.similarityCalculation) {
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
-					break;
+				break;
 			}			
-			var selecteditem = "";
+			var checked = "";
 			if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
-				selecteditem = "checked";
+				checked = "checked";
 			}
 			// We need the name attr for radio inputs so only one is checked - Joe
-			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + selecteditem + ">" + this.state.similarityCalculation[idx].label + '</div>';
+			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
 		}
 		optionhtml += "</div></div>";
 		return $(optionhtml);
@@ -2205,7 +2208,7 @@ var Utils = require('./utils.js');
 
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
-		var optionhtml ="<div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + 
+		var optionhtml ="<div class='pg_hr'></div><div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + 
 				"<span id='pg_sorts'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_sortphenotypes'>";
 
@@ -2214,12 +2217,12 @@ var Utils = require('./utils.js');
 				break;
 			}
 
-			var selecteditem = "";
+			var checked = "";
 			if (this.state.phenotypeSort[idx] === this.state.selectedSort) {
-				selecteditem = "checked";
+				checked = "checked";
 			}
 			// We need the name attr for radio inputs so only one is checked - Joe
-			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + "' " + selecteditem + ">" + this.state.phenotypeSort[idx] + '</div>';
+			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + this.state.phenotypeSort[idx] + "' " + checked + ">" + this.state.phenotypeSort[idx] + '</div>';
 		}
 		optionhtml += "</div></div>";
 		return $(optionhtml);
@@ -2227,7 +2230,11 @@ var Utils = require('./utils.js');
 
 	// create the html necessary for selecting the axis flip
 	_createAxisSelection: function () {
-		var optionhtml = '<div class="pg_hr"></div><div class="pg_select_item"><input type="checkbox" id="pg_axisflip">Invert Axis</div>'; 
+		var checked = "";
+		if (this.state.invertAxis) {
+			checked = "checked";
+		}
+		var optionhtml = '<div class="pg_hr"></div><div class="pg_select_item"><input type="checkbox" id="pg_axisflip"' + checked + '>Invert Axis</div>'; 
 		return $(optionhtml);
 	},
 
