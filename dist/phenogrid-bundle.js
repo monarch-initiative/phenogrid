@@ -342,6 +342,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.sourceData = [];
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
+	this.ontologyCache = [];
 	this.postDataLoadCallback = '';
 	//this.load(this.qrySourceList, this.targetGroupList, this.limit);
 
@@ -399,7 +400,7 @@ DataLoader.prototype = {
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
-			this.fetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
+			this.postFetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
 		} else {
 			this.postDataLoadCallback();  // make a call back to post data init function
 		}
@@ -567,18 +568,18 @@ DataLoader.prototype = {
 	},
 
 	/*
-		Function: fetch		
-	 		generic ajax call for all queries
+		Function: postFetch		
+	 		generic ajax call for all POST queries
 
 	 	Parameters:
 	 		url - server url
+	 		target - some target e.g., id
+	 		targets - target list
 	 		callback
 	 		postData - data to be posted
 	 */ 
-	fetch: function (url, target, targets, callback, postData) {
-		var res;
+	postFetch: function (url, target, targets, callback, postData) {
 		var self = this;
-		//var get_url = url + data;
 
 		if (typeof(postData) != 'undefined') {
 			console.log('POST:' + url);
@@ -589,7 +590,6 @@ DataLoader.prototype = {
 				async : true,
 				dataType : 'json',
 				success : function(data) {
-					//res = data;
 					callback(self, target, targets, data);
 				},
 				error: function (xhr, errorType, exception) { 
@@ -610,7 +610,11 @@ DataLoader.prototype = {
 					}
 				} 
 			});
-		} else {
+		}
+	},
+
+	getFetch: function (self, url, target, callback, finalCallback) {
+
 			console.log('GET:' + url);
 			jQuery.ajax({
 				url: url,
@@ -618,7 +622,7 @@ DataLoader.prototype = {
 				async : true,
 				dataType : 'json',
 				success : function(data) {
-					res = callback(self, data);					
+					callback(self, target, data, finalCallback);					
 				},
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
@@ -638,14 +642,19 @@ DataLoader.prototype = {
 					}
 				} 
 			});
-		}
-		return res;
 	},
 
-	// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
-	// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
-	// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
-	getOntology: function(id, ontologyDirection, ontologyDepth) {
+	/*
+		Function: getOntology
+
+			gets the ontology for a given id; wraps scigraph call
+	
+	 	Parameters:
+			id - id
+	 		ontologyDirection - which direction to search for relationships
+	 		ontologyDepth - how deep to go for relationships
+	*/
+	getOntology: function(id, ontologyDirection, ontologyDepth, finalCallback) {
 		var self = this;
 		// check cached hashtable first
 		var idClean = id.replace("_", ":");
@@ -657,18 +666,15 @@ DataLoader.prototype = {
 
 		var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
-		//var results = this.fetch(url);
-		var cb = function(d) {this.postOntologyCb(self, idClean, d);};
+		var cb = this.postOntologyCb;
 
-		// not postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
-		this.fetch(self, this.simSearchURL, target, targetGrpList, cb);
+		// no postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
+		this.getFetch(self, url, idClean, cb, finalCallback);
 
 	},
 
-	postOntologyCb: function(s, id, results) {
+	postOntologyCb: function(self, id, results, finalCallback) {
 		var ontologyInfo = [];	
-		var ontologyCache = [];
-		var self = s;
 		var nodes, edges;
 
 		if (typeof (results) !== 'undefined') {
@@ -712,14 +718,11 @@ DataLoader.prototype = {
 			}
 
 			// save the ontology in cache for later
-			var hashData = {"edges": ontologyInfo, "active": 1};
-			ontologyCache[id] = hashData;
-		// } else {
-		// 	// If it does exist, make sure its set to visible
-		// 	ontologyInfo.active = 1;
-		// 	ontologyCache[idClean] = ontologyInfo;
-		// }
-		return ontologyCache; 
+			var ontoData = {"edges": ontologyInfo, "active": 1};
+			self.ontologyCache[id] = ontoData;
+		
+		// return results back to final callback
+		finalCallback(ontoData, id);
 	},
 
 	getOntologyLabel: function(id) {
@@ -752,6 +755,10 @@ DataLoader.prototype = {
 			return false;
 		}
 		return true;
+	},
+
+	checkOntologyCache: function(id) {
+		return this.ontologyCache[id];
 	}
 
 
@@ -1592,24 +1599,8 @@ var Utils = require('./utils.js');
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
 						 this.state.apiEntityMap);
 
+		// starting loading the data
 		this.state.dataLoader.load(querySourceList, this.state.selectedCompareSpecies, postAsyncCallback);  //optional parm:   this.limit);
-		// // set a max IC score
-		// this.state.maxICScore = this.state.dataLoader.maxICScore;
-
-		// this.state.dataManager = new DataManager(this.state.dataLoader);
-
-		// // if (preloadHPO) {
-		// // // MKD: just testing one source id
-		// // var srcs = this.state.dataManager.keys("source");
-		// // this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
-		// // }
-		
-	 //    // initialize axis groups
-	 //    this._createAxisRenderingGroups();
-
-		// this._initDefaults();   
-		// this._processDisplay();
-
 	},
 
 	_postDataInitCB: function (self) {
@@ -1619,11 +1610,11 @@ var Utils = require('./utils.js');
 
 		self.state.dataManager = new DataManager(self.state.dataLoader);
 
-		// if (preloadHPO) {
-		// // MKD: just testing one source id
-		// var srcs = this.state.dataManager.keys("source");
-		// this.state.ontologyCache = this.state.dataLoader.getOntology(srcs[0], this.state.ontologyDirection, this.state.ontologyDepth);
-		// }
+		//if (preloadHPO) {
+			// MKD: just testing one source id
+			var srcs = self.state.dataManager.keys("source");
+			self.state.ontologyCache = self.state.dataLoader.getOntology(srcs[0], self.state.ontologyDirection, self.state.ontologyDepth);
+		//}
 		
 	    // initialize axis groups
 	    self._createAxisRenderingGroups();
@@ -3685,40 +3676,81 @@ var Utils = require('./utils.js');
 
 	// Will call the getHPO function to either load the HPO info or to make it visible if it was previously hidden.  Not available if preloading
 	_expandOntology: function(id){
-		
-		var displayIt = false;
+		var self = this;
 		var fixedId = id.replace("_", ":");
-		var cache = this.state.ontologyCache[fixedId];
 
-		if (typeof(cache) == 'undefined'){
-			var hpoInfo = this.state.dataLoader.getOntology(fixedId, this.state.ontologyDirection, this.state.ontologyDepth);			
-			cache = this.state.ontologyCache[fixedId] = {edges: hpoInfo[fixedId].edges};
-			displayIt = true;
+		// check to see if id has been cached
+		//var cache = this.state.ontologyCache[fixedId];
+		var cache = this.state.dataLoader.checkOntologyCache(fixedId);
+
+		if (typeof(cache) == 'undefined') 
+		{
+			var cb = self._postExpandOntologyCB;
+			this.state.dataLoader.getOntology(fixedId, this.state.ontologyDirection, this.state.ontologyDepth, cb);						
 		} else {
-			displayIt = true;
+			self._postExpandOntologyCB(cache, fixedId);
 		}
 
-		if (displayIt) {
-			this.state.ontologyTreesDone = 0;
-			this.state.ontologyTreeHeight = 0;
-			var info = this._getAxisData(id);
-			var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
-			var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
-			ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
-
-			var classTree = this.buildOntologyTree(fixedId, cache.edges, 0);
-
-			if (classTree === "<br>"){
-				ontologyData += "<em>No classification hierarchy data found</em>";
-			} else {
-				ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
-			}
-			$("#sticky1").html(ontologyData);
-
-			// reshow the sticky with updated info
-			stickytooltip.show(null);
-		}		
 	},
+
+	_postExpandOntologyCB: function(d, id) {
+
+		this.state.ontologyTreesDone = 0;
+		this.state.ontologyTreeHeight = 0;
+		var info = this._getAxisData(id);
+		var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
+		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
+		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
+
+		var classTree = this.buildOntologyTree(fixedId, d.edges, 0);
+
+		if (classTree === "<br>"){
+			ontologyData += "<em>No classification hierarchy data found</em>";
+		} else {
+			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
+		}
+		$("#sticky1").html(ontologyData);
+
+		// reshow the sticky with updated info
+		stickytooltip.show(null);
+
+	},
+
+	// _expandOntology: function(id){
+		
+	// 	var displayIt = false;
+	// 	var fixedId = id.replace("_", ":");
+	// 	var cache = this.state.ontologyCache[fixedId];
+
+	// 	if (typeof(cache) == 'undefined'){
+	// 		var hpoInfo = this.state.dataLoader.getOntology(fixedId, this.state.ontologyDirection, this.state.ontologyDepth);			
+	// 		cache = this.state.ontologyCache[fixedId] = {edges: hpoInfo[fixedId].edges};
+	// 		displayIt = true;
+	// 	} else {
+	// 		displayIt = true;
+	// 	}
+
+	// 	if (displayIt) {
+	// 		this.state.ontologyTreesDone = 0;
+	// 		this.state.ontologyTreeHeight = 0;
+	// 		var info = this._getAxisData(id);
+	// 		var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
+	// 		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
+	// 		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
+
+	// 		var classTree = this.buildOntologyTree(fixedId, cache.edges, 0);
+
+	// 		if (classTree === "<br>"){
+	// 			ontologyData += "<em>No classification hierarchy data found</em>";
+	// 		} else {
+	// 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
+	// 		}
+	// 		$("#sticky1").html(ontologyData);
+
+	// 		// reshow the sticky with updated info
+	// 		stickytooltip.show(null);
+	// 	}		
+	// },
 
 	// Will hide the hpo info, not delete it.  This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
 	_collapseHPO: function(id){

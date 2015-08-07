@@ -34,6 +34,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.sourceData = [];
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
+	this.ontologyCache = [];
 	this.postDataLoadCallback = '';
 	//this.load(this.qrySourceList, this.targetGroupList, this.limit);
 
@@ -91,7 +92,7 @@ DataLoader.prototype = {
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
-			this.fetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
+			this.postFetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
 		} else {
 			this.postDataLoadCallback();  // make a call back to post data init function
 		}
@@ -259,18 +260,18 @@ DataLoader.prototype = {
 	},
 
 	/*
-		Function: fetch		
-	 		generic ajax call for all queries
+		Function: postFetch		
+	 		generic ajax call for all POST queries
 
 	 	Parameters:
 	 		url - server url
+	 		target - some target e.g., id
+	 		targets - target list
 	 		callback
 	 		postData - data to be posted
 	 */ 
-	fetch: function (url, target, targets, callback, postData) {
-		var res;
+	postFetch: function (url, target, targets, callback, postData) {
 		var self = this;
-		//var get_url = url + data;
 
 		if (typeof(postData) != 'undefined') {
 			console.log('POST:' + url);
@@ -281,7 +282,6 @@ DataLoader.prototype = {
 				async : true,
 				dataType : 'json',
 				success : function(data) {
-					//res = data;
 					callback(self, target, targets, data);
 				},
 				error: function (xhr, errorType, exception) { 
@@ -302,7 +302,11 @@ DataLoader.prototype = {
 					}
 				} 
 			});
-		} else {
+		}
+	},
+
+	getFetch: function (self, url, target, callback, finalCallback) {
+
 			console.log('GET:' + url);
 			jQuery.ajax({
 				url: url,
@@ -310,7 +314,7 @@ DataLoader.prototype = {
 				async : true,
 				dataType : 'json',
 				success : function(data) {
-					res = callback(self, data);					
+					callback(self, target, data, finalCallback);					
 				},
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
@@ -330,14 +334,19 @@ DataLoader.prototype = {
 					}
 				} 
 			});
-		}
-		return res;
 	},
 
-	// When provided with an ID, it will first check hpoCacheHash if currently has the HPO data stored,
-	// and if it does it will set it to be visible.  If it does not have that information in the hpoCacheHash,
-	// it will make a server call to get the information and if successful will parse the information into hpoCacheHash and hpoCacheLabels
-	getOntology: function(id, ontologyDirection, ontologyDepth) {
+	/*
+		Function: getOntology
+
+			gets the ontology for a given id; wraps scigraph call
+	
+	 	Parameters:
+			id - id
+	 		ontologyDirection - which direction to search for relationships
+	 		ontologyDepth - how deep to go for relationships
+	*/
+	getOntology: function(id, ontologyDirection, ontologyDepth, finalCallback) {
 		var self = this;
 		// check cached hashtable first
 		var idClean = id.replace("_", ":");
@@ -349,18 +358,15 @@ DataLoader.prototype = {
 
 		var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
-		//var results = this.fetch(url);
-		var cb = function(d) {this.postOntologyCb(self, idClean, d);};
+		var cb = this.postOntologyCb;
 
-		// not postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
-		this.fetch(self, this.simSearchURL, target, targetGrpList, cb);
+		// no postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
+		this.getFetch(self, url, idClean, cb, finalCallback);
 
 	},
 
-	postOntologyCb: function(s, id, results) {
+	postOntologyCb: function(self, id, results, finalCallback) {
 		var ontologyInfo = [];	
-		var ontologyCache = [];
-		var self = s;
 		var nodes, edges;
 
 		if (typeof (results) !== 'undefined') {
@@ -404,14 +410,11 @@ DataLoader.prototype = {
 			}
 
 			// save the ontology in cache for later
-			var hashData = {"edges": ontologyInfo, "active": 1};
-			ontologyCache[id] = hashData;
-		// } else {
-		// 	// If it does exist, make sure its set to visible
-		// 	ontologyInfo.active = 1;
-		// 	ontologyCache[idClean] = ontologyInfo;
-		// }
-		return ontologyCache; 
+			var ontoData = {"edges": ontologyInfo, "active": 1};
+			self.ontologyCache[id] = ontoData;
+		
+		// return results back to final callback
+		finalCallback(ontoData, id);
 	},
 
 	getOntologyLabel: function(id) {
@@ -444,6 +447,10 @@ DataLoader.prototype = {
 			return false;
 		}
 		return true;
+	},
+
+	checkOntologyCache: function(id) {
+		return this.ontologyCache[id];
 	}
 
 
