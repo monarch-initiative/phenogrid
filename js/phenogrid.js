@@ -61,7 +61,6 @@
 
 require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
 require('jquery-ui');
-require('sumoselect');
 var d3 = require('d3');
 
 // load other non-npm dependencies - Joe
