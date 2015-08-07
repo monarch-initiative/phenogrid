@@ -180,7 +180,7 @@ var Utils = require('./utils.js');
 		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
-		gradientRegion: [{x:812, y:380,
+		gradientRegion: [{x:760, y:380,
 						  width:180,
 						  height:10
 						}]
@@ -776,7 +776,7 @@ var Utils = require('./utils.js');
 		var overviewBoxDim = overviewRegionSize + viewPadding;
 
 		// create the main box and the instruction labels.
-		self._initializeOverviewRegion(overviewBoxDim,overviewX,overviewY);
+		self._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
 
 		// create the scales
 		self._createSmallScales(overviewRegionSize);
@@ -986,32 +986,25 @@ var Utils = require('./utils.js');
 	},
 
 	_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
-		var self = this;
+		// Group the overview region and text together - Joe
+		var globalviewGrp = this.state.svg.append("g");
+		
 		// rectangular border for overview
-		var globalview = self.state.svg.append("rect")
+		// border color and thickness are defined in phenogrid.css #pg_globalview - Joe
+		globalviewGrp.append("rect")
 			.attr("x", overviewX)
 			.attr("y", overviewY)
 			.attr("id", "pg_globalview")
 			.attr("height", overviewBoxDim)
 			.attr("width", overviewBoxDim);
 
-		var overviewInstructionHeightOffset = 50;
-		var lineHeight = 12;
-
-		var y = self.state.yModelRegion + overviewBoxDim + overviewInstructionHeightOffset;
-		var rect_instructions = self.state.svg.append("text")
-			.attr("x", self.state.axis_pos_list[2] + 10)
-			// This changes for vertical positioning
-			.attr("y", y)
-			.attr("class", "pg_instruct")
-			.text("Use the phenotype map above to");
-
-		rect_instructions = self.state.svg.append("text")
-			.attr("x", self.state.axis_pos_list[2] + lineHeight)
-			// This changes for vertical positioning
-			.attr("y", y + 10) 
-			.attr("class", "pg_instruct")
-			.text("navigate the model view on the left");
+	    // Text font-size is defined in phenogrid.css .pg_globalview_text - Joe
+		globalviewGrp.append("text")
+			.attr("x", overviewX)
+			// 4 ( two stroke-width: 2)is the sum of top border and bottom border, 15 is vertical margin - Joe
+			.attr("y", overviewY + overviewBoxDim + 4 + 15) 
+			.attr("class", "pg_globalview_text")
+			.text("Phenogrid Navigator");
 	},
 
 	_createSmallScales: function(overviewRegionSize) {
@@ -1797,6 +1790,10 @@ var Utils = require('./utils.js');
 		this._buildGradientTexts();
 	},
 
+	
+	// Should group the gradient rect and the legend texts - Joe
+	
+	
 	/*
 	 * Add the gradients to the grid
 	 */
@@ -1827,7 +1824,9 @@ var Utils = require('./utils.js');
 		}
 
 		var legend = this.state.svg.append("rect")
-			.attr("transform", "translate(" + x + "," + y +")")
+			//.attr("transform", "translate(" + x + "," + y +")")
+			.attr("x", x)
+			.attr("y", y) // use x and y instead of transform since rect has x and y - Joe
 			.attr("class", "legend_rect")
 			.attr("id","legendscale")
 			.attr("width", width)

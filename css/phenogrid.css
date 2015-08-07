@@ -2,8 +2,11 @@
 *  Phenogrid related styling
 */
 #pg_svg_container {
-margin-top:40px;
+margin:20px 10px;
 position:relative;
+border:1px solid #ddd;
+min-height:680px;
+min-width:1040px;
 }
 
 #pg_controls {
@@ -132,7 +135,7 @@ fill: grey;
 opacity: 0.5
 }
 
-.pg_instruct {
+.pg_globalview_text{
 font-size:12px;
 }
 
