@@ -358,6 +358,8 @@ var TooltipRender = require('./tooltiprender.js');
 			// contains all simsearch returned data - Joe
 			this.state.data = {};
 
+			this.state.unmatchedPhenotypeLabels = []; // Holds the unmatched label of each phenotype - Joe
+
 			// will this work?
 			this.configoptions = undefined; // Did you want to reset this variable? Why only reset configoptions? - Joe
 
@@ -990,6 +992,12 @@ var TooltipRender = require('./tooltiprender.js');
 			this._sortPhenotypeHash();
 			this._filterDisplay();
 			this.state.unmatchedPhenotypes = this._getUnmatchedPhenotypes();
+			
+			// Fetch labels for unmatched phenotypes via async ajax calls
+			// All the labels of unmatched phenotypes SHOUDL be in this.state.unmatchedPhenotypeLabels
+			// by the time the unmatched checkbox is clicked - Joe
+			this._formatUnmatchedPhenotypes(this.state.unmatchedPhenotypes);
+			
 			this.element.empty();
 			this._reDraw();
 		},
@@ -3336,12 +3344,13 @@ var TooltipRender = require('./tooltiprender.js');
 		},
 
 		_buildUnmatchedPhenotypeDisplay: function() {
+			var self = this;
 			var pg_ctrl = $("#pg_controls");
 			var pg_unmatched_phenotypes_html = '<div id="pg_unmatched_phenotypes_container" class="clearfix">';
 			
 			if (this.state.unmatchedPhenotypes !== undefined && this.state.unmatchedPhenotypes.length > 0) {
-				pg_unmatched_phenotypes_html += "<div class='clearfix'><input type='checkbox' id='pg_unmatched_checkbox'>View Unmatched Phenotypes</div>"
-												+ "<div id='pg_unmatched_phenotypes'>" + this._buildUnmatchedPhenotypes() + "</div>";
+				pg_unmatched_phenotypes_html += "<div class='clearfix'><input type='checkbox' id='pg_unmatched_checkbox'>Show Unmatched Phenotypes</div>" +
+												"<div id='pg_unmatched_phenotypes'></div>";
 			} else {
 				// No unmatched phenotypes
 				pg_unmatched_phenotypes_html += "<div class='clearfix'>No Unmatched Phenotypes</div>";
@@ -3357,8 +3366,19 @@ var TooltipRender = require('./tooltiprender.js');
 			
 			// Click and Toggle
 			$("#pg_unmatched_checkbox").click(function() {
-				var $this = $(this);
+				// By now the unmatchedPhenotypeLabels should be set by all the aync ajax calls - Joe
+				var cnt = self.state.unmatchedPhenotypeLabels.length;
+				if (cnt = self.state.unmatchedPhenotypes.length) {
+					var unmatchedListHtml = '<ul>';
+					for (var i = 0; i < cnt; i++ ) {
+						unmatchedListHtml += "<li><a href='" + self.state.serverURL + "/phenotype/" + self.state.unmatchedPhenotypeLabels[i].id + "' target='_blank'>" + self.state.unmatchedPhenotypeLabels[i].label + "</a></li>";
+					}
+					unmatchedListHtml += "</ul>";
+					// Insert the html list in #pg_unmatched_phenotypes div
+					$("#pg_unmatched_phenotypes").html(unmatchedListHtml);
+				}
 
+				var $this = $(this);
 				if ($this.prop('checked')) {
 					$("#pg_unmatched_phenotypes").show();
 				} else {
@@ -3367,54 +3387,55 @@ var TooltipRender = require('./tooltiprender.js');
 			});
 		},
 
-		_buildUnmatchedPhenotypes: function() {
-			var self = this;
-			var unmatched = self.state.unmatchedPhenotypes;
-
-			var text = "";
+		// ajax callback
+		_fetchPhenotypeLabelCallback: function(self, target, targets, data) {
 			var label;
-
-			// Notes:
-			// - For phenotype page, the id format in URL, e.g., HP_0000746 will be redirected to HP:0000746
-            // - For monarch-app json API, phenotype id format must be HP:0000746, don't use HP_0000746, 
-			// because http://beta.monarchinitiative.org/phenotype/HP_0000746.json will be redirected 
-			// to http://beta.monarchinitiative.org/phenotype/HP:0000746 (.json extension will be missing after redirection)
-			for (var i in unmatched){
-				if (unmatched[i].label !== undefined) {
-					// Note: phenotype label is in the unmatched array when this widget runs in monarch-app
-					// monarch-app's disease page and analyze/phenotype page returns the phenotype labels
-					label = unmatched[i].label;
-				} else {
-					// Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
-					// so we need to fetch each label from the monarch-app server
-					// Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
-					$.ajax({
-						url: this.state.serverURL + "/phenotype/" + unmatched[i].id + ".json",
-						async: true,
-						dataType: 'json',
-						success: function(data) {
-							// Show id if label is not found
-							if (data.label !== undefined) {
-								label = data.label;
-							} else {
-								label = data.id;
-							}
-						},
-						error: function (xhr, errorType, exception) {
-							console.log("We are having problems fetching the unmatched phenotypes from the server. Please try again later. Error:" + xhr.status);
-						}
-					});
-
-				}
-
-				// Use serverURL
-				text += "<li><a href='" + this.state.serverURL + "/phenotype/" + unmatched[i].id + "' target='_blank'>" + label + "</a></li>";
+			// Show id if label is not found
+			if (data.label !== undefined) {
+				label = data.label;
+			} else {
+				label = data.id;
 			}
-			
-			// Wrap the content into a list
-			return "<ul>" + text + "</ul>";
-		},
+			// 'observed' is not here, add it when needed in the future - Joe
+			self.state.unmatchedPhenotypeLabels.push({'id': target.id, 'label': label});
 
+			// iterative back to process to make sure we processed all the targets
+			self._formatUnmatchedPhenotypes(targets);
+		},
+		
+		// ajax
+		_fetchUnmatchedLabel: function(target, targets, callback) {
+			var self = this;
+			
+			// Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
+			// so we need to fetch each label from the monarch-app server
+			// Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
+			$.ajax({
+				url: this.state.serverURL + "/phenotype/" + target.id + ".json",
+				async: true,
+				method: 'GET',
+				dataType: 'json',
+				success: function(data) {
+					callback(self, target, targets, data); // callback needs self for reference to global this - Joe
+				},
+				error: function (xhr, errorType, exception) {
+					console.log("We are having problems fetching the unmatched phenotypes from the server. Please try again later. Error:" + xhr.status);
+				}
+			});
+		},
+		
+		_formatUnmatchedPhenotypes: function(targetGrpList) {
+			//console.log(targetGrpList);
+			if (targetGrpList.length > 0) {
+				var target = targetGrpList[0];  // pull off the first to start processing
+				targetGrpList = targetGrpList.slice(1);
+
+				var callback = this._fetchPhenotypeLabelCallback;
+				// Make the ajax call to fetch phenotype label
+				this._fetchUnmatchedLabel(target, targetGrpList, callback);
+			}
+		},
+		
 		_matchedClick: function(checkboxEl) {
 			if (checkboxEl.checked) {
 				// Do something special
