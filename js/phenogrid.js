@@ -180,10 +180,7 @@ var Utils = require('./utils.js');
 		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
-		gradientRegion: [{x:760, y:380,
-						  width:180,
-						  height:10
-						}]
+		gradientRegion: {x:730, y:380, width:180, height:10}
 	},
 
 	internalOptions: {
@@ -1804,10 +1801,10 @@ var Utils = require('./utils.js');
 		var self = this;
 
 		// baseline gradientRegion values
-		var x = self.state.gradientRegion[0].x;
-		var y = self.state.gradientRegion[0].y;
-		var width = self.state.gradientRegion[0].width;
-		var height = self.state.gradientRegion[0].height;
+		var x = self.state.gradientRegion.x;
+		var y = self.state.gradientRegion.y;
+		var width = self.state.gradientRegion.width;
+		var height = self.state.gradientRegion.height;
 
 		var gradient = this.state.svg.append("svg:linearGradient") // The <linearGradient> element is used to define a linear gradient. - Joe
 			.attr("id", "gradient")
@@ -1846,8 +1843,8 @@ var Utils = require('./utils.js');
 		var lowText, highText, labelText;
 
 		// baseline gradientRegion
-		var x = self.state.gradientRegion[0].x;
-		var y = self.state.gradientRegion[0].y;
+		var x = self.state.gradientRegion.x;
+		var y = self.state.gradientRegion.y;
 
 
 		for (var idx in this.state.similarityCalculation) {	
@@ -1865,24 +1862,21 @@ var Utils = require('./utils.js');
 		// min label
 		var div_text1 = self.state.svg.append("svg:text")
 			.attr("transform", "translate(" + x + "," + y +")")		
-			.attr("class", "pg_detail_text")
-			.style("font-size", "10px")
+			.attr("class", "pg_gradient_text")
 			.text(lowText);
 
 		// calc the postion of the display type Label
-		var xLabelPos = (x + (self.state.gradientRegion[0].width/2) - labelText.length);		
+		var xLabelPos = (x + (self.state.gradientRegion.width/2) - labelText.length);		
 		var div_text2 = self.state.svg.append("svg:text")
 			.attr("transform", "translate(" + xLabelPos + "," + y +")")						
-			.attr("class", "pg_detail_text")
-			.style("font-size", "10px")
+			.attr("class", "pg_gradient_text")
 			.text(labelText);
 
 		// calc the postion of the High Label
-		var xHighPos = (x + self.state.gradientRegion[0].width)-20;
+		var xHighPos = (x + self.state.gradientRegion.width)-20;
 		var div_text3 = self.state.svg.append("svg:text")
 			.attr("transform", "translate(" + xHighPos + "," + y +")")				
-			.attr("class", "pg_detail_text")
-			.style("font-size", "10px")
+			.attr("class", "pg_gradient_text")
 			.text(highText);
 	},
 

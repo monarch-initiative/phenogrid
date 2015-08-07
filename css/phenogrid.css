@@ -139,6 +139,10 @@ opacity: 0.5
 font-size:12px;
 }
 
+.pg_gradient_text{
+font-size:11px;
+}
+
 .pg_tip {
 width: 80px;
 height:10px;
