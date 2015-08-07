@@ -326,13 +326,13 @@ var Utils = require('./utils.js');
  		simSearchQuery - sim search query specific url string
  		apiEntityMap - entity map identifies the prefix maps (this is probably temporary)
  */
-var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList, targetGroupList, apiEntityMap, callback, limit) {
+var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap, limit) {
 	this.simServerURL = simServerUrl;
 	this.serverURL = serverUrl;	
 	this.simSearchURL = serverUrl + simSearchQuery;
-	this.qrySourceList = qrySourceList;
+//	this.qrySourceList = qrySourceList;
 	this.qryString = '';
-	this.targetGroupList = targetGroupList;
+//	this.targetGroupList = targetGroupList;
 	this.limit = limit;
 	this.apiEntityMap = apiEntityMap;
 	this.owlsimsData = [];
@@ -342,9 +342,8 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, qrySourceList
 	this.sourceData = [];
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
-	this.postCallback = callback;
-
-	this.load(this.qrySourceList, this.targetGroupList, this.limit);
+	this.postDataLoadCallback = '';
+	//this.load(this.qrySourceList, this.targetGroupList, this.limit);
 
 };
 
@@ -361,7 +360,7 @@ DataLoader.prototype = {
 			targetGroup - list of targetGroup
 			limit - value to limit targets returned
 	*/
-	load: function(qrySourceList, targetGroup, limit) {
+	load: function(qrySourceList, targetGroup, postDataLoadCB, limit) {
 		var targetGroupList = [];
 
 		// save the original source listing
@@ -380,6 +379,8 @@ DataLoader.prototype = {
 	    	this.qryString += "&limit=" + limit;
 		}
 
+		this.postDataLoadCallback = postDataLoadCB;
+
 		// begin processing
 		this.process(targetGroupList, this.qryString);
 
@@ -396,11 +397,11 @@ DataLoader.prototype = {
 	    	// need to add on target targetGroup id
 	    	postData = qryString + "&target_species=" + target.taxon;
 
-	    	var callback = this.postSimsFetchCb;
+	    	var postFetchCallback = this.postSimsFetchCb;
 
-			this.fetch(self, this.simSearchURL, target, targetGrpList, callback, postData);
+			this.fetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
 		} else {
-			this.postCallback();  // make a call back to post data init function
+			this.postDataLoadCallback();  // make a call back to post data init function
 		}
 	},
 
@@ -408,8 +409,8 @@ DataLoader.prototype = {
 		Function: postSimsFetchCb
 		Callback function for the post async ajax call
 	*/
-	postSimsFetchCb: function(s, target, targetGrpList, data) {
-		var self = s;
+	postSimsFetchCb: function(self, target, targetGrpList, data) {
+		//var self = s;
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
 
@@ -543,7 +544,7 @@ DataLoader.prototype = {
 			freshes the data 
 	
 	 	Parameters:
-			targetGroup - list of targetGroup to fetch
+			targetGroup - list of targetGroup (aka species) to fetch
 	 		lazy - performs a lazy load of the data checking for existing data
 	*/
 	refresh: function(targetGroup, lazy) {
@@ -559,7 +560,7 @@ DataLoader.prototype = {
 		}
 		// if list is empty, that means we already have data loaded for targetGroup, or possible none were passed in
 		if (list.length > 0) {
-			this.load(this.origSourceList, list, this.limit);
+			this.load(this.origSourceList, list, this.postDataLoadCallback);
 			reloaded = true;
 		}
 		return reloaded;
@@ -574,9 +575,9 @@ DataLoader.prototype = {
 	 		callback
 	 		postData - data to be posted
 	 */ 
-	fetch: function (s, url, target, targets, callback, postData) {
+	fetch: function (url, target, targets, callback, postData) {
 		var res;
-		var self = s;
+		var self = this;
 		//var get_url = url + data;
 
 		if (typeof(postData) != 'undefined') {
@@ -1573,9 +1574,6 @@ var Utils = require('./utils.js');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
-		// target species name might be provided as a name or as taxon. Make sure that we translate to name
-		//this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
-//		this.state.phenotypeData = this._parseQuerySourceList(this.state.phenotypeData);
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
 		this.state.selectedCompareSpecies = [];
@@ -1586,13 +1584,15 @@ var Utils = require('./utils.js');
 				this.state.selectedCompareSpecies.push(this.state.targetSpeciesList[idx]);	
 			}			
 		}
+		var self = this;
+		var postAsyncCallback = function() {
+					self._postDataInitCB(self); };
 
-		var callback = this._postDataInitCB(this);
-
-		// initialize data processing classes,  MKD: may need to refactor this big parm list
+		// initialize data processing class, 
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
-						querySourceList, this.state.selectedCompareSpecies, this.state.apiEntityMap, callback);
+						 this.state.apiEntityMap);
 
+		this.state.dataLoader.load(querySourceList, this.state.selectedCompareSpecies, postAsyncCallback);  //optional parm:   this.limit);
 		// // set a max IC score
 		// this.state.maxICScore = this.state.dataLoader.maxICScore;
 
@@ -1613,7 +1613,6 @@ var Utils = require('./utils.js');
 	},
 
 	_postDataInitCB: function (self) {
-		//var self = this;
 
 		// set a max IC score
 		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
@@ -1883,7 +1882,7 @@ var Utils = require('./utils.js');
 				// .attr("rx", "3")
 				// .attr("ry", "3")			        
 		        .style("fill", function(d) { 
-					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
 		        .on("mouseover", function(d) { self._cellover(d, self);})
@@ -1903,7 +1902,7 @@ var Utils = require('./utils.js');
 		var data;
 
 		if (d.type === 'cell') {  
-       		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+       		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 			
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
@@ -1949,7 +1948,7 @@ var Utils = require('./utils.js');
 		var self = this;
 		var gridRegion = self.state.gridRegion[0]; 
 		var axisLen = self.state.yAxisRender.displayLength();
-		var height = gridRegion.y + (axisLen * gridRegion.cellht * gridRegion.ypad)-5;
+		var height = axisLen * gridRegion.cellht;
 		return height;
 	},
 
@@ -2169,7 +2168,7 @@ var Utils = require('./utils.js');
 			.attr("width", linePad)
 			.attr("height", linePad)
 			.attr("fill", function(d) {
-				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
 			});
 
@@ -3104,11 +3103,12 @@ var Utils = require('./utils.js');
 		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
 		var len = self.state.xAxisRender.displayLength();
 		var width = (self.state.gridRegion[0].xpad*len) + self.state.gridRegion[0].cellwd;
-		var y = self.state.gridRegion[0].speciesLabelOffset;
+		var height = self._gridHeight();
+		var y = height / 2 ; //self.state.gridRegion[0].speciesLabelOffset;
 
 		// position relative to the grid
 		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y);
-			if (self.state.invertAxis){
+			if (self.state.invertAxis && speciesList.length > 1){
 				translation = "translate(" + self.state.gridRegion[0].x + "," + (self.state.gridRegion[0].y) + ")rotate(-90)";
 				speciesList = speciesList.reverse();  // need to do this to match order of the species order
 			} else {

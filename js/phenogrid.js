@@ -257,9 +257,6 @@ var Utils = require('./utils.js');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
-		// target species name might be provided as a name or as taxon. Make sure that we translate to name
-		//this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
-//		this.state.phenotypeData = this._parseQuerySourceList(this.state.phenotypeData);
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
 		this.state.selectedCompareSpecies = [];
@@ -270,13 +267,15 @@ var Utils = require('./utils.js');
 				this.state.selectedCompareSpecies.push(this.state.targetSpeciesList[idx]);	
 			}			
 		}
+		var self = this;
+		var postAsyncCallback = function() {
+					self._postDataInitCB(self); };
 
-		var callback = this._postDataInitCB(this);
-
-		// initialize data processing classes,  MKD: may need to refactor this big parm list
+		// initialize data processing class, 
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
-						querySourceList, this.state.selectedCompareSpecies, this.state.apiEntityMap, callback);
+						 this.state.apiEntityMap);
 
+		this.state.dataLoader.load(querySourceList, this.state.selectedCompareSpecies, postAsyncCallback);  //optional parm:   this.limit);
 		// // set a max IC score
 		// this.state.maxICScore = this.state.dataLoader.maxICScore;
 
@@ -297,7 +296,6 @@ var Utils = require('./utils.js');
 	},
 
 	_postDataInitCB: function (self) {
-		//var self = this;
 
 		// set a max IC score
 		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
@@ -567,7 +565,7 @@ var Utils = require('./utils.js');
 				// .attr("rx", "3")
 				// .attr("ry", "3")			        
 		        .style("fill", function(d) { 
-					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
 		        .on("mouseover", function(d) { self._cellover(d, self);})
@@ -587,7 +585,7 @@ var Utils = require('./utils.js');
 		var data;
 
 		if (d.type === 'cell') {  
-       		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+       		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 			
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
@@ -633,7 +631,7 @@ var Utils = require('./utils.js');
 		var self = this;
 		var gridRegion = self.state.gridRegion[0]; 
 		var axisLen = self.state.yAxisRender.displayLength();
-		var height = gridRegion.y + (axisLen * gridRegion.cellht * gridRegion.ypad)-5;
+		var height = axisLen * gridRegion.cellht;
 		return height;
 	},
 
@@ -853,7 +851,7 @@ var Utils = require('./utils.js');
 			.attr("width", linePad)
 			.attr("height", linePad)
 			.attr("fill", function(d) {
-				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.species);
+				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
 			});
 
@@ -1788,11 +1786,12 @@ var Utils = require('./utils.js');
 		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
 		var len = self.state.xAxisRender.displayLength();
 		var width = (self.state.gridRegion[0].xpad*len) + self.state.gridRegion[0].cellwd;
-		var y = self.state.gridRegion[0].speciesLabelOffset;
+		var height = self._gridHeight();
+		var y = height / 2 ; //self.state.gridRegion[0].speciesLabelOffset;
 
 		// position relative to the grid
 		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y);
-			if (self.state.invertAxis){
+			if (self.state.invertAxis && speciesList.length > 1){
 				translation = "translate(" + self.state.gridRegion[0].x + "," + (self.state.gridRegion[0].y) + ")rotate(-90)";
 				speciesList = speciesList.reverse();  // need to do this to match order of the species order
 			} else {
