@@ -123,6 +123,7 @@ var Utils = require('./utils.js');
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
 		navigator: {x:790, y: 200, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
+		logo: {x: 815, y: 150, width: 60, height: 30},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -1324,14 +1325,14 @@ var Utils = require('./utils.js');
 		}
 	},
 
-	_addLogoImage:	 function() { 
+	_addLogoImage: function() { 
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
-			.attr("x", 0)
-			.attr("y",0)
+			.attr("x", this.state.logo.x)
+			.attr("y", this.state.logo.y)
 			.attr("id", "logo")
-			.attr("width", "60")
-			.attr("height", "90");
+			.attr("width", this.state.logo.width)
+			.attr("height", this.state.logo.height);
 	},
 
 	_resetLinks: function() {
