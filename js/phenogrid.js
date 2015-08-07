@@ -88,7 +88,7 @@ var Utils = require('./utils.js');
 
 (function($, window, document, __undefined__) {
 	var createPhenogridForElement = function(element, options) {
-		var jqElement = $(element);
+		var jqElement = $(element); // element is a jQuery object containing the element used to instantiate the widget - Joe
 		jqElement.phenogrid(options);
 	};
 
@@ -458,33 +458,19 @@ var Utils = require('./utils.js');
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
-			// @see for parameters:  https://github.com/HemantNegi/jquery.sumoselect
-			$('.SlectBox').SumoSelect({ triggerChangeCombined: false,
-       						selectAll: true,
-       						selectAlltext: 'Check All',
-       						forceCustomRendering: false	
-							});		
-			$('.NormalSlectBox').SumoSelect();		
-			
-			
-			
-			
-			
-			
-			// Push control panel - Joe
-			$("#button_push_left").on( "click", function(){
-				// Opens and closes the menu
-				$("#phenogrid_controls").toggleClass("push_left_open");
-				
-				// Moves the page content to side when menu is open - the "Push" part
-				$("#pg_svg_container").toggleClass("container_open_left");
-				
-				if($("#phenogrid_controls").hasClass("push_left_open")){
+
+			var self = this;
+			// Slide control panel - Joe
+			$("#pg_slide_btn").on("click", function() {
+				// Opens and closes the phenogrid controls
+				$("#pg_controls").toggleClass("pg_slide_open");
+
+				if ($("#pg_controls").hasClass("pg_slide_open")) {
 					// If the menu is open, then Change the menu button icon
-					$("#bpleft").attr('src', this.state.scriptpath + '../image/close_left.png');
-				}else{
+					$("#pg_slide_btn > img").attr('src', self.state.scriptpath + '../image/close_left.png');
+				} else {
 					// If the menu is closed, change to the original button icon
-					$("#bpleft").attr('src', this.state.scriptpath + '../image/menu_icon.png');
+					$("#pg_slide_btn > img").attr('src', self.state.scriptpath + '../image/menu_icon.png');
 				}
 			});
 
@@ -1963,8 +1949,9 @@ var Utils = require('./utils.js');
 	},
 
 	_addPhenogridControls: function() {
-		var phenogridControls = $('<div id="phenogrid_controls" class="push_left_close"></div>');
-		this.element.append(phenogridControls);
+		var phenogridControls = $('<div id="pg_controls" class="pg_slide_close"></div>');
+		//this.element.append(phenogridControls); // old
+		$('#pg_svg_container').append(phenogridControls); // new, append controls to #pg_svg_container - Joe
 		this._createSelectionControls(phenogridControls);
 	},
  
@@ -2065,9 +2052,9 @@ var Utils = require('./utils.js');
 		var self = this;
 		var optionhtml ='<div id="selects"></div>';
 		
-		// Push button - Joe
-		var pushBtn ='<button id="button_push_left" class="button pbutton">' + 
-					'<img id="bpleft" src="' + this.state.scriptpath + '../image/menu_icon.png"/>' + 
+		// Hide/show panel - button - Joe
+		var pushBtn ='<button id="pg_slide_btn">' + 
+					'<img src="' + this.state.scriptpath + '../image/menu_icon.png"/>' + 
 					'</button>';
 		
 		
@@ -2083,20 +2070,26 @@ var Utils = require('./utils.js');
 
 		container.append(options);
 		
-		// Append push button - Joe
+		// Append slide button - Joe
 		container.append(pushBtn);
 		
-		// add the handler for the select control
-		$( "#pg_organism" ).change(function(d) {
+		// add the handler for the checkboxes control
+		$("#pg_organism").change(function(d) {
 			console.log('in the change()..');
 			self.state.selectedCompareSpecies = [];
-			var opts = this.options;
-			for (var idx in opts) {
-				if (opts[idx].selected) {
-					var rec = self._getTargetSpeciesInfo(self, opts[idx].text);
+			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
+			for (var idx in items) {
+				// We need this check since idx may be 'length' which is not in items - Joe
+				if ( ! items.hasOwnProperty(idx)) {
+					break;
+				}
+				
+				if (items[idx].childNodes[0].checked) {
+					var rec = self._getTargetSpeciesInfo(self, items[idx].textContent);
 					self.state.selectedCompareSpecies.push(rec);
 				}
 			}
+			
 			if (self.state.selectedCompareSpecies.length > 0) {
 				self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
 				self._createAxisRenderingGroups();
@@ -2104,18 +2097,19 @@ var Utils = require('./utils.js');
 				self._processDisplay();
 			} else {
 				alert("You must have at least 1 species selected.");
+				// Need to make sure that only one checkbox is checked again - Joe
 			}
 		});
 
-		$( "#pg_calculation" ).change(function(d) {
-			self.state.selectedCalculation = self.state.similarityCalculation[d.target.selectedIndex].calc;
+		$("#pg_calculation").change(function(d) {
+			self.state.selectedCalculation = self.state.similarityCalculation[d.target.value].calc;
 			self._resetSelections("calculation");
 			self._processDisplay();
 		});
 
 		// add the handler for the select control
-		$( "#pg_sortphenotypes" ).change(function(d) {
-			self.state.selectedSort = self.state.phenotypeSort[d.target.selectedIndex];
+		$("#pg_sortphenotypes").change(function(d) {
+			self.state.selectedSort = self.state.phenotypeSort[d.target.value];
 			// sort source with default sorting type
 			if (self.state.invertAxis){
 				self.state.xAxisRender.sort(self.state.selectedSort); 
@@ -2126,16 +2120,15 @@ var Utils = require('./utils.js');
 			self._processDisplay();
 		});
 
-		$( "#pg_axisflip" ).click(function(d) {	
-//		$( "#pg_axisflip[type=checkbox]" ).click(function(d) {
-			// var $this = $(this);
-			// // $this will contain a reference to the checkbox 
-			// if ($this.is(':checked')) {
-			// 	self.state.invertAxis = true;
-			// } else {
-			// 	self.state.invertAxis = false;
-			// }
-		    self.state.invertAxis = !self.state.invertAxis;
+		$("#pg_axisflip").click(function(d) {	
+			var $this = $(this);
+			// $this will contain a reference to the checkbox 
+			if ($this.is(':checked')) {
+				self.state.invertAxis = true;
+			} else {
+				self.state.invertAxis = false;
+			}
+
 		    self._resetSelections("axisflip");
 		    self._setAxisRenderers();
 		    self._resetDisplayLimits();
@@ -2148,9 +2141,8 @@ var Utils = require('./utils.js');
 
 	_createOrganismSelection: function() {
 		var selectedItem;
-		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism</label>" + 
-			//"<span><div class='SumoSelect' tabindex='0'>" +
-			"<span id='pg_org_sel'><select id='pg_organism' multiple='multiple' class='SlectBox'>"; // select is inline level element, it's fine to use <span> - Joe
+		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism(s)</label>" + 
+			"<span id='pg_org_sel'><div id='pg_organism'>";
 		for (var idx in this.state.targetSpeciesList) {
 			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
 				break;
@@ -2158,16 +2150,16 @@ var Utils = require('./utils.js');
 			selectedItem = "";
 			if (this.state.targetSpeciesList[idx].active) { 
 				if (this._isTargetSpeciesSelected(this, this.state.targetSpeciesList[idx].name)) {
-					selectedItem = "selected";
+					selectedItem = "checked";
 				}
-				optionhtml += "<option value=\"" + this.state.targetSpeciesList[idx].name +
-				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + "</option>";
+				optionhtml += "<div class='pg_select_item'><input type='checkbox' value=\"" + this.state.targetSpeciesList[idx].name +
+				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + '</div>';
 			}
 		}
-		optionhtml += "</select></span></div>";
+		optionhtml += "</div></span></div>";
 
 				// add the handler for the select control
-		$( "#pg_organism" ).change(function(d) {
+/* 		$( "#pg_organism" ).click(function(d) {
 			console.log('in the change()..');
 			self.state.selectedCompareSpecies = [];
 			var opts = this.options;
@@ -2185,16 +2177,16 @@ var Utils = require('./utils.js');
 			} else {
 				alert("You must have at least 1 species selected.");
 			}
-		});
+		}); */
 
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
-		var optionhtml = "<div id='pg_calc_div'><label class='pg_ctrl_label'>Display</label>"+ // changed span to div since the CSS name has "_div" - Joe
+		var optionhtml = "<div id='pg_calc_div'><label class='pg_ctrl_label'>Calculation Method</label>"+
 				"<span id='pg_calcs'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<span id='calc_sel'><select id='pg_calculation' class='NormalSlectBox'>";
+				"<div id='pg_calculation'>";
 
 		for (var idx in this.state.similarityCalculation) {
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
@@ -2202,20 +2194,20 @@ var Utils = require('./utils.js');
 			}			
 			var selecteditem = "";
 			if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
-				selecteditem = "selected";
+				selecteditem = "checked";
 			}
-			optionhtml += "<option value='" + this.state.similarityCalculation[idx].calc + "' " + selecteditem + ">" +
-				this.state.similarityCalculation[idx].label + "</option>";
+			// We need the name attr for radio inputs so only one is checked - Joe
+			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + selecteditem + ">" + this.state.similarityCalculation[idx].label + '</div>';
 		}
-		optionhtml += "</select></span></div>"; // changed span to div since the CSS name has "_div" - Joe
+		optionhtml += "</div></div>";
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
-		var optionhtml ="<div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + // changed span to div since the CSS name has "_div" - Joe
+		var optionhtml ="<div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + 
 				"<span id='pg_sorts'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<span><select id='pg_sortphenotypes' class='NormalSlectBox'>";
+				"<div id='pg_sortphenotypes'>";
 
 		for (var idx in this.state.phenotypeSort) {
 			if ( ! this.state.phenotypeSort.hasOwnProperty(idx)) {
@@ -2224,20 +2216,18 @@ var Utils = require('./utils.js');
 
 			var selecteditem = "";
 			if (this.state.phenotypeSort[idx] === this.state.selectedSort) {
-				selecteditem = "selected";
+				selecteditem = "checked";
 			}
-			optionhtml += "<option value='" + "' " + selecteditem + ">" + this.state.phenotypeSort[idx] + "</option>";
+			// We need the name attr for radio inputs so only one is checked - Joe
+			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + "' " + selecteditem + ">" + this.state.phenotypeSort[idx] + '</div>';
 		}
-		optionhtml += "</select></span></div>"; // Added missing </div> - Joe
+		optionhtml += "</div></div>";
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the axis flip
 	_createAxisSelection: function () {
-		var optionhtml = "<div id='pg_axis_div'><label class='pg_ctrl_label'>Axis Flip</label>" +
-			"<span id='org_sel'><button type='button' id='pg_axisflip'>Flip Axis</button></span></div>"; // <button> is an inline tag - Joe
-//			"<form><input type='checkbox' id='pg_axisflip'/>Flip Axis</form></div>"; 
-			 
+		var optionhtml = '<div class="pg_hr"></div><div class="pg_select_item"><input type="checkbox" id="pg_axisflip">Invert Axis</div>'; 
 		return $(optionhtml);
 	},
 
