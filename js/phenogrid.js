@@ -122,8 +122,7 @@ var Utils = require('./utils.js');
 		detailRectWidth: 300,
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
-		globalViewSize : 110,
-		reducedGlobalViewSize: 50,
+		navigator: {x:790, y: 200, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -755,7 +754,7 @@ var Utils = require('./utils.js');
 		var startXIdx = self.state.xAxisRender.renderStartPos;    // this.state.currXIdx - xCount;
 
 		// add-ons for stroke size on view box. Preferably even numbers
-		var linePad = 2;
+		var linePad = self.state.navigator.borderThickness;
 		var viewPadding = linePad * 2 + 2;
 
 		// overview region is offset by xTranslation, yTranslation
@@ -763,13 +762,13 @@ var Utils = require('./utils.js');
 		var yTranslation = 30;
 
 		// these translations from the top-left of the rectangular region give the absolute coordinates
-		var overviewX = self.state.axis_pos_list[2] + xTranslation;    //MKD NEEDS REFACTORED TO ELIMINATE AXIS_POS_LIST ARRAY
-		var overviewY = self.state.yModelRegion + yTranslation;
+		var overviewX = self.state.navigator.x;
+		var overviewY = self.state.navigator.y;
 
 		// size of the entire region - it is a square
-		var overviewRegionSize = self.state.globalViewSize;
+		var overviewRegionSize = self.state.navigator.size;
 		if (this.state.yAxisRender.groupLength() < yCount) {  
-			overviewRegionSize = self.state.reducedGlobalViewSize;
+			overviewRegionSize = self.state.navigator.reducedSize;
 		}
 
 		// make it a bit bigger to ccont for widths
@@ -791,7 +790,7 @@ var Utils = require('./utils.js');
 		var yvalues = self.state.yAxisRender.groupEntries();		
 		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
 
-		var cell_rects = this.state.svg.selectAll(".mini_cells")
+		var cell_rects = this.state.svg.selectAll(".mini_cell")
 			.data(data, function(d) {return d.source_id + d.target_id;});   //D.Yid + D.xID;});
 		overviewX++;	// Corrects the gapping on the sides
 		overviewY++;
@@ -801,7 +800,7 @@ var Utils = require('./utils.js');
 
 		cell_rects.enter()
 			.append("rect")
-			.attr("transform",cellRectTransform)
+			.attr("transform", cellRectTransform)
 			.attr("class", "mini_cell")
 			.attr("y", function(d, i) { 
 				var yid = d.source_id;
@@ -820,6 +819,8 @@ var Utils = require('./utils.js');
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
 			});
 
+		
+			
 		var yRenderedSize = this.state.yAxisRender.displayLength();
 		var xRenderedSize = this.state.xAxisRender.displayLength();		
      	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
@@ -985,9 +986,10 @@ var Utils = require('./utils.js');
 
 	},
 
-	_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
+	_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
 		// Group the overview region and text together - Joe
-		var globalviewGrp = this.state.svg.append("g");
+		var globalviewGrp = this.state.svg.append("g")
+			.attr("id", "pg_navigator");
 		
 		// rectangular border for overview
 		// border color and thickness are defined in phenogrid.css #pg_globalview - Joe
@@ -1001,8 +1003,8 @@ var Utils = require('./utils.js');
 	    // Text font-size is defined in phenogrid.css .pg_globalview_text - Joe
 		globalviewGrp.append("text")
 			.attr("x", overviewX)
-			// 4 ( two stroke-width: 2)is the sum of top border and bottom border, 15 is vertical margin - Joe
-			.attr("y", overviewY + overviewBoxDim + 4 + 15) 
+			// two stroke-width + padding 2 (spacing between border and content), 15 is vertical margin - Joe
+			.attr("y", overviewY + overviewBoxDim + this.state.navigator.borderThickness * 2 + 2 + 15) 
 			.attr("class", "pg_globalview_text")
 			.text("Phenogrid Navigator");
 	},
