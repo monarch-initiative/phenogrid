@@ -122,8 +122,8 @@ var Utils = require('./utils.js');
 		detailRectWidth: 300,
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
-		navigator: {x:790, y: 200, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
-		logo: {x: 815, y: 150, width: 60, height: 30},
+		navigator: {x:115, y: 50, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
+		logo: {x: 60, y: 600, width: 60, height: 30},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -177,10 +177,10 @@ var Utils = require('./utils.js');
 						scoreOffset:5,  // score text offset from the top of grid squares
 						speciesLabelOffset: -200    // -100offset of the species label, above grid
 					}],
-		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
+		defaultTargetDisplayLimit: 50, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
-		gradientRegion: {x:730, y:380, width:180, height:10}
+		gradientRegion: {x:254, y:620, width:446, height:10}
 	},
 
 	internalOptions: {
@@ -1003,7 +1003,7 @@ var Utils = require('./utils.js');
 			.attr("x", overviewX)
 			// two stroke-width + padding 2 (spacing between border and content), 15 is vertical margin - Joe
 			.attr("y", overviewY + overviewBoxDim + this.state.navigator.borderThickness * 2 + 2 + 15) 
-			.attr("class", "pg_globalview_text")
+			.attr("id", "pg_globalview_text")
 			.text("Phenogrid Navigator");
 	},
 
@@ -1185,9 +1185,9 @@ var Utils = require('./utils.js');
 		var widthOfSingleCell = this.state.gridRegion[0].cellwd;
 
 		svgContainer.append("<svg id='pg_svg_area'></svg>");
-		this.state.svg = d3.select("#pg_svg_area")
-				.attr("width", "100%")
-				.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+100));
+		this.state.svg = d3.select("#pg_svg_area");
+				//.attr("width", "100%")
+				//.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+100));
 
 		 this._addGridTitle();
 //		 this._createDiseaseTitleBox();

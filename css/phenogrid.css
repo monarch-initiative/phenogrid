@@ -6,7 +6,12 @@ margin:20px 10px;
 position:relative;
 border:1px solid #ddd;
 min-height:680px;
-min-width:1040px;
+min-width:960px;
+}
+
+#pg_svg_area {
+min-width:960px;
+min-height:680px;
 }
 
 #pg_controls {
@@ -24,16 +29,16 @@ color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 position:absolute;
-left:0;
-top:30px;
+left:740px;
+top:80px;
 }
 
 #pg_slide_btn{
 width:30px;
 height:30px;
 position:absolute;
-left:0;
-top:0;
+left:740px;
+top:50px;
 border:1px solid #222;
 outline:0;
 background-color:#44A293;
@@ -135,7 +140,7 @@ fill: grey;
 opacity: 0.5
 }
 
-.pg_globalview_text{
+#pg_globalview_text{
 font-size:12px;
 }
 
