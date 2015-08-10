@@ -305,7 +305,7 @@ DataLoader.prototype = {
 		}
 	},
 
-	getFetch: function (self, url, target, callback, finalCallback) {
+	getFetch: function (self, url, target, callback, finalCallback, parent) {
 
 			console.log('GET:' + url);
 			jQuery.ajax({
@@ -314,7 +314,7 @@ DataLoader.prototype = {
 				async : true,
 				dataType : 'json',
 				success : function(data) {
-					callback(self, target, data, finalCallback);					
+					callback(self, target, data, finalCallback, parent);					
 				},
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
@@ -346,10 +346,9 @@ DataLoader.prototype = {
 	 		ontologyDirection - which direction to search for relationships
 	 		ontologyDepth - how deep to go for relationships
 	*/
-	getOntology: function(id, ontologyDirection, ontologyDepth, finalCallback) {
+	getOntology: function(id, ontologyDirection, ontologyDepth, finalCallback, parent) {
 		var self = this;
 		// check cached hashtable first
-		var idClean = id.replace("_", ":");
 		var direction = ontologyDirection;
 		var relationship = "subClassOf";
 		var depth = ontologyDepth;
@@ -361,11 +360,11 @@ DataLoader.prototype = {
 		var cb = this.postOntologyCb;
 
 		// no postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
-		this.getFetch(self, url, idClean, cb, finalCallback);
+		this.getFetch(self, url, id, cb, finalCallback, parent);
 
 	},
 
-	postOntologyCb: function(self, id, results, finalCallback) {
+	postOntologyCb: function(self, id, results, finalCallback, parent) {
 		var ontologyInfo = [];	
 		var nodes, edges;
 
@@ -414,7 +413,7 @@ DataLoader.prototype = {
 			self.ontologyCache[id] = ontoData;
 		
 		// return results back to final callback
-		finalCallback(ontoData, id);
+		finalCallback(ontoData, id, parent);
 	},
 
 	getOntologyLabel: function(id) {

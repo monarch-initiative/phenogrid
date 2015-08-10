@@ -613,7 +613,7 @@ DataLoader.prototype = {
 		}
 	},
 
-	getFetch: function (self, url, target, callback, finalCallback) {
+	getFetch: function (self, url, target, callback, finalCallback, parent) {
 
 			console.log('GET:' + url);
 			jQuery.ajax({
@@ -622,7 +622,7 @@ DataLoader.prototype = {
 				async : true,
 				dataType : 'json',
 				success : function(data) {
-					callback(self, target, data, finalCallback);					
+					callback(self, target, data, finalCallback, parent);					
 				},
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
@@ -654,10 +654,9 @@ DataLoader.prototype = {
 	 		ontologyDirection - which direction to search for relationships
 	 		ontologyDepth - how deep to go for relationships
 	*/
-	getOntology: function(id, ontologyDirection, ontologyDepth, finalCallback) {
+	getOntology: function(id, ontologyDirection, ontologyDepth, finalCallback, parent) {
 		var self = this;
 		// check cached hashtable first
-		var idClean = id.replace("_", ":");
 		var direction = ontologyDirection;
 		var relationship = "subClassOf";
 		var depth = ontologyDepth;
@@ -669,11 +668,11 @@ DataLoader.prototype = {
 		var cb = this.postOntologyCb;
 
 		// no postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
-		this.getFetch(self, url, idClean, cb, finalCallback);
+		this.getFetch(self, url, id, cb, finalCallback, parent);
 
 	},
 
-	postOntologyCb: function(self, id, results, finalCallback) {
+	postOntologyCb: function(self, id, results, finalCallback, parent) {
 		var ontologyInfo = [];	
 		var nodes, edges;
 
@@ -722,7 +721,7 @@ DataLoader.prototype = {
 			self.ontologyCache[id] = ontoData;
 		
 		// return results back to final callback
-		finalCallback(ontoData, id);
+		finalCallback(ontoData, id, parent);
 	},
 
 	getOntologyLabel: function(id) {
@@ -1611,9 +1610,11 @@ var Utils = require('./utils.js');
 		self.state.dataManager = new DataManager(self.state.dataLoader);
 
 		//if (preloadHPO) {
-			// MKD: just testing one source id
-			var srcs = self.state.dataManager.keys("source");
-			self.state.ontologyCache = self.state.dataLoader.getOntology(srcs[0], self.state.ontologyDirection, self.state.ontologyDepth);
+		// MKD: preload just one source id, to initialize the ontologyCache
+		self.state.ontologyCache = {};
+
+		//var srcs = self.state.dataManager.keys("source");
+		//self.state.ontologyCache = self.state.dataLoader.getOntology(srcs[0], self.state.ontologyDirection, self.state.ontologyDepth);
 		//}
 		
 	    // initialize axis groups
@@ -1746,13 +1747,11 @@ var Utils = require('./utils.js');
 			this._addLogoImage();
 			//var rectHeight = this._createRectangularContainers();
 
-//			self._createGridlines();
-
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
 			// this._createXLines();
 			// this._createYLines();
 			this._addPhenogridControls();
-			//this._createSpeciesBorderOutline();
+
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
 			 	this._createOverviewSpeciesLabels();
 			}
@@ -1898,7 +1897,7 @@ var Utils = require('./utils.js');
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
 				  .classed("active", true);
-	 		d3.select("#pg_grid_row_" + d.ypos +" .cell")
+	 		d3.selectAll("#pg_grid_row_" + d.ypos +" .cell")
 				  .classed("rowcolmatch", true);			  
 		  	d3.select("#pg_grid_col_" + d.xpos +" text")
 				  .classed("active", true);
@@ -1939,7 +1938,7 @@ var Utils = require('./utils.js');
 		var self = this;
 		var gridRegion = self.state.gridRegion[0]; 
 		var axisLen = self.state.yAxisRender.displayLength();
-		var height = axisLen * gridRegion.cellht;
+		var height = (gridRegion.y + (axisLen * gridRegion.ypad)) - 50;  //magic number
 		return height;
 	},
 
@@ -1984,7 +1983,7 @@ var Utils = require('./utils.js');
 	    	scores	      		
 	    	.attr("transform", function(d, i) { 
 	      			return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
-	      				 "," + (gridRegion.y-gridRegion.scoreOffset ) +")"})
+	      				 "," + (gridRegion.y-gridRegion.scoreOffset ) +")";})
 	      		.attr("x", 0)
 	      		.attr("y", scale.rangeBand()+2);
 	    }
@@ -2046,42 +2045,6 @@ var Utils = require('./utils.js');
 		}
 	},
 
-	// adds light gray gridlines to make it easier to see which row/column selected matches occur
-	_createGridlines: function() {
-		var self = this;
-		var mWidth = self.state.widthOfSingleCell;
-		var mHeight = self.state.heightOfSingleCell;
-		// create a blank grid to match the size of the phenogrid grid
-		var data = [];
-   	    var rowCt = self.state.yAxisRender.displayLength();
-   	    var colCt = self.state.xAxisRender.displayLength();
-	     
-
-		//this.state.xScale = this.state.xAxisRender.getScale();
-		var xScale = this.state.xAxisRender.getScale();
-
-		for (var k = 0; k < rowCt; k++){
-			for (var l = 0; l < colCt; l++) {
-				var r = [];
-				r.push(k);
-				r.push(l);
-				data.push( r );
-			}
-		}
-		self.state.svg.selectAll("rect.bordered")
-			.data(data)
-			.enter()
-			.append("rect")
-			.attr("id","pg_gridline")
-			.attr("transform","translate(" + ((self.state.gridRegion[0].x)-2) + "," + ((self.state.gridRegion[0].y)-1)+ ")") 	//252, " + (this.state.yModelRegion + 5) + ")")
-			.attr("x", 0) //function(d,i) { return d[1] * self.state.gridRegion[0].cellwd;})  //mWidth;})
-			.attr("y", function(d,i) { 
-							return xScale.rangeBand()*20;})
-			//return d[0] * self.state.gridRegion[0].cellht;}) //mHeight;})
-			.attr("class", "hour bordered deselected")
-			.attr("width", self.state.gridRegion[0].cellwd) //14)
-			.attr("height", self.state.gridRegion[0].cellht);  //11.5);
-	},
 
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
 	_createOverviewSection: function() {
@@ -2456,6 +2419,7 @@ var Utils = require('./utils.js');
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
 	 
+	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
 	     if (this.state.yAxisRender.contains(key)){
 		     return this.state.yAxisRender.get(key);
 		 } else if (this.state.xAxisRender.contains(key)){
@@ -2839,7 +2803,7 @@ var Utils = require('./utils.js');
 		var gridRegion = self.state.gridRegion[0];
 		var x = gridRegion.x;     
 		var y = gridRegion.y;   
-		var height = self._gridHeight() - 10;
+		var height = self._gridHeight();// - 10;
 		var width = self._gridWidth();
 
 		if (self._isCrossComparisonView() ) {
@@ -2875,8 +2839,7 @@ var Utils = require('./utils.js');
 					.attr("y2", x1-2);
 
 				} else {
-
-
+					// render vertical divider line
 					this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
 					.attr("transform","translate(" + x + "," + y+ ")")					
@@ -2885,6 +2848,8 @@ var Utils = require('./utils.js');
 					.attr("x2", x1)
 					.attr("y2", height);
 
+
+					// render the slanted line between targetGroup (species) columns
 					 this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
 					.attr("transform","translate(" + x + "," + y + ")rotate(-62 " + x1 + " 0)")					
@@ -2899,82 +2864,6 @@ var Utils = require('./utils.js');
 
 	},
 
-	
-	_createSpeciesBorderOutline: function () {
-		// create the related model rectangles
-		var self = this;
-		var list = [];
-		var ct, width, height, borderStroke;
-		var gridRegion = self.state.gridRegion[0];
-		var vwidthAndGap = gridRegion.cellht;     //self.state.heightOfSingleCell;
-		var hwidthAndGap = gridRegion.cellwd;     //self.state.widthOfSingleCell;
-		var totCt = 0;
-		var parCt = 0;
-	    var displayCount = self.state.yAxisRender.displayLength();
-	    var displayCountX = self.state.xAxisRender.displayLength();
-
-
-		// Have temporarly until fix for below during Axis Flip
-		if (self.state.currentTargetSpeciesName === "Overview"){
-			return;  //TEMP ONLY
-			if (this.state.invertAxis) {
-				list = self.state.selectedCompareSpecies;
-				ct = self.state.defaultVisibleModelCt;
-				borderStroke = self.state.detailRectStrokeWidth / 2;
-				// width = gridRegion.x + hwidthAndGap * displayCountX;
-				// height = gridRegion.y + vwidthAndGap * ct + borderStroke;
-				width =  (gridRegion.xpad*ct) + hwidthAndGap + borderStroke*2;//(hwidthAndGap * ct) +   * 2;  
-				height = (gridRegion.ypad*displayCount)+ vwidthAndGap + borderStroke*2;			
-			} else {
-				list = self.state.selectedCompareSpecies;
-				ct = self.state.defaultVisibleModelCt;
-				borderStroke = self.state.detailRectStrokeWidth;
-				width =  (gridRegion.xpad*ct) + hwidthAndGap + borderStroke*2;//(hwidthAndGap * ct) +   * 2;  
-				height = (gridRegion.ypad*displayCount)+ vwidthAndGap + borderStroke*2;							
-			}
-		} else {
-			list.push(self.state.currentTargetSpeciesName);
-			ct = displayCountX;
-			borderStroke = self.state.detailRectStrokeWidth;
-			width =  (gridRegion.xpad*ct) + hwidthAndGap + borderStroke*2;//(hwidthAndGap * ct) +   * 2;  
-			height = (gridRegion.ypad*displayCount)+ vwidthAndGap + borderStroke*2;			
-			//height = (vwidthAndGap * displayCount)+(gridRegion.ypad*4);  //+ borderStroke * 2; gridRegion.y + 
-		}
-
-		var border_rect = self.state.svg.selectAll(".species_accent")
-			.data(list)
-			.enter()
-			.append("rect")
-			.attr("transform","translate(" + (gridRegion.x-5) + "," + (gridRegion.y-5) + ")")	
-			.attr("class", "species_accent")
-			.attr("width", width)
-			.attr("height", height)
-			.attr("stroke", "black")
-			.attr("stroke-width", borderStroke)
-			.attr("fill", "none");
-
-			if (self._isCrossComparisonView() && this.state.invertAxis){
-				border_rect.attr("x", 0);
-				border_rect.attr("y", function(d,i) { 
-					totCt += ct;
-					if (i === 0) { return (gridRegion.y + borderStroke); }  //self.state.yoffset
-					else {
-						parCt = totCt - ct;
-						return (borderStroke) + ((vwidthAndGap) * parCt + i);
-					}
-				});
-			} else {
-				border_rect.attr("x", function(d,i) { 
-					totCt += ct;
-					if (i === 0) { return 0; }
-					else {
-						parCt = totCt - ct;
-						return gridRegion.x + hwidthAndGap * parCt;
-					}
-				});
-				//border_rect.attr("y", gridRegion.y + 1);
-			}
-	},
 
 	/*
 	 * Change the list of phenotypes and filter the models accordingly. The 
@@ -3098,25 +2987,29 @@ var Utils = require('./utils.js');
 		var y = height / 2 ; //self.state.gridRegion[0].speciesLabelOffset;
 
 		// position relative to the grid
-		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y);
-			if (self.state.invertAxis && speciesList.length > 1){
-				translation = "translate(" + self.state.gridRegion[0].x + "," + (self.state.gridRegion[0].y) + ")rotate(-90)";
-				speciesList = speciesList.reverse();  // need to do this to match order of the species order
-			} else {
-		 		translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y) +")";	
-			}
+		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y) +")";
 
-		var xPerModel = width/speciesList.length;  //self.state.modelWidth
+		// if inverted the change the translate to rotate 90
+		if (self.state.invertAxis && speciesList.length > 1){
+				translation = "translate(" + self.state.gridRegion[0].x + "," + (self.state.gridRegion[0].y) + ")rotate(-90)";
+				//speciesList = speciesList.reverse();  // need to do this to match order of the species order
+		} 
+
+		var xPerModel = width/speciesList.length;  
 		var species = self.state.svg.selectAll("#pg_specieslist")
 			.data(speciesList)
 			.enter()
 			.append("text")
 			.attr("transform",translation)
-			.attr("x", function(d,i){ return ((i + 1 / 2 ) * xPerModel) + 5;})
+			.attr("x", function(d,i){ 
+					var x = ((i + 1 / 2 ) * xPerModel) + 5;
+					if (self.state.invertAxis) {
+						x = -x;  // this push the labels into negative quadrant
+					}
+					return x;
+				})
 			.attr("id", "pg_specieslist")
 			.attr("y", y)
-			//.attr("width", xPerModel)
-			//.attr("height", 5)
 			.text(function (d,i){return speciesList[i];})
 			.attr("text-anchor","middle");
 	},
@@ -3180,44 +3073,6 @@ var Utils = require('./utils.js');
 		self.state.tooltips[name] = text;
 	},
 
-	/*
-	 * Build the three main left-right visual components: the rectangle containing the 
-	 * phenotypes, the main grid iself, and the right-hand side including the overview and color scales
-	 */
-	_createRectangularContainers: function() {
-		var self = this;
-		this._buildAxisPositionList();
-	    //var displayCount = self._getYLimit();
-	    var displayCount = self.state.yAxisRender.displayLength();
-
-		var gridHeight = displayCount * self.state.heightOfSingleCell + 10;
-		if (gridHeight < self.state.minHeight) {
-			gridHeight = self.state.minHeight;
-		}
-
-		var y = self.state.yModelRegion;
-		// create accent boxes
-		var rect_accents = this.state.svg.selectAll("#rect.accent")
-			.data([0,1,2], function(d) { return d;});
-		rect_accents.enter()
-			.append("rect")
-			.attr("class", "accent")
-			.attr("x", function(d, i) { return self.state.axis_pos_list[i];})
-			.attr("y", y)
-			.attr("width", self.state.textWidth + 5)
-			.attr("height", gridHeight)
-			.attr("id", function(d, i) {
-				if(i === 0) {return "leftrect";}
-				else if(i === 1) {return "centerrect";}
-				else {return "rightrect";}
-			})
-			.style("opacity", '0.4')
-			.attr("fill", function(d, i) {
-				return i != 0 ? d3.rgb("#eee") : "white";
-			});
-
-		return gridHeight + self.state.yModelRegion;
-	},
 
 	// Build out the positions of the 3 boxes
 	_buildAxisPositionList: function() {
@@ -3677,38 +3532,38 @@ var Utils = require('./utils.js');
 	// Will call the getHPO function to either load the HPO info or to make it visible if it was previously hidden.  Not available if preloading
 	_expandOntology: function(id){
 		var self = this;
-		var fixedId = id.replace("_", ":");
 
 		// check to see if id has been cached
 		//var cache = this.state.ontologyCache[fixedId];
-		var cache = this.state.dataLoader.checkOntologyCache(fixedId);
+		var cache = this.state.dataLoader.checkOntologyCache(id);
 
 		if (typeof(cache) == 'undefined') 
 		{
 			var cb = self._postExpandOntologyCB;
-			this.state.dataLoader.getOntology(fixedId, this.state.ontologyDirection, this.state.ontologyDepth, cb);						
+			this.state.dataLoader.getOntology(id, this.state.ontologyDirection, this.state.ontologyDepth, cb, self);						
 		} else {
-			self._postExpandOntologyCB(cache, fixedId);
+			self._postExpandOntologyCB(cache, id, self);
 		}
 
 	},
 
-	_postExpandOntologyCB: function(d, id) {
+	_postExpandOntologyCB: function(d, id, parent) {
 
-		this.state.ontologyTreesDone = 0;
-		this.state.ontologyTreeHeight = 0;
-		var info = this._getAxisData(id);
-		var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
+		parent.state.ontologyTreesDone = 0;
+		parent.state.ontologyTreeHeight = 0;
+		var info = parent._getAxisData(id);
+		var hrefLink = "<a href=\"" + parent.state.serverURL+"/phenotype/"+ id + "\" target=\"_blank\">" + info.label + "</a>";
 		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
 		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
 
-		var classTree = this.buildOntologyTree(fixedId, d.edges, 0);
+		var classTree = parent.buildOntologyTree(id, d.edges, 0);
 
 		if (classTree === "<br>"){
 			ontologyData += "<em>No classification hierarchy data found</em>";
 		} else {
 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 		}
+
 		$("#sticky1").html(ontologyData);
 
 		// reshow the sticky with updated info
@@ -4408,16 +4263,17 @@ TooltipRender.prototype = {
 		var returnHtml = "";
 		var expand = false;
 		var ontologyData = "<br>";
-		var fixedId = tooltip.id.replace("_", ":");
-		var cached = tooltip.parent.state.ontologyCache[fixedId];
-	
+		var id = tooltip.id;
+
+		var cached = tooltip.parent.state.dataLoader.checkOntologyCache(id);
+
 		if (cached !== undefined) { //&& hpoCached.active == 1){
 			expand = true;
 
 			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 			tooltip.parent.state.ontologyTreesDone = 0;
 			tooltip.parent.state.ontologyTreeHeight = 0;
-			var tree = "<div id='hpoDiv'>" + tooltip.parent.buildOntologyTree(tooltip.id.replace("_", ":"), cached.edges, 0) + "</div>";
+			var tree = "<div id='hpoDiv'>" + tooltip.parent.buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + "</div>";
 			if (tree === "<br>"){
 				ontologyData += "<em>No Classification hierarchy Found</em>";
 			} else {
@@ -4425,17 +4281,17 @@ TooltipRender.prototype = {
 			}
 		}
 		// Used font awesome for expand buttons - Joe
-		if (!tooltip.parent.state.preloadHPO){
+//		if (!tooltip.parent.state.preloadHPO){
 			if (expand){
 				returnHtml += ontologyData;
 			} else {
 				//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
-				returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + tooltip.id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+				returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
 			}
-		}
-		else {
-			returnHtml = ontologyData;
-		}
+		// }
+		// else {
+		// 	returnHtml = ontologyData;
+		// }
 	return returnHtml;		
 
 	},

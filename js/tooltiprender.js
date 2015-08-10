@@ -88,16 +88,17 @@ TooltipRender.prototype = {
 		var returnHtml = "";
 		var expand = false;
 		var ontologyData = "<br>";
-		var fixedId = tooltip.id.replace("_", ":");
-		var cached = tooltip.parent.state.ontologyCache[fixedId];
-	
+		var id = tooltip.id;
+
+		var cached = tooltip.parent.state.dataLoader.checkOntologyCache(id);
+
 		if (cached !== undefined) { //&& hpoCached.active == 1){
 			expand = true;
 
 			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 			tooltip.parent.state.ontologyTreesDone = 0;
 			tooltip.parent.state.ontologyTreeHeight = 0;
-			var tree = "<div id='hpoDiv'>" + tooltip.parent.buildOntologyTree(tooltip.id.replace("_", ":"), cached.edges, 0) + "</div>";
+			var tree = "<div id='hpoDiv'>" + tooltip.parent.buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + "</div>";
 			if (tree === "<br>"){
 				ontologyData += "<em>No Classification hierarchy Found</em>";
 			} else {
@@ -105,17 +106,17 @@ TooltipRender.prototype = {
 			}
 		}
 		// Used font awesome for expand buttons - Joe
-		if (!tooltip.parent.state.preloadHPO){
+//		if (!tooltip.parent.state.preloadHPO){
 			if (expand){
 				returnHtml += ontologyData;
 			} else {
 				//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
-				returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + tooltip.id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+				returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
 			}
-		}
-		else {
-			returnHtml = ontologyData;
-		}
+		// }
+		// else {
+		// 	returnHtml = ontologyData;
+		// }
 	return returnHtml;		
 
 	},
