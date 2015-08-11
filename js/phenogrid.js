@@ -176,7 +176,7 @@ var Utils = require('./utils.js');
 						rowLabelOffset:-25, // offset of the row label (left side)
 						colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
 						scoreOffset:5,  // score text offset from the top of grid squares
-						speciesLabelOffset: 200    // -100offset of the species label, above grid
+						speciesLabelOffset: -200    // -100offset of the species label, above grid
 					}],
 		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
@@ -514,7 +514,7 @@ var Utils = require('./utils.js');
 	      .attr("transform", function(d) { 
 	      	var offset = gridRegion.colLabelOffset;
 	      	var xs = xScale(d.id);
-	      	if (self.state.invertAxis) {offset = 5;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
+//	      	if (self.state.invertAxis) {offset = colLabelOffset;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
 			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
 	      				 "," + (gridRegion.y-offset) + ")rotate(-60)"; }); //-45
 
@@ -1180,7 +1180,7 @@ var Utils = require('./utils.js');
 				.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+100));
 
 		 this._addGridTitle();
-		 this._createDiseaseTitleBox();
+//		 this._createDiseaseTitleBox();
 		
 	},
 
@@ -1264,20 +1264,17 @@ var Utils = require('./utils.js');
 			.attr("y", y)		//this.state.gridTitleYOffset)
 			.text(titleText);
 			
-		/*
-		 * foffset is the offset to place the icon at the right of the grid title.
-		 * ideally should do this by dynamically grabbing the width of mtitle,
-		 * but that doesn't seem to work.
-		 */
-		
-		var faq	= this.state.svg
+		this.state.svg
 				.append("text")
 				.attr('font-family', 'FontAwesome')
-				.text(function(d) { 
-					return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
+				.attr("id", "pg_faqs")
+				// Position faq icon on title right + 10px padding 
+				// jQuery object doesn't have getBoundingClientRect() method, we need to use the array [] notation - Joe
+				.attr("x", xoffset + $("#pg_toptitle")[0].getBoundingClientRect().width + 10) 
+				.attr("y", y)		// Half logo height  this.state.gridTitleYOffset
+				.text(function(d) {
+					return "\uf05a"; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 				})
-				 .attr("x", x + (22.4*titleText.length))
-				 .attr("y", y)
 				.style('cursor', 'pointer')
 				.on("click", function(d) {
 					self._showDialog("faq");
@@ -1661,15 +1658,16 @@ var Utils = require('./utils.js');
 		var len = self.state.xAxisRender.displayLength();
 		var width = (self.state.gridRegion[0].xpad*len) + self.state.gridRegion[0].cellwd;
 		var height = self._gridHeight();
-		var y = height / 2 ; //self.state.gridRegion[0].speciesLabelOffset;
+		var y = self.state.gridRegion[0].rowLabelOffset-90;  // height / 2 ;rowLabelOffset
 
 		// position relative to the grid
 		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y) +")";
 
-		// if inverted the change the translate to rotate 90
+		// if inverted override the translate to rotate 90
 		if (self.state.invertAxis && speciesList.length > 1){
 				translation = "translate(" + self.state.gridRegion[0].x + "," + (self.state.gridRegion[0].y) + ")rotate(-90)";
 				//speciesList = speciesList.reverse();  // need to do this to match order of the species order
+				y = self.state.gridRegion[0].speciesLabelOffset;				
 		} 
 
 		var xPerModel = width/speciesList.length;  
@@ -1680,8 +1678,8 @@ var Utils = require('./utils.js');
 			.attr("transform",translation)
 			.attr("x", function(d,i){ 
 					var x = ((i + 1 / 2 ) * xPerModel) + 5;
-					if (self.state.invertAxis) {
-						x = -x;  // this push the labels into negative quadrant
+					if (self.state.invertAxis && speciesList.length > 1) {
+						x = -(x-20);  // this pushes the labels into negative quadrant w/ padding, when flipped
 					}
 					return x;
 				})
@@ -1690,7 +1688,7 @@ var Utils = require('./utils.js');
 			.text(function (d,i){return speciesList[i];})
 			.attr("text-anchor","middle");
 	},
-
+	
 	// we might want to modify this to do a dynamic http retrieval to grab the dialog components...
 	_showDialog: function(name){
 		var self = this;
