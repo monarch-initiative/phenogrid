@@ -2228,6 +2228,7 @@ var Utils = require('./utils.js');
 
 		parent.state.ontologyTreesDone = 0;
 		parent.state.ontologyTreeHeight = 0;
+		id = id.replace("_", ":");
 		var info = parent._getAxisData(id);
 		var hrefLink = "<a href=\"" + parent.state.serverURL+"/phenotype/"+ id + "\" target=\"_blank\">" + info.label + "</a>";
 		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
