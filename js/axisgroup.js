@@ -246,7 +246,6 @@ AxisGroup.prototype = {
 	*/	
     sort: function(by) {
     	var temp = this.groupEntries();
-    	console.log('before: ' +JSON.stringify(temp));
 
  		if (by === 'Frequency') {
 			//sortFunc = self._sortByFrequency;
@@ -274,7 +273,6 @@ AxisGroup.prototype = {
 			});
 		}
 
-		console.log('after: ' +JSON.stringify(temp));
 		// rebuild items
 		this.items = [];
 		for (var t in temp) {
