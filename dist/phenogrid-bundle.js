@@ -3546,14 +3546,13 @@ var Utils = require('./utils.js');
 	_postExpandOntologyCB: function(d, id, parent) {
 
 		parent.state.ontologyTreesDone = 0;
-		parent.state.ontologyTreeHeight = 0;
-		id = id.replace("_", ":");
+		parent.state.ontologyTreeHeight = 0;		
 		var info = parent._getAxisData(id);
 		var hrefLink = "<a href=\"" + parent.state.serverURL+"/phenotype/"+ id + "\" target=\"_blank\">" + info.label + "</a>";
 		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
 		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
 
-		var classTree = parent.buildOntologyTree(id, d.edges, 0);
+		var classTree = parent.buildOntologyTree(id.replace("_", ":"), d.edges, 0);
 
 		if (classTree === "<br>"){
 			ontologyData += "<em>No classification hierarchy data found</em>";
