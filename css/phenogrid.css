@@ -201,7 +201,7 @@ margin-top:40px;
 
 #pg_specieslist {
   font-weight: bold;
-  font-size: 20px;
+  font-size: 18px;
   opacity: .1;
 }
 
@@ -259,7 +259,7 @@ background-color: #fff !important;
   fill: blue;
 }
 
-.rowcolmatch {
+.cell.rowcolmatch {
   fill:#440000;
 }
 
@@ -295,8 +295,8 @@ table.pgtb th
 }
 
 .pg_target_grp_divider {
-  stroke: #969696; /*#8763A3;  #0F473E;*/
-  stroke-width:.35;
+  stroke: #0B20AE; /*#8763A3;  #0F473E;*/
+  stroke-dasharray: 2;  /* small dots */
 }
 
 .pg_expandHPO{
