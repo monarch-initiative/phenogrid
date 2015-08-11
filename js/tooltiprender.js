@@ -196,9 +196,6 @@ TooltipRender.prototype = {
 			// }
 
 		for (var idx in tooltip.parent.state.similarityCalculation) {	
-			if ( ! tooltip.parent.state.similarityCalculation.hasOwnProperty(idx)) {
-				break;
-			}
 			if (tooltip.parent.state.similarityCalculation[idx].calc === tooltip.parent.state.selectedCalculation) {
 				prefix = tooltip.parent.state.similarityCalculation[idx].label;
 			break;
@@ -209,10 +206,11 @@ TooltipRender.prototype = {
 		if ( selCalc !== 2) {suffix = '%';}
 
 		returnHtml = "<table class=\"pgtb\">" +
-			"<tbody><tr><td><u><b>Query</b></u><br>" +
-			Utils.capitalizeString(d.type) + ": " + this.entityHreflink(d.type, sourceId, d.a_label ) +  
+			"<tbody><tr><td><u><b>Query</b></u><br>" +   //Utils.capitalizeString(d.type) + 
+			"<b>Source: </b>" + this.entityHreflink(d.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
-			"Species: " + d.targetGroup + "</td>" + 
+			"<b>" + prefix + ":</b> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + '%' + "<br>" +		
+			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetSpeciesByName[d.targetGroup].taxon + ")</td>" + 
 			"<tr><td><u><b><br>In-common</b></u><br>" + 
 		this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label ) +
 				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
