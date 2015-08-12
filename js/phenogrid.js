@@ -88,7 +88,7 @@ var Utils = require('./utils.js');
 
 (function($, window, document, __undefined__) {
 	var createPhenogridForElement = function(element, options) {
-		var jqElement = $(element);
+		var jqElement = $(element); // element is a jQuery object containing the element used to instantiate the widget - Joe
 		jqElement.phenogrid(options);
 	};
 
@@ -105,9 +105,9 @@ var Utils = require('./utils.js');
 		// merged into this.state - Joe
 		// only used twice, one of them is for config.h, which according to the comments, h should be elimiated - Joe
 		// so we can just use one variable for all configs to contain everything in congig and internalOptions - Joe		
-	config: {
-		//scriptpath : $('script[src]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/',
-		scriptpath : $('script[src*="phenogrid"]').last().attr('src').split('?')[0].split('/').slice(0, -1).join('/')+'/',
+	config: {		
+		imagePath: 'image/',
+		htmlPath: 'js/res/',		
 		colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
 		colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
 				'rgb(237,248,177)',
@@ -277,6 +277,8 @@ var Utils = require('./utils.js');
 
 		// starting loading the data
 		this.state.dataLoader.load(querySourceList, this.state.selectedCompareSpecies, postAsyncCallback);  //optional parm:   this.limit);
+	
+
 	},
 
 	_postDataInitCB: function (self) {
@@ -440,13 +442,21 @@ var Utils = require('./utils.js');
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
-			// @see for parameters:  https://github.com/HemantNegi/jquery.sumoselect
-			$('.SlectBox').SumoSelect({ triggerChangeCombined: false,
-       						selectAll: true,
-       						selectAlltext: 'Check All',
-       						forceCustomRendering: false	
-							});		
-			$('.NormalSlectBox').SumoSelect();		
+
+			var self = this;
+			// Slide control panel - Joe
+			$("#pg_slide_btn").on("click", function() {
+				// Opens and closes the phenogrid controls
+				$("#pg_controls").toggleClass("pg_slide_open");
+
+				if ($("#pg_controls").hasClass("pg_slide_open")) {
+					// If the menu is open, then Change the menu button icon
+					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'close_left.png');
+				} else {
+					// If the menu is closed, change to the original button icon
+					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'menu_icon.png');
+				}
+			});
 
 
 		} else {
@@ -1209,7 +1219,7 @@ var Utils = require('./utils.js');
 		
 		var img = $("<img>")
 				.attr("id", "img-spinner")
-				.attr("src", this.state.scriptpath + "../image/waiting_ac.gif")
+				.attr("src", this.state.imagePath + "waiting_ac.gif")
 				.attr("alt", "Loading, please wait...");
 
 		var wait = $("<div>")
@@ -1326,7 +1336,7 @@ var Utils = require('./utils.js');
 
 	_addLogoImage:	 function() { 
 		this.state.svg.append("svg:image")
-			.attr("xlink:href", this.state.scriptpath + "../image/logo.png")
+			.attr("xlink:href", this.state.imagePath + "logo.png")
 			.attr("x", 0)
 			.attr("y",0)
 			.attr("id", "logo")
@@ -1781,8 +1791,9 @@ var Utils = require('./utils.js');
 	},
 
 	_addPhenogridControls: function() {
-		var phenogridControls = $('<div id="phenogrid_controls"></div>');
-		this.element.append(phenogridControls);
+		var phenogridControls = $('<div id="pg_controls" class="pg_slide_close"></div>');
+		//this.element.append(phenogridControls); // old
+		$('#pg_svg_container').append(phenogridControls); // new, append controls to #pg_svg_container - Joe
 		this._createSelectionControls(phenogridControls);
 	},
  
@@ -1882,6 +1893,13 @@ var Utils = require('./utils.js');
 	_createSelectionControls: function(container) {
 		var self = this;
 		var optionhtml ='<div id="selects"></div>';
+		
+		// Hide/show panel - button - Joe
+		var pushBtn ='<button id="pg_slide_btn">' + 
+					'<img src="' + this.state.imagePath + 'menu_icon.png"/>' + 
+					'</button>';
+		
+		
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
 		options.append(orgSel);
@@ -1893,36 +1911,47 @@ var Utils = require('./utils.js');
 		options.append(axisSel);
 
 		container.append(options);
-		// add the handler for the select control
-		$( "#pg_organism" ).change(function(d) {
+		
+		// Append slide button - Joe
+		container.append(pushBtn);
+		
+		// add the handler for the checkboxes control
+		$("#pg_organism").change(function(d) {
 			console.log('in the change()..');
-			self.state.selectedCompareSpecies = [];
-			var opts = this.options;
-			for (var idx in opts) {
-				if (opts[idx].selected) {
-					var rec = self._getTargetSpeciesInfo(self, opts[idx].text);
-					self.state.selectedCompareSpecies.push(rec);
+//			self.state.selectedCompareSpecies = [];
+			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
+			var temp = [];
+			for (var idx = 0; idx < items.length; idx++) {
+
+				if (items[idx].childNodes[0].checked) {
+					var rec = self._getTargetSpeciesInfo(self, items[idx].textContent);
+					//self.state.selectedCompareSpecies.push(rec);
+					temp.push(rec);
 				}
 			}
-			if (self.state.selectedCompareSpecies.length > 0) {
-				self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
-				self._createAxisRenderingGroups();
-				self._initDefaults();
-				self._processDisplay();
+			
+			//if (self.state.selectedCompareSpecies.length > 0) {
+			if (temp.length > 0) {
+				self.state.selectedCompareSpecies = temp;				
 			} else {
 				alert("You must have at least 1 species selected.");
 			}
+			// That last checked checkbox will be checked again after rerendering - Joe
+			self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
+			self._createAxisRenderingGroups();
+			self._initDefaults();
+			self._processDisplay();
 		});
 
-		$( "#pg_calculation" ).change(function(d) {
-			self.state.selectedCalculation = self.state.similarityCalculation[d.target.selectedIndex].calc;
+		$("#pg_calculation").change(function(d) {
+			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
 			self._resetSelections("calculation");
 			self._processDisplay();
 		});
 
 		// add the handler for the select control
-		$( "#pg_sortphenotypes" ).change(function(d) {
-			self.state.selectedSort = self.state.phenotypeSort[d.target.selectedIndex];
+		$("#pg_sortphenotypes").change(function(d) {
+			self.state.selectedSort = d.target.value;
 			// sort source with default sorting type
 			if (self.state.invertAxis){
 				self.state.xAxisRender.sort(self.state.selectedSort); 
@@ -1933,16 +1962,15 @@ var Utils = require('./utils.js');
 			self._processDisplay();
 		});
 
-		$( "#pg_axisflip" ).click(function(d) {	
-//		$( "#pg_axisflip[type=checkbox]" ).click(function(d) {
-			// var $this = $(this);
-			// // $this will contain a reference to the checkbox 
-			// if ($this.is(':checked')) {
-			// 	self.state.invertAxis = true;
-			// } else {
-			// 	self.state.invertAxis = false;
-			// }
-		    self.state.invertAxis = !self.state.invertAxis;
+		$("#pg_axisflip").click(function(d) {	
+			var $this = $(this);
+			// $this will contain a reference to the checkbox 
+			if ($this.is(':checked')) {
+				self.state.invertAxis = true;
+			} else {
+				self.state.invertAxis = false;
+			}
+
 		    self._resetSelections("axisflip");
 		    self._setAxisRenderers();
 		    self._resetDisplayLimits();
@@ -1954,27 +1982,25 @@ var Utils = require('./utils.js');
 	},
 
 	_createOrganismSelection: function() {
-		var selectedItem;
-		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism</label>" + 
-			//"<span><div class='SumoSelect' tabindex='0'>" +
-			"<span id='pg_org_sel'><select id='pg_organism' multiple='multiple' class='SlectBox'>"; // select is inline level element, it's fine to use <span> - Joe
+		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism(s)</label>" + 
+			"<span id='pg_org_sel'><div id='pg_organism'>";
 		for (var idx in this.state.targetSpeciesList) {
 			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
 				break;
 			}
-			selectedItem = "";
+			var checked = "";
 			if (this.state.targetSpeciesList[idx].active) { 
 				if (this._isTargetSpeciesSelected(this, this.state.targetSpeciesList[idx].name)) {
-					selectedItem = "selected";
+					checked = "checked";
 				}
-				optionhtml += "<option value=\"" + this.state.targetSpeciesList[idx].name +
-				"\" " + selectedItem + ">" + this.state.targetSpeciesList[idx].name + "</option>";
+				optionhtml += "<div class='pg_select_item'><input type='checkbox' value=\"" + this.state.targetSpeciesList[idx].name +
+				"\" " + checked + ">" + this.state.targetSpeciesList[idx].name + '</div>';
 			}
 		}
-		optionhtml += "</select></span></div>";
+		optionhtml += "</div></span></div>";
 
 				// add the handler for the select control
-		$( "#pg_organism" ).change(function(d) {
+/* 		$( "#pg_organism" ).click(function(d) {
 			console.log('in the change()..');
 			self.state.selectedCompareSpecies = [];
 			var opts = this.options;
@@ -1992,59 +2018,61 @@ var Utils = require('./utils.js');
 			} else {
 				alert("You must have at least 1 species selected.");
 			}
-		});
+		}); */
 
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
-		var optionhtml = "<div id='pg_calc_div'><label class='pg_ctrl_label'>Display</label>"+ // changed span to div since the CSS name has "_div" - Joe
+		var optionhtml = "<div class='pg_hr'></div><div id='pg_calc_div'><label class='pg_ctrl_label'>Calculation Method</label>"+
 				"<span id='pg_calcs'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<span id='calc_sel'><select id='pg_calculation' class='NormalSlectBox'>";
+				"<div id='pg_calculation'>";
 
 		for (var idx in this.state.similarityCalculation) {
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
-					break;
+				break;
 			}			
-			var selecteditem = "";
+			var checked = "";
 			if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
-				selecteditem = "selected";
+				checked = "checked";
 			}
-			optionhtml += "<option value='" + this.state.similarityCalculation[idx].calc + "' " + selecteditem + ">" +
-				this.state.similarityCalculation[idx].label + "</option>";
+			// We need the name attr for radio inputs so only one is checked - Joe
+			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
 		}
-		optionhtml += "</select></span></div>"; // changed span to div since the CSS name has "_div" - Joe
+		optionhtml += "</div></div>";
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
-		var optionhtml ="<div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + // changed span to div since the CSS name has "_div" - Joe
+		var optionhtml ="<div class='pg_hr'></div><div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + 
 				"<span id='pg_sorts'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<span><select id='pg_sortphenotypes' class='NormalSlectBox'>";
+				"<div id='pg_sortphenotypes'>";
 
 		for (var idx in this.state.phenotypeSort) {
 			if ( ! this.state.phenotypeSort.hasOwnProperty(idx)) {
 				break;
 			}
 
-			var selecteditem = "";
+			var checked = "";
 			if (this.state.phenotypeSort[idx] === this.state.selectedSort) {
-				selecteditem = "selected";
+				checked = "checked";
 			}
-			optionhtml += "<option value='" + "' " + selecteditem + ">" + this.state.phenotypeSort[idx] + "</option>";
+			// We need the name attr for radio inputs so only one is checked - Joe
+			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + this.state.phenotypeSort[idx] + "' " + checked + ">" + this.state.phenotypeSort[idx] + '</div>';
 		}
-		optionhtml += "</select></span></div>"; // Added missing </div> - Joe
+		optionhtml += "</div></div>";
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the axis flip
 	_createAxisSelection: function () {
-		var optionhtml = "<div id='pg_axis_div'><label class='pg_ctrl_label'>Axis Flip</label>" +
-			"<span id='org_sel'><button type='button' id='pg_axisflip'>Flip Axis</button></span></div>"; // <button> is an inline tag - Joe
-//			"<form><input type='checkbox' id='pg_axisflip'/>Flip Axis</form></div>"; 
-			 
+		var checked = "";
+		if (this.state.invertAxis) {
+			checked = "checked";
+		}
+		var optionhtml = '<div class="pg_hr"></div><div class="pg_select_item"><input type="checkbox" id="pg_axisflip"' + checked + '>Invert Axis</div>'; 
 		return $(optionhtml);
 	},
 
@@ -2623,17 +2651,8 @@ var Utils = require('./utils.js');
 		}
 	},
 
-	/*
-	 * HACK WARNING - 20140926, harryh@pitt.edu
-	 * phenogrid assumes a path of /js/res relative to the scriptpath directory. This will contain configuration files
-	 * that will be loaded via urls constructed in this function.
-	 * As of 9/26/2014, the puptent application used in monarch-app breaks this.
-	 * thus, a workaround is included below to set the path correctly if it come up as '/'.
-	 * this should not impact any standalone uses of phenogrid, and will be removed once monarch-app is cleaned up.
-	 */
 	_getResourceUrl: function(name,type) {
-		var prefix = this.state.serverURL+'/widgets/phenogrid/js/';
-		return prefix + 'res/' + name + '.' + type;
+		return this.state.htmlPath + name + '.' + type;
 	},
 
 	_isCrossComparisonView: function() {
