@@ -7,58 +7,37 @@ position:relative;
 }
 
 #pg_controls {
-width:160px;
+position:absolute;
+left:0;
+top:0;
+}
+
+#pg_controls_options {
+min-width:200px;
 background:#F1F3F8;
 padding:20px;
-margin-top:10px;
 font-size:12px;
 color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
+position:absolute;
+left:0;
+top:30px;
 }
 
 #pg_slide_btn{
 width:30px;
 height:30px;
 position:absolute;
-right:-30px;
-top:-1px;
+left:0;
+top:0;
 border:1px solid #222;
 outline:0;
 background-color:#44A293;
-border-left:0;
-box-shadow: 4px 4px 2px #ddd;
-}
-
-.pg_slide_close{
-position:fixed;
-left:-201px;
-top:30px;
 }
 
 .pg_slide_open{
-left:0px;
-}
-
-.pg_slide_open,
-.pg_slide_close{
--webkit-transition: all 0.3s ease;
--moz-transition: all 0.3s ease;
-transition: all 0.3s ease;
-}
-
-#pg_org_div,
-#pg_sort_div,
-#pg_calc_div,
-#pg_axis_div {
-margin-bottom:10px;
-}
-
-#pg_organism,
-#pg_sortphenotypes,
-#pg_calculation,
-#pg_axisflip {
-margin-top: 5px; 
+border-bottom:none !important; /* Overwrite the bottom border of #pg_slide_btn */
 }
 
 label.pg_ctrl_label{

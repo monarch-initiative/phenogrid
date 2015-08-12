@@ -61,7 +61,6 @@
 
 require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
 require('jquery-ui');
-require('sumoselect');
 var d3 = require('d3');
 
 // load other non-npm dependencies - Joe
@@ -445,16 +444,20 @@ var Utils = require('./utils.js');
 
 			var self = this;
 			// Slide control panel - Joe
+			$("#pg_controls_options").hide();
 			$("#pg_slide_btn").on("click", function() {
 				// Opens and closes the phenogrid controls
-				$("#pg_controls").toggleClass("pg_slide_open");
+				$("#pg_controls_options").fadeIn();
+				// $(this) refers to $("#pg_slide_btn")
+				$(this).toggleClass("pg_slide_open");
 
-				if ($("#pg_controls").hasClass("pg_slide_open")) {
+				if ($(this).hasClass("pg_slide_open")) {
 					// If the menu is open, then Change the menu button icon
 					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'close_left.png');
 				} else {
 					// If the menu is closed, change to the original button icon
 					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'menu_icon.png');
+					$("#pg_controls_options").fadeOut();
 				}
 			});
 
@@ -1297,13 +1300,13 @@ var Utils = require('./utils.js');
 
 	_configureFaqs: function() {
 		var self = this;
-		var sorts = $("#pg_sorts")
+		var sorts = $("#pg_sorts_faq")
 			.on("click", function(d,i){
 				self._showDialog( "sorts");
 			});
 
 		//var calcs = d3.selectAll("#calcs")
-		var calcs = $("#pg_calcs")
+		var calcs = $("#pg_calcs_faq")
 			.on("click", function(d){
 				self._showDialog( "calcs");
 			});
@@ -1311,15 +1314,7 @@ var Utils = require('./utils.js');
 
 	_resetSelections: function(type) {
 		var self = this;
-		$("#pg_unmatchedlabel").remove();
-		$("#pg_unmatchedlabelhide").remove();
-		$("#unmatched").remove();
-		$("#selects").remove();
-		$("#pg_org_div").remove();
-		$("#pg_calc_div").remove();
-		$("#pg_sort_div").remove();
-		$("#mtitle").remove();
-		$("#header").remove();
+
 		$("#pg_svg_area").remove();
 
 		if (type === "organism"){
@@ -1791,7 +1786,7 @@ var Utils = require('./utils.js');
 	},
 
 	_addPhenogridControls: function() {
-		var phenogridControls = $('<div id="pg_controls" class="pg_slide_close"></div>');
+		var phenogridControls = $('<div id="pg_controls"></div>');
 		//this.element.append(phenogridControls); // old
 		$('#pg_svg_container').append(phenogridControls); // new, append controls to #pg_svg_container - Joe
 		this._createSelectionControls(phenogridControls);
@@ -1892,7 +1887,7 @@ var Utils = require('./utils.js');
 	// build controls for selecting organism and comparison. Install handlers
 	_createSelectionControls: function(container) {
 		var self = this;
-		var optionhtml ='<div id="selects"></div>';
+		var optionhtml ='<div id="pg_controls_options"></div>';
 		
 		// Hide/show panel - button - Joe
 		var pushBtn ='<button id="pg_slide_btn">' + 
@@ -1983,7 +1978,7 @@ var Utils = require('./utils.js');
 
 	_createOrganismSelection: function() {
 		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism(s)</label>" + 
-			"<span id='pg_org_sel'><div id='pg_organism'>";
+			"<div id='pg_organism'>";
 		for (var idx in this.state.targetSpeciesList) {
 			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
 				break;
@@ -1997,28 +1992,7 @@ var Utils = require('./utils.js');
 				"\" " + checked + ">" + this.state.targetSpeciesList[idx].name + '</div>';
 			}
 		}
-		optionhtml += "</div></span></div>";
-
-				// add the handler for the select control
-/* 		$( "#pg_organism" ).click(function(d) {
-			console.log('in the change()..');
-			self.state.selectedCompareSpecies = [];
-			var opts = this.options;
-			for (var idx in opts) {
-				if (opts[idx].selected) {
-					var rec = self._getTargetSpeciesInfo(self, opts[idx].text);
-					self.state.selectedCompareSpecies.push(rec);
-				}
-			}
-			if (self.state.selectedCompareSpecies.length > 0) {
-				self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
-				self._createAxisRenderingGroups();
-				self._initDefaults();
-				self._processDisplay();
-			} else {
-				alert("You must have at least 1 species selected.");
-			}
-		}); */
+		optionhtml += "</div></div>";
 
 		return $(optionhtml);
 	},
@@ -2026,7 +2000,7 @@ var Utils = require('./utils.js');
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
 		var optionhtml = "<div class='pg_hr'></div><div id='pg_calc_div'><label class='pg_ctrl_label'>Calculation Method</label>"+
-				"<span id='pg_calcs'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+				" <i class='fa fa-info-circle cursor_pointer' id='pg_calcs_faq'></i>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_calculation'>";
 
 		for (var idx in this.state.similarityCalculation) {
@@ -2047,7 +2021,7 @@ var Utils = require('./utils.js');
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
 		var optionhtml ="<div class='pg_hr'></div><div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + 
-				"<span id='pg_sorts'> <i class='fa fa-info-circle cursor_pointer'></i></span>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+				" <i class='fa fa-info-circle cursor_pointer' id='pg_sorts_faq'></i>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_sortphenotypes'>";
 
 		for (var idx in this.state.phenotypeSort) {
