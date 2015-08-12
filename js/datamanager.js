@@ -310,10 +310,10 @@ DataManager.prototype = {
 
 	// simple internal function for extracting out the targetGroup
 	_getTargetGroup: function(el1, el2) {
-		if (typeof(el1.targetGroup) !== 'undefined') {
+		if ((typeof(el1) !== 'undefined') && (typeof(el1.targetGroup) !== 'undefined')) {
 			return el1.targetGroup;
 		}
-		if (typeof(el2.targetGroup) !== 'undefined') {
+		if ((typeof(el2) !== 'undefined') && (typeof(el2.targetGroup) !== 'undefined')) {
 			return el2.targetGroup;
 		}		
 	},
