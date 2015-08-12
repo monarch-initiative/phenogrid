@@ -578,6 +578,10 @@ var Utils = require('./utils.js');
 				  .classed("rowcolmatch", true);			  
 		  	d3.select("#pg_grid_col_" + d.xpos +" text")
 				  .classed("active", true);
+
+			var matches = parent.state.dataManager.getMatrixRowColumnMatches(d.ypos, d.xpos);
+
+
 		} else {
 			data = d;
 		}
@@ -2244,51 +2248,6 @@ var Utils = require('./utils.js');
 		// reshow the sticky with updated info
 		stickytooltip.show(null);
 
-	},
-
-	// _expandOntology: function(id){
-		
-	// 	var displayIt = false;
-	// 	var fixedId = id.replace("_", ":");
-	// 	var cache = this.state.ontologyCache[fixedId];
-
-	// 	if (typeof(cache) == 'undefined'){
-	// 		var hpoInfo = this.state.dataLoader.getOntology(fixedId, this.state.ontologyDirection, this.state.ontologyDepth);			
-	// 		cache = this.state.ontologyCache[fixedId] = {edges: hpoInfo[fixedId].edges};
-	// 		displayIt = true;
-	// 	} else {
-	// 		displayIt = true;
-	// 	}
-
-	// 	if (displayIt) {
-	// 		this.state.ontologyTreesDone = 0;
-	// 		this.state.ontologyTreeHeight = 0;
-	// 		var info = this._getAxisData(id);
-	// 		var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
-	// 		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
-	// 		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
-
-	// 		var classTree = this.buildOntologyTree(fixedId, cache.edges, 0);
-
-	// 		if (classTree === "<br>"){
-	// 			ontologyData += "<em>No classification hierarchy data found</em>";
-	// 		} else {
-	// 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
-	// 		}
-	// 		$("#sticky1").html(ontologyData);
-
-	// 		// reshow the sticky with updated info
-	// 		stickytooltip.show(null);
-	// 	}		
-	// },
-
-	// Will hide the hpo info, not delete it.  This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
-	_collapseHPO: function(id){
-		var idClean = id.replace("_", ":");
-		var HPOInfo = this.state.ontologyCache.get(idClean);
-		HPOInfo.active = 0;
-		this.state.ontologyCache.put(idClean,HPOInfo);
-		stickytooltip.closetooltip();
 	},
 
 	// collapse the expanded items for the current selected model targets

@@ -786,6 +786,9 @@ var DataManager = function(dataLoader) {
 	this.target = this.dataLoader.getTargets();
 	this.source = this.dataLoader.getSources();
 	this.cellData = this.dataLoader.getCellData();
+
+	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
+	this.matrix = [];
 };
 
 DataManager.prototype = {
@@ -1021,7 +1024,8 @@ DataManager.prototype = {
 	*/
 	getMatrix: function(xvals, yvals, flattened) {
 	    var xvalues = xvals, yvalues = yvals;     
-	    var matrix = []; 
+	    //var matrix = []; 
+	    this.matrix = [];
 
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
@@ -1035,7 +1039,7 @@ DataManager.prototype = {
 								ypos: y, targetGroup: targetGroup, type: 'cell'};
 					// this will create a array as a 'flattened' list of data points, used by mini mapping
 					if (flattened) {
-						matrix.push(rec);
+						this.matrix.push(rec);
 					} else {  // else, just create an array of arrays, grid likes this format
 						list.push(rec);	
 					}
@@ -1043,10 +1047,33 @@ DataManager.prototype = {
 				}
 			}
 			if (!flattened) {  //list.length > 0 && 
-				matrix.push(list);
+				this.matrix.push(list);
 			} 
 		}
-	    return matrix;
+	    return this.matrix;
+	},
+
+	getMatrixRowColumnMatches: function(row, col) {
+		var matchedPositions = [];
+		var rows = [], cols = [];
+
+		for (var i in this.matrix) {
+			var r = this.matrix[i];
+			if (r.ypos == row) {
+				if (rows.indexOf(r.ypos) < 0) {
+					rows.push(r.ypos);
+				}
+			}
+			if (r.xpos == col) {
+				if (cols.indexOf(r.xpos) < 0) {
+					cols.push(r.xpos);
+				}
+			}
+		}
+		matchedPositions['rows'] = rows;
+		matchedPositions['cols'] = cols;	
+			
+		return matchedPositions;
 	},
 
 	// simple internal function for extracting out the targetGroup
@@ -1899,6 +1926,10 @@ var Utils = require('./utils.js');
 				  .classed("rowcolmatch", true);			  
 		  	d3.select("#pg_grid_col_" + d.xpos +" text")
 				  .classed("active", true);
+
+			var matches = parent.state.dataManager.getMatrixRowColumnMatches(d.ypos, d.xpos);
+
+
 		} else {
 			data = d;
 		}
@@ -3565,51 +3596,6 @@ var Utils = require('./utils.js');
 		// reshow the sticky with updated info
 		stickytooltip.show(null);
 
-	},
-
-	// _expandOntology: function(id){
-		
-	// 	var displayIt = false;
-	// 	var fixedId = id.replace("_", ":");
-	// 	var cache = this.state.ontologyCache[fixedId];
-
-	// 	if (typeof(cache) == 'undefined'){
-	// 		var hpoInfo = this.state.dataLoader.getOntology(fixedId, this.state.ontologyDirection, this.state.ontologyDepth);			
-	// 		cache = this.state.ontologyCache[fixedId] = {edges: hpoInfo[fixedId].edges};
-	// 		displayIt = true;
-	// 	} else {
-	// 		displayIt = true;
-	// 	}
-
-	// 	if (displayIt) {
-	// 		this.state.ontologyTreesDone = 0;
-	// 		this.state.ontologyTreeHeight = 0;
-	// 		var info = this._getAxisData(id);
-	// 		var hrefLink = "<a href=\"" + this.state.serverURL+"/phenotype/"+ fixedId + "\" target=\"_blank\">" + info.label + "</a>";
-	// 		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
-	// 		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
-
-	// 		var classTree = this.buildOntologyTree(fixedId, cache.edges, 0);
-
-	// 		if (classTree === "<br>"){
-	// 			ontologyData += "<em>No classification hierarchy data found</em>";
-	// 		} else {
-	// 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
-	// 		}
-	// 		$("#sticky1").html(ontologyData);
-
-	// 		// reshow the sticky with updated info
-	// 		stickytooltip.show(null);
-	// 	}		
-	// },
-
-	// Will hide the hpo info, not delete it.  This allows for reloading to be done faster and avoid unneeded server calls.  Not available if preloading
-	_collapseHPO: function(id){
-		var idClean = id.replace("_", ":");
-		var HPOInfo = this.state.ontologyCache.get(idClean);
-		HPOInfo.active = 0;
-		this.state.ontologyCache.put(idClean,HPOInfo);
-		stickytooltip.closetooltip();
 	},
 
 	// collapse the expanded items for the current selected model targets

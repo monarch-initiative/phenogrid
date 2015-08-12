@@ -260,12 +260,13 @@ background-color: #fff !important;
 }
 
 .cell.rowcolmatch {
-  fill:#440000;
+  /*fill:#440000;*/
+  border-style: solid;
 }
 
 .pg_score_text {
   /*font-family: Verdana, Geneva, sans-serif;               */
-  font-size: 10px;
+  font-size: 9px;
   fill: #8763A3; /* purple */
   /*letter-spacing:-2px;*/
 }

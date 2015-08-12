@@ -18,6 +18,9 @@ var DataManager = function(dataLoader) {
 	this.target = this.dataLoader.getTargets();
 	this.source = this.dataLoader.getSources();
 	this.cellData = this.dataLoader.getCellData();
+
+	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
+	this.matrix = [];
 };
 
 DataManager.prototype = {
@@ -253,7 +256,8 @@ DataManager.prototype = {
 	*/
 	getMatrix: function(xvals, yvals, flattened) {
 	    var xvalues = xvals, yvalues = yvals;     
-	    var matrix = []; 
+	    //var matrix = []; 
+	    this.matrix = [];
 
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
@@ -267,7 +271,7 @@ DataManager.prototype = {
 								ypos: y, targetGroup: targetGroup, type: 'cell'};
 					// this will create a array as a 'flattened' list of data points, used by mini mapping
 					if (flattened) {
-						matrix.push(rec);
+						this.matrix.push(rec);
 					} else {  // else, just create an array of arrays, grid likes this format
 						list.push(rec);	
 					}
@@ -275,10 +279,33 @@ DataManager.prototype = {
 				}
 			}
 			if (!flattened) {  //list.length > 0 && 
-				matrix.push(list);
+				this.matrix.push(list);
 			} 
 		}
-	    return matrix;
+	    return this.matrix;
+	},
+
+	getMatrixRowColumnMatches: function(row, col) {
+		var matchedPositions = [];
+		var rows = [], cols = [];
+
+		for (var i in this.matrix) {
+			var r = this.matrix[i];
+			if (r.ypos == row) {
+				if (rows.indexOf(r.ypos) < 0) {
+					rows.push(r.ypos);
+				}
+			}
+			if (r.xpos == col) {
+				if (cols.indexOf(r.xpos) < 0) {
+					cols.push(r.xpos);
+				}
+			}
+		}
+		matchedPositions['rows'] = rows;
+		matchedPositions['cols'] = cols;	
+			
+		return matchedPositions;
 	},
 
 	// simple internal function for extracting out the targetGroup
