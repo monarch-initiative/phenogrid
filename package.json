@@ -23,28 +23,7 @@
     "gfm.css": "^1.1.1",
     "jquery": "^2.1.4",
     "jquery-ui": "^1.10.5",
-    "jshashtable": "^0.1.0",
-    "npm": "^2.12.1",
-    "vinyl-source-stream": "^1.1.0",
-    "browserify-shim": "^3.8.10",
-    "sumoselect": "git+https://github.com/HemantNegi/jquery.sumoselect.git#master"
-  },
-  "browser": {
-    "jquery": "./node_modules/jquery/dist/jquery.js",
-    "sumoselect": "./node_modules/sumoselect/jquery.sumoselect.js"
-  },
-  "browserify-shim": {
-    "jquery": "$",
-    "sumoselect": {
-      "depends": [
-        "jquery"
-      ]
-    }
-  },
-  "browserify": {
-    "transform": [
-      "browserify-shim"
-    ]
+    "vinyl-source-stream": "^1.1.0"
   },
   "devDependencies": {
     "browserify": "^10.2.1",
@@ -64,7 +43,8 @@
     "gulp-streamify": "0.0.5",    
     "gulp-uglify": "^1.2.0",
     "jshint-stylish": "^2.0.1",
-    "marked": "^0.3.3"
+    "marked": "^0.3.3",
+	"npm": "^2.12.1"
   },
   "main": "js/phenogrid.js"
 }
