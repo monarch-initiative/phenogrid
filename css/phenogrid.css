@@ -22,6 +22,7 @@ top:0;
 
 #pg_controls_options {
 min-width:200px;
+height:414px;
 background:#F1F3F8;
 padding:20px;
 font-size:12px;
@@ -29,23 +30,23 @@ color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 position:absolute;
-left:740px;
-top:80px;
+left:199px;
+top:186px; /*  */
 }
 
 #pg_slide_btn{
 width:30px;
 height:30px;
 position:absolute;
-left:740px;
-top:50px;
+left:199px;
+top:600px;
 border:1px solid #222;
 outline:0;
 background-color:#44A293;
 }
 
 .pg_slide_open{
-border-bottom:none !important; /* Overwrite the bottom border of #pg_slide_btn */
+border-top:none !important; /* Overwrite the bottom border of #pg_slide_btn */
 }
 
 label.pg_ctrl_label{

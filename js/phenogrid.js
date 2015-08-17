@@ -1780,8 +1780,10 @@ var Utils = require('./utils.js');
 
 	_addPhenogridControls: function() {
 		var phenogridControls = $('<div id="pg_controls"></div>');
-		//this.element.append(phenogridControls); // old
-		$('#pg_svg_container').append(phenogridControls); // new, append controls to #pg_svg_container - Joe
+
+		// Not in the #pg_svg_area div since it's HTML - Joe
+		$('#pg_svg_container').append(phenogridControls);
+		
 		this._createSelectionControls(phenogridControls);
 	},
  
@@ -1797,7 +1799,7 @@ var Utils = require('./utils.js');
 	
 	// Calculate the width based on the size of grid region - Joe
 	_calculateGradientWidth: function() {
-		return this.state.defaultTargetDisplayLimit * this.state.gridRegion[0].cellwd;
+		return (this._gridWidth() <= this._gridHeight()) ? this._gridWidth() : this._gridHeight();
 	},
 	
 	
