@@ -803,7 +803,6 @@ var Utils = require('./utils.js');
 
 	    var colorSelector = this.state.axisFlipConfig.colorSelector[this.state.invertAxis];
 
-
 		cell_rects.enter()
 			.append("rect")
 			.attr("transform", cellRectTransform)
@@ -842,7 +841,8 @@ var Utils = require('./utils.js');
 				 " selectRectX: " + selectRectX +  " selectRectY:" + selectRectY + 
 			" selectRectHeight:" + selectRectHeight + " selectRectWidth:" + selectRectWidth);
 
-		self.state.highlightRect = self.state.svg.append("rect")
+		// Also add the shaded area in the pg_navigator group - Joe
+		self.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
 			.attr("x",overviewX + selectRectX)
 			.attr("y",overviewY + selectRectY)
 			.attr("id", "pg_selectionrect")
