@@ -788,13 +788,21 @@ var Utils = require('./utils.js');
 		var yvalues = self.state.yAxisRender.groupEntries();		
 		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
 
-		var cell_rects = this.state.svg.selectAll(".mini_cell")
+		// Group all mini cells in g element - Joe
+		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
+							.attr("id", "pg_mini_cells_container");
+						
+        // Add cells to the miniCellsGrp - Joe						
+		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
 			.data(data, function(d) {return d.source_id + d.target_id;});   //D.Yid + D.xID;});
+			
+			
 		overviewX++;	// Corrects the gapping on the sides
 		overviewY++;
 		var cellRectTransform = "translate(" + overviewX +	"," + overviewY + ")";
 
 	    var colorSelector = this.state.axisFlipConfig.colorSelector[this.state.invertAxis];
+
 
 		cell_rects.enter()
 			.append("rect")
@@ -817,7 +825,7 @@ var Utils = require('./utils.js');
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
 			});
 
-		
+
 			
 		var yRenderedSize = this.state.yAxisRender.displayLength();
 		var xRenderedSize = this.state.xAxisRender.displayLength();		
