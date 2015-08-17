@@ -122,7 +122,7 @@ var Utils = require('./utils.js');
 		detailRectWidth: 300,
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
-		navigator: {x:115, y: 50, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
+		navigator: {x:112, y: 65, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
 		logo: {x: 60, y: 600, width: 60, height: 30},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
@@ -180,7 +180,7 @@ var Utils = require('./utils.js');
 		defaultTargetDisplayLimit: 50, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
-		gradientRegion: {x:254, y:620, width:446, height:10}
+		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
 	},
 
 	internalOptions: {
@@ -1794,6 +1794,13 @@ var Utils = require('./utils.js');
 	// Should group the gradient rect and the legend texts - Joe
 	
 	
+	
+	// Calculate the width based on the size of grid region - Joe
+	_calculateGradientWidth: function() {
+		return this.state.defaultTargetDisplayLimit * this.state.gridRegion[0].cellwd;
+	},
+	
+	
 	/*
 	 * Add the gradients to the grid
 	 */
@@ -1803,7 +1810,7 @@ var Utils = require('./utils.js');
 		// baseline gradientRegion values
 		var x = self.state.gradientRegion.x;
 		var y = self.state.gradientRegion.y;
-		var width = self.state.gradientRegion.width;
+		var width = self._calculateGradientWidth();
 		var height = self.state.gradientRegion.height;
 
 		var gradient = this.state.svg.append("svg:linearGradient") // The <linearGradient> element is used to define a linear gradient. - Joe
@@ -1866,14 +1873,14 @@ var Utils = require('./utils.js');
 			.text(lowText);
 
 		// calc the postion of the display type Label
-		var xLabelPos = (x + (self.state.gradientRegion.width/2) - labelText.length);		
+		var xLabelPos = (x + (self._calculateGradientWidth()/2) - labelText.length);		
 		var div_text2 = self.state.svg.append("svg:text")
 			.attr("transform", "translate(" + xLabelPos + "," + y +")")						
 			.attr("class", "pg_gradient_text")
 			.text(labelText);
 
 		// calc the postion of the High Label
-		var xHighPos = (x + self.state.gradientRegion.width)-20;
+		var xHighPos = (x + self._calculateGradientWidth())-20;
 		var div_text3 = self.state.svg.append("svg:text")
 			.attr("transform", "translate(" + xHighPos + "," + y +")")				
 			.attr("class", "pg_gradient_text")
