@@ -997,14 +997,6 @@ var Utils = require('./utils.js');
 			.attr("id", "pg_globalview")
 			.attr("height", overviewBoxDim)
 			.attr("width", overviewBoxDim);
-
-	    // Text font-size is defined in phenogrid.css .pg_globalview_text - Joe
-		globalviewGrp.append("text")
-			.attr("x", overviewX)
-			// two stroke-width + padding 2 (spacing between border and content), 15 is vertical margin - Joe
-			.attr("y", overviewY + overviewBoxDim + this.state.navigator.borderThickness * 2 + 2 + 15) 
-			.attr("id", "pg_globalview_text")
-			.text("Phenogrid Navigator");
 	},
 
 	_createSmallScales: function(overviewRegionSize) {
