@@ -624,7 +624,8 @@ var Utils = require('./utils.js');
 			
 			// hightlight the cell
 	 		d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
-				  .classed("rowcolmatch", true);	
+				  .classed("rowcolmatch", true)	
+				  .classed("pg_cursor_pointer", true);					  
 
 		} else {
 			parent._highlightMatching(self, d);
@@ -647,7 +648,9 @@ var Utils = require('./utils.js');
 		d3.selectAll(".column text")
 			  .classed("relatedActive", false);		
 		d3.selectAll(".cell")
-				  .classed("rowcolmatch", false);
+				.classed("rowcolmatch", false)
+				.classed("pg_cursor_pointer", false);					  				  
+
 
 		if (!stickytooltip.isdocked) {
 			// hide the tooltip
