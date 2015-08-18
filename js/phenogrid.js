@@ -348,7 +348,12 @@ var Utils = require('./utils.js');
     _createAxisRenderingGroups: function() {
     	var targetList = [];
 
-		this._updateSourceDisplayLimit();
+		// set default display limits based on displaying defaultSourceDisplayLimit
+    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
+
+		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
+			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+		}
 	
        	// creates AxisGroup with full source and target lists with default rendering range
     	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
@@ -370,7 +375,11 @@ var Utils = require('./utils.js');
 
 			targetList = this.state.dataManager.getData("target", singleSpeciesName);
 
-			this._updateTargetDisplayLimit(singleSpeciesName);
+			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
+
+			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
+				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+			} 
 
 		}
     	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
@@ -394,8 +403,8 @@ var Utils = require('./utils.js');
     },
 
     _resetDisplayLimits: function() {
-		this._updateSourceDisplayLimit();
-		this._updateTargetDisplayLimit();
+		this.state.sourceDisplayLimit = this.state.yAxisRender.displayLength();
+		this.state.targetDisplayLimit = this.state.xAxisRender.displayLength(); 
 	},
 	
 	_updateSourceDisplayLimit: function() {
@@ -471,8 +480,6 @@ var Utils = require('./utils.js');
 					$("#pg_controls_options").fadeOut();
 				}
 			});
-
-
 		} else {
 			var msg = "There are no results available.";
 				this._createSvgContainer();
@@ -1092,6 +1099,16 @@ var Utils = require('./utils.js');
 //		this.state.unmatchedSources = this._getUnmatchedSources();
 		this.element.empty();
 		this._reDraw();
+		
+		// Now position the control panel when the gridRegion changes
+		// Note: CANNOT use this inside _addPhenogridControls() since the _createGrid() is called after it
+		// we won't have the _gridHeight() by that time - Joe
+		var gridRegion = this.state.gridRegion[0]; 
+		var marginTop = 10; // Create some whitespace between the button and the y labels 
+		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+		// The height of #pg_controls_options defined in phenogrid.css - Joe
+		var pg_ctrl_options = $('#pg_controls_options');
+		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() + 1 + marginTop); // extra 1px to hide the border
 	},
 
     /*
@@ -1790,12 +1807,13 @@ var Utils = require('./utils.js');
 		}	
 	},
 
+	// _reDraw() calls this every time - Joe
 	_addPhenogridControls: function() {
 		var phenogridControls = $('<div id="pg_controls"></div>');
 
 		// Not in the #pg_svg_area div since it's HTML - Joe
 		$('#pg_svg_container').append(phenogridControls);
-		
+
 		this._createSelectionControls(phenogridControls);
 	},
  
@@ -1825,7 +1843,7 @@ var Utils = require('./utils.js');
 		var x = gridRegion.x;
 
 		// Dynamic change, relative to grid region - Joe
-		var y = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
+		var y = gridRegion.y + this._gridHeight() + 22; // 20 is margin - Joe
 
 		var width = this._calculateGradientWidth();
 		var height = this.state.gradientRegion.height;
@@ -1957,12 +1975,16 @@ var Utils = require('./utils.js');
 			self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
 			self._createAxisRenderingGroups();
 			self._initDefaults();
+			self._setAxisRenderers(); // need this here - Joe
+		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
 		$("#pg_calculation").change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
 			self._resetSelections("calculation");
+			self._setAxisRenderers(); // need this here - Joe
+		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
@@ -1976,6 +1998,8 @@ var Utils = require('./utils.js');
 				self.state.yAxisRender.sort(self.state.selectedSort); 
 			}
 			self._resetSelections("sortphenotypes");
+			self._setAxisRenderers(); // need this here - Joe
+		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 

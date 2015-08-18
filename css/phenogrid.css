@@ -5,19 +5,24 @@
 margin:20px 10px;
 position:relative;
 border:1px solid #ddd;
-min-height:680px;
-min-width:960px;
 }
 
 #pg_svg_area {
 min-width:960px;
-min-height:680px;
+min-height:780px;
 }
 
 #pg_controls {
 position:absolute;
 left:0;
 top:0;
+}
+
+#pg_slide_btn,
+#pg_controls_options {
+position:absolute;
+left:199px;
+border:1px solid #222;
 }
 
 #pg_controls_options {
@@ -27,26 +32,14 @@ background:#F1F3F8;
 padding:20px;
 font-size:12px;
 color:#111;
-border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
-position:absolute;
-left:199px;
-top:186px; 
 }
 
 #pg_slide_btn{
 width:30px;
 height:30px;
-position:absolute;
-left:199px;
-top:600px;
-border:1px solid #222;
 outline:0;
-background-color:#44A293;
-}
-
-.pg_slide_open{
-border-top:none !important; /* Overwrite the bottom border of #pg_slide_btn */
+background:#44A293;
 }
 
 label.pg_ctrl_label{
