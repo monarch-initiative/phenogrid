@@ -90,6 +90,7 @@ var stickytooltip = {
 			$targets.bind('mouseenter', function(e){  
 				// var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				//console.log("sticky:mouseenter: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
+				console.log("sticky mouseenter...");
 				if  (!stickytooltip.isdocked) {
 					// this forces the tooltip to be shown
 		  			stickytooltip.showbox($, $tooltip, e);
@@ -99,9 +100,9 @@ var stickytooltip = {
 			 $targets.bind('mouseout', function(e){  // mouseleave
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				//console.log("sticky:mouseout: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
-				if (typeof(elem.id) !== 'undefined' ) {
-					if (elem.id != 'mystickytooltip' && elem.id != "") {
-					    //console.log("hiding...");
+				console.log("sticky mouseout...");
+				if (typeof(elem) !== 'undefined' ) {
+					if (elem.id != 'mystickytooltip' && elem.id != "") {					    
 						stickytooltip.isdocked = false;
 				 		stickytooltip.hidebox($, $tooltip);
 					}

@@ -229,7 +229,7 @@ AxisGroup.prototype = {
 	*/	
 
 	contains: function(key) {
-		if (this.get(key) !== null) {
+		if (typeof(this.get(key)) != 'undefined') {
 			return true;
 		}
 		else {

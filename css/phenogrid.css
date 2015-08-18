@@ -278,9 +278,10 @@ font-weight: bold;
 fill: blue;
 }
 
-.cell.rowcolmatch {
-  /*fill:#440000;*/
-  border-style: solid;
+.relatedActive {
+font-family: Verdana, Geneva, sans-serif;              
+font-size: 11px;
+fill: blue;
 }
 
 .pg_score_text {
@@ -315,8 +316,9 @@ word-break:normal;
 }
 
 .pg_target_grp_divider {
-  stroke: #0B20AE; /*#8763A3;  #0F473E;*/
+  stroke: gray; /*#0B20AE; #8763A3;  #0F473E;*/
   stroke-dasharray: 2;  /* small dots */
+  shape-rendering: crispEdges;
 }
 
 .pg_expandHPO{
@@ -344,8 +346,17 @@ cursor:pointer;
 margin-right: 5px;
 }
 
+.pg_focusLine {
+  fill: none;
+  stroke: red;
+  shape-rendering: crispEdges;
+}
 
-
+.rowcolmatch {
+  fill: red !important;
+  border-style: solid;
+  border-width: medium;
+}
 
 
 

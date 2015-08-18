@@ -230,7 +230,7 @@ AxisGroup.prototype = {
 	*/	
 
 	contains: function(key) {
-		if (this.get(key) !== null) {
+		if (typeof(this.get(key)) != 'undefined') {
 			return true;
 		}
 		else {
@@ -387,7 +387,6 @@ DataLoader.prototype = {
 
 	process: function(targetGrpList, qryString) {
 		var postData = '';
-		var self = this;
 
 		if (targetGrpList.length > 0) {
 			var target = targetGrpList[0];  // pull off the first to start processing
@@ -1053,25 +1052,17 @@ DataManager.prototype = {
 	    return this.matrix;
 	},
 
-	getMatrixRowColumnMatches: function(row, col) {
+	getMatrixSourceTargetMatches: function(matchpos, highlightSources) {
 		var matchedPositions = [];
-		var rows = [], cols = [];
 
 		for (var i in this.matrix) {
 			var r = this.matrix[i];
-			if (r.ypos == row) {
-				if (rows.indexOf(r.ypos) < 0) {
-					rows.push(r.ypos);
-				}
-			}
-			if (r.xpos == col) {
-				if (cols.indexOf(r.xpos) < 0) {
-					cols.push(r.xpos);
-				}
+			if (r.ypos == matchpos && !highlightSources) {
+				matchedPositions.push(r);
+			} else if (r.xpos == matchpos && highlightSources) {
+				matchedPositions.push(r);
 			}
 		}
-		matchedPositions['rows'] = rows;
-		matchedPositions['cols'] = cols;	
 			
 		return matchedPositions;
 	},
@@ -1132,7 +1123,7 @@ DataManager.prototype = {
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];
 				i++;
-				if (i >= limit) {break};
+				if (i >= limit) {break;}
 			}
 		}
 		return combinedTargetList;
@@ -1754,8 +1745,9 @@ var Utils = require('./utils.js');
     },
 
     _resetDisplayLimits: function() {
-    	this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit; 
-		this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+
+    	this.state.sourceDisplayLimit = this.state.yAxisRender.displayLength();  //  this.state.defaultSourceDisplayLimit; 
+		this.state.targetDisplayLimit = this.state.xAxisRender.displayLength();   //this.state.defaultTargetDisplayLimit;
     },
 
 	// Loading spinner image from font awesome - Joe
@@ -1826,7 +1818,13 @@ var Utils = require('./utils.js');
 		var gridRegion = self.state.gridRegion[0]; 
 		var xScale = self.state.xAxisRender.getScale();
 		var yScale = self.state.yAxisRender.getScale();
-		console.log(JSON.stringify(yvalues));
+		var gridHeight = self._gridHeight();
+		var gridWidth = self._gridWidth();		
+		var domainVal = function(p) { 
+				if (typeof(p) == 'undefined') {
+					p = xvalues.length-1;
+				}
+				return xvalues[p].id;}
 
 		// use the x/y renders to generate the matrix
 	    var matrix = self.state.dataManager.getMatrix(xvalues, yvalues, false);
@@ -1842,13 +1840,8 @@ var Utils = require('./utils.js');
   			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; })
   			.each(createrow);
 
-		 // row.append("line")
-		 // 	.attr("class", "grid_line")
-   //     		.attr("x2", gridWidth);
-
    		// create row labels
 	  	row.append("text")
-	  		//.style("font-size", "11px")
 			.attr("x", gridRegion.rowLabelOffset)	  		
 	      	.attr("y",  function(d, i) {
 	      			 var rb = yScale.rangeBand(i)/2;
@@ -1862,8 +1855,8 @@ var Utils = require('./utils.js');
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				self._cellover(data, self);})
-			.on("mouseout", self._cellout);		    
+				self._cellover(this, data, self);})
+			.on("mouseout", function(d) {self._cellout(d);});
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -1877,7 +1870,7 @@ var Utils = require('./utils.js');
 	      	var xs = xScale(d.id);
 //	      	if (self.state.invertAxis) {offset = colLabelOffset;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
 			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
-	      				 "," + (gridRegion.y-offset) + ")rotate(-60)"; }); //-45
+	      				 "," + (gridRegion.y-offset) + ")rotate(-45)"; }); //-45
 
 	    // create column labels
 	  	column.append("text")
@@ -1890,9 +1883,18 @@ var Utils = require('./utils.js');
 	      		.text(function(d, i) { 		
 	      		//console.log(JSON.stringify(d));      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
-		    .on("mouseover", function(d) { self._cellover(d, self);})
-			.on("mouseout", self._cellout);		    
+		    .on("mouseover", function(d) { self._cellover(this, d, self);})
+			.on("mouseout", function(d) {self._cellout(d);});		    
 	      	
+		// set some lines for cross hairs
+  		var focus = this.state.svg.append('g').style('display', 'none');
+                
+        focus.append('line')
+            .attr('id', 'focusLineX')
+            .attr('class', 'pg_focusLine');
+        focus.append('line')
+            .attr('id', 'focusLineY')
+            .attr('class', 'pg_focusLine');
 
 	    // add the scores  
 	    self._createTextScores();
@@ -1901,20 +1903,42 @@ var Utils = require('./utils.js');
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
 		      .enter().append("rect")
+		      	.attr("id", function(d, i) { 
+		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; })
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-				.attr("data-tooltip", "sticky1")   					        
-				// .attr("rx", "3")
-				// .attr("ry", "3")			        
+				//.attr("data-tooltip", "sticky1")   					        
+				.on('click', function(d) { 
+									self._createHoverBox(d);
+									stickytooltip.show(null);})
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
-		        .on("mouseover", function(d) { self._cellover(d, self);})
-		        .on("mouseout", self._cellout);
+		        .on("mouseover", function(d) { 
+		        	focus.style('display', null);
+		        	self._cellover(this, d, self);})
+		        .on("mouseout", function(d) {
+		        	focus.style('display', 'none');
+		        	self._cellout(d);})
+		        .on('mousemove', function(d, i) { 
+                    var xs = xScale(d.target_id);
+                    var x = (gridRegion.x + (xs*gridRegion.xpad)) + 5;  // magic number to make sure it goes through the middle of the cell
+                    var y = gridRegion.y + (d.ypos * gridRegion.ypad) + 5; 
+
+                    // position the cross hairs
+ 					focus.select('#focusLineX')
+                         .attr('x1', x).attr('y1', gridRegion.y)  // yScale(domainVal(0)))   //yDomain[0]))
+                         .attr('x2', x).attr('y2', gridRegion.y + gridHeight);
+ 					focus.select('#focusLineY')
+                        .attr('x1', gridRegion.x)
+                        .attr('y1', y)
+                        .attr('x2', gridRegion.x + gridWidth)  // ok
+                        .attr('y2', y);
+ 				 	});                    
 		}
 	},
 
@@ -1925,40 +1949,44 @@ var Utils = require('./utils.js');
 		return (y+(i*ypad));
 	},
 
-	_cellover: function (d, parent) {
+	_cellover: function (self, d, parent) {
 
 		var data;
-
-		if (d.type === 'cell') {  
+		if (d.type == 'cell') {  
        		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-			
+
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
 				  .classed("active", true);
-	 		d3.selectAll("#pg_grid_row_" + d.ypos +" .cell")
-				  .classed("rowcolmatch", true);			  
-		  	d3.select("#pg_grid_col_" + d.xpos +" text")
+	  		d3.select("#pg_grid_col_" + d.xpos +" text")
 				  .classed("active", true);
-
-			var matches = parent.state.dataManager.getMatrixRowColumnMatches(d.ypos, d.xpos);
-
+			
+			// hightlight the cell
+	 		d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
+				  .classed("rowcolmatch", true);	
 
 		} else {
-			data = d;
-		}
-    
-		// show tooltip
-		parent._createHoverBox(data);
+			parent._highlightMatching(self, d);
+			data = d;    			
 
+			// show tooltip
+			parent._createHoverBox(data);
+		}
 	},
 
-	_cellout: function() {
+	_cellout: function(d) {
 		
 		// unhighlight row/col
 		d3.selectAll(".row text")
 			  .classed("active", false);
 		d3.selectAll(".column text")
 			  .classed("active", false);
+		d3.selectAll(".row text")
+			  .classed("relatedActive", false);
+		d3.selectAll(".column text")
+			  .classed("relatedActive", false);		
+		d3.selectAll(".cell")
+				  .classed("rowcolmatch", false);
 
 		if (!stickytooltip.isdocked) {
 			// hide the tooltip
@@ -1967,20 +1995,61 @@ var Utils = require('./utils.js');
 
 	},
 
-	_gridWidth: function() {
-		var self = this;		
-		var gridRegion = self.state.gridRegion[0]; 
-		var cellsDisplayedPer = self.state.xAxisRender.displayLength();
+	_highlightMatching: function(s, data) {
+		var hightlightSources = true;
+		var currenPos = this._getAxisDataPosition(data.id)
 
-		var gridWidth = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd);  //gridRegion.x +
+		// did we hover over a grid column
+		if (s.parentElement.id.indexOf('grid_col') > -1) {
+			hightlightSources = true;
+			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
+
+			if (typeof(matches) != 'undefined') {
+				for (var k=0; k < matches.length; k++) {
+					d3.select("#pg_grid_row_" + matches[k].ypos +" text")
+				  	.classed("relatedActive", true);
+				}
+			}	
+	  		d3.select("#pg_grid_col_" + currenPos +" text")
+				  .classed("active", true);	
+		} else {  // hovered over a row
+			hightlightSources = false;
+			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
+
+			if (typeof(matches) != 'undefined') {
+				for (var k=0; k < matches.length; k++) {
+					d3.select("#pg_grid_col_" + matches[k].xpos +" text")
+				  	.classed("relatedActive", true);
+				}
+			}		
+			d3.select("#pg_grid_row_" + currenPos +" text")
+				  .classed("active", true);
+		}				
+
+	},
+
+	_highlightColumn: function() {
+		// create the related model rectangles
+		var highlight_rect = self.state.svg.append("svg:rect")
+				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 34.5) + "," + self.state.yoffsetOver + ")")
+				.attr("x", function(d) {
+					return (self.state.xScale(data) - 1);
+				})
+				.attr("y", self.state.yoffset + 3)
+				.attr("class", "pg_col_accent")
+				.attr("width", 15 * appearanceOverrides.offset)
+				.attr("height", (displayCount * self.state.heightOfSingleModel));
+	},
+
+	_gridWidth: function() {
+		var gridRegion = this.state.gridRegion[0]; 
+		var gridWidth = (gridRegion.xpad * this.state.targetDisplayLimit) - (gridRegion.xpad - gridRegion.cellwd);
 		return gridWidth;
 	},
 
 	_gridHeight: function() {
-		var self = this;
-		var gridRegion = self.state.gridRegion[0]; 
-		var axisLen = self.state.yAxisRender.displayLength();
-		var height = (gridRegion.y + (axisLen * gridRegion.ypad)) - 50;  //magic number
+		var gridRegion = this.state.gridRegion[0]; 
+		var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
 		return height;
 	},
 
@@ -2728,8 +2797,6 @@ var Utils = require('./utils.js');
 	},
 
 	_createHoverBox: function(data){
-		var appearanceOverrides = {offset: 1, style: "pg_col_accent"}; // may use this structure later, offset is only used now
-
 		var id;
 
 		// for cells we need to check the invertAxis to adjust for correct id
@@ -2762,9 +2829,6 @@ var Utils = require('./utils.js');
 				}
 			});
 		}
-
-		// not really good to do this but, we need to be able to override some appearance attributes		
-		return appearanceOverrides;
 	},
 
 	// This builds the string to show the relations of the HPO nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
@@ -2834,7 +2898,7 @@ var Utils = require('./utils.js');
 		var gridRegion = self.state.gridRegion[0];
 		var x = gridRegion.x;     
 		var y = gridRegion.y;   
-		var height = self._gridHeight();// - 10;
+		var height = gridRegion.y + self._gridHeight();// - 10;
 		var width = self._gridWidth();
 
 		if (self._isCrossComparisonView() ) {
@@ -2883,7 +2947,7 @@ var Utils = require('./utils.js');
 					// render the slanted line between targetGroup (species) columns
 					 this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
-					.attr("transform","translate(" + x + "," + y + ")rotate(-62 " + x1 + " 0)")					
+					.attr("transform","translate(" + x + "," + y + ")rotate(-48 " + x1 + " 0)")		// -62			
 					.attr("x1", x1)
 					.attr("y1", 0)
 					.attr("x2", x1 + 100)  // extend the line out to underline the labels					
@@ -2921,7 +2985,7 @@ var Utils = require('./utils.js');
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
 		console.log("calc for start x:"+(this.state.currXIdx-this.state.targetDisplayLimit));
-		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);  //-this.state.targetDisplayLimit
+		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
 		console.log("xaxis end:" + this.state.currXIdx);
 	   //  console.log("Xaxis end: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
@@ -4085,6 +4149,7 @@ var stickytooltip = {
 			$targets.bind('mouseenter', function(e){  
 				// var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				//console.log("sticky:mouseenter: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
+				console.log("sticky mouseenter...");
 				if  (!stickytooltip.isdocked) {
 					// this forces the tooltip to be shown
 		  			stickytooltip.showbox($, $tooltip, e);
@@ -4094,9 +4159,9 @@ var stickytooltip = {
 			 $targets.bind('mouseout', function(e){  // mouseleave
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				//console.log("sticky:mouseout: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
-				if (typeof(elem.id) !== 'undefined' ) {
-					if (elem.id != 'mystickytooltip' && elem.id != "") {
-					    //console.log("hiding...");
+				console.log("sticky mouseout...");
+				if (typeof(elem) !== 'undefined' ) {
+					if (elem.id != 'mystickytooltip' && elem.id != "") {					    
 						stickytooltip.isdocked = false;
 				 		stickytooltip.hidebox($, $tooltip);
 					}
@@ -4196,7 +4261,7 @@ TooltipRender.prototype = {
 		// making an assumption here that we want to display cell info
 		//if ( typeof(this.data.type) == 'undefined') {
 		if ( this.data.type === 'cell') {
-			retInfo = this.cell(this, this.data);
+			//retInfo = this.cell(this, this.data);
 		} else {
 			// this creates the standard information portion of the tooltip, 
 			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 

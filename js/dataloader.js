@@ -81,7 +81,6 @@ DataLoader.prototype = {
 
 	process: function(targetGrpList, qryString) {
 		var postData = '';
-		var self = this;
 
 		if (targetGrpList.length > 0) {
 			var target = targetGrpList[0];  // pull off the first to start processing

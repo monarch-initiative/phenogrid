@@ -285,25 +285,17 @@ DataManager.prototype = {
 	    return this.matrix;
 	},
 
-	getMatrixRowColumnMatches: function(row, col) {
+	getMatrixSourceTargetMatches: function(matchpos, highlightSources) {
 		var matchedPositions = [];
-		var rows = [], cols = [];
 
 		for (var i in this.matrix) {
 			var r = this.matrix[i];
-			if (r.ypos == row) {
-				if (rows.indexOf(r.ypos) < 0) {
-					rows.push(r.ypos);
-				}
-			}
-			if (r.xpos == col) {
-				if (cols.indexOf(r.xpos) < 0) {
-					cols.push(r.xpos);
-				}
+			if (r.ypos == matchpos && !highlightSources) {
+				matchedPositions.push(r);
+			} else if (r.xpos == matchpos && highlightSources) {
+				matchedPositions.push(r);
 			}
 		}
-		matchedPositions['rows'] = rows;
-		matchedPositions['cols'] = cols;	
 			
 		return matchedPositions;
 	},
@@ -364,7 +356,7 @@ DataManager.prototype = {
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];
 				i++;
-				if (i >= limit) {break};
+				if (i >= limit) {break;}
 			}
 		}
 		return combinedTargetList;
