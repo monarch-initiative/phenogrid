@@ -1866,7 +1866,11 @@ var Utils = require('./utils.js');
 				.style("stop-color", this.state.colorRanges[j]);
 		}
 
-		this.state.svg.append("rect")
+		// Create a group for gradient bar and legends - Joe
+		var gradientGrp = this.state.svg.append("g")
+			.attr('id', 'pg_gradient');
+		
+		gradientGrp.append("rect")
 			//.attr("transform", "translate(" + x + "," + y +")")
 			.attr("x", x)
 			.attr("y", y) // use x and y instead of transform since rect has x and y - Joe
@@ -1903,22 +1907,26 @@ var Utils = require('./utils.js');
 			}
 		}
 
+		// Create a group for gradient bar and legends - Joe
+		var gradientTextGrp = this.state.svg.select('#pg_gradient').append("g")
+			.attr('id', 'pg_gradient_texts');
+			
 		// min label
-		var div_text1 = this.state.svg.append("svg:text")
+		gradientTextGrp.append("svg:text")
 			.attr("transform", "translate(" + x + "," + y +")")		
 			.attr("class", "pg_gradient_text")
 			.text(lowText);
 
 		// calc the postion of the display type Label
 		var xLabelPos = (x + (this._calculateGradientWidth()/2) - labelText.length);		
-		var div_text2 = this.state.svg.append("svg:text")
+		gradientTextGrp.append("svg:text")
 			.attr("transform", "translate(" + xLabelPos + "," + y +")")						
 			.attr("class", "pg_gradient_text")
 			.text(labelText);
 
 		// calc the postion of the High Label
 		var xHighPos = (x + this._calculateGradientWidth())-20;
-		var div_text3 = this.state.svg.append("svg:text")
+		gradientTextGrp.append("svg:text")
 			.attr("transform", "translate(" + xHighPos + "," + y +")")				
 			.attr("class", "pg_gradient_text")
 			.text(highText);
