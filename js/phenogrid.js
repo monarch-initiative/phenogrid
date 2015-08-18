@@ -571,10 +571,10 @@ var Utils = require('./utils.js');
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-				//.attr("data-tooltip", "sticky1")   					        
-				.on('click', function(d) { 
-									self._createHoverBox(d);
-									stickytooltip.show(null);})
+				.attr("data-tooltip", "sticky1")   					        
+				// .on('click', function(d) { 
+				// 					self._createHoverBox(d);
+				// 					stickytooltip.show(null);})
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
@@ -630,10 +630,10 @@ var Utils = require('./utils.js');
 		} else {
 			parent._highlightMatching(self, d);
 			data = d;    			
-
-			// show tooltip
-			parent._createHoverBox(data);
 		}
+		// show tooltip
+		parent._createHoverBox(data);
+
 	},
 
 	_cellout: function(d) {
