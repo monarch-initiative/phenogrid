@@ -122,8 +122,8 @@ var Utils = require('./utils.js');
 		detailRectWidth: 300,
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
-		globalViewSize : 110,
-		reducedGlobalViewSize: 50,
+		navigator: {x:112, y: 65, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
+		logo: {width: 30, height: 15},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -177,13 +177,10 @@ var Utils = require('./utils.js');
 						scoreOffset:5,  // score text offset from the top of grid squares
 						speciesLabelOffset: -200    // -100offset of the species label, above grid
 					}],
-		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
+		defaultTargetDisplayLimit: 40, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
-		gradientRegion: [{x:812, y:380,
-						  width:180,
-						  height:10
-						}]
+		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
 	},
 
 	internalOptions: {
@@ -406,10 +403,31 @@ var Utils = require('./utils.js');
     },
 
     _resetDisplayLimits: function() {
+		this.state.sourceDisplayLimit = this.state.yAxisRender.displayLength();
+		this.state.targetDisplayLimit = this.state.xAxisRender.displayLength(); 
+	},
+	
+	_updateSourceDisplayLimit: function() {
+		// set default display limits based on displaying defaultSourceDisplayLimit
+    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
 
-    	this.state.sourceDisplayLimit = this.state.yAxisRender.displayLength();  //  this.state.defaultSourceDisplayLimit; 
-		this.state.targetDisplayLimit = this.state.xAxisRender.displayLength();   //this.state.defaultTargetDisplayLimit;
+		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
+			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+		}
     },
+	
+	_updateTargetDisplayLimit: function() {
+	
+		if (this.state.selectedCompareSpecies.length > 1) { 
+		} else { 
+			this.state.targetDisplayLimit = this.state.dataManager.length("target", this.state.selectedCompareSpecies[0].name);
+
+			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
+				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+			} 
+		}
+	},
+			
 
 	// Loading spinner image from font awesome - Joe
 	_showLoadingSpinner: function() {
@@ -461,8 +479,6 @@ var Utils = require('./utils.js');
 					$("#pg_controls_options").fadeOut();
 				}
 			});
-
-
 		} else {
 			var msg = "There are no results available.";
 				this._createSvgContainer();
@@ -662,7 +678,6 @@ var Utils = require('./utils.js');
 	_highlightMatching: function(s, data) {
 		var hightlightSources = true;
 		var currenPos = this._getAxisDataPosition(data.id)
-
 		// did we hover over a grid column
 		if (s.parentElement.id.indexOf('grid_col') > -1) {
 			hightlightSources = true;
@@ -716,6 +731,7 @@ var Utils = require('./utils.js');
 		var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
 		return height;
 	},
+
 
 	_createTextScores: function () {
 		var self = this;
@@ -836,7 +852,7 @@ var Utils = require('./utils.js');
 		var startXIdx = self.state.xAxisRender.renderStartPos;    // this.state.currXIdx - xCount;
 
 		// add-ons for stroke size on view box. Preferably even numbers
-		var linePad = 2;
+		var linePad = self.state.navigator.borderThickness;
 		var viewPadding = linePad * 2 + 2;
 
 		// overview region is offset by xTranslation, yTranslation
@@ -844,20 +860,20 @@ var Utils = require('./utils.js');
 		var yTranslation = 30;
 
 		// these translations from the top-left of the rectangular region give the absolute coordinates
-		var overviewX = self.state.axis_pos_list[2] + xTranslation;    //MKD NEEDS REFACTORED TO ELIMINATE AXIS_POS_LIST ARRAY
-		var overviewY = self.state.yModelRegion + yTranslation;
+		var overviewX = self.state.navigator.x;
+		var overviewY = self.state.navigator.y;
 
 		// size of the entire region - it is a square
-		var overviewRegionSize = self.state.globalViewSize;
+		var overviewRegionSize = self.state.navigator.size;
 		if (this.state.yAxisRender.groupLength() < yCount) {  
-			overviewRegionSize = self.state.reducedGlobalViewSize;
+			overviewRegionSize = self.state.navigator.reducedSize;
 		}
 
 		// make it a bit bigger to ccont for widths
 		var overviewBoxDim = overviewRegionSize + viewPadding;
 
 		// create the main box and the instruction labels.
-		self._initializeOverviewRegion(overviewBoxDim,overviewX,overviewY);
+		self._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
 
 		// create the scales
 		self._createSmallScales(overviewRegionSize);
@@ -872,8 +888,15 @@ var Utils = require('./utils.js');
 		var yvalues = self.state.yAxisRender.groupEntries();		
 		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
 
-		var cell_rects = this.state.svg.selectAll(".mini_cells")
+		// Group all mini cells in g element - Joe
+		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
+							.attr("id", "pg_mini_cells_container");
+						
+        // Add cells to the miniCellsGrp - Joe						
+		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
 			.data(data, function(d) {return d.source_id + d.target_id;});   //D.Yid + D.xID;});
+			
+			
 		overviewX++;	// Corrects the gapping on the sides
 		overviewY++;
 		var cellRectTransform = "translate(" + overviewX +	"," + overviewY + ")";
@@ -882,7 +905,7 @@ var Utils = require('./utils.js');
 
 		cell_rects.enter()
 			.append("rect")
-			.attr("transform",cellRectTransform)
+			.attr("transform", cellRectTransform)
 			.attr("class", "mini_cell")
 			.attr("y", function(d, i) { 
 				var yid = d.source_id;
@@ -901,6 +924,8 @@ var Utils = require('./utils.js');
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
 			});
 
+
+			
 		var yRenderedSize = this.state.yAxisRender.displayLength();
 		var xRenderedSize = this.state.xAxisRender.displayLength();		
      	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
@@ -916,7 +941,8 @@ var Utils = require('./utils.js');
 				 " selectRectX: " + selectRectX +  " selectRectY:" + selectRectY + 
 			" selectRectHeight:" + selectRectHeight + " selectRectWidth:" + selectRectWidth);
 
-		self.state.highlightRect = self.state.svg.append("rect")
+		// Also add the shaded area in the pg_navigator group - Joe
+		self.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
 			.attr("x",overviewX + selectRectX)
 			.attr("y",overviewY + selectRectY)
 			.attr("id", "pg_selectionrect")
@@ -1066,33 +1092,19 @@ var Utils = require('./utils.js');
 
 	},
 
-	_initializeOverviewRegion: function(overviewBoxDim,overviewX,overviewY) {
-		var self = this;
+	_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
+		// Group the overview region and text together - Joe
+		var globalviewGrp = this.state.svg.append("g")
+			.attr("id", "pg_navigator");
+		
 		// rectangular border for overview
-		var globalview = self.state.svg.append("rect")
+		// border color and thickness are defined in phenogrid.css #pg_globalview - Joe
+		globalviewGrp.append("rect")
 			.attr("x", overviewX)
 			.attr("y", overviewY)
 			.attr("id", "pg_globalview")
 			.attr("height", overviewBoxDim)
 			.attr("width", overviewBoxDim);
-
-		var overviewInstructionHeightOffset = 50;
-		var lineHeight = 12;
-
-		var y = self.state.yModelRegion + overviewBoxDim + overviewInstructionHeightOffset;
-		var rect_instructions = self.state.svg.append("text")
-			.attr("x", self.state.axis_pos_list[2] + 10)
-			// This changes for vertical positioning
-			.attr("y", y)
-			.attr("class", "pg_instruct")
-			.text("Use the phenotype map above to");
-
-		rect_instructions = self.state.svg.append("text")
-			.attr("x", self.state.axis_pos_list[2] + lineHeight)
-			// This changes for vertical positioning
-			.attr("y", y + 10) 
-			.attr("class", "pg_instruct")
-			.text("navigate the model view on the left");
 	},
 
 	_createSmallScales: function(overviewRegionSize) {
@@ -1170,6 +1182,16 @@ var Utils = require('./utils.js');
 //		this.state.unmatchedSources = this._getUnmatchedSources();
 		this.element.empty();
 		this._reDraw();
+		
+		// Now position the control panel when the gridRegion changes
+		// Note: CANNOT use this inside _addPhenogridControls() since the _createGrid() is called after it
+		// we won't have the _gridHeight() by that time - Joe
+		var gridRegion = this.state.gridRegion[0]; 
+		var marginTop = 10; // Create some whitespace between the button and the y labels 
+		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+		// The height of #pg_controls_options defined in phenogrid.css - Joe
+		var pg_ctrl_options = $('#pg_controls_options');
+		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() + 1 + marginTop); // extra 1px to hide the border
 	},
 
     /*
@@ -1273,9 +1295,9 @@ var Utils = require('./utils.js');
 		var widthOfSingleCell = this.state.gridRegion[0].cellwd;
 
 		svgContainer.append("<svg id='pg_svg_area'></svg>");
-		this.state.svg = d3.select("#pg_svg_area")
-				.attr("width", "100%")
-				.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+100));
+		this.state.svg = d3.select("#pg_svg_area");
+				//.attr("width", "100%")
+				//.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+100));
 
 		 this._addGridTitle();
 //		 this._createDiseaseTitleBox();
@@ -1410,14 +1432,16 @@ var Utils = require('./utils.js');
 		}
 	},
 
-	_addLogoImage:	 function() { 
+	_addLogoImage: function() { 
+		var gridRegion = this.state.gridRegion[0];
+		
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
-			.attr("x", 0)
-			.attr("y",0)
-			.attr("id", "logo")
-			.attr("width", "60")
-			.attr("height", "90");
+			.attr("x", gridRegion.x + this._gridWidth() - this.state.logo.width)
+			.attr("y", gridRegion.y + this._gridHeight() + 20) // 20 is the margin - Joe
+			.attr("id", "pg_logo")
+			.attr("width", this.state.logo.width)
+			.attr("height", this.state.logo.height);
 	},
 
 	_resetLinks: function() {
@@ -1861,10 +1885,13 @@ var Utils = require('./utils.js');
 		}	
 	},
 
+	// _reDraw() calls this every time - Joe
 	_addPhenogridControls: function() {
 		var phenogridControls = $('<div id="pg_controls"></div>');
-		//this.element.append(phenogridControls); // old
-		$('#pg_svg_container').append(phenogridControls); // new, append controls to #pg_svg_container - Joe
+
+		// Not in the #pg_svg_area div since it's HTML - Joe
+		$('#pg_svg_container').append(phenogridControls);
+
 		this._createSelectionControls(phenogridControls);
 	},
  
@@ -1873,19 +1900,34 @@ var Utils = require('./utils.js');
 		this._buildGradientTexts();
 	},
 
+	
+	// Should group the gradient rect and the legend texts - Joe
+	
+	
+	
+	// Calculate the width based on the size of grid region - Joe
+	_calculateGradientWidth: function() {
+		var safeWidth = (this._gridWidth() <= this._gridHeight()) ? this._gridWidth() : this._gridHeight();
+		return safeWidth - this.state.logo.width - 20; // 20 is margin between logo and gradient bar - Joe
+	},
+	
+	
 	/*
 	 * Add the gradients to the grid
 	 */
 	_createGradients: function(){
-		var self = this;
+		var gridRegion = this.state.gridRegion[0];
+		
+		var x = gridRegion.x;
 
-		// baseline gradientRegion values
-		var x = self.state.gradientRegion[0].x;
-		var y = self.state.gradientRegion[0].y;
-		var width = self.state.gradientRegion[0].width;
-		var height = self.state.gradientRegion[0].height;
+		// Dynamic change, relative to grid region - Joe
+		var y = gridRegion.y + this._gridHeight() + 22; // 20 is margin - Joe
 
-		var gradient = this.state.svg.append("svg:linearGradient") // The <linearGradient> element is used to define a linear gradient. - Joe
+		var width = this._calculateGradientWidth();
+		var height = this.state.gradientRegion.height;
+
+		// The <linearGradient> element is used to define a linear gradient background - Joe
+		var gradient = this.state.svg.append("svg:linearGradient") 
 			.attr("id", "gradient")
 			.attr("x1", "0")
 			.attr("x2", "100%")
@@ -1902,8 +1944,14 @@ var Utils = require('./utils.js');
 				.style("stop-color", this.state.colorRanges[j]);
 		}
 
-		var legend = this.state.svg.append("rect")
-			.attr("transform", "translate(" + x + "," + y +")")
+		// Create a group for gradient bar and legends - Joe
+		var gradientGrp = this.state.svg.append("g")
+			.attr('id', 'pg_gradient');
+		
+		gradientGrp.append("rect")
+			//.attr("transform", "translate(" + x + "," + y +")")
+			.attr("x", x)
+			.attr("y", y) // use x and y instead of transform since rect has x and y - Joe
 			.attr("class", "legend_rect")
 			.attr("id","legendscale")
 			.attr("width", width)
@@ -1916,13 +1964,14 @@ var Utils = require('./utils.js');
 	 * Show the labels next to the gradients, including descriptions of min and max sides 
 	 */
 	_buildGradientTexts: function() {
-		var self = this;
 		var lowText, highText, labelText;
 
-		// baseline gradientRegion
-		var x = self.state.gradientRegion[0].x;
-		var y = self.state.gradientRegion[0].y;
+		var gridRegion = this.state.gridRegion[0];
 
+		var x = gridRegion.x;
+
+		// Dynamicly change, relative to grid region - Joe
+		var y = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
 
 		for (var idx in this.state.similarityCalculation) {	
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
@@ -1936,27 +1985,28 @@ var Utils = require('./utils.js');
 			}
 		}
 
+		// Create a group for gradient bar and legends - Joe
+		var gradientTextGrp = this.state.svg.select('#pg_gradient').append("g")
+			.attr('id', 'pg_gradient_texts');
+			
 		// min label
-		var div_text1 = self.state.svg.append("svg:text")
+		gradientTextGrp.append("svg:text")
 			.attr("transform", "translate(" + x + "," + y +")")		
-			.attr("class", "pg_detail_text")
-			.style("font-size", "10px")
+			.attr("class", "pg_gradient_text")
 			.text(lowText);
 
 		// calc the postion of the display type Label
-		var xLabelPos = (x + (self.state.gradientRegion[0].width/2) - labelText.length);		
-		var div_text2 = self.state.svg.append("svg:text")
+		var xLabelPos = (x + (this._calculateGradientWidth()/2) - labelText.length);		
+		gradientTextGrp.append("svg:text")
 			.attr("transform", "translate(" + xLabelPos + "," + y +")")						
-			.attr("class", "pg_detail_text")
-			.style("font-size", "10px")
+			.attr("class", "pg_gradient_text")
 			.text(labelText);
 
 		// calc the postion of the High Label
-		var xHighPos = (x + self.state.gradientRegion[0].width)-20;
-		var div_text3 = self.state.svg.append("svg:text")
+		var xHighPos = (x + this._calculateGradientWidth())-20;
+		gradientTextGrp.append("svg:text")
 			.attr("transform", "translate(" + xHighPos + "," + y +")")				
-			.attr("class", "pg_detail_text")
-			.style("font-size", "10px")
+			.attr("class", "pg_gradient_text")
 			.text(highText);
 	},
 
@@ -2011,12 +2061,16 @@ var Utils = require('./utils.js');
 			self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
 			self._createAxisRenderingGroups();
 			self._initDefaults();
+			self._setAxisRenderers(); // need this here - Joe
+		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
 		$("#pg_calculation").change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
 			self._resetSelections("calculation");
+			self._setAxisRenderers(); // need this here - Joe
+		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
@@ -2030,6 +2084,8 @@ var Utils = require('./utils.js');
 				self.state.yAxisRender.sort(self.state.selectedSort); 
 			}
 			self._resetSelections("sortphenotypes");
+			self._setAxisRenderers(); // need this here - Joe
+		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
