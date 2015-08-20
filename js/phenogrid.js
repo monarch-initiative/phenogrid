@@ -427,8 +427,7 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 			//var rectHeight = this._createRectangularContainers();
 
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
-			// this._createXLines();
-			// this._createYLines();
+
 			this._addPhenogridControls();
 
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
@@ -1694,56 +1693,6 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 		this.state.svg.selectAll("g.column").remove();
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
-
-	// Previously _createModelLines
-	_createXLines: function() {
-		if (this.state.svg.select("#x_line")[0][0] === null) {
-
-		var modelLineGap = 10;
-		var lineY = this.state.yoffset - modelLineGap;
-		var len = this.state.xAxisRender.displayLength();
-		var width = this.state.gridRegion[0].x + (len * this.state.gridRegion[0].cellwd)-5;
-		// this.state.svg.selectAll("path.domain").remove();
-		// this.state.svg.selectAll("text.scores").remove();
-		// this.state.svg.selectAll("#pg_specieslist").remove();
-
-		this.state.svg.append("line")
-			.attr("transform","translate(" + (this.state.textWidth + this.state.xOffsetOver + 30) + "," + lineY + ")")
-			.attr("class", "grid_line")			
-			.attr("x1", 0)
-			.attr("y1", 0)
-			.attr("x2", width)
-			.attr("y2", 0);
-			// .attr("stroke", "#0F473E")
-			// .attr("stroke-width", 1);
-		}
-	},
-
-	_createYLines: function() {
-	    var self = this;
-		var modelLineGap = 30;
-		var lineY = this.state.yoffset + modelLineGap;
-	    var displayCount = self.state.yAxisRender.displayLength();
-		var height = (displayCount * this.state.gridRegion[0].cellht);	    //this.state.gridRegion[0].y +
-
-		// var gridHeight = displayCount * self.state.heightOfSingleCell + 10;
-		// if (gridHeight < self.state.minHeight) {
-		// 	gridHeight = self.state.minHeight;
-		// }
-
-		this.state.svg.append("line")
-			//.attr("transform","translate(" + (this.state.textWidth + 15) + "," + lineY + ")")
-			.attr("transform","translate(" + (this.state.gridRegion[0].x - 5) + "," + 
-					(this.state.gridRegion[0].y-this.state.gridRegion[0].ypad) + ")")
-			.attr("class", "grid_line")
-			.attr("x1", 0)
-			.attr("y1", 0)
-			.attr("x2", 0)
-			.attr("y2", height);
-			// .attr("stroke", "#0F473E")
-			// .attr("stroke-width", 1);
-	},
-
 
 	// Add species labels to top of Overview
 	_createOverviewSpeciesLabels: function () {
