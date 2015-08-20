@@ -177,8 +177,8 @@ var Utils = require('./utils.js');
 						scoreOffset:5,  // score text offset from the top of grid squares
 						speciesLabelOffset: -200    // -100offset of the species label, above grid
 					}],
-		defaultTargetDisplayLimit: 40, //  defines the limit of the number of targets to display
-		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
+		defaultTargetDisplayLimit: 20, //  defines the limit of the number of targets to display
+		defaultSourceDisplayLimit: 10, //  defines the limit of the number of sources to display
 		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
 		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
 	},
@@ -406,28 +406,6 @@ var Utils = require('./utils.js');
 		this.state.sourceDisplayLimit = this.state.yAxisRender.displayLength();
 		this.state.targetDisplayLimit = this.state.xAxisRender.displayLength(); 
 	},
-	
-	_updateSourceDisplayLimit: function() {
-		// set default display limits based on displaying defaultSourceDisplayLimit
-    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-
-		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
-			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
-		}
-    },
-	
-	_updateTargetDisplayLimit: function() {
-	
-		if (this.state.selectedCompareSpecies.length > 1) { 
-		} else { 
-			this.state.targetDisplayLimit = this.state.dataManager.length("target", this.state.selectedCompareSpecies[0].name);
-
-			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
-				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
-			} 
-		}
-	},
-			
 
 	// Loading spinner image from font awesome - Joe
 	_showLoadingSpinner: function() {
@@ -2060,17 +2038,17 @@ var Utils = require('./utils.js');
 			// That last checked checkbox will be checked again after rerendering - Joe
 			self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
 			self._createAxisRenderingGroups();
-			self._initDefaults();
-			self._setAxisRenderers(); // need this here - Joe
-		    self._resetDisplayLimits(); // need this here - Joe
+			//self._initDefaults();
+			//self._setAxisRenderers(); // need this here - Joe
+		    //self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
 		$("#pg_calculation").change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
 			self._resetSelections("calculation");
-			self._setAxisRenderers(); // need this here - Joe
-		    self._resetDisplayLimits(); // need this here - Joe
+			//self._setAxisRenderers(); // need this here - Joe
+		    //self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
@@ -2084,8 +2062,8 @@ var Utils = require('./utils.js');
 				self.state.yAxisRender.sort(self.state.selectedSort); 
 			}
 			self._resetSelections("sortphenotypes");
-			self._setAxisRenderers(); // need this here - Joe
-		    self._resetDisplayLimits(); // need this here - Joe
+			//self._setAxisRenderers(); // need this here - Joe
+		    //self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
