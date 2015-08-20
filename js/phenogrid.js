@@ -177,8 +177,8 @@ var Utils = require('./utils.js');
 						scoreOffset:5,  // score text offset from the top of grid squares
 						speciesLabelOffset: -200    // -100offset of the species label, above grid
 					}],
-		defaultTargetDisplayLimit: 20, //  defines the limit of the number of targets to display
-		defaultSourceDisplayLimit: 10, //  defines the limit of the number of sources to display
+		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
+		defaultSourceDisplayLimit: 20, //  defines the limit of the number of sources to display
 		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
 		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
 	},
@@ -350,11 +350,12 @@ var Utils = require('./utils.js');
 
 		// set default display limits based on displaying defaultSourceDisplayLimit
     	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-
+console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
 		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
 			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+			console.log('AFTER    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
 		}
-	
+
        	// creates AxisGroup with full source and target lists with default rendering range
     	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
 					  this.state.dataManager.getData("source"));
@@ -367,8 +368,11 @@ var Utils = require('./utils.js');
 			this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
 
 			// calculate how many target values we can show using the number of selectedCompareSpecies
-			this.state.defaultVisibleModelCt = (this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length);
-			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);						
+			this.state.defaultVisibleModelCt = Math.floor(this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length);
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);	
+
+console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
+			
 		} else if (this.state.selectedCompareSpecies.length === 1) {
 
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
@@ -700,13 +704,16 @@ var Utils = require('./utils.js');
 
 	_gridWidth: function() {
 		var gridRegion = this.state.gridRegion[0]; 
-		var gridWidth = (gridRegion.xpad * this.state.targetDisplayLimit) - (gridRegion.xpad - gridRegion.cellwd);
+		var gridWidth = (gridRegion.xpad * this.state.xAxisRender.displayLength()) - (gridRegion.xpad - gridRegion.cellwd);
+		//var gridWidth = (gridRegion.xpad * this.state.targetDisplayLimit) - (gridRegion.xpad - gridRegion.cellwd);
 		return gridWidth;
 	},
 
 	_gridHeight: function() {
 		var gridRegion = this.state.gridRegion[0]; 
-		var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
+		// Don't use this.state.sourceDisplayLimit - Joe
+		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);
+		//var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
 		return height;
 	},
 
@@ -820,10 +827,10 @@ var Utils = require('./utils.js');
 		var self = this;
 
 		// set the display counts on each axis
-	    var yCount = self.state.yAxisRender.displayLength();  //self.state.sourceDisplayLimit;
+		var yCount = self.state.yAxisRender.displayLength();  //self.state.sourceDisplayLimit;
 	    var xCount = self.state.xAxisRender.displayLength();  //self.state.targetDisplayLimit;
 
-	    console.log("yCount: " + yCount + " xCount: " + xCount);
+	    console.log("YYYYYYYYYY - yCount: " + yCount + " XXXXXXXXXXX - xCount: " + xCount);
 
 	    // get the rendered starting point on axis
 		var startYIdx = self.state.yAxisRender.renderStartPos;    // this.state.currYIdx - yCount;
@@ -1564,7 +1571,7 @@ var Utils = require('./utils.js');
 		var gridRegion = self.state.gridRegion[0];
 		var x = gridRegion.x;     
 		var y = gridRegion.y;   
-		var height = gridRegion.y + self._gridHeight();// - 10;
+		var height = self._gridHeight();// - 10;
 		var width = self._gridWidth();
 
 		if (self._isCrossComparisonView() ) {
