@@ -355,6 +355,65 @@ var Utils = require('./utils.js');
 
 		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
 			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+		}
+
+       	// creates AxisGroup with full source and target lists with default rendering range
+    	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
+					  this.state.dataManager.getData("source"));
+		// sort source with default sorting type
+		this.state.sourceAxis.sort(this.state.selectedSort); 
+
+		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareSpecies > 1 then it's Comparision mode 
+		if (this.state.selectedCompareSpecies.length > 1) {  
+			// Adjust the defaultTargetDisplayLimit using mod
+			// Otherwise use the default number if it fits - Joe
+			var adjustedTargetDisplayLimit;
+			var modResult = this.state.defaultTargetDisplayLimit % this.state.selectedCompareSpecies.length;
+			if (modResult !== 0) {
+				adjustedTargetDisplayLimit = this.state.defaultTargetDisplayLimit - modResult;
+			} else {
+				adjustedTargetDisplayLimit = this.state.defaultTargetDisplayLimit;
+			}
+			
+			// Adjust how many target values we can show using the number of selectedCompareSpecies
+			// no need to use Math.floor() here since the result will always be an int
+			// Can also use a fixed number if not use mod to adjust - Joe
+			this.state.defaultVisibleModelCt = adjustedTargetDisplayLimit / this.state.selectedCompareSpecies.length;
+			
+			console.log('defaultVisibleModelCt--------: ' + this.state.defaultVisibleModelCt);
+			
+            // update the targetList
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);	
+		} else if (this.state.selectedCompareSpecies.length === 1) {
+			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
+			targetList = this.state.dataManager.getData("target", singleSpeciesName);
+			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
+
+			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
+				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+			} 
+
+		}
+    	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
+
+    	this._setAxisRenderers();
+	},
+	
+    /* create the groups to contain the rendering 
+       information for x and y axes. Use already loaded data
+       in various hashes, etc. to create objects containing
+       information for axis rendering. Then, switch source and target
+       groups to be x or y depending on "flip axis" choice*/
+    _createAxisRenderingGroups: function() {
+    	var targetList = [];
+
+		// set default display limits based on displaying defaultSourceDisplayLimit
+    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
+		
+		console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
+
+		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
+			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
 			console.log('AFTER    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
 		}
 
@@ -366,7 +425,7 @@ var Utils = require('./utils.js');
 
 		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareSpecies > 1 then it's Comparision mode 
 		if (this.state.selectedCompareSpecies.length > 1) {  
-			
+
 			// Adjust the defaultTargetDisplayLimit using mod - Joe
 			var modResult = this.state.defaultTargetDisplayLimit % this.state.selectedCompareSpecies.length;
 			if (modResult !== 0) {
