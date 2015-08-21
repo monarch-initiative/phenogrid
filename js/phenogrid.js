@@ -170,14 +170,14 @@ var Utils = require('./utils.js');
 		preloadHPO: false,	// Boolean value that allows for preloading of all HPO data at start.  If false, the user will have to manually select what HPO relations to load via hoverbox.
 		selectedCompareSpecies: [],
 		titleOffsets: [{"main": {x:280, y:15}, "disease": {x:0, y:100}}],
-		gridRegion: [{x:254, y:200, // origin coordinates for grid region (matrix)
+		gridRegion: {x:254, y:200, // origin coordinates for grid region (matrix)
 						ypad:13, xpad:15, // x/y padding between the labels and grid
 						cellwd:10, cellht:10, // // cell width and height
 						rowLabelOffset:-25, // offset of the row label (left side)
 						colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
 						scoreOffset:5,  // score text offset from the top of grid squares
 						speciesLabelOffset: -200    // -100offset of the species label, above grid
-					}],
+					},
 		defaultTargetDisplayLimit: 40, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultCrossCompareTargetLimitPerSpecies: 10,    // the number of visible targets per organisms to be displayed in cross compare mode
@@ -516,7 +516,7 @@ var Utils = require('./utils.js');
 		var self = this;
 		var xvalues = self.state.xAxisRender.entries();   //keys();
 		var yvalues = self.state.yAxisRender.entries();
-		var gridRegion = self.state.gridRegion[0]; 
+		var gridRegion = self.state.gridRegion; 
 		var xScale = self.state.xAxisRender.getScale();
 		var yScale = self.state.yAxisRender.getScale();
 		var gridHeight = self._gridHeight();
@@ -639,7 +639,7 @@ var Utils = require('./utils.js');
 	_crossHairsOn: function(id, ypos, focus, direction) {
 		var xScale = this.state.xAxisRender.getScale();
     	var xs = xScale(id);
-    	var gridRegion = this.state.gridRegion[0]; 
+    	var gridRegion = this.state.gridRegion; 
         var x = (gridRegion.x + (xs* gridRegion.xpad)) + 5;  // magic number to make sure it goes through the middle of the cell
         var y = gridRegion.y + (ypos * gridRegion.ypad) + 5; 
 
@@ -688,8 +688,8 @@ var Utils = require('./utils.js');
 	},
 
 	_calcYCoord: function (d, i) {
-		var y = this.state.gridRegion[0].y;
-		var ypad = this.state.gridRegion[0].ypad;
+		var y = this.state.gridRegion.y;
+		var ypad = this.state.gridRegion.ypad;
 
 		return (y+(i*ypad));
 	},
@@ -789,13 +789,13 @@ var Utils = require('./utils.js');
 	},
 
 	_gridWidth: function() {
-        var gridRegion = this.state.gridRegion[0]; 
+        var gridRegion = this.state.gridRegion; 
         var gridWidth = (gridRegion.xpad * this.state.xAxisRender.displayLength()) - (gridRegion.xpad - gridRegion.cellwd);
         return gridWidth;
     },
 
 	_gridHeight: function() {
-		var gridRegion = this.state.gridRegion[0]; 
+		var gridRegion = this.state.gridRegion; 
 		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);
 		//var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
 		return height;
@@ -803,7 +803,7 @@ var Utils = require('./utils.js');
 
 	_createTextScores: function () {
 		var self = this;
-		var gridRegion = self.state.gridRegion[0]; 
+		var gridRegion = self.state.gridRegion; 
 		var list, scale, axRender;
 
 		if (self.state.invertAxis) {
@@ -1254,7 +1254,7 @@ var Utils = require('./utils.js');
 		// Now position the control panel when the gridRegion changes
 		// Note: CANNOT use this inside _addPhenogridControls() since the _createGrid() is called after it
 		// we won't have the _gridHeight() by that time - Joe
-		var gridRegion = this.state.gridRegion[0]; 
+		var gridRegion = this.state.gridRegion; 
 		var marginTop = 10; // Create some whitespace between the button and the y labels 
 		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
 		// The height of #pg_controls_options defined in phenogrid.css - Joe
@@ -1360,12 +1360,12 @@ var Utils = require('./utils.js');
 		this._createSvgContainer();
 		var svgContainer = this.state.svgContainer;
 		var sourceDisplayCount = this.state.yAxisRender.displayLength();
-		var widthOfSingleCell = this.state.gridRegion[0].cellwd;
+		var widthOfSingleCell = this.state.gridRegion.cellwd;
 
 		svgContainer.append("<svg id='pg_svg_area'></svg>");
 		this.state.svg = d3.select("#pg_svg_area");
 				//.attr("width", "100%")
-				//.attr("height", ((this.state.gridRegion[0].y + (sourceDisplayCount * widthOfSingleCell))+100));
+				//.attr("height", ((this.state.gridRegion.y + (sourceDisplayCount * widthOfSingleCell))+100));
 
 		 this._addGridTitle();
 //		 this._createDiseaseTitleBox();
@@ -1484,7 +1484,7 @@ var Utils = require('./utils.js');
 	},
 
 	_addLogoImage: function() { 
-		var gridRegion = this.state.gridRegion[0];
+		var gridRegion = this.state.gridRegion;
 		
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
@@ -1634,7 +1634,7 @@ var Utils = require('./utils.js');
 
 	_createSpeciesDividerLines: function() {
 		var self = this;
-		var gridRegion = self.state.gridRegion[0];
+		var gridRegion = self.state.gridRegion;
 		var x = gridRegion.x;     
 		var y = gridRegion.y;   
 		var height = self._gridHeight() + gridRegion.colLabelOffset;// adjust due to extending it to the col labels
@@ -1756,18 +1756,18 @@ var Utils = require('./utils.js');
 		var self = this;
 		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
 		var len = self.state.xAxisRender.displayLength();
-		var width = (self.state.gridRegion[0].xpad*len) + self.state.gridRegion[0].cellwd;
+		var width = (self.state.gridRegion.xpad*len) + self.state.gridRegion.cellwd;
 		var height = self._gridHeight();
-		var y = self.state.gridRegion[0].rowLabelOffset-90;  // height / 2 ;rowLabelOffset
+		var y = self.state.gridRegion.rowLabelOffset-90;  // height / 2 ;rowLabelOffset
 
 		// position relative to the grid
-		var translation = "translate(" + (self.state.gridRegion[0].x) + "," + (self.state.gridRegion[0].y) +")";
+		var translation = "translate(" + (self.state.gridRegion.x) + "," + (self.state.gridRegion.y) +")";
 
 		// if inverted override the translate to rotate 90
 		if (self.state.invertAxis && speciesList.length > 1){
-				translation = "translate(" + self.state.gridRegion[0].x + "," + (self.state.gridRegion[0].y) + ")rotate(-90)";
+				translation = "translate(" + self.state.gridRegion.x + "," + (self.state.gridRegion.y) + ")rotate(-90)";
 				//speciesList = speciesList.reverse();  // need to do this to match order of the species order
-				y = self.state.gridRegion[0].speciesLabelOffset;				
+				y = self.state.gridRegion.speciesLabelOffset;				
 		} 
 
 		var xPerModel = width/speciesList.length;  
@@ -1907,7 +1907,7 @@ var Utils = require('./utils.js');
 	 * Add the gradients to the grid
 	 */
 	_createGradients: function(){
-		var gridRegion = this.state.gridRegion[0];
+		var gridRegion = this.state.gridRegion;
 		
 		var x = gridRegion.x;
 
@@ -1957,7 +1957,7 @@ var Utils = require('./utils.js');
 	_buildGradientTexts: function() {
 		var lowText, highText, labelText;
 
-		var gridRegion = this.state.gridRegion[0];
+		var gridRegion = this.state.gridRegion;
 
 		var x = gridRegion.x;
 
