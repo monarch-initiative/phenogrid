@@ -59,7 +59,7 @@ DataManager.prototype = {
 			gets a list of entries from specified dataset
 
 		Parameters:
-			dataset - which data set array to return (i.e., source, target, cellData)
+			dataset - which data set array to return (i.e., 'source', 'target', 'cellData')
 			targetGroup - optional, targetGroup name
 
 		Returns:
@@ -350,8 +350,8 @@ DataManager.prototype = {
 		var combinedTargetList = [];
 		// loop thru for the number of comparisons
 
-		for (var e in targetGroupList) {
-			var data = this.getData("target", targetGroupList[e].name);
+		for (var k in targetGroupList) {
+			var data = this.getData("target", targetGroupList[k].name);
 			var i=0;
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];

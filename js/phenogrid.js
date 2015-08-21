@@ -149,6 +149,7 @@ var Utils = require('./utils.js');
 		labelCharDisplayCount : 20,
 		apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
 			{prefix: "OMIM", apifragment: "disease"}, 
+			{prefix: "ZFIN", apifragment: "gene"}, // Added for fish
 			{prefix: "MGI", apifragment: "gene"}],
 		defaultApiEntity: "gene",
 		tooltips: {},
@@ -177,15 +178,15 @@ var Utils = require('./utils.js');
 						scoreOffset:5,  // score text offset from the top of grid squares
 						speciesLabelOffset: -200    // -100offset of the species label, above grid
 					}],
-		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
-		defaultSourceDisplayLimit: 20, //  defines the limit of the number of sources to display
+		defaultTargetDisplayLimit: 38, //  defines the limit of the total number of targets to display
+		defaultSourceDisplayLimit: 20, //  defines the limit of the total number of sources to display
 		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
 		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
 	},
 
 	internalOptions: {
 		/// good - legit options
-		serverURL: "http://beta.monarchinitiative.org",
+		serverURL: "http://monarchinitiative.org", // not using beta since monarch release - Joe
 		simServerURL: "",  // URL of the server for similarity searches
 		simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",
 		selectedCalculation: 0,
@@ -218,7 +219,6 @@ var Utils = require('./utils.js');
 	 * [ "HP:12345", "HP:23451", ...]
 	 */
 	_create: function() {
-
 		// must be available from js loaded in a separate file...
 		this.configoptions = configoptions;
 		// check these 
@@ -259,7 +259,8 @@ var Utils = require('./utils.js');
 
 		// load the default selected target species list based on the crossComparisonView flag
 		for(var idx in this.state.targetSpeciesList) {
-			if (this.state.targetSpeciesList[idx].crossComparisonView && this.state.targetSpeciesList[idx].active) {
+			// Load all species data upfront to avoid ajax async issues
+			if (this.state.targetSpeciesList[idx].active) {  //this.state.targetSpeciesList[idx].crossComparisonView &&
 				this.state.selectedCompareSpecies.push(this.state.targetSpeciesList[idx]);	
 			}			
 		}
@@ -278,7 +279,6 @@ var Utils = require('./utils.js');
 	},
 
 	_postDataInitCB: function (self) {
-
 		// set a max IC score
 		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
 
@@ -350,7 +350,9 @@ var Utils = require('./utils.js');
 
 		// set default display limits based on displaying defaultSourceDisplayLimit
     	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
+		
+		console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
+
 		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
 			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
 			console.log('AFTER    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
@@ -364,21 +366,26 @@ console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplay
 
 		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareSpecies > 1 then it's Comparision mode 
 		if (this.state.selectedCompareSpecies.length > 1) {  
-			//this.state.targetDisplayLimit = (this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length)*this.state.selectedCompareSpecies.length;
+			
+			// Adjust the defaultTargetDisplayLimit using mod - Joe
+			var modResult = this.state.defaultTargetDisplayLimit % this.state.selectedCompareSpecies.length;
+			if (modResult !== 0) {
+				this.state.defaultTargetDisplayLimit = this.state.defaultTargetDisplayLimit - modResult;
+			}
+			// Use the default number if it fits
 			this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
 
 			// calculate how many target values we can show using the number of selectedCompareSpecies
-			this.state.defaultVisibleModelCt = Math.floor(this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length);
-			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);	
-
-console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
+			// no need to use Math.floor() here since the result will always be an int - Joe
+			// Can also use a fixed number if not use mod to adjust - Joe
+			this.state.defaultVisibleModelCt = this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length;
 			
+			console.log('defaultVisibleModelCt--------: ' + this.state.defaultVisibleModelCt);
+
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);	
 		} else if (this.state.selectedCompareSpecies.length === 1) {
-
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
-
 			targetList = this.state.dataManager.getData("target", singleSpeciesName);
-
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
 
 			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
@@ -392,18 +399,16 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 	},
 
     _setAxisRenderers: function() {
-		var self= this;
-
-	   	if (self.state.invertAxis) {
-	       self.state.xAxisRender = self.state.sourceAxis;
-	       self.state.yAxisRender = self.state.targetAxis;
+	   	if (this.state.invertAxis) {
+	       this.state.xAxisRender = this.state.sourceAxis;
+	       this.state.yAxisRender = this.state.targetAxis;
 	   	} else {
-	       self.state.xAxisRender = self.state.targetAxis;
-	       self.state.yAxisRender = self.state.sourceAxis;
+	       this.state.xAxisRender = this.state.targetAxis;
+	       this.state.yAxisRender = this.state.sourceAxis;
 	   	}
 
-	   console.log("xaxis start:" + self.state.xAxisRender.getRenderStartPos() + " end: " +  self.state.xAxisRender.getRenderEndPos());
-	   console.log("yaxis start:" + self.state.yAxisRender.getRenderStartPos() + " end: " +  self.state.yAxisRender.getRenderEndPos());
+	   console.log("xaxis start:" + this.state.xAxisRender.getRenderStartPos() + " end: " +  this.state.xAxisRender.getRenderEndPos());
+	   console.log("yaxis start:" + this.state.yAxisRender.getRenderStartPos() + " end: " +  this.state.yAxisRender.getRenderEndPos());
     },
 
     _resetDisplayLimits: function() {
@@ -442,7 +447,7 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
 
-			var self = this;
+			var self = this; // Needed for the anonymous function - Joe
 			// Slide control panel - Joe
 			$("#pg_controls_options").hide();
 			$("#pg_slide_btn").on("click", function() {
@@ -465,7 +470,6 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 				this._createSvgContainer();
 				this._createEmptyVisualization(msg);
 		}
-
 	},
 
 	// create the grid
@@ -1399,23 +1403,6 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 			});
 	},
 
-	_resetSelections: function(type) {
-		var self = this;
-
-		$("#pg_svg_area").remove();
-
-		if (type === "organism"){
-			self._reset("organism");
-			self._init();
-		} else if (type === "calculation"){
-			self._reset("calculation");
-		} else if (type === "sortphenotypes"){
-			self._reset("sortphenotypes");
-		} else if (type === "axisflip"){
-			self._reset("axisflip");
-		}
-	},
-
 	_addLogoImage: function() { 
 		var gridRegion = this.state.gridRegion[0];
 		
@@ -1657,14 +1644,19 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
 		console.log("calc for start x:"+(this.state.currXIdx-this.state.targetDisplayLimit));
-		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);
+		//this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);
+		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.xAxisRender.displayLength());
+		
+		
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
 		console.log("xaxis end:" + this.state.currXIdx);
 	   //  console.log("Xaxis end: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
  			// + " limit size: " + this.state.targetDisplayLimit);
 
 		console.log("calc for start y:"+(this.state.currYIdx-this.state.sourceDisplayLimit));
-		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.sourceDisplayLimit);
+		//this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.sourceDisplayLimit);
+		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.yAxisRender.displayLength());
+		
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
 		console.log("yaxis end:" + this.state.currYIdx);
 
@@ -1991,20 +1983,18 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 			} else {
 				alert("You must have at least 1 species selected.");
 			}
+			
+			console.log(self.state.selectedCompareSpecies);
+			
 			// That last checked checkbox will be checked again after rerendering - Joe
-			self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
+
 			self._createAxisRenderingGroups();
-			//self._initDefaults();
-			//self._setAxisRenderers(); // need this here - Joe
-		    //self._resetDisplayLimits(); // need this here - Joe
+
 			self._processDisplay();
 		});
 
 		$("#pg_calculation").change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
-			self._resetSelections("calculation");
-			//self._setAxisRenderers(); // need this here - Joe
-		    //self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
@@ -2017,9 +2007,7 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 			} else {
 				self.state.yAxisRender.sort(self.state.selectedSort); 
 			}
-			self._resetSelections("sortphenotypes");
-			//self._setAxisRenderers(); // need this here - Joe
-		    //self._resetDisplayLimits(); // need this here - Joe
+
 			self._processDisplay();
 		});
 
@@ -2032,7 +2020,6 @@ console.log('ORGI    targetList-----------: ' + Object.keys(targetList).length);
 				self.state.invertAxis = false;
 			}
 
-		    self._resetSelections("axisflip");
 		    self._setAxisRenderers();
 		    self._resetDisplayLimits();
 		    self._processDisplay();
