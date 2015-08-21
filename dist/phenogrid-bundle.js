@@ -826,7 +826,7 @@ DataManager.prototype = {
 			gets a list of entries from specified dataset
 
 		Parameters:
-			dataset - which data set array to return (i.e., source, target, cellData)
+			dataset - which data set array to return (i.e., 'source', 'target', 'cellData')
 			targetGroup - optional, targetGroup name
 
 		Returns:
@@ -1121,8 +1121,8 @@ DataManager.prototype = {
 		var combinedTargetList = [];
 		// loop thru for the number of comparisons
 
-		for (var e in targetGroupList) {
-			var data = this.getData("target", targetGroupList[e].name);
+		for (var k in targetGroupList) {
+			var data = this.getData("target", targetGroupList[k].name);
 			var i=0;
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];
@@ -1529,7 +1529,7 @@ var Utils = require('./utils.js');
 
 	internalOptions: {
 		/// good - legit options
-		serverURL: "http://beta.monarchinitiative.org",
+		serverURL: "http://monarchinitiative.org", // not using beta since monarch release - Joe
 		simServerURL: "",  // URL of the server for similarity searches
 		simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",
 		selectedCalculation: 0,
@@ -1556,7 +1556,6 @@ var Utils = require('./utils.js');
 	 * [ "HP:12345", "HP:23451", ...]
 	 */
 	_create: function() {
-
 		// must be available from js loaded in a separate file...
 		this.configoptions = configoptions;
 		// check these 
@@ -1622,7 +1621,6 @@ var Utils = require('./utils.js');
 	},
 
 	_postDataInitCB: function (self) {
-
 		// set a max IC score
 		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
 
@@ -1690,11 +1688,73 @@ var Utils = require('./utils.js');
     	var targetList = [];
 		// set default display limits based on displaying defaultSourceDisplayLimit
     	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
+		
+		console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
 
 		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
 			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
 		}
+
+       	// creates AxisGroup with full source and target lists with default rendering range
+    	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
+					  this.state.dataManager.getData("source"));
+		// sort source with default sorting type
+		this.state.sourceAxis.sort(this.state.selectedSort); 
+
+		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareSpecies > 1 then it's Comparision mode 
+		if (this.state.selectedCompareSpecies.length > 1) {  
+			// Adjust the defaultTargetDisplayLimit using mod
+			// Otherwise use the default number if it fits - Joe
+			var adjustedTargetDisplayLimit;
+			var modResult = this.state.defaultTargetDisplayLimit % this.state.selectedCompareSpecies.length;
+			if (modResult !== 0) {
+				adjustedTargetDisplayLimit = this.state.defaultTargetDisplayLimit - modResult;
+			} else {
+				adjustedTargetDisplayLimit = this.state.defaultTargetDisplayLimit;
+			}
+			
+			// Adjust how many target values we can show using the number of selectedCompareSpecies
+			// no need to use Math.floor() here since the result will always be an int
+			// Can also use a fixed number if not use mod to adjust - Joe
+			this.state.defaultVisibleModelCt = adjustedTargetDisplayLimit / this.state.selectedCompareSpecies.length;
+			
+			console.log('defaultVisibleModelCt--------: ' + this.state.defaultVisibleModelCt);
+			
+            // update the targetList
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);	
+		} else if (this.state.selectedCompareSpecies.length === 1) {
+			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
+			targetList = this.state.dataManager.getData("target", singleSpeciesName);
+			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
+
+			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
+				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+			} 
+
+		}
+    	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
+
+    	this._setAxisRenderers();
+	},
 	
+    /* create the groups to contain the rendering 
+       information for x and y axes. Use already loaded data
+       in various hashes, etc. to create objects containing
+       information for axis rendering. Then, switch source and target
+       groups to be x or y depending on "flip axis" choice*/
+    _createAxisRenderingGroups: function() {
+    	var targetList = [];
+
+		// set default display limits based on displaying defaultSourceDisplayLimit
+    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
+		
+		console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
+
+		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
+			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+			console.log('AFTER    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
+		}
+
        	// creates AxisGroup with full source and target lists with default rendering range
     	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
 					  this.state.dataManager.getData("source"));
@@ -1712,11 +1772,8 @@ var Utils = require('./utils.js');
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
 
 		} else if (this.state.selectedCompareSpecies.length === 1) {
-
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
-
 			targetList = this.state.dataManager.getData("target", singleSpeciesName);
-
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
 
 			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
@@ -1731,7 +1788,6 @@ var Utils = require('./utils.js');
 
     _setAxisRenderers: function() {
 	   	if (this.state.invertAxis) {
-
 	   		// invert our x/y Renders
 	    	this.state.xAxisRender = this.state.sourceAxis;
 	       	this.state.yAxisRender = this.state.targetAxis;
@@ -1740,41 +1796,8 @@ var Utils = require('./utils.js');
 	       	this.state.xAxisRender = this.state.targetAxis;
 	       	this.state.yAxisRender = this.state.sourceAxis;
 	   	}
-
-       console.log("set:xaxis display limit:" + this.state.targetDisplayLimit);
-	   console.log("set:yaxis display limit:" + this.state.sourceDisplayLimit);	   
     },
 
-    _resetDisplayLimits: function() {
- 		// now recheck the display limits
-       	
-       	this.state.sourceDisplayLimit = this.state.yAxisRender.groupLength();
-
-    	//if (!this._isCrossComparisonView()) {
-    		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
-				this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
-			}
-		//} 
-		// else {
-		// 	this.state.sourceDisplayLimit = 30;
-		// }
-
-		this.state.yAxisRender.setRenderStartPos(0);
-		this.state.yAxisRender.setRenderEndPos(this.state.sourceDisplayLimit);
-
-		this.state.targetDisplayLimit = this.state.xAxisRender.groupLength(); 
-
-    	if (this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
-			this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
-		}
-		this.state.xAxisRender.setRenderStartPos(0);
-		this.state.xAxisRender.setRenderEndPos(this.state.targetDisplayLimit);		
-
-       console.log("reset:xaxis display limit:" + this.state.targetDisplayLimit);
-	   console.log("reset:yaxis display limit:" + this.state.sourceDisplayLimit);	   
-
-	},
-	
 	// Loading spinner image from font awesome - Joe
 	_showLoadingSpinner: function() {
 		var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
@@ -1791,8 +1814,7 @@ var Utils = require('./utils.js');
 			//var rectHeight = this._createRectangularContainers();
 
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
-			// this._createXLines();
-			// this._createYLines();
+
 			this._addPhenogridControls();
 
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
@@ -1807,7 +1829,7 @@ var Utils = require('./utils.js');
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
 
-			var self = this;
+			var self = this; // Needed for the anonymous function - Joe
 			// Slide control panel - Joe
 			$("#pg_controls_options").hide();
 			$("#pg_slide_btn").on("click", function() {
@@ -1830,7 +1852,6 @@ var Utils = require('./utils.js');
 				this._createSvgContainer();
 				this._createEmptyVisualization(msg);
 		}
-
 	},
 
 	// create the grid
@@ -2113,17 +2134,15 @@ var Utils = require('./utils.js');
 	_gridWidth: function() {
         var gridRegion = this.state.gridRegion[0]; 
         var gridWidth = (gridRegion.xpad * this.state.xAxisRender.displayLength()) - (gridRegion.xpad - gridRegion.cellwd);
-        //var gridWidth = (gridRegion.xpad * this.state.targetDisplayLimit) - (gridRegion.xpad - gridRegion.cellwd);
         return gridWidth;
     },
 
-    _gridHeight: function() {
-        var gridRegion = this.state.gridRegion[0]; 
-        // Don't use this.state.sourceDisplayLimit - Joe
-        var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);
-        //var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);        
-        return height;
-    },
+	_gridHeight: function() {
+		var gridRegion = this.state.gridRegion[0]; 
+		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);
+		//var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
+		return height;
+	},
 
 	_createTextScores: function () {
 		var self = this;
@@ -2234,10 +2253,10 @@ var Utils = require('./utils.js');
 		var self = this;
 
 		// set the display counts on each axis
-	    var yCount = self.state.yAxisRender.displayLength();  //self.state.sourceDisplayLimit;
+		var yCount = self.state.yAxisRender.displayLength();  //self.state.sourceDisplayLimit;
 	    var xCount = self.state.xAxisRender.displayLength();  //self.state.targetDisplayLimit;
 
-	    console.log("yCount: " + yCount + " xCount: " + xCount);
+	    console.log("YYYYYYYYYY - yCount: " + yCount + " XXXXXXXXXXX - xCount: " + xCount);
 
 	    // get the rendered starting point on axis
 		var startYIdx = self.state.yAxisRender.renderStartPos;    // this.state.currYIdx - yCount;
@@ -2807,23 +2826,6 @@ var Utils = require('./utils.js');
 			});
 	},
 
-	_resetSelections: function(type) {
-		var self = this;
-
-		$("#pg_svg_area").remove();
-
-		if (type === "organism"){
-			self._reset("organism");
-			self._init();
-		} else if (type === "calculation"){
-			self._reset("calculation");
-		} else if (type === "sortphenotypes"){
-			self._reset("sortphenotypes");
-		} else if (type === "axisflip"){
-			self._reset("axisflip");
-		}
-	},
-
 	_addLogoImage: function() { 
 		var gridRegion = this.state.gridRegion[0];
 		
@@ -3066,6 +3068,7 @@ var Utils = require('./utils.js');
 		// so, the starting render position is this size minus the display limit
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
+
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.yAxisRender.displayLength());
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
 		this._clearGrid();
@@ -3090,56 +3093,6 @@ var Utils = require('./utils.js');
 		this.state.svg.selectAll("g.column").remove();
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
-
-	// Previously _createModelLines
-	_createXLines: function() {
-		if (this.state.svg.select("#x_line")[0][0] === null) {
-
-		var modelLineGap = 10;
-		var lineY = this.state.yoffset - modelLineGap;
-		var len = this.state.xAxisRender.displayLength();
-		var width = this.state.gridRegion[0].x + (len * this.state.gridRegion[0].cellwd)-5;
-		// this.state.svg.selectAll("path.domain").remove();
-		// this.state.svg.selectAll("text.scores").remove();
-		// this.state.svg.selectAll("#pg_specieslist").remove();
-
-		this.state.svg.append("line")
-			.attr("transform","translate(" + (this.state.textWidth + this.state.xOffsetOver + 30) + "," + lineY + ")")
-			.attr("class", "grid_line")			
-			.attr("x1", 0)
-			.attr("y1", 0)
-			.attr("x2", width)
-			.attr("y2", 0);
-			// .attr("stroke", "#0F473E")
-			// .attr("stroke-width", 1);
-		}
-	},
-
-	_createYLines: function() {
-	    var self = this;
-		var modelLineGap = 30;
-		var lineY = this.state.yoffset + modelLineGap;
-	    var displayCount = self.state.yAxisRender.displayLength();
-		var height = (displayCount * this.state.gridRegion[0].cellht);	    //this.state.gridRegion[0].y +
-
-		// var gridHeight = displayCount * self.state.heightOfSingleCell + 10;
-		// if (gridHeight < self.state.minHeight) {
-		// 	gridHeight = self.state.minHeight;
-		// }
-
-		this.state.svg.append("line")
-			//.attr("transform","translate(" + (this.state.textWidth + 15) + "," + lineY + ")")
-			.attr("transform","translate(" + (this.state.gridRegion[0].x - 5) + "," + 
-					(this.state.gridRegion[0].y-this.state.gridRegion[0].ypad) + ")")
-			.attr("class", "grid_line")
-			.attr("x1", 0)
-			.attr("y1", 0)
-			.attr("x2", 0)
-			.attr("y2", height);
-			// .attr("stroke", "#0F473E")
-			// .attr("stroke-width", 1);
-	},
-
 
 	// Add species labels to top of Overview
 	_createOverviewSpeciesLabels: function () {
@@ -3436,6 +3389,7 @@ var Utils = require('./utils.js');
 			} else {
 				alert("You must have at least 1 species selected.");
 			}
+
 			self._createAxisRenderingGroups();
 			self._processDisplay();
 		});
@@ -3465,12 +3419,8 @@ var Utils = require('./utils.js');
 			} else {
 				self.state.invertAxis = false;
 			}
-
-		    //self._resetSelections("axisflip");
 		    self._setAxisRenderers();
-		    self._resetDisplayLimits();
 		    self._processDisplay();
-
 		});
 
 		self._configureFaqs();
