@@ -941,19 +941,19 @@ var Utils = require('./utils.js');
 		var overviewBoxDim = overviewRegionSize + viewPadding;
 
 		// create the main box and the instruction labels.
-		self._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
+		this._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
 
 		// create the scales
-		self._createSmallScales(overviewRegionSize);
+		this._createSmallScales(overviewRegionSize);
 
 		// add the items using smaller rects
 		//var cellData = self._mergeHashEntries(self.state.cellDataHash);
 		//var data = self.state.filteredCellData;
 
 		// this should be the full set of cellData
-		var xvalues = self.state.xAxisRender.groupEntries();
+		var xvalues = this.state.xAxisRender.groupEntries();
 		//console.log(JSON.stringify(xvalues));
-		var yvalues = self.state.yAxisRender.groupEntries();		
+		var yvalues = this.state.yAxisRender.groupEntries();		
 		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
 
 		// Group all mini cells in g element - Joe
@@ -1001,16 +1001,16 @@ var Utils = require('./utils.js');
    	    var startYId = this.state.yAxisRender.itemAt(startYIdx).id;   
 	    var startXId = this.state.xAxisRender.itemAt(startXIdx).id;
 
-		var selectRectX = self.state.smallXScale(startXId);
-		var selectRectY = self.state.smallYScale(startYId);
-		var selectRectHeight = self.state.smallYScale(lastYId);
-		var selectRectWidth = self.state.smallXScale(lastXId);
+		var selectRectX = this.state.smallXScale(startXId);
+		var selectRectY = this.state.smallYScale(startYId);
+		var selectRectHeight = this.state.smallYScale(lastYId);
+		var selectRectWidth = this.state.smallXScale(lastXId);
 		console.log("yRenderedSize:" + yRenderedSize +" xRenderedSize" +xRenderedSize +
 				 " selectRectX: " + selectRectX +  " selectRectY:" + selectRectY + 
 			" selectRectHeight:" + selectRectHeight + " selectRectWidth:" + selectRectWidth);
 
 		// Also add the shaded area in the pg_navigator group - Joe
-		self.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
+		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
 			.attr("x",overviewX + selectRectX)
 			.attr("y",overviewY + selectRectY)
 			.attr("id", "pg_selectionrect")
