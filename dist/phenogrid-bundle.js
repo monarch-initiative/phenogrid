@@ -1031,18 +1031,22 @@ DataManager.prototype = {
 			for (var x=0; x < xvalues.length; x++ ) {
 
 				var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
-				// does a match exist in the cells
-				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') 
+
+				if ((typeof(yvalues[y]) != 'undefined') && (typeof(xvalues[x]) != 'undefined')) 
 				{
-					var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
-								ypos: y, targetGroup: targetGroup, type: 'cell'};
-					// this will create a array as a 'flattened' list of data points, used by mini mapping
-					if (flattened) {
-						this.matrix.push(rec);
-					} else {  // else, just create an array of arrays, grid likes this format
-						list.push(rec);	
+					// does a match exist in the cells
+					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') 
+					{
+						var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
+									ypos: y, targetGroup: targetGroup, type: 'cell'};
+						// this will create a array as a 'flattened' list of data points, used by mini mapping
+						if (flattened) {
+							this.matrix.push(rec);
+						} else {  // else, just create an array of arrays, grid likes this format
+							list.push(rec);	
+						}
+						
 					}
-					
 				}
 			}
 			if (!flattened) {  //list.length > 0 && 
@@ -1488,6 +1492,7 @@ var Utils = require('./utils.js');
 		labelCharDisplayCount : 20,
 		apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
 			{prefix: "OMIM", apifragment: "disease"}, 
+			{prefix: "ZFIN", apifragment: "gene"}, 			
 			{prefix: "MGI", apifragment: "gene"}],
 		defaultApiEntity: "gene",
 		tooltips: {},
@@ -1518,7 +1523,7 @@ var Utils = require('./utils.js');
 					}],
 		defaultTargetDisplayLimit: 40, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
-		defaultVisibleModelCt: 10,    // the number of visible targets per organisms to be displayed in overview mode
+		defaultCrossCompareTargetLimitPerSpecies: 10,    // the number of visible targets per organisms to be displayed in cross compare mode
 		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
 	},
 
@@ -1536,12 +1541,6 @@ var Utils = require('./utils.js');
 		defaulTargetSpeciesName: "Overview",  // MKD: not sure this works setting it here, need to look into this
 		refSpecies: "Homo sapiens",
 		genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid
-		// targetSpeciesList : [{ name: "Homo sapiens", taxon: "9606", crossComparisonView: true},
-		// 	{ name: "Mus musculus", taxon: "10090", crossComparisonView: true },
-		// 	{ name: "Danio rerio", taxon: "7955", crossComparisonView: false},
-		// 	{ name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false},
-		// 	{ name: "UDPICS", taxon: "UDPICS", crossComparisonView: false}],
-		// COMPARE CALL HACK - REFACTOR OUT
 	    providedData: {},   
 	    axisFlipConfig: {
 		colorSelector: { true: "source_id", false: "target_id"}   //{ true: "yID", false: "xID"}
@@ -1595,10 +1594,16 @@ var Utils = require('./utils.js');
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
 		this.state.selectedCompareSpecies = [];
+		var speciesLoadList = [];
 
-		// load the default selected target species list based on the crossComparisonView flag
+		// load the default selected target species list based on the active flag
 		for(var idx in this.state.targetSpeciesList) {
-			if (this.state.targetSpeciesList[idx].crossComparisonView && this.state.targetSpeciesList[idx].active) {
+			// for active species pre-load them
+			if (this.state.targetSpeciesList[idx].active) {
+				speciesLoadList.push(this.state.targetSpeciesList[idx]);	
+			}	
+			// should they be shown in the comparison view
+			if (this.state.targetSpeciesList[idx].crossComparisonView) {
 				this.state.selectedCompareSpecies.push(this.state.targetSpeciesList[idx]);	
 			}			
 		}
@@ -1611,7 +1616,7 @@ var Utils = require('./utils.js');
 						 this.state.apiEntityMap);
 
 		// starting loading the data
-		this.state.dataLoader.load(querySourceList, this.state.selectedCompareSpecies, postAsyncCallback);  //optional parm:   this.limit);
+		this.state.dataLoader.load(querySourceList, speciesLoadList, postAsyncCallback);  //optional parm:   this.limit);
 	
 
 	},
@@ -1672,9 +1677,6 @@ var Utils = require('./utils.js');
 	    this._setSelectedCalculation(this.state.selectedCalculation);
 		this._setDefaultSelectedSort(this.state.selectedSort);
 
-		// shorthand for top of model region
-		this.state.yModelRegion = this.state.yoffsetOver + this.state.yoffset;
-
 		this._createColorScale();  
 	},
 
@@ -1686,7 +1688,6 @@ var Utils = require('./utils.js');
        groups to be x or y depending on "flip axis" choice*/
     _createAxisRenderingGroups: function() {
     	var targetList = [];
-
 		// set default display limits based on displaying defaultSourceDisplayLimit
     	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
 
@@ -1701,13 +1702,15 @@ var Utils = require('./utils.js');
 		this.state.sourceAxis.sort(this.state.selectedSort); 
 
 		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareSpecies > 1 then it's Comparision mode 
-		if (this.state.selectedCompareSpecies.length > 1) {  
-			//this.state.targetDisplayLimit = (this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length)*this.state.selectedCompareSpecies.length;
-			this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+		if (this._isCrossComparisonView()) {        			
 
-			// calculate how many target values we can show using the number of selectedCompareSpecies
-			this.state.defaultVisibleModelCt = (this.state.defaultTargetDisplayLimit / this.state.selectedCompareSpecies.length);
-			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);						
+			// create a combined list of targets
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultCrossCompareTargetLimitPerSpecies);	
+
+			// get the length of the targetlist, this sets that limit since we are in comparison mode
+			// only the defaultCrossCompareTargetLimitPerSpecies is set, which provides the overall display limit
+			this.state.targetDisplayLimit = Object.keys(targetList).length;
+
 		} else if (this.state.selectedCompareSpecies.length === 1) {
 
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
@@ -1727,47 +1730,51 @@ var Utils = require('./utils.js');
 	},
 
     _setAxisRenderers: function() {
-		var self= this;
+	   	if (this.state.invertAxis) {
 
-	   	if (self.state.invertAxis) {
-	       self.state.xAxisRender = self.state.sourceAxis;
-	       self.state.yAxisRender = self.state.targetAxis;
+	   		// invert our x/y Renders
+	    	this.state.xAxisRender = this.state.sourceAxis;
+	       	this.state.yAxisRender = this.state.targetAxis;
+
 	   	} else {
-	       self.state.xAxisRender = self.state.targetAxis;
-	       self.state.yAxisRender = self.state.sourceAxis;
+	       	this.state.xAxisRender = this.state.targetAxis;
+	       	this.state.yAxisRender = this.state.sourceAxis;
 	   	}
 
-	   console.log("xaxis start:" + self.state.xAxisRender.getRenderStartPos() + " end: " +  self.state.xAxisRender.getRenderEndPos());
-	   console.log("yaxis start:" + self.state.yAxisRender.getRenderStartPos() + " end: " +  self.state.yAxisRender.getRenderEndPos());
+       console.log("set:xaxis display limit:" + this.state.targetDisplayLimit);
+	   console.log("set:yaxis display limit:" + this.state.sourceDisplayLimit);	   
     },
 
     _resetDisplayLimits: function() {
-		this.state.sourceDisplayLimit = this.state.yAxisRender.displayLength();
-		this.state.targetDisplayLimit = this.state.xAxisRender.displayLength(); 
+ 		// now recheck the display limits
+       	
+       	this.state.sourceDisplayLimit = this.state.yAxisRender.groupLength();
+
+    	//if (!this._isCrossComparisonView()) {
+    		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
+				this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+			}
+		//} 
+		// else {
+		// 	this.state.sourceDisplayLimit = 30;
+		// }
+
+		this.state.yAxisRender.setRenderStartPos(0);
+		this.state.yAxisRender.setRenderEndPos(this.state.sourceDisplayLimit);
+
+		this.state.targetDisplayLimit = this.state.xAxisRender.groupLength(); 
+
+    	if (this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
+			this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+		}
+		this.state.xAxisRender.setRenderStartPos(0);
+		this.state.xAxisRender.setRenderEndPos(this.state.targetDisplayLimit);		
+
+       console.log("reset:xaxis display limit:" + this.state.targetDisplayLimit);
+	   console.log("reset:yaxis display limit:" + this.state.sourceDisplayLimit);	   
+
 	},
 	
-	_updateSourceDisplayLimit: function() {
-		// set default display limits based on displaying defaultSourceDisplayLimit
-    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-
-		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
-			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
-		}
-    },
-	
-	_updateTargetDisplayLimit: function() {
-	
-		if (this.state.selectedCompareSpecies.length > 1) { 
-		} else { 
-			this.state.targetDisplayLimit = this.state.dataManager.length("target", this.state.selectedCompareSpecies[0].name);
-
-			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
-				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
-			} 
-		}
-	},
-			
-
 	// Loading spinner image from font awesome - Joe
 	_showLoadingSpinner: function() {
 		var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
@@ -1836,11 +1843,6 @@ var Utils = require('./utils.js');
 		var yScale = self.state.yAxisRender.getScale();
 		var gridHeight = self._gridHeight();
 		var gridWidth = self._gridWidth();		
-		var domainVal = function(p) { 
-				if (typeof(p) == 'undefined') {
-					p = xvalues.length-1;
-				}
-				return xvalues[p].id;}
 
 		// use the x/y renders to generate the matrix
 	    var matrix = self.state.dataManager.getMatrix(xvalues, yvalues, false);
@@ -1870,9 +1872,12 @@ var Utils = require('./utils.js');
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
+				self._crossHairsOn(d.id, i, focus, 'y');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
 				self._cellover(this, data, self);})
-			.on("mouseout", function(d) {self._cellout(d);});
+			.on("mouseout", function(d) {
+				self._crossHairsOff();		  		
+				self._cellout(d);});
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -1899,18 +1904,24 @@ var Utils = require('./utils.js');
 	      		.text(function(d, i) { 		
 	      		//console.log(JSON.stringify(d));      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
-		    .on("mouseover", function(d) { self._cellover(this, d, self);})
-			.on("mouseout", function(d) {self._cellout(d);});		    
+		    .on("mouseover", function(d, i) { 
+		    	self._crossHairsOn(d.id, i, focus, 'x');
+		    	self._cellover(this, d, self);})
+			.on("mouseout", function(d) {
+				self._crossHairsOff();		  		
+				self._cellout(d);});
 	      	
 		// set some lines for cross hairs
-  		var focus = this.state.svg.append('g').style('display', 'none');
+  		var focus = this.state.svg.append('g');  //.style('display', 'none');
                 
         focus.append('line')
             .attr('id', 'focusLineX')
-            .attr('class', 'pg_focusLine');
+            .attr('class', 'pg_focusLine')
+            .style('display', 'none');
         focus.append('line')
             .attr('id', 'focusLineY')
-            .attr('class', 'pg_focusLine');
+            .attr('class', 'pg_focusLine')
+            .style('display', 'none');
 
 	    // add the scores  
 	    self._createTextScores();
@@ -1927,35 +1938,75 @@ var Utils = require('./utils.js');
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
 				.attr("data-tooltip", "sticky1")   					        
-				// .on('click', function(d) { 
-				// 					self._createHoverBox(d);
-				// 					stickytooltip.show(null);})
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
 		        .on("mouseover", function(d) { 
-		        	focus.style('display', null);
+		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
 		        	self._cellover(this, d, self);})
 		        .on("mouseout", function(d) {
-		        	focus.style('display', 'none');
-		        	self._cellout(d);})
-		        .on('mousemove', function(d, i) { 
-                    var xs = xScale(d.target_id);
-                    var x = (gridRegion.x + (xs*gridRegion.xpad)) + 5;  // magic number to make sure it goes through the middle of the cell
-                    var y = gridRegion.y + (d.ypos * gridRegion.ypad) + 5; 
-
-                    // position the cross hairs
- 					focus.select('#focusLineX')
-                         .attr('x1', x).attr('y1', gridRegion.y)  // yScale(domainVal(0)))   //yDomain[0]))
-                         .attr('x2', x).attr('y2', gridRegion.y + gridHeight);
- 					focus.select('#focusLineY')
-                        .attr('x1', gridRegion.x)
-                        .attr('y1', y)
-                        .attr('x2', gridRegion.x + gridWidth)  // ok
-                        .attr('y2', y);
- 				 	});                    
+		        	self._crossHairsOff();		  		
+		        	self._cellout(d);});
 		}
+	},
+
+	_crossHairsOff: function() {
+		d3.select("#focusLineX")
+		  		.style("display", 'none');
+		d3.select("#focusLineY")
+		  		.style("display", 'none');	
+	},
+
+	_crossHairsOn: function(id, ypos, focus, direction) {
+		var xScale = this.state.xAxisRender.getScale();
+    	var xs = xScale(id);
+    	var gridRegion = this.state.gridRegion[0]; 
+        var x = (gridRegion.x + (xs* gridRegion.xpad)) + 5;  // magic number to make sure it goes through the middle of the cell
+        var y = gridRegion.y + (ypos * gridRegion.ypad) + 5; 
+
+		if (direction == 'x') {
+
+	        // position the cross hairs
+			focus.select('#focusLineX')
+            	.attr('x1', x).attr('y1', gridRegion.y)
+            	.attr('x2', x).attr('y2', gridRegion.y + this._gridHeight());
+
+			d3.select("#focusLineX")
+		  		.style("display", null);
+			d3.select("#focusLineY")
+		  		.style("display", 'none');	
+
+        } else if (direction == 'y') {
+
+       		focus.select('#focusLineY')
+            	.attr('x1', gridRegion.x)
+            	.attr('y1', y)
+            	.attr('x2', gridRegion.x + this._gridWidth())
+            	.attr('y2', y);
+
+			d3.select("#focusLineX")
+		  		.style("display", 'none');
+			d3.select("#focusLineY")
+		  		.style("display", null);	
+        } else {
+
+	        // position the cross hairs
+			focus.select('#focusLineX')
+            	.attr('x1', x).attr('y1', gridRegion.y)
+            	.attr('x2', x).attr('y2', gridRegion.y + this._gridHeight());
+
+			focus.select('#focusLineY')
+        	    .attr('x1', gridRegion.x)
+            	.attr('y1', y)
+            	.attr('x2', gridRegion.x + this._gridWidth())
+            	.attr('y2', y);
+
+			d3.select("#focusLineX")
+		  		.style("display", null);
+			d3.select("#focusLineY")
+		  		.style("display", null);	        
+        }
 	},
 
 	_calcYCoord: function (d, i) {
@@ -2016,7 +2067,7 @@ var Utils = require('./utils.js');
 
 	_highlightMatching: function(s, data) {
 		var hightlightSources = true;
-		var currenPos = this._getAxisDataPosition(data.id)
+		var currenPos = this._getAxisDataPosition(data.id);
 		// did we hover over a grid column
 		if (s.parentElement.id.indexOf('grid_col') > -1) {
 			hightlightSources = true;
@@ -2060,17 +2111,19 @@ var Utils = require('./utils.js');
 	},
 
 	_gridWidth: function() {
-		var gridRegion = this.state.gridRegion[0]; 
-		var gridWidth = (gridRegion.xpad * this.state.targetDisplayLimit) - (gridRegion.xpad - gridRegion.cellwd);
-		return gridWidth;
-	},
+        var gridRegion = this.state.gridRegion[0]; 
+        var gridWidth = (gridRegion.xpad * this.state.xAxisRender.displayLength()) - (gridRegion.xpad - gridRegion.cellwd);
+        //var gridWidth = (gridRegion.xpad * this.state.targetDisplayLimit) - (gridRegion.xpad - gridRegion.cellwd);
+        return gridWidth;
+    },
 
-	_gridHeight: function() {
-		var gridRegion = this.state.gridRegion[0]; 
-		var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
-		return height;
-	},
-
+    _gridHeight: function() {
+        var gridRegion = this.state.gridRegion[0]; 
+        // Don't use this.state.sourceDisplayLimit - Joe
+        var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);
+        //var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);        
+        return height;
+    },
 
 	_createTextScores: function () {
 		var self = this;
@@ -2925,15 +2978,15 @@ var Utils = require('./utils.js');
 		var gridRegion = self.state.gridRegion[0];
 		var x = gridRegion.x;     
 		var y = gridRegion.y;   
-		var height = gridRegion.y + self._gridHeight();// - 10;
+		var height = self._gridHeight() + gridRegion.colLabelOffset;// adjust due to extending it to the col labels
 		var width = self._gridWidth();
 
 		if (self._isCrossComparisonView() ) {
 			var numOfSpecies = self.state.selectedCompareSpecies.length;
 			var xScale = self.state.xAxisRender.getScale();
 
-			var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfSpecies);
-
+			//var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfSpecies);
+			var cellsDisplayedPer = self.state.defaultCrossCompareTargetLimitPerSpecies;
 			var x1 = 0;
 			if (self.state.invertAxis) {
 				x1 = ((gridRegion.ypad * (cellsDisplayedPer-1)) + gridRegion.cellht);  //-gridRegion.rowLabelOffset; 								
@@ -2974,10 +3027,10 @@ var Utils = require('./utils.js');
 					// render the slanted line between targetGroup (species) columns
 					 this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
-					.attr("transform","translate(" + x + "," + y + ")rotate(-48 " + x1 + " 0)")		// -62			
+					.attr("transform","translate(" + x + "," + y + ")rotate(-45 " + x1 + " 0)")				
 					.attr("x1", x1)
 					.attr("y1", 0)
-					.attr("x2", x1 + 100)  // extend the line out to underline the labels					
+					.attr("x2", x1 + 110)  // extend the line out to underline the labels					
 					.attr("y2", 0);
 
 				}
@@ -3011,21 +3064,10 @@ var Utils = require('./utils.js');
 	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
-		console.log("calc for start x:"+(this.state.currXIdx-this.state.targetDisplayLimit));
-		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.targetDisplayLimit);
+		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
-		console.log("xaxis end:" + this.state.currXIdx);
-	   //  console.log("Xaxis end: " + this.state.xAxisRender.getRenderStartPos() + " end: "+this.state.xAxisRender.getRenderEndPos()
- 			// + " limit size: " + this.state.targetDisplayLimit);
-
-		console.log("calc for start y:"+(this.state.currYIdx-this.state.sourceDisplayLimit));
-		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.sourceDisplayLimit);
+		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.yAxisRender.displayLength());
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
-		console.log("yaxis end:" + this.state.currYIdx);
-
-// console.log("yaxis start: " + this.state.yAxisRender.getRenderStartPos() + " end: "+this.state.yAxisRender.getRenderEndPos()+
-// 				" limit size: " + this.state.sourceDisplayLimit);
-
 		this._clearGrid();
 		this._createGrid();
 
@@ -3378,38 +3420,28 @@ var Utils = require('./utils.js');
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
 			console.log('in the change()..');
-//			self.state.selectedCompareSpecies = [];
+
 			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
 			var temp = [];
 			for (var idx = 0; idx < items.length; idx++) {
 
 				if (items[idx].childNodes[0].checked) {
 					var rec = self._getTargetSpeciesInfo(self, items[idx].textContent);
-					//self.state.selectedCompareSpecies.push(rec);
 					temp.push(rec);
 				}
 			}
 			
-			//if (self.state.selectedCompareSpecies.length > 0) {
 			if (temp.length > 0) {
 				self.state.selectedCompareSpecies = temp;				
 			} else {
 				alert("You must have at least 1 species selected.");
 			}
-			// That last checked checkbox will be checked again after rerendering - Joe
-			self.state.dataManager.reinitialize(self.state.selectedCompareSpecies, true);
 			self._createAxisRenderingGroups();
-			self._initDefaults();
-			self._setAxisRenderers(); // need this here - Joe
-		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
 		$("#pg_calculation").change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
-			self._resetSelections("calculation");
-			self._setAxisRenderers(); // need this here - Joe
-		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
@@ -3422,9 +3454,6 @@ var Utils = require('./utils.js');
 			} else {
 				self.state.yAxisRender.sort(self.state.selectedSort); 
 			}
-			self._resetSelections("sortphenotypes");
-			self._setAxisRenderers(); // need this here - Joe
-		    self._resetDisplayLimits(); // need this here - Joe
 			self._processDisplay();
 		});
 
@@ -3437,7 +3466,7 @@ var Utils = require('./utils.js');
 				self.state.invertAxis = false;
 			}
 
-		    self._resetSelections("axisflip");
+		    //self._resetSelections("axisflip");
 		    self._setAxisRenderers();
 		    self._resetDisplayLimits();
 		    self._processDisplay();
@@ -3984,6 +4013,7 @@ var Utils = require('./utils.js');
 		/*
 	 reset state values that must be cleared before reloading data
 	*/
+	// MKD: MAYBE GET RID OF THIS
 	_reset: function(type) {
 
 		// target species name might be provided as a name or as taxon. Make sure that we translate to name
@@ -4137,7 +4167,7 @@ var $ = jQuery;
 
 var stickytooltip = {
 	tooltipoffsets: [1, -1], //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
-	fadeinspeed: 3, //duration of fade effect in milliseconds
+	fadeinspeed: 1000, //duration of fade effect in milliseconds
 	rightclickstick: true, //sticky tooltip when user right clicks over the triggering element (apart from pressing "s" key) ?
 	stickybordercolors: ["black", "darkred"], //border color of tooltip depending on sticky state
 	stickynotice1: ["Press \"s\" or right click to activate sticky box. \"h\" to hide"], //, "or right click", "to sticky box"], //customize tooltip status message
@@ -4320,7 +4350,7 @@ TooltipRender.prototype = {
 		// making an assumption here that we want to display cell info
 		//if ( typeof(this.data.type) == 'undefined') {
 		if ( this.data.type === 'cell') {
-			//retInfo = this.cell(this, this.data);
+			retInfo = this.cell(this, this.data);
 		} else {
 			// this creates the standard information portion of the tooltip, 
 			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
@@ -4597,7 +4627,7 @@ var Utils = {
 	},
 
 	// Will capitalize words passed or send back undefined incase error
-	capitalizeString: function(word){
+	capitalizeString: function(word) {
 		if (word === undefined) {
 			return "Undefined";
 		} else if (word === null) {
@@ -4610,7 +4640,6 @@ var Utils = {
 	toProperCase: function (oldstring) {
 		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
-
 };
 
 

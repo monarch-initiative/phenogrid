@@ -264,18 +264,22 @@ DataManager.prototype = {
 			for (var x=0; x < xvalues.length; x++ ) {
 
 				var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
-				// does a match exist in the cells
-				if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') 
+
+				if ((typeof(yvalues[y]) != 'undefined') && (typeof(xvalues[x]) != 'undefined')) 
 				{
-					var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
-								ypos: y, targetGroup: targetGroup, type: 'cell'};
-					// this will create a array as a 'flattened' list of data points, used by mini mapping
-					if (flattened) {
-						this.matrix.push(rec);
-					} else {  // else, just create an array of arrays, grid likes this format
-						list.push(rec);	
+					// does a match exist in the cells
+					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') 
+					{
+						var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
+									ypos: y, targetGroup: targetGroup, type: 'cell'};
+						// this will create a array as a 'flattened' list of data points, used by mini mapping
+						if (flattened) {
+							this.matrix.push(rec);
+						} else {  // else, just create an array of arrays, grid likes this format
+							list.push(rec);	
+						}
+						
 					}
-					
 				}
 			}
 			if (!flattened) {  //list.length > 0 && 

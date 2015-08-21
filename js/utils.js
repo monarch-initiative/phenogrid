@@ -85,7 +85,7 @@ var Utils = {
 	},
 
 	// Will capitalize words passed or send back undefined incase error
-	capitalizeString: function(word){
+	capitalizeString: function(word) {
 		if (word === undefined) {
 			return "Undefined";
 		} else if (word === null) {
@@ -98,7 +98,6 @@ var Utils = {
 	toProperCase: function (oldstring) {
 		return oldstring.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 	}
-
 };
 
 
