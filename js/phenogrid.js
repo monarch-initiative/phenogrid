@@ -368,16 +368,18 @@ var Utils = require('./utils.js');
 			// get the length of the targetlist, this sets that limit since we are in comparison mode
 			// only the defaultCrossCompareTargetLimitPerSpecies is set, which provides the overall display limit
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
-
+console.log('ORGI  CrossComparisonView   targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
 		} else if (this.state.selectedCompareSpecies.length === 1) {
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
 			targetList = this.state.dataManager.getData("target", singleSpeciesName);
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
 
+console.log('ORGI  singlespecies  targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
+			
 			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
 				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
 			} 
-
+console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
 		}
     	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
 
@@ -939,15 +941,20 @@ var Utils = require('./utils.js');
 		var xRenderedSize = this.state.xAxisRender.displayLength();		
      	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
 	    var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
-   	    var startYId = this.state.yAxisRender.itemAt(startYIdx).id;   
+		var startYId = this.state.yAxisRender.itemAt(startYIdx).id;   
 	    var startXId = this.state.xAxisRender.itemAt(startXIdx).id;
 		
-console.log('startXId:----- ' + startXId, 'startYId:----- ' + startYId, 'lastXId:----- ' + lastXId, 'lastYId:----- ' + lastYId);
+console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:----- ' + startYId, 'lastYId:----- ' + lastYId);
 
+        // start point (x, y) of the shaded draggable area
 		var selectRectX = this.state.smallXScale(startXId);
 		var selectRectY = this.state.smallYScale(startYId);
-		var selectRectHeight = this.state.smallYScale(lastYId);
-		var selectRectWidth = this.state.smallXScale(lastXId);
+		// width and height of the shaded draggable area
+		var selectRectHeight = this.state.smallYScale(lastYId) - this.state.smallYScale(startYId);
+		var selectRectWidth = this.state.smallXScale(lastXId) - this.state.smallXScale(startXId);
+		//var selectRectHeight = this.state.smallYScale(lastYId);
+		//var selectRectWidth = this.state.smallXScale(lastXId);
+		
 		console.log("yRenderedSize:" + yRenderedSize +" xRenderedSize" +xRenderedSize +
 				 " selectRectX: " + selectRectX +  " selectRectY:" + selectRectY + 
 			" selectRectHeight:" + selectRectHeight + " selectRectWidth:" + selectRectWidth);
