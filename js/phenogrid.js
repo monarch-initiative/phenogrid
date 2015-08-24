@@ -414,6 +414,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
 
 			this._addPhenogridControls();
+			this._positionPhenogridControls();
 
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
 			 	this._createOverviewSpeciesLabels();
@@ -1215,8 +1216,10 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 //		this.state.unmatchedSources = this._getUnmatchedSources();
 		this.element.empty();
 		this._reDraw();
-		
-		// Now position the control panel when the gridRegion changes
+	},
+
+	// Position the control panel when the gridRegion changes
+	_positionPhenogridControls: function(){
 		// Note: CANNOT use this inside _addPhenogridControls() since the _createGrid() is called after it
 		// we won't have the _gridHeight() by that time - Joe
 		var gridRegion = this.state.gridRegion; 
@@ -1225,8 +1228,8 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		// The height of #pg_controls_options defined in phenogrid.css - Joe
 		var pg_ctrl_options = $('#pg_controls_options');
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() + 1 + marginTop); // extra 1px to hide the border
-	},
-
+    },	
+	
     /*
 	 * Make sure there are limit items in res --
 	 * If we don't have enough, add some dummy items in. 
