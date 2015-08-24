@@ -858,10 +858,6 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 
 	    console.log("YYYYYYYYYY - yCount: " + yCount + " XXXXXXXXXXX - xCount: " + xCount);
 
-	    // get the rendered starting point on axis
-		var startYIdx = self.state.yAxisRender.renderStartPos;    // this.state.currYIdx - yCount;
-		var startXIdx = self.state.xAxisRender.renderStartPos;    // this.state.currXIdx - xCount;
-
 		// add-ons for stroke size on view box. Preferably even numbers
 		var linePad = self.state.navigator.borderThickness;
 		var viewPadding = linePad * 2 + 2;
@@ -941,8 +937,8 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		var xRenderedSize = this.state.xAxisRender.displayLength();		
      	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
 	    var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
-		var startYId = this.state.yAxisRender.itemAt(startYIdx).id;   
-	    var startXId = this.state.xAxisRender.itemAt(startXIdx).id;
+		var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
 		
 console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:----- ' + startYId, 'lastYId:----- ' + lastYId);
 
