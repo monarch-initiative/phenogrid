@@ -123,7 +123,6 @@ var Utils = require('./utils.js');
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
 		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
-		logo: {width: 30, height: 15},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -408,7 +407,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	_reDraw: function() {
 		if (this.state.dataManager.isInitialized()) {
 			this._initCanvas();
-			this._addLogoImage();
+
 			//var rectHeight = this._createRectangularContainers();
 
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
@@ -1451,18 +1450,6 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			});
 	},
 
-	_addLogoImage: function() { 
-		var gridRegion = this.state.gridRegion;
-		
-		this.state.svg.append("svg:image")
-			.attr("xlink:href", this.state.imagePath + "logo.png")
-			.attr("x", gridRegion.x + this._gridWidth() - this.state.logo.width)
-			.attr("y", gridRegion.y + this._gridHeight() + 20) // 20 is the margin - Joe
-			.attr("id", "pg_logo")
-			.attr("width", this.state.logo.width)
-			.attr("height", this.state.logo.height);
-	},
-
 	_resetLinks: function() {
 		// don't put these styles in css file - these styles change depending on state
 		this.state.svg.selectAll("#pg_detail_content").remove();
@@ -1844,11 +1831,6 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		}	
 	},
 
-	// Calculate the width based on the size of grid region - Joe
-	_calculateGradientWidth: function() {
-		return this._gridWidth() - this.state.logo.width - 20; // 20 is margin between logo and gradient bar - Joe
-	},
-
 	/*
 	 * Add the gradient legend (bar and label texts) to the grid bottom
 	 */
@@ -1886,7 +1868,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			.attr("x", gridRegion.x)
 			.attr("y", gridRegion.y + this._gridHeight() + 22) // use x and y instead of transform since rect has x and y, 22 is margin - Joe
 			.attr("id", "pg_gradient_legend_rect")
-			.attr("width", this._calculateGradientWidth())
+			.attr("width", this._gridWidth())
 			.attr("height", this.state.gradientRegion.height) 
 			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 		
@@ -1922,14 +1904,14 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 		// create and position the display type label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + (this._calculateGradientWidth()/2))
+			.attr("x", gridRegion.x + (this._gridWidth()/2))
 			.attr("y", yTexts)	
 			.style('text-anchor', 'middle') // This renders the middle of the text string as the current text position x - Joe			
 			.text(labelText);
 
 		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this._calculateGradientWidth())
+			.attr("x", gridRegion.x + this._gridWidth())
 			.attr("y", yTexts)	
             .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
@@ -1938,7 +1920,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 	// Phengrid controls/settings
 	_createPhenogridControls: function() {
-		var self = this;
+		var self = this; // Use self inside anonymous functions 
 		
 		var phenogridControls = $('<div id="pg_controls"></div>');
 
@@ -1950,7 +1932,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		
 		// Hide/show panel - button - Joe
 		var pushBtn ='<button id="pg_slide_btn">' + 
-					'Settings <i class="fa fa-cog"></i>' + 
+					'Settings <img src="' + this.state.imagePath + 'logo.png" height="15" width="30">' + 
 					'</button>';
 		
 		
