@@ -406,9 +406,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	},
 	
 	_reDraw: function() {
-		//var self = this;
 		if (this.state.dataManager.isInitialized()) {
-
 			this._initCanvas();
 			this._addLogoImage();
 			//var rectHeight = this._createRectangularContainers();
@@ -429,24 +427,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
 
-			var self = this; // Needed for the anonymous function - Joe
-			// Slide control panel - Joe
-			$("#pg_controls_options").hide();
-			$("#pg_slide_btn").on("click", function() {
-				// Opens and closes the phenogrid controls
-				$("#pg_controls_options").fadeIn();
-				// $(this) refers to $("#pg_slide_btn")
-				$(this).toggleClass("pg_slide_open");
-
-				if ($(this).hasClass("pg_slide_open")) {
-					// If the menu is open, then Change the menu button icon
-					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'close_left.png');
-				} else {
-					// If the menu is closed, change to the original button icon
-					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'menu_icon.png');
-					$("#pg_controls_options").fadeOut();
-				}
-			});
+			this._togglePgControls();
 		} else {
 			var msg = "There are no results available.";
 				this._createSvgContainer();
@@ -454,6 +435,50 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		}
 	},
 
+	// Click the setting button to open/close the control options
+	// Click anywhere inside #pg_svg_area to close the options when it's open
+	_togglePgControls: function() {
+		var self = this; // Needed for inside the anonymous function - Joe
+		// Slide control panel - Joe
+		$("#pg_controls_options").hide(); // Hide the options by default
+		
+		// Toggle the options panel by clicking the button
+		$("#pg_slide_btn").click(function() {
+			// $(this) refers to $("#pg_slide_btn")
+			if ( ! $(this).hasClass("pg_slide_open")) {
+				// Show the phenogrid controls
+				$("#pg_controls_options").fadeIn();
+				// Remove the top border of the button by adding .pg_slide_open CSS class
+				$(this).addClass("pg_slide_open");
+				// If the menu is open, then Change the menu button icon
+				$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'close_left.png');
+			} else {
+				// If the menu is closed, change to the original button icon
+				$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'menu_icon.png');
+				$("#pg_controls_options").fadeOut();
+				// Add top border back
+				$(this).removeClass("pg_slide_open");
+			}
+		});
+		
+		// When the options panel is visible, click anywhere inside #pg_svg_area to close the options, 
+		// more user-friendly than just force to click the button again
+		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg_area', it won't work - Joe
+		$('#pg_svg_area').click(function(event) {
+			if ($(event.target) !== $('#pg_slide_btn') && $(event.target) !== $('#pg_controls_options')) {
+				// Only close the options if it's visible
+				if ($('#pg_controls_options').is(':visible')) {
+					// Change to the original button icon
+					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'menu_icon.png');
+					// Add the top border of the button back
+					$("#pg_slide_btn").removeClass("pg_slide_open");
+					// Then close the options
+					$("#pg_controls_options").fadeOut();
+				}
+			}
+		});
+	},
+	
 	// create the grid
 	_createGrid: function() {
 		var self = this;
