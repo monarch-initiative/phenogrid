@@ -420,7 +420,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 			}
 			this._createGrid();
 			this._createOverviewSection();
-			this._addGradients();
+			this._createGradientLegend();
 			this._createSpeciesDividerLines();
 
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
@@ -1851,11 +1851,6 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		this._createSelectionControls(phenogridControls);
 	},
  
-	_addGradients: function() {
-		this._createGradients();
-		this._buildGradientTexts();
-	},
-
 	
 	// Should group the gradient rect and the legend texts - Joe
 	
@@ -1863,33 +1858,30 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	
 	// Calculate the width based on the size of grid region - Joe
 	_calculateGradientWidth: function() {
-		var safeWidth = (this._gridWidth() <= this._gridHeight()) ? this._gridWidth() : this._gridHeight();
-		return safeWidth - this.state.logo.width - 20; // 20 is margin between logo and gradient bar - Joe
+		return this._gridWidth() - this.state.logo.width - 20; // 20 is margin between logo and gradient bar - Joe
 	},
-	
-	
+
 	/*
-	 * Add the gradients to the grid
+	 * Add the gradient legend (bar and label texts) to the grid bottom
 	 */
-	_createGradients: function(){
+	_createGradientLegend: function(){
+		// Create a group for gradient bar and legend texts - Joe
+		var gradientGrp = this.state.svg.append("g")
+			.attr('id', 'pg_gradient_legend');
+			
 		var gridRegion = this.state.gridRegion;
-		
-		var x = gridRegion.x;
-
-		// Dynamic change, relative to grid region - Joe
-		var y = gridRegion.y + this._gridHeight() + 22; // 20 is margin - Joe
-
-		var width = this._calculateGradientWidth();
-		var height = this.state.gradientRegion.height;
 
 		// The <linearGradient> element is used to define a linear gradient background - Joe
-		var gradient = this.state.svg.append("svg:linearGradient") 
-			.attr("id", "gradient")
+		// The <linearGradient> element must be nested within a <defs> tag. 
+		// The <defs> tag is short for definitions and contains definition of special elements (such as gradients)
+		var gradient = gradientGrp.append("svg:defs").append("svg:linearGradient") 
+			.attr("id", "pg_gradient_legend_fill") // this id is used for the fill attribute - Joe
 			.attr("x1", "0")
 			.attr("x2", "100%")
 			.attr("y1", "0%")
 			.attr("y2", "0%");
 
+		// create the color stops
 		for (var j in this.state.colorDomains) {
 			if ( ! this.state.colorDomains.hasOwnProperty(j)) {
 				break;
@@ -1900,35 +1892,20 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 				.style("stop-color", this.state.colorRanges[j]);
 		}
 
-		// Create a group for gradient bar and legends - Joe
-		var gradientGrp = this.state.svg.append("g")
-			.attr('id', 'pg_gradient');
-		
+		// Create the gradient rect
 		gradientGrp.append("rect")
 			//.attr("transform", "translate(" + x + "," + y +")")
-			.attr("x", x)
-			.attr("y", y) // use x and y instead of transform since rect has x and y - Joe
-			.attr("class", "legend_rect")
-			.attr("id","legendscale")
-			.attr("width", width)
-			.attr("height", height) 
-			.attr("fill", "url(#gradient)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
-	},
+			.attr("x", gridRegion.x)
+			.attr("y", gridRegion.y + this._gridHeight() + 22) // use x and y instead of transform since rect has x and y, 22 is margin - Joe
+			.attr("id", "pg_gradient_legend_rect")
+			.attr("width", this._calculateGradientWidth())
+			.attr("height", this.state.gradientRegion.height) 
+			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
+		
+		// Now create the label texts
+	    var lowText, highText, labelText;
 
-
-	/*
-	 * Show the labels next to the gradients, including descriptions of min and max sides 
-	 */
-	_buildGradientTexts: function() {
-		var lowText, highText, labelText;
-
-		var gridRegion = this.state.gridRegion;
-
-		var x = gridRegion.x;
-
-		// Dynamicly change, relative to grid region - Joe
-		var y = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
-
+		// Texts are based on the calculation method
 		for (var idx in this.state.similarityCalculation) {	
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
 				break;
@@ -1942,29 +1919,34 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		}
 
 		// Create a group for gradient bar and legends - Joe
-		var gradientTextGrp = this.state.svg.select('#pg_gradient').append("g")
-			.attr('id', 'pg_gradient_texts');
-			
-		// min label
+		var gradientTextGrp = this.state.svg.select('#pg_gradient_legend').append("g")
+			.attr('id', 'pg_gradient_legend_texts');
+		
+		// Dynamicly change, relative to grid region - Joe
+		var yTexts = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
+
+		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("transform", "translate(" + x + "," + y +")")		
-			.attr("class", "pg_gradient_text")
+			.attr("x", gridRegion.x)
+			.attr("y", yTexts)
+			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
 
-		// calc the postion of the display type Label
-		var xLabelPos = (x + (this._calculateGradientWidth()/2) - labelText.length);		
+		// create and position the display type label
 		gradientTextGrp.append("svg:text")
-			.attr("transform", "translate(" + xLabelPos + "," + y +")")						
-			.attr("class", "pg_gradient_text")
+			.attr("x", gridRegion.x + (this._calculateGradientWidth()/2))
+			.attr("y", yTexts)	
+			.style('text-anchor', 'middle') // This renders the middle of the text string as the current text position x - Joe			
 			.text(labelText);
 
-		// calc the postion of the High Label
-		var xHighPos = (x + this._calculateGradientWidth())-20;
+		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("transform", "translate(" + xHighPos + "," + y +")")				
-			.attr("class", "pg_gradient_text")
+			.attr("x", gridRegion.x + this._calculateGradientWidth())
+			.attr("y", yTexts)	
+            .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
 	},
+
 
 	// build controls for selecting organism and comparison. Install handlers
 	_createSelectionControls: function(container) {

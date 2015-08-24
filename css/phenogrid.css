@@ -97,6 +97,12 @@ stroke: #000;
 stroke-width: 2;
 }
 
+/* Shaded area in overview map */
+#pg_selectionrect{
+fill: grey;
+opacity: 0.5;
+}
+
 .pg_row_accent,
 .pg_col_accent {
 /*stroke:#ea763b;*/
@@ -130,13 +136,7 @@ font-size:10px;
 fill: #0F473E;
 }
 
-
-#pg_selectionrect {
-fill: grey;
-opacity: 0.5
-}
-
-.pg_gradient_text{
+#pg_gradient_legend_texts{
 font-size:11px;
 }
 
