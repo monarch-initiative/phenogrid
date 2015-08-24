@@ -122,7 +122,7 @@ var Utils = require('./utils.js');
 		detailRectWidth: 300,
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
-		navigator: {x:112, y: 65, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
+		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
 		logo: {width: 30, height: 15},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
@@ -878,7 +878,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	    console.log("YYYYYYYYYY - yCount: " + yCount + " XXXXXXXXXXX - xCount: " + xCount);
 
 		// add-ons for stroke size on view box. Preferably even numbers
-		var linePad = self.state.navigator.borderThickness;
+		var linePad = self.state.navigator.miniCellSize;
 		var viewPadding = linePad * 2 + 2;
 
 		// overview region is offset by xTranslation, yTranslation
@@ -943,8 +943,8 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 				var xscale = self.state.smallXScale(xid);
 				var x =  xscale + linePad / 2; 
 				return x;})
-			.attr("width", linePad)
-			.attr("height", linePad)
+			.attr("width", linePad) // Defined in navigator.miniCellSize
+			.attr("height", linePad) // Defined in navigator.miniCellSize
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
@@ -978,10 +978,10 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
 			.attr("x", overviewX + selectRectX)
 			.attr("y", overviewY + selectRectY)
-			.attr("id", "pg_selectionrect")
+			.attr("id", "pg_navigator_shaded_area")
 			.attr("height", selectRectHeight + 4)
 			.attr("width", selectRectWidth + 4)
-			.attr("class", "draggable")
+			.attr("class", "pg_draggable")
 			.call(d3.behavior.drag()
 				.on("drag", function(d) {
 					/*
@@ -996,7 +996,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 					console.log("curX:" + curX + " curY:"+ curY);
 
-					var rect = self.state.svg.select("#pg_selectionrect");
+					var rect = self.state.svg.select("#pg_navigator_shaded_area");
 					rect.attr("transform","translate(0,0)");
 
 					// limit the range of the x value

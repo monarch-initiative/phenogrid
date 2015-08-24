@@ -98,7 +98,7 @@ stroke-width: 2;
 }
 
 /* Shaded area in overview map */
-#pg_selectionrect{
+#pg_navigator_shaded_area{
 fill: grey;
 opacity: 0.5;
 }
@@ -229,7 +229,7 @@ opacity: .1;
 }
 
 /* Cursor for mini map */
-.draggable{
+.pg_draggable{
 cursor:move;
 }
 
