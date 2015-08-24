@@ -413,7 +413,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
 
-			this._addPhenogridControls();
+			this._createPhenogridControls();
 			this._positionPhenogridControls();
 
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
@@ -1220,7 +1220,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 	// Position the control panel when the gridRegion changes
 	_positionPhenogridControls: function(){
-		// Note: CANNOT use this inside _addPhenogridControls() since the _createGrid() is called after it
+		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
 		// we won't have the _gridHeight() by that time - Joe
 		var gridRegion = this.state.gridRegion; 
 		var marginTop = 10; // Create some whitespace between the button and the y labels 
@@ -1844,21 +1844,6 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		}	
 	},
 
-	// _reDraw() calls this every time - Joe
-	_addPhenogridControls: function() {
-		var phenogridControls = $('<div id="pg_controls"></div>');
-
-		// Not in the #pg_svg_area div since it's HTML - Joe
-		$('#pg_svg_container').append(phenogridControls);
-
-		this._createSelectionControls(phenogridControls);
-	},
- 
-	
-	// Should group the gradient rect and the legend texts - Joe
-	
-	
-	
 	// Calculate the width based on the size of grid region - Joe
 	_calculateGradientWidth: function() {
 		return this._gridWidth() - this.state.logo.width - 20; // 20 is margin between logo and gradient bar - Joe
@@ -1951,9 +1936,16 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	},
 
 
-	// build controls for selecting organism and comparison. Install handlers
-	_createSelectionControls: function(container) {
+	// Phengrid controls/settings
+	_createPhenogridControls: function() {
 		var self = this;
+		
+		var phenogridControls = $('<div id="pg_controls"></div>');
+
+		// Not in the #pg_svg_area div since it's HTML - Joe
+		$('#pg_svg_container').append(phenogridControls);
+		
+		
 		var optionhtml ='<div id="pg_controls_options"></div>';
 		
 		// Hide/show panel - button - Joe
@@ -1972,10 +1964,10 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var axisSel = this._createAxisSelection();
 		options.append(axisSel);
 
-		container.append(options);
+		phenogridControls.append(options);
 		
 		// Append slide button - Joe
-		container.append(pushBtn);
+		phenogridControls.append(pushBtn);
 		
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
