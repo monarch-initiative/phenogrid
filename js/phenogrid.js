@@ -450,11 +450,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 				$("#pg_controls_options").fadeIn();
 				// Remove the top border of the button by adding .pg_slide_open CSS class
 				$(this).addClass("pg_slide_open");
-				// If the menu is open, then Change the menu button icon
-				$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'close_left.png');
 			} else {
-				// If the menu is closed, change to the original button icon
-				$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'menu_icon.png');
 				$("#pg_controls_options").fadeOut();
 				// Add top border back
 				$(this).removeClass("pg_slide_open");
@@ -468,8 +464,6 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 			if ($(event.target) !== $('#pg_slide_btn') && $(event.target) !== $('#pg_controls_options')) {
 				// Only close the options if it's visible
 				if ($('#pg_controls_options').is(':visible')) {
-					// Change to the original button icon
-					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'menu_icon.png');
 					// Add the top border of the button back
 					$("#pg_slide_btn").removeClass("pg_slide_open");
 					// Then close the options
@@ -1979,7 +1973,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		
 		// Hide/show panel - button - Joe
 		var pushBtn ='<button id="pg_slide_btn">' + 
-					'<img src="' + this.state.imagePath + 'menu_icon.png"/>' + 
+					'Settings <i class="fa fa-cog"></i>' + 
 					'</button>';
 		
 		

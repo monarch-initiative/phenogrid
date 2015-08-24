@@ -21,7 +21,7 @@ top:0;
 #pg_slide_btn,
 #pg_controls_options {
 position:absolute;
-left:199px;
+left:149px;
 border:1px solid #222;
 }
 
@@ -36,10 +36,12 @@ box-shadow: 4px 4px 2px #ddd;
 }
 
 #pg_slide_btn{
-width:30px;
-height:30px;
+width:80px;
+height:22px;
 outline:0;
 background:#44A293;
+color:#fff;
+font-size:12px;
 }
 
 label.pg_ctrl_label{
