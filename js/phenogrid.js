@@ -156,7 +156,7 @@ var Utils = require('./utils.js');
 		widthOfSingleCell: 18,
 		heightOfSingleCell: 13,    
 		yoffsetOver: 30,
-		gridTitleYOffset: 20,
+		gridTitleYOffset: 20, // Needs to REFACTOR OUT - Joe
 		xOffsetOver: 20,
 		baseYOffset: 150,
 		invertAxis: false,
@@ -1057,6 +1057,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return selectedScale(score);
 	},
 
+	// Needs to REFACTOR OUT - Joe
 	_createModelScoresLegend: function() {
 	// Make sure the legend is only created once - Joe
 			if (this.state.svg.select(".pg_tip")[0][0] === null) {
@@ -1627,12 +1628,6 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		 * initialized properly and tooltips won't work with the mouseover 
 		 */
 		stickytooltip.init("*[data-tooltip]", "mystickytooltip");
-	},
-
-	// Previously _clearModelLabels
-	_clearXLabels: function() {
-		this.state.svg.selectAll("g.x").remove();
-		this.state.svg.selectAll("g .tick.major").remove();
 	},
 
 	_clearGrid: function() {
