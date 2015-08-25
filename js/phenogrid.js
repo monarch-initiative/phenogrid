@@ -1637,42 +1637,47 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
 
-	// Add species labels to top of Overview
+	// Add species labels (watermark-like) to top of grid
 	_createOverviewSpeciesLabels: function () {
 		var self = this;
+		// speciesList is an array that contains all the selected species names
 		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
-		var len = self.state.xAxisRender.displayLength();
-		var width = (self.state.gridRegion.xpad*len) + self.state.gridRegion.cellwd;
-		var height = self._gridHeight();
-		var y = self.state.gridRegion.rowLabelOffset-90;  // height / 2 ;rowLabelOffset
 
-		// position relative to the grid
-		var translation = "translate(" + (self.state.gridRegion.x) + "," + (self.state.gridRegion.y) +")";
+		// Inverted and multi species
+		if (this.state.invertAxis && speciesList.length > 1) {
+			var heightPerSpecies = this._gridHeight()/speciesList.length;
 
-		// if inverted override the translate to rotate 90
-		if (self.state.invertAxis && speciesList.length > 1){
-				translation = "translate(" + self.state.gridRegion.x + "," + (self.state.gridRegion.y) + ")rotate(-90)";
-				//speciesList = speciesList.reverse();  // need to do this to match order of the species order
-				y = self.state.gridRegion.speciesLabelOffset;				
-		} 
+			this.state.svg.selectAll(".pg_species_name")
+				.data(speciesList)
+				.enter()
+				.append("text")
+				.attr("x", this.state.gridRegion.x + this._gridWidth() + 20) // 20 is margin - Joe
+				.attr("y", function(d, i) { 
+						return self.state.gridRegion.y + ((i + 1/2 ) * heightPerSpecies);
+					})
+				.attr('transform', function(d, i) {
+					var currX = self.state.gridRegion.x + self._gridWidth() + 20;
+					var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerSpecies);
+					return 'rotate(90 ' + currX + ' ' + currY + ')';
+				}) // rotate by 90 degrees 
+				.attr("class", "pg_species_name") // Need to use id instead of class - Joe
+				.text(function (d, i){return speciesList[i];})
+				.attr("text-anchor", "middle");
+		} else {
+			var widthPerSpecies = this._gridWidth()/speciesList.length;
 
-		var xPerModel = width/speciesList.length;  
-		var species = self.state.svg.selectAll("#pg_specieslist")
-			.data(speciesList)
-			.enter()
-			.append("text")
-			.attr("transform",translation)
-			.attr("x", function(d,i){ 
-					var x = ((i + 1 / 2 ) * xPerModel) + 5;
-					if (self.state.invertAxis && speciesList.length > 1) {
-						x = -(x-20);  // this pushes the labels into negative quadrant w/ padding, when flipped
-					}
-					return x;
-				})
-			.attr("id", "pg_specieslist")
-			.attr("y", y)
-			.text(function (d,i){return speciesList[i];})
-			.attr("text-anchor","middle");
+			this.state.svg.selectAll(".pg_species_name")
+				.data(speciesList)
+				.enter()
+				.append("text")
+				.attr("x", function(d, i){ 
+						return self.state.gridRegion.x + ((i + 1/2 ) * widthPerSpecies);
+					})
+				.attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+				.attr("class", "pg_species_name") // Need to use id instead of class - Joe
+				.text(function (d, i){return speciesList[i];})
+				.attr("text-anchor", "middle");
+		}
 	},
 	
 	// we might want to modify this to do a dynamic http retrieval to grab the dialog components...

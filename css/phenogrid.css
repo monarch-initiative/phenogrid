@@ -258,10 +258,10 @@ margin-top:10px;
 cursor:pointer;
 }
 
-#pg_specieslist {
+.pg_species_name {
 font-weight: bold;
-  font-size: 18px;
-opacity: .1;
+font-size: 14px;
+opacity: .3;
 }
 
 /* Cursor for mini map */
