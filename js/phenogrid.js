@@ -1410,37 +1410,8 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			.attr("x",x) 		//xoffset)
 			.attr("y", y)		//this.state.gridTitleYOffset)
 			.text(titleText);
-			
-		this.state.svg
-				.append("text")
-				.attr('font-family', 'FontAwesome')
-				.attr("id", "pg_faqs")
-				// Position faq icon on title right + 10px padding 
-				// jQuery object doesn't have getBoundingClientRect() method, we need to use the array [] notation - Joe
-				.attr("x", xoffset + $("#pg_toptitle")[0].getBoundingClientRect().width + 10) 
-				.attr("y", y)		// Half logo height  this.state.gridTitleYOffset
-				.text(function(d) {
-					return "\uf05a"; // Need to convert HTML/CSS unicode to javascript unicode - Joe
-				})
-				.style('cursor', 'pointer')
-				.on("click", function(d) {
-					self._showDialog("faq");
-				});
 	},
 
-	_configureFaqs: function() {
-		var self = this;
-		var sorts = $("#pg_sorts_faq")
-			.on("click", function(d,i){
-				self._showDialog( "sorts");
-			});
-
-		//var calcs = d3.selectAll("#calcs")
-		var calcs = $("#pg_calcs_faq")
-			.on("click", function(d){
-				self._showDialog( "calcs");
-			});
-	},
 
 	_addLogoImage: function() { 
 		var gridRegion = this.state.gridRegion;
@@ -1946,7 +1917,9 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		options.append(calcSel);
 		var axisSel = this._createAxisSelection();
 		options.append(axisSel);
-
+		var aboutPhenogrid = this._createAboutPhenogrid();
+		options.append(aboutPhenogrid);
+		
 		phenogridControls.append(options);
 		
 		// Append slide button - Joe
@@ -2005,7 +1978,19 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		    self._processDisplay();
 		});
 
-		self._configureFaqs();
+		
+		// FAQ popups
+		$("#pg_sorts_faq").click("click", function(){
+			self._showDialog("sorts");
+		});
+
+		$("#pg_calcs_faq").click(function(){
+			self._showDialog("calcs");
+		});
+		
+		$("#pg_about_phenogrid").click(function() {	
+			self._showDialog("faq");
+		});
 	},
 
 	// Position the control panel when the gridRegion changes
@@ -2095,6 +2080,13 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return $(optionhtml);
 	},
 
+	// create about phenogrid FAQ inside the controls/options - Joe
+	_createAboutPhenogrid: function () {
+		var html = '<div class="pg_hr"></div><div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
+		
+		return $(html);
+	},
+	
 	_getUnmatchedSources: function(){
 		//var fullset = this.state.origPhenotypeData;
 		var fullset = this.state.dataManager.getOriginalSource();
