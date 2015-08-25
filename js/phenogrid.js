@@ -169,7 +169,7 @@ var Utils = require('./utils.js');
 		simServerURL: "",  // URL of the server for similarity searches
 		preloadHPO: false,	// Boolean value that allows for preloading of all HPO data at start.  If false, the user will have to manually select what HPO relations to load via hoverbox.
 		selectedCompareSpecies: [],
-		titleOffsets: [{"main": {x:280, y:15}, "disease": {x:0, y:100}}],
+		gridMainTitle: {x:280, y:15},
 		gridRegion: {x:254, y:200, // origin coordinates for grid region (matrix)
 						ypad:13, xpad:15, // x/y padding between the labels and grid
 						cellwd:10, cellht:10, // // cell width and height
@@ -409,6 +409,8 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		if (this.state.dataManager.isInitialized()) {
 			this._initCanvas();
 
+			this._addGridTitle();
+			
 			this._addLogoImage();
 
 			//var rectHeight = this._createRectangularContainers();
@@ -1298,7 +1300,6 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 				//.attr("width", "100%")
 				//.attr("height", ((this.state.gridRegion.y + (sourceDisplayCount * widthOfSingleCell))+100));
 
-		 this._addGridTitle();
 	},
 
 	_createSvgContainer: function() {
@@ -1349,24 +1350,22 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		});
 	},
 	
+	// Grid main top title
 	_addGridTitle: function() {
 		var species = '';
-		var self = this;
 
 		// set up defaults as if overview
 		var xoffset = this.state.overviewGridTitleXOffset;
-		var foffset = this.state.overviewGridTitleFaqOffset;
 
-		var x = this.state.titleOffsets[0]["main"].x,
-			y = this.state.titleOffsets[0]["main"].y;
+		var x = this.state.gridMainTitle.x,
+			y = this.state.gridMainTitle.y;
 
 		var titleText = "Cross-Species Comparison";
 
 		//if (this.state.currentTargetSpeciesName !== "Overview") {
-		if (!self._isCrossComparisonView()) {
+		if ( ! this._isCrossComparisonView()) {
 			species= this.state.currentTargetSpeciesName;
 			xoffset = this.state.nonOverviewGridTitleXOffset;
-			foffset = this.state.nonOverviewGridTitleFaqOffset;
 			var comp = this._getComparisonType(species);
 			titleText = "Phenotype Comparison (grouped by " + species + " " + comp + ")";
 		}
@@ -1375,14 +1374,16 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			titleText = "Phenotype Comparison";
 		}
 
-		var mtitle = this.state.svg.append("svg:text")
-			.attr("id","pg_toptitle")
-			.attr("x",x) 		//xoffset)
+		// Add the top main title to pg_svg_area
+		this.state.svg.append("svg:text")
+			.attr("id", "pg_toptitle")
+			.attr("x", x) 		//xoffset)
 			.attr("y", y)		//this.state.gridTitleYOffset)
 			.text(titleText);
 	},
 
 
+	// Positioned next to the grid region bottom
 	_addLogoImage: function() { 
 		var gridRegion = this.state.gridRegion;
 		
