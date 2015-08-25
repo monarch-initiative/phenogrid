@@ -20,7 +20,7 @@ top:0;
 
 #pg_controls_options {
 position:absolute;
-left:139px;
+left:130px;
 min-width:200px;
 height:454px;
 background:#F1F3F8;
@@ -59,17 +59,17 @@ width: 0;
 
 #pg_slide_btn{
 position:absolute;
-left:149px;
+left:148px;
 width:80px;
 text-align:right;
-font-size:12px;
+font-size:13px;
 }
 
 #pg_slide_btn_icon{
 color:#44A293;
 font-weight:700;
 padding:2px;
-font-size:14px;
+font-size:15px;
 }
 
 #pg_slide_btn_icon:hover{
@@ -177,6 +177,7 @@ fill: #0F473E;
 font-size:11px;
 }
 
+/* Used in _createModelScoresLegend() */
 .pg_tip {
 width: 80px;
 height:10px;
