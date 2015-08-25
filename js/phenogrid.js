@@ -1100,34 +1100,6 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			}
 	},
 
-	_createDiseaseTitleBox: function() {
-		var self = this;
-		// var dTitleYOffset = self.state.yoffset - self.state.gridTitleYOffset/2;
-		// var dTitleXOffset = self.state.colStartingPos;
-
-		var x = self.state.titleOffsets[0]["disease"].x,
-			y = self.state.titleOffsets[0]["disease"].y;
-
-		var title = document.getElementsByTagName("title")[0].innerHTML;
-		var dtitle = title.replace("Monarch Disease:", "");
-
-		// place it at yoffset - the top of the rectangles with the phenotypes
-		var disease = dtitle.replace(/ *\([^)]*\) */g,"");
-		var shortDis = Utils.getShortLabel(disease,60);	// [vaa12] magic number needs removed
-
-	// Use until SVG2. Word Wraps the Disease Title
-		this.state.svg.append("foreignObject")
-			.attr("width", 205)
-			.attr("height", 50)
-			.attr("id","pg_diseasetitle")
-			//.attr("transform","translate(" + dTitleXOffset + "," + dTitleYOffset + ")")
-			.attr("x", x)
-			.attr("y", y)
-			.append("xhtml:div")
-			.html(shortDis);
-
-	},
-
 	_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
 		// Group the overview region and text together - Joe
 		var globalviewGrp = this.state.svg.append("g")
@@ -1327,8 +1299,6 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 				//.attr("height", ((this.state.gridRegion.y + (sourceDisplayCount * widthOfSingleCell))+100));
 
 		 this._addGridTitle();
-//		 this._createDiseaseTitleBox();
-		
 	},
 
 	_createSvgContainer: function() {
