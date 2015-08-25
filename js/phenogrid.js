@@ -123,6 +123,7 @@ var Utils = require('./utils.js');
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
 		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
+		logo: {width: 30, height: 15},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -407,6 +408,8 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	_reDraw: function() {
 		if (this.state.dataManager.isInitialized()) {
 			this._initCanvas();
+
+			this._addLogoImage();
 
 			//var rectHeight = this._createRectangularContainers();
 
@@ -1450,6 +1453,18 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			});
 	},
 
+	_addLogoImage: function() { 
+		var gridRegion = this.state.gridRegion;
+		
+		this.state.svg.append("svg:image")
+			.attr("xlink:href", this.state.imagePath + "logo.png")
+			.attr("x", gridRegion.x + this._gridWidth() + 20) // 20 is the margin to left
+			.attr("y", gridRegion.y + this._gridHeight() + 18) // 18 is the margin to top - Joe
+			.attr("id", "pg_logo")
+			.attr("width", this.state.logo.width)
+			.attr("height", this.state.logo.height);
+	},
+
 	_resetLinks: function() {
 		// don't put these styles in css file - these styles change depending on state
 		this.state.svg.selectAll("#pg_detail_content").remove();
@@ -1931,10 +1946,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var optionhtml ='<div id="pg_controls_options"></div>';
 		
 		// Hide/show panel - button - Joe
-		var pushBtn ='<button id="pg_slide_btn">' + 
-					'Settings <img src="' + this.state.imagePath + 'logo.png" height="15" width="30">' + 
-					'</button>';
-		
+		var slideBtn ='<button id="pg_slide_btn">Settings <i class="fa fa-cog"></i></button>';
 		
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
@@ -1949,7 +1961,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		phenogridControls.append(options);
 		
 		// Append slide button - Joe
-		phenogridControls.append(pushBtn);
+		phenogridControls.append(slideBtn);
 		
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
