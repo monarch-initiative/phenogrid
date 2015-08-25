@@ -72,7 +72,7 @@ AxisGroup.prototype = {
 			index
 
 		Return:
-			item data
+			item data object
 	*/
 	itemAt: function(index) {
 		var renderedList = this.keys();

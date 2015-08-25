@@ -122,7 +122,7 @@ var Utils = require('./utils.js');
 		detailRectWidth: 300,
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
-		navigator: {x:112, y: 65, size:110, reducedSize: 50, borderThickness:2},// controls the navigator mapview - Joe
+		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
 		logo: {width: 30, height: 15},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
@@ -156,20 +156,14 @@ var Utils = require('./utils.js');
 		widthOfSingleCell: 18,
 		heightOfSingleCell: 13,    
 		yoffsetOver: 30,
-		overviewGridTitleXOffset: 340,
-		overviewGridTitleFaqOffset: 230,
-		nonOverviewGridTitleXOffset: 220,
-		nonOverviewGridTitleFaqOffset: 570,
-		gridTitleYOffset: 20,
+		gridTitleYOffset: 20, // Needs to REFACTOR OUT - Joe
 		xOffsetOver: 20,
 		baseYOffset: 150,
-		faqImgSize: 15,
 		invertAxis: false,
 		dummyModelName: "dummy",
 		simServerURL: "",  // URL of the server for similarity searches
 		preloadHPO: false,	// Boolean value that allows for preloading of all HPO data at start.  If false, the user will have to manually select what HPO relations to load via hoverbox.
 		selectedCompareSpecies: [],
-		titleOffsets: [{"main": {x:280, y:15}, "disease": {x:0, y:100}}],
 		gridRegion: {x:254, y:200, // origin coordinates for grid region (matrix)
 						ypad:13, xpad:15, // x/y padding between the labels and grid
 						cellwd:10, cellht:10, // // cell width and height
@@ -334,65 +328,6 @@ var Utils = require('./utils.js');
 
 		this._createColorScale();  
 	},
-
-
-    /* create the groups to contain the rendering 
-       information for x and y axes. Use already loaded data
-       in various hashes, etc. to create objects containing
-       information for axis rendering. Then, switch source and target
-       groups to be x or y depending on "flip axis" choice*/
-    _createAxisRenderingGroups: function() {
-    	var targetList = [];
-		// set default display limits based on displaying defaultSourceDisplayLimit
-    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-		
-		console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
-
-		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
-			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
-		}
-
-       	// creates AxisGroup with full source and target lists with default rendering range
-    	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
-					  this.state.dataManager.getData("source"));
-		// sort source with default sorting type
-		this.state.sourceAxis.sort(this.state.selectedSort); 
-
-		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareSpecies > 1 then it's Comparision mode 
-		if (this.state.selectedCompareSpecies.length > 1) {  
-			// Adjust the defaultTargetDisplayLimit using mod
-			// Otherwise use the default number if it fits - Joe
-			var adjustedTargetDisplayLimit;
-			var modResult = this.state.defaultTargetDisplayLimit % this.state.selectedCompareSpecies.length;
-			if (modResult !== 0) {
-				adjustedTargetDisplayLimit = this.state.defaultTargetDisplayLimit - modResult;
-			} else {
-				adjustedTargetDisplayLimit = this.state.defaultTargetDisplayLimit;
-			}
-			
-			// Adjust how many target values we can show using the number of selectedCompareSpecies
-			// no need to use Math.floor() here since the result will always be an int
-			// Can also use a fixed number if not use mod to adjust - Joe
-			this.state.defaultVisibleModelCt = adjustedTargetDisplayLimit / this.state.selectedCompareSpecies.length;
-			
-			console.log('defaultVisibleModelCt--------: ' + this.state.defaultVisibleModelCt);
-			
-            // update the targetList
-			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultVisibleModelCt);	
-		} else if (this.state.selectedCompareSpecies.length === 1) {
-			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
-			targetList = this.state.dataManager.getData("target", singleSpeciesName);
-			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
-
-			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
-				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
-			} 
-
-		}
-    	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
-
-    	this._setAxisRenderers();
-	},
 	
     /* create the groups to contain the rendering 
        information for x and y axes. Use already loaded data
@@ -427,16 +362,18 @@ var Utils = require('./utils.js');
 			// get the length of the targetlist, this sets that limit since we are in comparison mode
 			// only the defaultCrossCompareTargetLimitPerSpecies is set, which provides the overall display limit
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
-
+console.log('ORGI  CrossComparisonView   targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
 		} else if (this.state.selectedCompareSpecies.length === 1) {
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
 			targetList = this.state.dataManager.getData("target", singleSpeciesName);
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
 
+console.log('ORGI  singlespecies  targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
+			
 			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
 				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
 			} 
-
+console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
 		}
     	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
 
@@ -463,47 +400,34 @@ var Utils = require('./utils.js');
 	},
 	
 	_reDraw: function() {
-		//var self = this;
 		if (this.state.dataManager.isInitialized()) {
-
 			this._initCanvas();
+
 			this._addLogoImage();
+
 			//var rectHeight = this._createRectangularContainers();
 
 			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
 
-			this._addPhenogridControls();
+			this._createPhenogridControls();
+			this._positionPhenogridControls();
 
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
 			 	this._createOverviewSpeciesLabels();
 			}
 			this._createGrid();
+			
+			this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
+			
 			this._createOverviewSection();
-			this._addGradients();
+			this._createGradientLegend();
 			this._createSpeciesDividerLines();
 
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
 
-			var self = this; // Needed for the anonymous function - Joe
-			// Slide control panel - Joe
-			$("#pg_controls_options").hide();
-			$("#pg_slide_btn").on("click", function() {
-				// Opens and closes the phenogrid controls
-				$("#pg_controls_options").fadeIn();
-				// $(this) refers to $("#pg_slide_btn")
-				$(this).toggleClass("pg_slide_open");
-
-				if ($(this).hasClass("pg_slide_open")) {
-					// If the menu is open, then Change the menu button icon
-					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'close_left.png');
-				} else {
-					// If the menu is closed, change to the original button icon
-					$("#pg_slide_btn > img").attr('src', self.state.imagePath + 'menu_icon.png');
-					$("#pg_controls_options").fadeOut();
-				}
-			});
+			this._togglePgControls();
 		} else {
 			var msg = "There are no results available.";
 				this._createSvgContainer();
@@ -511,6 +435,44 @@ var Utils = require('./utils.js');
 		}
 	},
 
+	// Click the setting button to open/close the control options
+	// Click anywhere inside #pg_svg_area to close the options when it's open
+	_togglePgControls: function() {
+		var self = this; // Needed for inside the anonymous function - Joe
+		// Slide control panel - Joe
+		$("#pg_controls_options").hide(); // Hide the options by default
+		
+		// Toggle the options panel by clicking the button
+		$("#pg_slide_btn_icon").click(function() {
+			// $(this) refers to $("#pg_slide_btn")
+			if ( ! $(this).hasClass("pg_slide_open")) {
+				// Show the phenogrid controls
+				$("#pg_controls_options").fadeIn();
+				// Remove the top border of the button by adding .pg_slide_open CSS class
+				$(this).addClass("pg_slide_open");
+			} else {
+				$("#pg_controls_options").fadeOut();
+				// Add top border back
+				$(this).removeClass("pg_slide_open");
+			}
+		});
+		
+		// When the options panel is visible, click anywhere inside #pg_svg_area to close the options, 
+		// more user-friendly than just force to click the button again
+		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg_area', it won't work - Joe
+		$('#pg_svg_area').click(function(event) {
+			if ($(event.target) !== $('#pg_slide_btn_icon') && $(event.target) !== $('#pg_controls_options')) {
+				// Only close the options if it's visible
+				if ($('#pg_controls_options').is(':visible')) {
+					// Add the top border of the button back
+					$("#pg_slide_btn_icon").removeClass("pg_slide_open");
+					// Then close the options
+					$("#pg_controls_options").fadeOut();
+				}
+			}
+		});
+	},
+	
 	// create the grid
 	_createGrid: function() {
 		var self = this;
@@ -915,12 +877,8 @@ var Utils = require('./utils.js');
 
 	    console.log("YYYYYYYYYY - yCount: " + yCount + " XXXXXXXXXXX - xCount: " + xCount);
 
-	    // get the rendered starting point on axis
-		var startYIdx = self.state.yAxisRender.renderStartPos;    // this.state.currYIdx - yCount;
-		var startXIdx = self.state.xAxisRender.renderStartPos;    // this.state.currXIdx - xCount;
-
 		// add-ons for stroke size on view box. Preferably even numbers
-		var linePad = self.state.navigator.borderThickness;
+		var linePad = self.state.navigator.miniCellSize;
 		var viewPadding = linePad * 2 + 2;
 
 		// overview region is offset by xTranslation, yTranslation
@@ -941,19 +899,19 @@ var Utils = require('./utils.js');
 		var overviewBoxDim = overviewRegionSize + viewPadding;
 
 		// create the main box and the instruction labels.
-		self._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
+		this._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
 
 		// create the scales
-		self._createSmallScales(overviewRegionSize);
+		this._createSmallScales(overviewRegionSize);
 
 		// add the items using smaller rects
 		//var cellData = self._mergeHashEntries(self.state.cellDataHash);
 		//var data = self.state.filteredCellData;
 
 		// this should be the full set of cellData
-		var xvalues = self.state.xAxisRender.groupEntries();
+		var xvalues = this.state.xAxisRender.groupEntries();
 		//console.log(JSON.stringify(xvalues));
-		var yvalues = self.state.yAxisRender.groupEntries();		
+		var yvalues = this.state.yAxisRender.groupEntries();		
 		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
 
 		// Group all mini cells in g element - Joe
@@ -985,8 +943,8 @@ var Utils = require('./utils.js');
 				var xscale = self.state.smallXScale(xid);
 				var x =  xscale + linePad / 2; 
 				return x;})
-			.attr("width", linePad)
-			.attr("height", linePad)
+			.attr("width", linePad) // Defined in navigator.miniCellSize
+			.attr("height", linePad) // Defined in navigator.miniCellSize
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
@@ -998,25 +956,32 @@ var Utils = require('./utils.js');
 		var xRenderedSize = this.state.xAxisRender.displayLength();		
      	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
 	    var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
-   	    var startYId = this.state.yAxisRender.itemAt(startYIdx).id;   
-	    var startXId = this.state.xAxisRender.itemAt(startXIdx).id;
+		var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+		
+console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:----- ' + startYId, 'lastYId:----- ' + lastYId);
 
-		var selectRectX = self.state.smallXScale(startXId);
-		var selectRectY = self.state.smallYScale(startYId);
-		var selectRectHeight = self.state.smallYScale(lastYId);
-		var selectRectWidth = self.state.smallXScale(lastXId);
+        // start point (x, y) of the shaded draggable area
+		var selectRectX = this.state.smallXScale(startXId);
+		var selectRectY = this.state.smallYScale(startYId);
+		// width and height of the shaded draggable area
+		var selectRectHeight = this.state.smallYScale(lastYId) - this.state.smallYScale(startYId);
+		var selectRectWidth = this.state.smallXScale(lastXId) - this.state.smallXScale(startXId);
+		//var selectRectHeight = this.state.smallYScale(lastYId);
+		//var selectRectWidth = this.state.smallXScale(lastXId);
+		
 		console.log("yRenderedSize:" + yRenderedSize +" xRenderedSize" +xRenderedSize +
 				 " selectRectX: " + selectRectX +  " selectRectY:" + selectRectY + 
 			" selectRectHeight:" + selectRectHeight + " selectRectWidth:" + selectRectWidth);
 
 		// Also add the shaded area in the pg_navigator group - Joe
-		self.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
-			.attr("x",overviewX + selectRectX)
-			.attr("y",overviewY + selectRectY)
-			.attr("id", "pg_selectionrect")
+		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
+			.attr("x", overviewX + selectRectX)
+			.attr("y", overviewY + selectRectY)
+			.attr("id", "pg_navigator_shaded_area")
 			.attr("height", selectRectHeight + 4)
 			.attr("width", selectRectWidth + 4)
-			.attr("class", "draggable")
+			.attr("class", "pg_draggable")
 			.call(d3.behavior.drag()
 				.on("drag", function(d) {
 					/*
@@ -1031,7 +996,7 @@ var Utils = require('./utils.js');
 
 					console.log("curX:" + curX + " curY:"+ curY);
 
-					var rect = self.state.svg.select("#pg_selectionrect");
+					var rect = self.state.svg.select("#pg_navigator_shaded_area");
 					rect.attr("transform","translate(0,0)");
 
 					// limit the range of the x value
@@ -1092,6 +1057,7 @@ var Utils = require('./utils.js');
 		return selectedScale(score);
 	},
 
+	// Needs to REFACTOR OUT - Joe
 	_createModelScoresLegend: function() {
 	// Make sure the legend is only created once - Joe
 			if (this.state.svg.select(".pg_tip")[0][0] === null) {
@@ -1130,34 +1096,6 @@ var Utils = require('./utils.js');
 					.attr("class", "pg_tip")
 					.text("Best matches high to low"); // uppercased best - > Best - Joe
 			}
-	},
-
-	_createDiseaseTitleBox: function() {
-		var self = this;
-		// var dTitleYOffset = self.state.yoffset - self.state.gridTitleYOffset/2;
-		// var dTitleXOffset = self.state.colStartingPos;
-
-		var x = self.state.titleOffsets[0]["disease"].x,
-			y = self.state.titleOffsets[0]["disease"].y;
-
-		var title = document.getElementsByTagName("title")[0].innerHTML;
-		var dtitle = title.replace("Monarch Disease:", "");
-
-		// place it at yoffset - the top of the rectangles with the phenotypes
-		var disease = dtitle.replace(/ *\([^)]*\) */g,"");
-		var shortDis = Utils.getShortLabel(disease,60);	// [vaa12] magic number needs removed
-
-	// Use until SVG2. Word Wraps the Disease Title
-		this.state.svg.append("foreignObject")
-			.attr("width", 205)
-			.attr("height", 50)
-			.attr("id","pg_diseasetitle")
-			//.attr("transform","translate(" + dTitleXOffset + "," + dTitleYOffset + ")")
-			.attr("x", x)
-			.attr("y", y)
-			.append("xhtml:div")
-			.html(shortDis);
-
 	},
 
 	_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
@@ -1250,17 +1188,8 @@ var Utils = require('./utils.js');
 //		this.state.unmatchedSources = this._getUnmatchedSources();
 		this.element.empty();
 		this._reDraw();
-		
-		// Now position the control panel when the gridRegion changes
-		// Note: CANNOT use this inside _addPhenogridControls() since the _createGrid() is called after it
-		// we won't have the _gridHeight() by that time - Joe
-		var gridRegion = this.state.gridRegion; 
-		var marginTop = 10; // Create some whitespace between the button and the y labels 
-		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
-		// The height of #pg_controls_options defined in phenogrid.css - Joe
-		var pg_ctrl_options = $('#pg_controls_options');
-		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() + 1 + marginTop); // extra 1px to hide the border
 	},
+
 
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
@@ -1348,9 +1277,6 @@ var Utils = require('./utils.js');
 				//.attr("width", "100%")
 				//.attr("height", ((this.state.gridRegion.y + (sourceDisplayCount * widthOfSingleCell))+100));
 
-		 this._addGridTitle();
-//		 this._createDiseaseTitleBox();
-		
 	},
 
 	_createSvgContainer: function() {
@@ -1401,24 +1327,16 @@ var Utils = require('./utils.js');
 		});
 	},
 	
+	// Grid main top title
 	_addGridTitle: function() {
 		var species = '';
-		var self = this;
 
 		// set up defaults as if overview
-		var xoffset = this.state.overviewGridTitleXOffset;
-		var foffset = this.state.overviewGridTitleFaqOffset;
-
-		var x = this.state.titleOffsets[0]["main"].x,
-			y = this.state.titleOffsets[0]["main"].y;
-
 		var titleText = "Cross-Species Comparison";
 
 		//if (this.state.currentTargetSpeciesName !== "Overview") {
-		if (!self._isCrossComparisonView()) {
-			species= this.state.currentTargetSpeciesName;
-			xoffset = this.state.nonOverviewGridTitleXOffset;
-			foffset = this.state.nonOverviewGridTitleFaqOffset;
+		if ( ! this._isCrossComparisonView()) {
+			species = this.state.currentTargetSpeciesName;
 			var comp = this._getComparisonType(species);
 			titleText = "Phenotype Comparison (grouped by " + species + " " + comp + ")";
 		}
@@ -1427,50 +1345,24 @@ var Utils = require('./utils.js');
 			titleText = "Phenotype Comparison";
 		}
 
-		var mtitle = this.state.svg.append("svg:text")
-			.attr("id","pg_toptitle")
-			.attr("x",x) 		//xoffset)
-			.attr("y", y)		//this.state.gridTitleYOffset)
+		// Add the top main title to pg_svg_area
+		this.state.svg.append("svg:text")
+			.attr("id", "pg_toptitle")
+			.attr("x", this.state.gridRegion.x + this._gridWidth()/2) // Calculated based on the gridRegion - Joe
+			.attr("y", 40) // Fixed y position - Joe
+			.style('text-anchor', 'middle') // Center the main title - Joe
 			.text(titleText);
-			
-		this.state.svg
-				.append("text")
-				.attr('font-family', 'FontAwesome')
-				.attr("id", "pg_faqs")
-				// Position faq icon on title right + 10px padding 
-				// jQuery object doesn't have getBoundingClientRect() method, we need to use the array [] notation - Joe
-				.attr("x", xoffset + $("#pg_toptitle")[0].getBoundingClientRect().width + 10) 
-				.attr("y", y)		// Half logo height  this.state.gridTitleYOffset
-				.text(function(d) {
-					return "\uf05a"; // Need to convert HTML/CSS unicode to javascript unicode - Joe
-				})
-				.style('cursor', 'pointer')
-				.on("click", function(d) {
-					self._showDialog("faq");
-				});
 	},
 
-	_configureFaqs: function() {
-		var self = this;
-		var sorts = $("#pg_sorts_faq")
-			.on("click", function(d,i){
-				self._showDialog( "sorts");
-			});
 
-		//var calcs = d3.selectAll("#calcs")
-		var calcs = $("#pg_calcs_faq")
-			.on("click", function(d){
-				self._showDialog( "calcs");
-			});
-	},
-
+	// Positioned next to the grid region bottom
 	_addLogoImage: function() { 
 		var gridRegion = this.state.gridRegion;
 		
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
-			.attr("x", gridRegion.x + this._gridWidth() - this.state.logo.width)
-			.attr("y", gridRegion.y + this._gridHeight() + 20) // 20 is the margin - Joe
+			.attr("x", gridRegion.x + this._gridWidth() + 20) // 20 is the margin to left
+			.attr("y", gridRegion.y + this._gridHeight() + 18) // 18 is the margin to top - Joe
 			.attr("id", "pg_logo")
 			.attr("width", this.state.logo.width)
 			.attr("height", this.state.logo.height);
@@ -1719,12 +1611,6 @@ var Utils = require('./utils.js');
 		stickytooltip.init("*[data-tooltip]", "mystickytooltip");
 	},
 
-	// Previously _clearModelLabels
-	_clearXLabels: function() {
-		this.state.svg.selectAll("g.x").remove();
-		this.state.svg.selectAll("g .tick.major").remove();
-	},
-
 	_clearGrid: function() {
 		console.log("in clearGrid()....");
 		this.state.svg.selectAll("g.row").remove();
@@ -1732,42 +1618,47 @@ var Utils = require('./utils.js');
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
 
-	// Add species labels to top of Overview
+	// Add species labels (watermark-like) to top of grid
 	_createOverviewSpeciesLabels: function () {
 		var self = this;
+		// speciesList is an array that contains all the selected species names
 		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
-		var len = self.state.xAxisRender.displayLength();
-		var width = (self.state.gridRegion.xpad*len) + self.state.gridRegion.cellwd;
-		var height = self._gridHeight();
-		var y = self.state.gridRegion.rowLabelOffset-90;  // height / 2 ;rowLabelOffset
 
-		// position relative to the grid
-		var translation = "translate(" + (self.state.gridRegion.x) + "," + (self.state.gridRegion.y) +")";
+		// Inverted and multi species
+		if (this.state.invertAxis && speciesList.length > 1) {
+			var heightPerSpecies = this._gridHeight()/speciesList.length;
 
-		// if inverted override the translate to rotate 90
-		if (self.state.invertAxis && speciesList.length > 1){
-				translation = "translate(" + self.state.gridRegion.x + "," + (self.state.gridRegion.y) + ")rotate(-90)";
-				//speciesList = speciesList.reverse();  // need to do this to match order of the species order
-				y = self.state.gridRegion.speciesLabelOffset;				
-		} 
+			this.state.svg.selectAll(".pg_species_name")
+				.data(speciesList)
+				.enter()
+				.append("text")
+				.attr("x", this.state.gridRegion.x + this._gridWidth() + 20) // 20 is margin - Joe
+				.attr("y", function(d, i) { 
+						return self.state.gridRegion.y + ((i + 1/2 ) * heightPerSpecies);
+					})
+				.attr('transform', function(d, i) {
+					var currX = self.state.gridRegion.x + self._gridWidth() + 20;
+					var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerSpecies);
+					return 'rotate(90 ' + currX + ' ' + currY + ')';
+				}) // rotate by 90 degrees 
+				.attr("class", "pg_species_name") // Need to use id instead of class - Joe
+				.text(function (d, i){return speciesList[i];})
+				.attr("text-anchor", "middle");
+		} else {
+			var widthPerSpecies = this._gridWidth()/speciesList.length;
 
-		var xPerModel = width/speciesList.length;  
-		var species = self.state.svg.selectAll("#pg_specieslist")
-			.data(speciesList)
-			.enter()
-			.append("text")
-			.attr("transform",translation)
-			.attr("x", function(d,i){ 
-					var x = ((i + 1 / 2 ) * xPerModel) + 5;
-					if (self.state.invertAxis && speciesList.length > 1) {
-						x = -(x-20);  // this pushes the labels into negative quadrant w/ padding, when flipped
-					}
-					return x;
-				})
-			.attr("id", "pg_specieslist")
-			.attr("y", y)
-			.text(function (d,i){return speciesList[i];})
-			.attr("text-anchor","middle");
+			this.state.svg.selectAll(".pg_species_name")
+				.data(speciesList)
+				.enter()
+				.append("text")
+				.attr("x", function(d, i){ 
+						return self.state.gridRegion.x + ((i + 1/2 ) * widthPerSpecies);
+					})
+				.attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+				.attr("class", "pg_species_name") // Need to use id instead of class - Joe
+				.text(function (d, i){return speciesList[i];})
+				.attr("text-anchor", "middle");
+		}
 	},
 	
 	// we might want to modify this to do a dynamic http retrieval to grab the dialog components...
@@ -1857,55 +1748,27 @@ var Utils = require('./utils.js');
 		}	
 	},
 
-	// _reDraw() calls this every time - Joe
-	_addPhenogridControls: function() {
-		var phenogridControls = $('<div id="pg_controls"></div>');
-
-		// Not in the #pg_svg_area div since it's HTML - Joe
-		$('#pg_svg_container').append(phenogridControls);
-
-		this._createSelectionControls(phenogridControls);
-	},
- 
-	_addGradients: function() {
-		this._createGradients();
-		this._buildGradientTexts();
-	},
-
-	
-	// Should group the gradient rect and the legend texts - Joe
-	
-	
-	
-	// Calculate the width based on the size of grid region - Joe
-	_calculateGradientWidth: function() {
-		var safeWidth = (this._gridWidth() <= this._gridHeight()) ? this._gridWidth() : this._gridHeight();
-		return safeWidth - this.state.logo.width - 20; // 20 is margin between logo and gradient bar - Joe
-	},
-	
-	
 	/*
-	 * Add the gradients to the grid
+	 * Add the gradient legend (bar and label texts) to the grid bottom
 	 */
-	_createGradients: function(){
+	_createGradientLegend: function(){
+		// Create a group for gradient bar and legend texts - Joe
+		var gradientGrp = this.state.svg.append("g")
+			.attr('id', 'pg_gradient_legend');
+			
 		var gridRegion = this.state.gridRegion;
-		
-		var x = gridRegion.x;
-
-		// Dynamic change, relative to grid region - Joe
-		var y = gridRegion.y + this._gridHeight() + 22; // 20 is margin - Joe
-
-		var width = this._calculateGradientWidth();
-		var height = this.state.gradientRegion.height;
 
 		// The <linearGradient> element is used to define a linear gradient background - Joe
-		var gradient = this.state.svg.append("svg:linearGradient") 
-			.attr("id", "gradient")
+		// The <linearGradient> element must be nested within a <defs> tag. 
+		// The <defs> tag is short for definitions and contains definition of special elements (such as gradients)
+		var gradient = gradientGrp.append("svg:defs").append("svg:linearGradient") 
+			.attr("id", "pg_gradient_legend_fill") // this id is used for the fill attribute - Joe
 			.attr("x1", "0")
 			.attr("x2", "100%")
 			.attr("y1", "0%")
 			.attr("y2", "0%");
 
+		// create the color stops
 		for (var j in this.state.colorDomains) {
 			if ( ! this.state.colorDomains.hasOwnProperty(j)) {
 				break;
@@ -1916,35 +1779,20 @@ var Utils = require('./utils.js');
 				.style("stop-color", this.state.colorRanges[j]);
 		}
 
-		// Create a group for gradient bar and legends - Joe
-		var gradientGrp = this.state.svg.append("g")
-			.attr('id', 'pg_gradient');
-		
+		// Create the gradient rect
 		gradientGrp.append("rect")
 			//.attr("transform", "translate(" + x + "," + y +")")
-			.attr("x", x)
-			.attr("y", y) // use x and y instead of transform since rect has x and y - Joe
-			.attr("class", "legend_rect")
-			.attr("id","legendscale")
-			.attr("width", width)
-			.attr("height", height) 
-			.attr("fill", "url(#gradient)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
-	},
+			.attr("x", gridRegion.x)
+			.attr("y", gridRegion.y + this._gridHeight() + 22) // use x and y instead of transform since rect has x and y, 22 is margin - Joe
+			.attr("id", "pg_gradient_legend_rect")
+			.attr("width", this._gridWidth())
+			.attr("height", this.state.gradientRegion.height) 
+			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
+		
+		// Now create the label texts
+	    var lowText, highText, labelText;
 
-
-	/*
-	 * Show the labels next to the gradients, including descriptions of min and max sides 
-	 */
-	_buildGradientTexts: function() {
-		var lowText, highText, labelText;
-
-		var gridRegion = this.state.gridRegion;
-
-		var x = gridRegion.x;
-
-		// Dynamicly change, relative to grid region - Joe
-		var y = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
-
+		// Texts are based on the calculation method
 		for (var idx in this.state.similarityCalculation) {	
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
 				break;
@@ -1958,40 +1806,49 @@ var Utils = require('./utils.js');
 		}
 
 		// Create a group for gradient bar and legends - Joe
-		var gradientTextGrp = this.state.svg.select('#pg_gradient').append("g")
-			.attr('id', 'pg_gradient_texts');
-			
-		// min label
+		var gradientTextGrp = this.state.svg.select('#pg_gradient_legend').append("g")
+			.attr('id', 'pg_gradient_legend_texts');
+		
+		// Dynamicly change, relative to grid region - Joe
+		var yTexts = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
+
+		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("transform", "translate(" + x + "," + y +")")		
-			.attr("class", "pg_gradient_text")
+			.attr("x", gridRegion.x)
+			.attr("y", yTexts)
+			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
 
-		// calc the postion of the display type Label
-		var xLabelPos = (x + (this._calculateGradientWidth()/2) - labelText.length);		
+		// create and position the display type label
 		gradientTextGrp.append("svg:text")
-			.attr("transform", "translate(" + xLabelPos + "," + y +")")						
-			.attr("class", "pg_gradient_text")
+			.attr("x", gridRegion.x + (this._gridWidth()/2))
+			.attr("y", yTexts)	
+			.style('text-anchor', 'middle') // This renders the middle of the text string as the current text position x - Joe			
 			.text(labelText);
 
-		// calc the postion of the High Label
-		var xHighPos = (x + this._calculateGradientWidth())-20;
+		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("transform", "translate(" + xHighPos + "," + y +")")				
-			.attr("class", "pg_gradient_text")
+			.attr("x", gridRegion.x + this._gridWidth())
+			.attr("y", yTexts)	
+            .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
 	},
 
-	// build controls for selecting organism and comparison. Install handlers
-	_createSelectionControls: function(container) {
-		var self = this;
-		var optionhtml ='<div id="pg_controls_options"></div>';
+
+	// Phengrid controls/options
+	_createPhenogridControls: function() {
+		var self = this; // Use self inside anonymous functions 
+		
+		var phenogridControls = $('<div id="pg_controls"></div>');
+
+		// Not in the #pg_svg_area div since it's HTML - Joe
+		$('#pg_svg_container').append(phenogridControls);
+		
+		// Need to put .pg_controls_options_arrow_border span before .pg_controls_options_arrow span - Joe
+		var optionhtml ='<div id="pg_controls_options"><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
-		var pushBtn ='<button id="pg_slide_btn">' + 
-					'<img src="' + this.state.imagePath + 'menu_icon.png"/>' + 
-					'</button>';
-		
+		var slideBtn ='<div id="pg_slide_btn"><span id="pg_slide_btn_icon"><i class="fa fa-bars"></i></span> OPTIONS</div>';
 		
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
@@ -2002,11 +1859,13 @@ var Utils = require('./utils.js');
 		options.append(calcSel);
 		var axisSel = this._createAxisSelection();
 		options.append(axisSel);
-
-		container.append(options);
+		var aboutPhenogrid = this._createAboutPhenogrid();
+		options.append(aboutPhenogrid);
+		
+		phenogridControls.append(options);
 		
 		// Append slide button - Joe
-		container.append(pushBtn);
+		phenogridControls.append(slideBtn);
 		
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
@@ -2061,9 +1920,34 @@ var Utils = require('./utils.js');
 		    self._processDisplay();
 		});
 
-		self._configureFaqs();
+		
+		// FAQ popups
+		$("#pg_sorts_faq").click("click", function(){
+			self._showDialog("sorts");
+		});
+
+		$("#pg_calcs_faq").click(function(){
+			self._showDialog("calcs");
+		});
+		
+		$("#pg_about_phenogrid").click(function() {	
+			self._showDialog("faq");
+		});
 	},
 
+	// Position the control panel when the gridRegion changes
+	_positionPhenogridControls: function(){
+		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
+		// we won't have the _gridHeight() by that time - Joe
+		var gridRegion = this.state.gridRegion; 
+		var marginTop = 15; // Create some whitespace between the button and the y labels 
+		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+		// The height of #pg_controls_options defined in phenogrid.css - Joe
+		var pg_ctrl_options = $('#pg_controls_options');
+		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
+		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
+    },	
+	
 	_createOrganismSelection: function() {
 		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism(s)</label>" + 
 			"<div id='pg_organism'>";
@@ -2138,6 +2022,13 @@ var Utils = require('./utils.js');
 		return $(optionhtml);
 	},
 
+	// create about phenogrid FAQ inside the controls/options - Joe
+	_createAboutPhenogrid: function () {
+		var html = '<div class="pg_hr"></div><div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
+		
+		return $(html);
+	},
+	
 	_getUnmatchedSources: function(){
 		//var fullset = this.state.origPhenotypeData;
 		var fullset = this.state.dataManager.getOriginalSource();

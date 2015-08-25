@@ -18,28 +18,67 @@ left:0;
 top:0;
 }
 
-#pg_slide_btn,
 #pg_controls_options {
 position:absolute;
-left:199px;
-border:1px solid #222;
-}
-
-#pg_controls_options {
+left:130px;
 min-width:200px;
-height:414px;
+height:444px;
 background:#F1F3F8;
 padding:20px;
 font-size:12px;
 color:#111;
+border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 }
 
+
+.pg_controls_options_arrow_border{
+display: block;
+position: absolute;
+left: 18px;
+bottom: -16px;
+border-color: #222 transparent transparent transparent;
+border-style: solid;
+border-width: 8px;
+height: 0;
+width: 0;
+}
+
+.pg_controls_options_arrow{
+display: block;
+position: absolute;
+left: 18px;
+bottom: -15px;
+border-color: #F1F3F8 transparent transparent transparent;
+border-style: solid;
+border-width: 8px;
+height: 0;
+width: 0;
+}
+
+
 #pg_slide_btn{
-width:30px;
-height:30px;
-outline:0;
-background:#44A293;
+position:absolute;
+left:148px;
+width:80px;
+text-align:right;
+font-size:13px;
+}
+
+#pg_slide_btn_icon{
+color:#44A293;
+font-weight:700;
+padding:2px;
+font-size:15px;
+}
+
+#pg_slide_btn_icon:hover{
+cursor:pointer;
+color:#DD3835;
+}
+
+.pg_slide_open{
+color:#DD3835 !important;
 }
 
 label.pg_ctrl_label{
@@ -48,24 +87,24 @@ color:#DD3835;
 }
 
 #pg_controls input[type="checkbox"] {
-    display:inline-block;
-    width:11px;
-    height:11px;
-    margin:-2px 4px 0 0;
-    vertical-align:middle;
+display:inline-block;
+width:11px;
+height:11px;
+margin:-2px 4px 0 0;
+vertical-align:middle;
 }
 
 #pg_controls input[type="radio"] {
-    display:inline-block;
-    width:11px;
-    height:11px;
-    margin:-2px 4px 0 0;
-    vertical-align:middle;
+display:inline-block;
+width:11px;
+height:11px;
+margin:-2px 4px 0 0;
+vertical-align:middle;
 }
 
 .pg_hr{
 clear:both;
-margin:1em 0;
+margin:10px 0;
 border-bottom:1px solid #cbcbcb;
 }
 
@@ -93,6 +132,12 @@ stroke-width: 1;
 fill: #fff;
 stroke: #000;
 stroke-width: 2;
+}
+
+/* Shaded area in overview map */
+#pg_navigator_shaded_area{
+fill: grey;
+opacity: 0.5;
 }
 
 .pg_row_accent,
@@ -128,16 +173,11 @@ font-size:10px;
 fill: #0F473E;
 }
 
-
-#pg_selectionrect {
-fill: grey;
-opacity: 0.5
-}
-
-.pg_gradient_text{
+#pg_gradient_legend_texts{
 font-size:11px;
 }
 
+/* Used in _createModelScoresLegend() */
 .pg_tip {
 width: 80px;
 height:10px;
@@ -218,16 +258,14 @@ margin-top:10px;
 cursor:pointer;
 }
 
-
-
-#pg_specieslist {
+.pg_species_name {
 font-weight: bold;
-  font-size: 18px;
-opacity: .1;
+font-size: 14px;
+opacity: .3;
 }
 
 /* Cursor for mini map */
-.draggable{
+.pg_draggable{
 cursor:move;
 }
 
