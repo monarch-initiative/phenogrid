@@ -156,20 +156,14 @@ var Utils = require('./utils.js');
 		widthOfSingleCell: 18,
 		heightOfSingleCell: 13,    
 		yoffsetOver: 30,
-		overviewGridTitleXOffset: 340,
-		overviewGridTitleFaqOffset: 230,
-		nonOverviewGridTitleXOffset: 220,
-		nonOverviewGridTitleFaqOffset: 570,
 		gridTitleYOffset: 20,
 		xOffsetOver: 20,
 		baseYOffset: 150,
-		faqImgSize: 15,
 		invertAxis: false,
 		dummyModelName: "dummy",
 		simServerURL: "",  // URL of the server for similarity searches
 		preloadHPO: false,	// Boolean value that allows for preloading of all HPO data at start.  If false, the user will have to manually select what HPO relations to load via hoverbox.
 		selectedCompareSpecies: [],
-		gridMainTitle: {x:280, y:15},
 		gridRegion: {x:254, y:200, // origin coordinates for grid region (matrix)
 						ypad:13, xpad:15, // x/y padding between the labels and grid
 						cellwd:10, cellht:10, // // cell width and height
@@ -409,8 +403,6 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		if (this.state.dataManager.isInitialized()) {
 			this._initCanvas();
 
-			this._addGridTitle();
-			
 			this._addLogoImage();
 
 			//var rectHeight = this._createRectangularContainers();
@@ -424,6 +416,9 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 			 	this._createOverviewSpeciesLabels();
 			}
 			this._createGrid();
+			
+			this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
+			
 			this._createOverviewSection();
 			this._createGradientLegend();
 			this._createSpeciesDividerLines();
@@ -1355,17 +1350,11 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var species = '';
 
 		// set up defaults as if overview
-		var xoffset = this.state.overviewGridTitleXOffset;
-
-		var x = this.state.gridMainTitle.x,
-			y = this.state.gridMainTitle.y;
-
 		var titleText = "Cross-Species Comparison";
 
 		//if (this.state.currentTargetSpeciesName !== "Overview") {
 		if ( ! this._isCrossComparisonView()) {
-			species= this.state.currentTargetSpeciesName;
-			xoffset = this.state.nonOverviewGridTitleXOffset;
+			species = this.state.currentTargetSpeciesName;
 			var comp = this._getComparisonType(species);
 			titleText = "Phenotype Comparison (grouped by " + species + " " + comp + ")";
 		}
@@ -1377,8 +1366,9 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		// Add the top main title to pg_svg_area
 		this.state.svg.append("svg:text")
 			.attr("id", "pg_toptitle")
-			.attr("x", x) 		//xoffset)
-			.attr("y", y)		//this.state.gridTitleYOffset)
+			.attr("x", this.state.gridRegion.x + this._gridWidth()/2) // Calculated based on the gridRegion - Joe
+			.attr("y", 40) // Fixed y position - Joe
+			.style('text-anchor', 'middle') // Center the main title - Joe
 			.text(titleText);
 	},
 
