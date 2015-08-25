@@ -446,7 +446,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		$("#pg_controls_options").hide(); // Hide the options by default
 		
 		// Toggle the options panel by clicking the button
-		$("#pg_slide_btn").click(function() {
+		$("#pg_slide_btn_icon").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
 			if ( ! $(this).hasClass("pg_slide_open")) {
 				// Show the phenogrid controls
@@ -464,11 +464,11 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		// more user-friendly than just force to click the button again
 		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg_area', it won't work - Joe
 		$('#pg_svg_area').click(function(event) {
-			if ($(event.target) !== $('#pg_slide_btn') && $(event.target) !== $('#pg_controls_options')) {
+			if ($(event.target) !== $('#pg_slide_btn_icon') && $(event.target) !== $('#pg_controls_options')) {
 				// Only close the options if it's visible
 				if ($('#pg_controls_options').is(':visible')) {
 					// Add the top border of the button back
-					$("#pg_slide_btn").removeClass("pg_slide_open");
+					$("#pg_slide_btn_icon").removeClass("pg_slide_open");
 					// Then close the options
 					$("#pg_controls_options").fadeOut();
 				}
@@ -1220,18 +1220,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		this._reDraw();
 	},
 
-	// Position the control panel when the gridRegion changes
-	_positionPhenogridControls: function(){
-		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
-		// we won't have the _gridHeight() by that time - Joe
-		var gridRegion = this.state.gridRegion; 
-		var marginTop = 10; // Create some whitespace between the button and the y labels 
-		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
-		// The height of #pg_controls_options defined in phenogrid.css - Joe
-		var pg_ctrl_options = $('#pg_controls_options');
-		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() + 1 + marginTop); // extra 1px to hide the border
-    },	
-	
+
     /*
 	 * Make sure there are limit items in res --
 	 * If we don't have enough, add some dummy items in. 
@@ -1933,7 +1922,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	},
 
 
-	// Phengrid controls/settings
+	// Phengrid controls/options
 	_createPhenogridControls: function() {
 		var self = this; // Use self inside anonymous functions 
 		
@@ -1942,11 +1931,11 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		// Not in the #pg_svg_area div since it's HTML - Joe
 		$('#pg_svg_container').append(phenogridControls);
 		
-		
-		var optionhtml ='<div id="pg_controls_options"></div>';
+		// Need to put .pg_controls_options_arrow_border span before .pg_controls_options_arrow span - Joe
+		var optionhtml ='<div id="pg_controls_options"><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
-		var slideBtn ='<button id="pg_slide_btn">Settings <i class="fa fa-cog"></i></button>';
+		var slideBtn ='<div id="pg_slide_btn"><span id="pg_slide_btn_icon"><i class="fa fa-bars"></i></span> OPTIONS</div>';
 		
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
@@ -2019,6 +2008,19 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		self._configureFaqs();
 	},
 
+	// Position the control panel when the gridRegion changes
+	_positionPhenogridControls: function(){
+		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
+		// we won't have the _gridHeight() by that time - Joe
+		var gridRegion = this.state.gridRegion; 
+		var marginTop = 15; // Create some whitespace between the button and the y labels 
+		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+		// The height of #pg_controls_options defined in phenogrid.css - Joe
+		var pg_ctrl_options = $('#pg_controls_options');
+		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
+		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
+    },	
+	
 	_createOrganismSelection: function() {
 		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism(s)</label>" + 
 			"<div id='pg_organism'>";
