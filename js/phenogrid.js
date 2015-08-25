@@ -620,7 +620,7 @@ var Utils = require('./utils.js');
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
-		        .on("mouseover", function(d) { 
+		        .on("mouseenter", function(d) { 
 		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
 		        	self._cellover(this, d, self);})
 		        .on("mouseout", function(d) {
@@ -1261,25 +1261,6 @@ var Utils = require('./utils.js');
 		var pg_ctrl_options = $('#pg_controls_options');
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() + 1 + marginTop); // extra 1px to hide the border
 	},
-
-    /*
-	 * Make sure there are limit items in res --
-	 * If we don't have enough, add some dummy items in. 
-	 * This will space things out appropriately, having dummy models take 
-	 * up some of the x axis space. Later, we will make sure not to show the labels for these dummies.
-	 */
-	// _padSpeciesData: function(res,species,limit) {
-	// 	var toadd = limit - res.b.length;
-	// 	for (var i = 0; i < toadd; i++) {
-	// 		var dummyId = "dummy" + species + i;
-	// 		var newItem = { id: dummyId,
-	// 			label: this.state.dummyModelName,
-	// 			score: {score: 0, rank: Number.MAX_VALUE},
-	// 		};
-	// 		res.b.push(newItem);
-	// 	}
-	// 	return res;
-	// },
 
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
