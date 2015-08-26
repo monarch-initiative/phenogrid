@@ -514,7 +514,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
-				self._crossHairsOn(d.id, i, focus, 'y');
+				self._crossHairsOn(d.id, i, focus, 'horizontal');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
 				self._cellover(this, data, self);})
 			.on("mouseout", function(d) {
@@ -547,24 +547,12 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      		//console.log(JSON.stringify(d));      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 
-		    	self._crossHairsOn(d.id, i, focus, 'x');
+		    	self._crossHairsOn(d.id, i, focus, 'vertical');
 		    	self._cellover(this, d, self);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
 				self._cellout(d);});
 	      	
-		// set some lines for cross hairs
-  		var focus = this.state.svg.append('g');  //.style('display', 'none');
-                
-        focus.append('line')
-            .attr('id', 'focusLineX')
-            .attr('class', 'pg_focusLine')
-            .style('display', 'none');
-        focus.append('line')
-            .attr('id', 'focusLineY')
-            .attr('class', 'pg_focusLine')
-            .style('display', 'none');
-
 	    // add the scores  
 	    self._createTextScores();
 
@@ -586,6 +574,10 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 			        })
 		        .on("mouseenter", function(d) { 
 		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
+					
+									console.log('dddddd: ' + d);
+				
+					
 		        	self._cellover(this, d, self);})
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
@@ -594,63 +586,49 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	},
 
 	_crossHairsOff: function() {
-		d3.select("#focusLineX")
-		  		.style("display", 'none');
-		d3.select("#focusLineY")
-		  		.style("display", 'none');	
+        this.state.svg.selectAll(".pg_focusLine").remove();			
 	},
 
+	// directions: 'vertical' or 'horizontal' or 'both'
 	_crossHairsOn: function(id, ypos, focus, direction) {
 		var xScale = this.state.xAxisRender.getScale();
+
     	var xs = xScale(id);
+
     	var gridRegion = this.state.gridRegion; 
-        var x = (gridRegion.x + (xs* gridRegion.xpad)) + 5;  // magic number to make sure it goes through the middle of the cell
+        var x = gridRegion.x + (xs * gridRegion.xpad) + 5;  // magic number to make sure it goes through the middle of the cell
         var y = gridRegion.y + (ypos * gridRegion.ypad) + 5; 
 
-		if (direction == 'x') {
-
-	        // position the cross hairs
-			focus.select('#focusLineX')
-            	.attr('x1', x).attr('y1', gridRegion.y)
-            	.attr('x2', x).attr('y2', gridRegion.y + this._gridHeight());
-
-			d3.select("#focusLineX")
-		  		.style("display", null);
-			d3.select("#focusLineY")
-		  		.style("display", 'none');	
-
-        } else if (direction == 'y') {
-
-       		focus.select('#focusLineY')
-            	.attr('x1', gridRegion.x)
-            	.attr('y1', y)
-            	.attr('x2', gridRegion.x + this._gridWidth())
-            	.attr('y2', y);
-
-			d3.select("#focusLineX")
-		  		.style("display", 'none');
-			d3.select("#focusLineY")
-		  		.style("display", null);	
+		if (direction === 'vertical') {
+			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + this._gridHeight());
+        } else if (direction === 'horizontal') {
+			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
         } else {
-
-	        // position the cross hairs
-			focus.select('#focusLineX')
-            	.attr('x1', x).attr('y1', gridRegion.y)
-            	.attr('x2', x).attr('y2', gridRegion.y + this._gridHeight());
-
-			focus.select('#focusLineY')
-        	    .attr('x1', gridRegion.x)
-            	.attr('y1', y)
-            	.attr('x2', gridRegion.x + this._gridWidth())
-            	.attr('y2', y);
-
-			d3.select("#focusLineX")
-		  		.style("display", null);
-			d3.select("#focusLineY")
-		  		.style("display", null);	        
+			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + this._gridHeight());
+			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
         }
 	},
+	
+	_createFocusLineVertical: function(x1, y1, x2, y2) {     
+        this.state.svg.append('line')
+            .attr('id', 'focusLineVertical')
+            .attr('class', 'pg_focusLine')
+            .attr('x1', x1)
+			.attr('y1', y1)
+			.attr('x2', x2)
+			.attr('y2', y2);
+	},
 
+	_createFocusLineHorizontal: function(x1, y1, x2, y2) {   
+		this.state.svg.append('line')
+            .attr('id', 'focusLineHorizontal')
+            .attr('class', 'pg_focusLine')
+            .attr('x1', x1)
+			.attr('y1', y1)
+			.attr('x2', x2)
+			.attr('y2', y2);
+	},
+	
 	_calcYCoord: function (d, i) {
 		var y = this.state.gridRegion.y;
 		var ypad = this.state.gridRegion.ypad;
