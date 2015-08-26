@@ -18,8 +18,8 @@ var $ = jQuery;
 
 
 var stickytooltip = {
-	tooltipoffsets: [1, -1], //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
-	fadeinspeed: 1000, //duration of fade effect in milliseconds
+	tooltipoffsets: {x:40, y:20}, //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
+	fadeinspeed: 1, //duration of fade effect in milliseconds
 	rightclickstick: true, //sticky tooltip when user right clicks over the triggering element (apart from pressing "s" key) ?
 	stickybordercolors: ["black", "darkred"], //border color of tooltip depending on sticky state
 	stickynotice1: ["Press \"s\" or right click to activate sticky box. \"h\" to hide"], //, "or right click", "to sticky box"], //customize tooltip status message
@@ -33,8 +33,9 @@ var stickytooltip = {
 
 	positiontooltip:function($, $tooltip, e){
 		//var x=e.pageX+this.tooltipoffsets[0], y=e.pageY+this.tooltipoffsets[1]
-		console.log(e);
-	    var x=e.pageX+1, y=e.pageY-1;
+		//console.log(e);
+		var x = e.left + this.tooltipoffsets.x, y = e.top + this.tooltipoffsets.y;
+	    //var x=e.pageX+1, y=e.pageY-1;
 		var tipw=$tooltip.outerWidth(), tiph=$tooltip.outerHeight(), 
 		x=(x+tipw>$(document).scrollLeft()+$(window).width())? x-tipw-(stickytooltip.tooltipoffsets[0]*2) : x
 		y=(y+tiph>$(document).scrollTop()+$(window).height())? $(document).scrollTop()+$(window).height()-tiph-10 : y

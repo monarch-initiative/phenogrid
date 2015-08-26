@@ -512,9 +512,10 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
+				var p = $(this);					
 				self._crossHairsOn(d.id, i, focus, 'y');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				self._cellover(this, data, self);})
+				self._cellover(this, data, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
 				self._cellout(d);});
@@ -539,14 +540,14 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-		    .attr("data-tooltip", "sticky1")   			
+//		    .attr("data-tooltip", "sticky1")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
-	      		//console.log(JSON.stringify(d));      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 
+		    	var p = $(this);					
 		    	self._crossHairsOn(d.id, i, focus, 'x');
-		    	self._cellover(this, d, self);})
+		    	self._cellover(this, d, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
 				self._cellout(d);});
@@ -577,14 +578,15 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-				.attr("data-tooltip", "sticky1")   					        
+			//	.attr("data-tooltip", "sticky1")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
 		        .on("mouseenter", function(d) { 
+		        	var p = $(this);					
 		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
-		        	self._cellover(this, d, self);})
+		        	self._cellover(this, d, self, p);})
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
 		        	self._cellout(d);});
@@ -656,7 +658,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		return (y+(i*ypad));
 	},
 
-	_cellover: function (self, d, parent) {
+	_cellover: function (self, d, parent, p) {
 
 		var data;
 		if (d.type == 'cell') {  
@@ -679,6 +681,12 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		}
 		// show tooltip
 		parent._createHoverBox(data);
+
+		// get the position of object where the mouse event happened
+		var position = p.position();
+		
+		// show a stickytooltip
+		stickytooltip.show(position);
 
 	},
 

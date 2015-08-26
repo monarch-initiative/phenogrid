@@ -1855,9 +1855,10 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
+				var p = $(this);					
 				self._crossHairsOn(d.id, i, focus, 'y');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				self._cellover(this, data, self);})
+				self._cellover(this, data, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
 				self._cellout(d);});
@@ -1882,14 +1883,14 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-		    .attr("data-tooltip", "sticky1")   			
+//		    .attr("data-tooltip", "sticky1")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
-	      		//console.log(JSON.stringify(d));      	
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 
+		    	var p = $(this);					
 		    	self._crossHairsOn(d.id, i, focus, 'x');
-		    	self._cellover(this, d, self);})
+		    	self._cellover(this, d, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
 				self._cellout(d);});
@@ -1920,14 +1921,15 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-				.attr("data-tooltip", "sticky1")   					        
+			//	.attr("data-tooltip", "sticky1")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
 		        .on("mouseenter", function(d) { 
+		        	var p = $(this);					
 		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
-		        	self._cellover(this, d, self);})
+		        	self._cellover(this, d, self, p);})
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
 		        	self._cellout(d);});
@@ -1999,7 +2001,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		return (y+(i*ypad));
 	},
 
-	_cellover: function (self, d, parent) {
+	_cellover: function (self, d, parent, p) {
 
 		var data;
 		if (d.type == 'cell') {  
@@ -2022,6 +2024,12 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		}
 		// show tooltip
 		parent._createHoverBox(data);
+
+		// get the position of object where the mouse event happened
+		var position = p.position();
+		
+		// show a stickytooltip
+		stickytooltip.show(position);
 
 	},
 
@@ -3988,8 +3996,8 @@ var $ = jQuery;
 
 
 var stickytooltip = {
-	tooltipoffsets: [1, -1], //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
-	fadeinspeed: 1000, //duration of fade effect in milliseconds
+	tooltipoffsets: {x:40, y:20}, //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
+	fadeinspeed: 1, //duration of fade effect in milliseconds
 	rightclickstick: true, //sticky tooltip when user right clicks over the triggering element (apart from pressing "s" key) ?
 	stickybordercolors: ["black", "darkred"], //border color of tooltip depending on sticky state
 	stickynotice1: ["Press \"s\" or right click to activate sticky box. \"h\" to hide"], //, "or right click", "to sticky box"], //customize tooltip status message
@@ -4003,8 +4011,9 @@ var stickytooltip = {
 
 	positiontooltip:function($, $tooltip, e){
 		//var x=e.pageX+this.tooltipoffsets[0], y=e.pageY+this.tooltipoffsets[1]
-		console.log(e);
-	    var x=e.pageX+1, y=e.pageY-1;
+		//console.log(e);
+		var x = e.left + this.tooltipoffsets.x, y = e.top + this.tooltipoffsets.y;
+	    //var x=e.pageX+1, y=e.pageY-1;
 		var tipw=$tooltip.outerWidth(), tiph=$tooltip.outerHeight(), 
 		x=(x+tipw>$(document).scrollLeft()+$(window).width())? x-tipw-(stickytooltip.tooltipoffsets[0]*2) : x
 		y=(y+tiph>$(document).scrollTop()+$(window).height())? $(document).scrollTop()+$(window).height()-tiph-10 : y
