@@ -1335,12 +1335,10 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 	// Positioned next to the grid region bottom
 	_addLogoImage: function() { 
-		var gridRegion = this.state.gridRegion;
-		
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
-			.attr("x", gridRegion.x + this._gridWidth() + 20) // 20 is the margin to left
-			.attr("y", gridRegion.y + this._gridHeight() + 18) // 18 is the margin to top - Joe
+			.attr("x", this.state.gridRegion.x + this._gridWidth() - this.state.logo.width) // Logo right aligns to the grid region right boundry - Joe
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 18) // 18 is the margin to top - Joe
 			.attr("id", "pg_logo")
 			.attr("width", this.state.logo.width)
 			.attr("height", this.state.logo.height);
@@ -1759,11 +1757,10 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 		// Create the gradient rect
 		gradientGrp.append("rect")
-			//.attr("transform", "translate(" + x + "," + y +")")
-			.attr("x", gridRegion.x)
+			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", gridRegion.y + this._gridHeight() + 22) // use x and y instead of transform since rect has x and y, 22 is margin - Joe
 			.attr("id", "pg_gradient_legend_rect")
-			.attr("width", this._gridWidth())
+			.attr("width", this._gridWidth() - this.state.gridRegion.xpad * 3 * 2) // // Shift 3 (cells+spaceing) on each side - Joe
 			.attr("height", this.state.gradientRegion.height) 
 			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 		
@@ -1792,7 +1789,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x)
+			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", yTexts)
 			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
@@ -1806,7 +1803,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this._gridWidth())
+			.attr("x", gridRegion.x + this._gridWidth() - this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", yTexts)	
             .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
