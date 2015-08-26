@@ -354,7 +354,7 @@ DataLoader.prototype = {
 
 		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 
-		var url = this.serverURL + "/neighborhood/" + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
+		var url = this.serverURL + "/neighborhood/" + id.replace('_', ':') + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 		var cb = this.postOntologyCb;
 

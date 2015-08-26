@@ -123,7 +123,7 @@ var Utils = require('./utils.js');
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
 		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
-		logo: {width: 30, height: 15},
+		logo: {width: 26, height: 13},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -417,6 +417,8 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 			}
 			this._createGrid();
 			
+			this._createScoresTipIcon();
+			
 			this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
 			
 			this._createOverviewSection();
@@ -443,7 +445,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		$("#pg_controls_options").hide(); // Hide the options by default
 		
 		// Toggle the options panel by clicking the button
-		$("#pg_slide_btn_icon").click(function() {
+		$("#pg_slide_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
 			if ( ! $(this).hasClass("pg_slide_open")) {
 				// Show the phenogrid controls
@@ -461,11 +463,11 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		// more user-friendly than just force to click the button again
 		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg_area', it won't work - Joe
 		$('#pg_svg_area').click(function(event) {
-			if ($(event.target) !== $('#pg_slide_btn_icon') && $(event.target) !== $('#pg_controls_options')) {
+			if ($(event.target) !== $('#pg_slide_btn') && $(event.target) !== $('#pg_controls_options')) {
 				// Only close the options if it's visible
 				if ($('#pg_controls_options').is(':visible')) {
 					// Add the top border of the button back
-					$("#pg_slide_btn_icon").removeClass("pg_slide_open");
+					$("#pg_slide_btn").removeClass("pg_slide_open");
 					// Then close the options
 					$("#pg_controls_options").fadeOut();
 				}
@@ -507,13 +509,13 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      			 })  
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
-			.attr("data-tooltip", "sticky1")   				      
+//			.attr("data-tooltip", "sticky1")   				      
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
-				var p = $(this);					
-				self._crossHairsOn(d.id, i, focus, 'y');
+				var p = $(this);			
+				self._crossHairsOn(d.id, i, focus, 'horizontal');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
 				self._cellover(this, data, self, p);})
 			.on("mouseout", function(d) {
@@ -546,24 +548,12 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 
 		    	var p = $(this);					
-		    	self._crossHairsOn(d.id, i, focus, 'x');
+		    	self._crossHairsOn(d.id, i, focus, 'vertical');
 		    	self._cellover(this, d, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
 				self._cellout(d);});
 	      	
-		// set some lines for cross hairs
-  		var focus = this.state.svg.append('g');  //.style('display', 'none');
-                
-        focus.append('line')
-            .attr('id', 'focusLineX')
-            .attr('class', 'pg_focusLine')
-            .style('display', 'none');
-        focus.append('line')
-            .attr('id', 'focusLineY')
-            .attr('class', 'pg_focusLine')
-            .style('display', 'none');
-
 	    // add the scores  
 	    self._createTextScores();
 
@@ -586,7 +576,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		        .on("mouseenter", function(d) { 
 		        	var p = $(this);					
 		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
-		        	self._cellover(this, d, self, p);})
+		        	self._cellover(this, d, self, p);})							
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
 		        	self._cellout(d);});
@@ -594,63 +584,49 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	},
 
 	_crossHairsOff: function() {
-		d3.select("#focusLineX")
-		  		.style("display", 'none');
-		d3.select("#focusLineY")
-		  		.style("display", 'none');	
+        this.state.svg.selectAll(".pg_focusLine").remove();			
 	},
 
+	// directions: 'vertical' or 'horizontal' or 'both'
 	_crossHairsOn: function(id, ypos, focus, direction) {
 		var xScale = this.state.xAxisRender.getScale();
+
     	var xs = xScale(id);
+
     	var gridRegion = this.state.gridRegion; 
-        var x = (gridRegion.x + (xs* gridRegion.xpad)) + 5;  // magic number to make sure it goes through the middle of the cell
+        var x = gridRegion.x + (xs * gridRegion.xpad) + 5;  // magic number to make sure it goes through the middle of the cell
         var y = gridRegion.y + (ypos * gridRegion.ypad) + 5; 
 
-		if (direction == 'x') {
-
-	        // position the cross hairs
-			focus.select('#focusLineX')
-            	.attr('x1', x).attr('y1', gridRegion.y)
-            	.attr('x2', x).attr('y2', gridRegion.y + this._gridHeight());
-
-			d3.select("#focusLineX")
-		  		.style("display", null);
-			d3.select("#focusLineY")
-		  		.style("display", 'none');	
-
-        } else if (direction == 'y') {
-
-       		focus.select('#focusLineY')
-            	.attr('x1', gridRegion.x)
-            	.attr('y1', y)
-            	.attr('x2', gridRegion.x + this._gridWidth())
-            	.attr('y2', y);
-
-			d3.select("#focusLineX")
-		  		.style("display", 'none');
-			d3.select("#focusLineY")
-		  		.style("display", null);	
+		if (direction === 'vertical') {
+			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + this._gridHeight());
+        } else if (direction === 'horizontal') {
+			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
         } else {
-
-	        // position the cross hairs
-			focus.select('#focusLineX')
-            	.attr('x1', x).attr('y1', gridRegion.y)
-            	.attr('x2', x).attr('y2', gridRegion.y + this._gridHeight());
-
-			focus.select('#focusLineY')
-        	    .attr('x1', gridRegion.x)
-            	.attr('y1', y)
-            	.attr('x2', gridRegion.x + this._gridWidth())
-            	.attr('y2', y);
-
-			d3.select("#focusLineX")
-		  		.style("display", null);
-			d3.select("#focusLineY")
-		  		.style("display", null);	        
+			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + this._gridHeight());
+			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
         }
 	},
+	
+	_createFocusLineVertical: function(x1, y1, x2, y2) {     
+        this.state.svg.append('line')
+            .attr('id', 'focusLineVertical')
+            .attr('class', 'pg_focusLine')
+            .attr('x1', x1)
+			.attr('y1', y1)
+			.attr('x2', x2)
+			.attr('y2', y2);
+	},
 
+	_createFocusLineHorizontal: function(x1, y1, x2, y2) {   
+		this.state.svg.append('line')
+            .attr('id', 'focusLineHorizontal')
+            .attr('class', 'pg_focusLine')
+            .attr('x1', x1)
+			.attr('y1', y1)
+			.attr('x2', x2)
+			.attr('y2', y2);
+	},
+	
 	_calcYCoord: function (d, i) {
 		var y = this.state.gridRegion.y;
 		var ypad = this.state.gridRegion.ypad;
@@ -1065,47 +1041,23 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return selectedScale(score);
 	},
 
-	// Needs to REFACTOR OUT - Joe
-	_createModelScoresLegend: function() {
-	// Make sure the legend is only created once - Joe
-			if (this.state.svg.select(".pg_tip")[0][0] === null) {
-				var self = this;
-				var scoreTipY = self.state.yoffset;
-				var faqY = scoreTipY - self.state.gridTitleYOffset;
-				var tipTextLength = 92;
-				var explYOffset = 15;
-				var explXOffset = 10;
-				
-				var scoretip = self.state.svg.append("text")
-					.attr("transform", "translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY + ")")
-					.attr("x", 0)
-					.attr("y", 0)
-					.attr("class", "pg_tip")
-					.text("<- Model Scores"); // changed "<" to "<-" to make it look more like an arrow pointer - Joe
+    // Tip info icon for more info on those text scores
+	_createScoresTipIcon: function() {
+		var self = this; // Used in the anonymous function 
 
-				var tip	= self.state.svg
-					.append("text")
-					.attr('font-family', 'FontAwesome')
-					.text(function(d) { 
-						return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
-					})
-					.attr("id", "modelscores")
-					.attr("x", self.state.axis_pos_list[2] + tipTextLength)
-					.attr("y", faqY + 20) // 20 padding - Joe
-					.style('cursor', 'pointer')
-					.on("click", function(d) {
-						var name = "modelscores";
-						self._showDialog(name);
-					});
-
-				var expl = self.state.svg.append("text")
-					.attr("x", self.state.axis_pos_list[2] + explXOffset)
-					.attr("y", scoreTipY + explYOffset)
-					.attr("class", "pg_tip")
-					.text("Best matches high to low"); // uppercased best - > Best - Joe
-			}
+		this.state.svg.append("text")
+			.attr('font-family', 'FontAwesome')
+			.text(function(d) {
+				return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
+			})
+			.attr("id", "pg_scores_tip_icon")
+			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
+			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
+			.on("click", function(d) {
+				self._showDialog("modelscores");
+			});
 	},
-
+		
 	_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
 		// Group the overview region and text together - Joe
 		var globalviewGrp = this.state.svg.append("g")
@@ -1365,15 +1317,17 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 	// Positioned next to the grid region bottom
 	_addLogoImage: function() { 
-		var gridRegion = this.state.gridRegion;
-		
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
-			.attr("x", gridRegion.x + this._gridWidth() + 20) // 20 is the margin to left
-			.attr("y", gridRegion.y + this._gridHeight() + 18) // 18 is the margin to top - Joe
+			.attr("x", this.state.gridRegion.x + this._gridWidth() - this.state.logo.width) // Logo right aligns to the grid region right boundary - Joe
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 20) // 20 is the margin to top - Joe
 			.attr("id", "pg_logo")
+			.attr('class', 'pg_cursor_pointer')
 			.attr("width", this.state.logo.width)
-			.attr("height", this.state.logo.height);
+			.attr("height", this.state.logo.height)
+			.on('click', function() {
+				window.open('http://monarchinitiative.org', '_blank');
+			});
 	},
 
 	_resetLinks: function() {
@@ -1789,11 +1743,10 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 		// Create the gradient rect
 		gradientGrp.append("rect")
-			//.attr("transform", "translate(" + x + "," + y +")")
-			.attr("x", gridRegion.x)
+			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", gridRegion.y + this._gridHeight() + 22) // use x and y instead of transform since rect has x and y, 22 is margin - Joe
 			.attr("id", "pg_gradient_legend_rect")
-			.attr("width", this._gridWidth())
+			.attr("width", this._gridWidth() - this.state.gridRegion.xpad * 3 * 2) // // Shift 3 (cells+spaceing) on each side - Joe
 			.attr("height", this.state.gradientRegion.height) 
 			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 		
@@ -1822,7 +1775,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x)
+			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", yTexts)
 			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
@@ -1836,7 +1789,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this._gridWidth())
+			.attr("x", gridRegion.x + this._gridWidth() - this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", yTexts)	
             .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
@@ -1856,7 +1809,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var optionhtml ='<div id="pg_controls_options"><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
-		var slideBtn ='<div id="pg_slide_btn"><span id="pg_slide_btn_icon"><i class="fa fa-bars"></i></span> OPTIONS</div>';
+		var slideBtn ='<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
 		
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
