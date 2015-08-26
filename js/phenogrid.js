@@ -445,7 +445,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		$("#pg_controls_options").hide(); // Hide the options by default
 		
 		// Toggle the options panel by clicking the button
-		$("#pg_slide_btn_icon").click(function() {
+		$("#pg_slide_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
 			if ( ! $(this).hasClass("pg_slide_open")) {
 				// Show the phenogrid controls
@@ -463,11 +463,11 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		// more user-friendly than just force to click the button again
 		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg_area', it won't work - Joe
 		$('#pg_svg_area').click(function(event) {
-			if ($(event.target) !== $('#pg_slide_btn_icon') && $(event.target) !== $('#pg_controls_options')) {
+			if ($(event.target) !== $('#pg_slide_btn') && $(event.target) !== $('#pg_controls_options')) {
 				// Only close the options if it's visible
 				if ($('#pg_controls_options').is(':visible')) {
 					// Add the top border of the button back
-					$("#pg_slide_btn_icon").removeClass("pg_slide_open");
+					$("#pg_slide_btn").removeClass("pg_slide_open");
 					// Then close the options
 					$("#pg_controls_options").fadeOut();
 				}
@@ -1068,10 +1068,9 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			.text(function(d) {
 				return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 			})
-			.attr("id", "modelscores")
+			.attr("id", "pg_scores_tip_icon")
 			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
 			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
-			.style('cursor', 'pointer')
 			.on("click", function(d) {
 				self._showDialog("modelscores");
 			});
@@ -1827,7 +1826,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var optionhtml ='<div id="pg_controls_options"><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
-		var slideBtn ='<div id="pg_slide_btn"><span id="pg_slide_btn_icon"><i class="fa fa-bars"></i></span> OPTIONS</div>';
+		var slideBtn ='<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
 		
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
