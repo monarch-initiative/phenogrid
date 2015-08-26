@@ -123,7 +123,7 @@ var Utils = require('./utils.js');
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
 		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
-		logo: {width: 30, height: 15},
+		logo: {width: 26, height: 13},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -1338,7 +1338,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
 			.attr("x", this.state.gridRegion.x + this._gridWidth() - this.state.logo.width) // Logo right aligns to the grid region right boundary - Joe
-			.attr("y", this.state.gridRegion.y + this._gridHeight() + 18) // 18 is the margin to top - Joe
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 20) // 20 is the margin to top - Joe
 			.attr("id", "pg_logo")
 			.attr('class', 'pg_cursor_pointer')
 			.attr("width", this.state.logo.width)
