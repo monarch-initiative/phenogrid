@@ -1337,11 +1337,15 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	_addLogoImage: function() { 
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
-			.attr("x", this.state.gridRegion.x + this._gridWidth() - this.state.logo.width) // Logo right aligns to the grid region right boundry - Joe
+			.attr("x", this.state.gridRegion.x + this._gridWidth() - this.state.logo.width) // Logo right aligns to the grid region right boundary - Joe
 			.attr("y", this.state.gridRegion.y + this._gridHeight() + 18) // 18 is the margin to top - Joe
 			.attr("id", "pg_logo")
+			.attr('class', 'pg_cursor_pointer')
 			.attr("width", this.state.logo.width)
-			.attr("height", this.state.logo.height);
+			.attr("height", this.state.logo.height)
+			.on('click', function() {
+				window.open('http://monarchinitiative.org', '_blank');
+			});
 	},
 
 	_resetLinks: function() {
