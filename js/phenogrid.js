@@ -417,6 +417,8 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 			}
 			this._createGrid();
 			
+			this._createScoresTipIcon();
+			
 			this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
 			
 			this._createOverviewSection();
@@ -1057,47 +1059,24 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return selectedScale(score);
 	},
 
-	// Needs to REFACTOR OUT - Joe
-	_createModelScoresLegend: function() {
-	// Make sure the legend is only created once - Joe
-			if (this.state.svg.select(".pg_tip")[0][0] === null) {
-				var self = this;
-				var scoreTipY = self.state.yoffset;
-				var faqY = scoreTipY - self.state.gridTitleYOffset;
-				var tipTextLength = 92;
-				var explYOffset = 15;
-				var explXOffset = 10;
-				
-				var scoretip = self.state.svg.append("text")
-					.attr("transform", "translate(" + (self.state.axis_pos_list[2] ) + "," + scoreTipY + ")")
-					.attr("x", 0)
-					.attr("y", 0)
-					.attr("class", "pg_tip")
-					.text("<- Model Scores"); // changed "<" to "<-" to make it look more like an arrow pointer - Joe
+    // Tip info icon for more info on those text scores
+	_createScoresTipIcon: function() {
+		var self = this; // Used in the anonymous function 
 
-				var tip	= self.state.svg
-					.append("text")
-					.attr('font-family', 'FontAwesome')
-					.text(function(d) { 
-						return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
-					})
-					.attr("id", "modelscores")
-					.attr("x", self.state.axis_pos_list[2] + tipTextLength)
-					.attr("y", faqY + 20) // 20 padding - Joe
-					.style('cursor', 'pointer')
-					.on("click", function(d) {
-						var name = "modelscores";
-						self._showDialog(name);
-					});
-
-				var expl = self.state.svg.append("text")
-					.attr("x", self.state.axis_pos_list[2] + explXOffset)
-					.attr("y", scoreTipY + explYOffset)
-					.attr("class", "pg_tip")
-					.text("Best matches high to low"); // uppercased best - > Best - Joe
-			}
+		this.state.svg.append("text")
+			.attr('font-family', 'FontAwesome')
+			.text(function(d) {
+				return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
+			})
+			.attr("id", "modelscores")
+			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
+			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
+			.style('cursor', 'pointer')
+			.on("click", function(d) {
+				self._showDialog("modelscores");
+			});
 	},
-
+		
 	_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
 		// Group the overview region and text together - Joe
 		var globalviewGrp = this.state.svg.append("g")
