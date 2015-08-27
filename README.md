@@ -20,7 +20,23 @@ curl -sL https://rpm.nodesource.com/setup | bash -
 yum install -y nodejs
 ```
 
+This above commands work on RedHat and CentOS.
+
 For OS X machines, you can try these instructions: http://blog.teamtreehouse.com/install-node-js-npm-mac. Or, just visit nodejs.org.
+
+If you are running Ubuntu, you can 
+
+````
+sudo apt-get install nodejs
+sudo apt-get install npm
+````
+
+Then create a symbolic link for "node" as many Node.js tools use this name to execute.
+
+````
+sudo ln -s /usr/bin/nodejs /usr/bin/node
+````
+
 
 ## 2. Install phenogrid widget
 
