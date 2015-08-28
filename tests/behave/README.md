@@ -24,7 +24,6 @@ These are the tags that we're currently using in the tests (in case
 you want to check or remove just a subset).
 
 - ui: tests written for the UI, likely Selenium
-- data: tests specific to testing the sanity of data
 
 # Install Python virtualenv
 
@@ -84,14 +83,16 @@ The products of these steps should all be hidden by the .gitignore file.
 Running all tests (the *.feature files) should be as simple as:
 
 ````
-behave
+TARGET=http://localhost:8080 behave
 ````
 
-This command will open the web browser and run the tests against monarchinitiative.org by default. When testing in your local server, you can specify the target URL:
+If you are running Phenogrid on a different port number of the web server, adjust accordingly. If you run Phenogrid inside Monarch-App, you can do the following:
 
 ````
-TARGET=http://localhost:8282 behave
+TARGET=http://localhost:8282/node_modules/phenogrid behave
 ````
+
+This will test the index.html page.
 
 # Debugging tests
 

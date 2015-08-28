@@ -87,31 +87,18 @@ def step_impl(context, link):
             isNotFound = False
     assert isNotFound == True
 
-## A given class should contain a given piece of text/content. Not
-## generably usable by non-dev test writers.
+## A given class should contain a given piece of text/content.
+## Not generably usable by non-dev test writers.
 @then('the class "{clss}" should contain "{text}"')
 def step_impl(context, clss, text):
-    #print(context.browser.title)
-    #print(title)
     webelt = context.browser.find_element_by_class_name(clss)
     assert webelt.text.rfind(text) != -1
 
-## A given tab should contain a given piece of text/content.
-@then('the "{tabname}" tab should contain "{text}"')
-def step_impl(context, tabname, text):
-    # print(context.browser.title)
-    webelts = context.browser.find_elements_by_class_name("tab")
-    found_tab = False
-    for w in webelts:
-        if w.text.rfind(tabname) != -1:
-            found_tab = True
-            parent = w.find_element_by_xpath("..")
-            tab_href = parent.get_attribute("href")
-            url = urlparse(tab_href)
-            tab_id = url.fragment
-            # print(tab_id)
-            tab_area_elt = context.browser.find_element_by_id(tab_id)
-            # print(tab_area_elt.text)
-            assert tab_area_elt and tab_area_elt.text.rfind(text) != -1
-    assert found_tab
+## A given id should contain a given piece of text/content. 
+## Not generably usable by non-dev test writers.
+@then('the id "{id}" should contain "{text}"')
+def step_impl(context, id, text):
+    webelt = context.browser.find_element_by_id(id)
+    assert webelt.text.rfind(text) != -1
+
 
