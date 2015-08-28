@@ -46,7 +46,7 @@ Now virtualenv, and dependencies, can be installed using the YUM package manager
 sudo yum -y install python-virtualenv
 ````
 
-# Run Tests
+# Runing Tests
 
 Note: you need to have the desktop and web browser (it uses Firefox by default) installed in order to run the tests. 
 
@@ -65,7 +65,7 @@ source bin/activate
 
 The `activate` script will modify the path and shell prompt (the name of the current virtual environment will now appear on the left of the prompt, which is 'behave' in this case) to let you know that it's active.
 
-Now we will need to install the following tools (Selenium WebDriver and behave) in order to run the behave tests. And any package that you install using pip will be placed in the current folder, isolated from the global Python installation.
+Now we will need to install the following tools (Selenium WebDriver and the behave command-line tool) in order to run the behave tests. And any package that you install using pip will be placed in the current folder, isolated from the global Python installation.
 
 ````
 pip install selenium
