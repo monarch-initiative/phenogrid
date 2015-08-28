@@ -18,13 +18,6 @@ between the human language-esque tests and the plumbing will allow
 us to actually build up a body of tests without taking too much away
 from development time.
 
-# Tags
-
-These are the tags that we're currently using in the tests (in case
-you want to check or remove just a subset).
-
-- ui: tests written for the UI, likely Selenium
-
 # Install Python virtualenv
 
 ## On Ubuntu 14.04 LTS
@@ -75,7 +68,6 @@ Now we will need to install the following tools in order to run the behave tests
 ````
 pip install selenium
 pip install behave
-pip install jsonpath-rw
 ````
 
 The products of these steps should all be hidden by the .gitignore file.

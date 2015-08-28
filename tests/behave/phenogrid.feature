@@ -1,11 +1,11 @@
 Feature: Phenogrid works as a standalone widget
 
-    @ui
+
     Scenario: Loading the phenogrid widget
         Given I go to slow page "/index.html" and wait for id "pg_svg_container"
             Then the document should contain "Loading Phenogrid Widget..."
 
-    @ui
+
     Scenario Outline: Visible items once the widget is loaded
         Given I go to page "/index.html"
     	    Then the id "<id>" should contain "<text>"
@@ -21,7 +21,6 @@ Feature: Phenogrid works as a standalone widget
             | pg_svg_area              | Danio rerio              |
 
 
-    @ui
     Scenario Outline: Visible items after clicking options panel
         Given I go to page "/index.html"
             And I click the "pg_slide_btn"
@@ -35,14 +34,13 @@ Feature: Phenogrid works as a standalone widget
             | pg_controls_options      | About Phenogrid          |
 
 
-    @ui
     Scenario: Inver Axis
         Given I go to page "/index.html"
             And I click the "pg_slide_btn"
             And I click the "pg_axisflip"
             Then the id "pg_grid_row_0" should contain "Trp63"
 
-    @ui
+
     Scenario: Model scores popup dialog
         Given I go to page "/index.html"
             And I click the "pg_scores_tip_icon"
