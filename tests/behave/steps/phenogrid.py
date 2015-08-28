@@ -1,6 +1,8 @@
-####
-#### A set of basic steps.
-####
+##############################################################################
+#
+# A set of basic steps.
+# 
+##############################################################################
 
 from behave import *
 from urlparse import urlparse
@@ -34,7 +36,12 @@ def step_impl(context, page, id):
     #     print("FINALLY")
     #     #context.browser.quit()
 
-
+@given('I click the "{id}"')
+def step_impl(context, id):
+    #print(context.browser.title)
+    webelt = context.browser.find_element_by_id(id)
+    webelt.click()
+    
 ## URL Check
 @then('the url will be "{url}"')
 def step_impl(context, url):
@@ -87,18 +94,12 @@ def step_impl(context, link):
             isNotFound = False
     assert isNotFound == True
 
-## A given class should contain a given piece of text/content.
-## Not generably usable by non-dev test writers.
-@then('the class "{clss}" should contain "{text}"')
-def step_impl(context, clss, text):
-    webelt = context.browser.find_element_by_class_name(clss)
-    assert webelt.text.rfind(text) != -1
-
 ## A given id should contain a given piece of text/content. 
 ## Not generably usable by non-dev test writers.
 @then('the id "{id}" should contain "{text}"')
 def step_impl(context, id, text):
     webelt = context.browser.find_element_by_id(id)
     assert webelt.text.rfind(text) != -1
+
 
 
