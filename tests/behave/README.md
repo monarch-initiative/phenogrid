@@ -94,6 +94,12 @@ TARGET=http://localhost:8282/node_modules/phenogrid behave
 
 This will test the index.html page.
 
+Once you are done working in the virtual environment for the moment, you can deactivate it, this will undo the changes to your path and prompt.
+
+````
+deactivate
+````
+
 # Debugging tests
 
 It is sometimes useful to pause the tests so that you can see what Selenium sees. This can
@@ -103,15 +109,6 @@ be accomplished with Python's 'time.sleep' function:
 import time
 ````
 
-....
-
-
 ````
 time.sleep(5)  # 5 seconds
-````
-
-If you are done working in the virtual environment for the moment, you can deactivate it, this will undo the changes to your path and prompt.
-
-````
-deactivate
 ````
