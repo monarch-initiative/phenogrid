@@ -42,3 +42,9 @@ Feature: Phenogrid works as a standalone widget
             And I click the "pg_axisflip"
             Then the id "pg_grid_row_0" should contain "Trp63"
 
+    @ui
+    Scenario: Model scores popup dialog
+        Given I go to page "/index.html"
+            And I click the "pg_scores_tip_icon"
+            Then the document should contain "What is the score shown at the top of the grid?"
+
