@@ -1,4 +1,4 @@
-* Overview
+# Behave Test Overview
 
 Essentially, the idea is this: there are human language-like files
 (features) that describe scenarios--pre-conditions, actions, and
@@ -23,12 +23,12 @@ from development time.
 These are the tags that we're currently using in the tests (in case
 you want to check or remove just a subset).
 
-- ui: tests written for the Monarch-app UI, likely Selenium
-- data: tests specific to testing the sanity of Monarch data
+- ui: tests written for the UI, likely Selenium
+- data: tests specific to testing the sanity of data
 
 # Install Python virtualenv
 
-## Ubuntu 14.04 LTS
+## On Ubuntu 14.04 LTS
 
 Setup the python environment in the right place.
 
@@ -36,7 +36,7 @@ Setup the python environment in the right place.
 sudo apt-get -u install python-virtualenv
 ````
 
-## CentOS 6.6
+## On CentOS 6.6
 
 Many distributions include virtualenv as part of the default distribution repository. However, these version can become outdated and it is usually recommended installing from a repository containing the latest release.
 
@@ -56,12 +56,24 @@ sudo yum -y install python-virtualenv
 
 Note: you need to have the desktop installed in order to run the tests in web browser. 
 
-Starting from the phenogrid root directory.
+Starting from the phenogrid root directory, we create a virtual environment for this behave test:
 
 ````
 cd tests/behave
 virtualenv `pwd`
+````
+
+Now we've created a virtual environment in the current working directory, which is `phenogrid/tests/behave/`. There's a `activate` shell script in `bin/`.
+
+````
 source bin/activate
+````
+
+The `activate` script will modify the path and shell prompt to indicate that the current virtual environment is active.
+
+Now we will need to install the following tools in order to run the behave tests.
+
+````
 pip install selenium
 pip install behave
 pip install jsonpath-rw
@@ -97,7 +109,7 @@ import time
 time.sleep(5)  # 5 seconds
 ````
 
-You can leave the virtual environment at any time with the following command.
+You can leave the virtual environment at any time with the following command, this will undo the changes to your path and prompt.
 
 ````
 deactivate
