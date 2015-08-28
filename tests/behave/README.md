@@ -63,15 +63,15 @@ cd tests/behave
 virtualenv `pwd`
 ````
 
-Now we've created a virtual environment in the current working directory, which is `phenogrid/tests/behave/`. There's a `activate` shell script in `bin/`.
+Now we've created a virtual environment in the current working directory, which is `phenogrid/tests/behave/`. To begin using the virtual environment, it needs to be activated, there's a `activate` shell script in `bin/`.
 
 ````
 source bin/activate
 ````
 
-The `activate` script will modify the path and shell prompt to indicate that the current virtual environment is active.
+The `activate` script will modify the path and shell prompt (the name of the current virtual environment will now appear on the left of the prompt, which is 'behave' in this case) to let you know that it's active.
 
-Now we will need to install the following tools in order to run the behave tests.
+Now we will need to install the following tools in order to run the behave tests. And any package that you install using pip will be placed in the current folder, isolated from the global Python installation.
 
 ````
 pip install selenium
@@ -79,7 +79,7 @@ pip install behave
 pip install jsonpath-rw
 ````
 
-The products of these steps should all be hidden by the .gitirnore file.
+The products of these steps should all be hidden by the .gitignore file.
 
 Running all tests (the *.feature files) should be as simple as:
 
@@ -87,7 +87,7 @@ Running all tests (the *.feature files) should be as simple as:
 behave
 ````
 
-By default, the tests will run against monarchinitiative.org, when testing in your local server, you can specify the target URL:
+This command will open the web browser and run the tests against monarchinitiative.org by default. When testing in your local server, you can specify the target URL:
 
 ````
 TARGET=http://localhost:8282 behave
@@ -109,7 +109,7 @@ import time
 time.sleep(5)  # 5 seconds
 ````
 
-You can leave the virtual environment at any time with the following command, this will undo the changes to your path and prompt.
+If you are done working in the virtual environment for the moment, you can deactivate it, this will undo the changes to your path and prompt.
 
 ````
 deactivate

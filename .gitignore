@@ -1,6 +1,14 @@
 ## Ignore npm libs.
 node_modules
 
+## Testing related
+tests/behave/bin
+tests/behave/include
+tests/behave/lib
+tests/behave/
+tests/behave/lib64
+
+
 ## Others
 .DS_Store
 
