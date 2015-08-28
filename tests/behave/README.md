@@ -77,7 +77,7 @@ Note: the products of these steps have been added to the .gitignore file.
 Running all tests (the *.feature files) should be as simple as:
 
 ````
-TARGET=http://localhost:8080 behave
+TARGET=http://localhost:8080/phenogrid behave
 ````
 
 If you are running Phenogrid on a different port number of the web server, adjust accordingly. If you run Phenogrid inside Monarch-App, you can do the following:
