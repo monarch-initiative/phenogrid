@@ -3,7 +3,7 @@ Feature: Phenogrid works as a standalone widget
 @ui
 Scenario: Loading the phenogrid widget
     Given I go to slow page "/index.html" and wait for id "pg_svg_container"
-         Then the document should contain "Loading Phenogrid Widget..."
+        Then the document should contain "Loading Phenogrid Widget..."
 
 @ui
 Scenario Outline: Visible items once the widget is loaded
@@ -33,3 +33,12 @@ Scenario Outline: Visible items after clicking options panel
         | pg_calculation           | Ratio (q)                |
         | pg_controls_options      | Invert Axis              |
         | pg_controls_options      | About Phenogrid          |
+
+
+@ui
+Scenario: Inver Axis
+    Given I go to page "/index.html"
+        And I click the "pg_slide_btn"
+        And I click the "pg_axisflip"
+        Then the id "pg_grid_row_0" should contain "Trp63"
+

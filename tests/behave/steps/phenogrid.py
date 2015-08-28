@@ -16,7 +16,6 @@ from selenium.webdriver.support import expected_conditions as EC # available sin
 ## The basic and critical "go to page".
 @given('I go to page "{page}"')
 def step_impl(context, page):
-    #print(context.browser.title)
     context.browser.get(context.target + page)
     # time.sleep(10)
     # from selenium.webdriver.support import expected_conditions as EC
@@ -25,7 +24,6 @@ def step_impl(context, page):
 
 @given('I go to slow page "{page}" and wait for id "{id}"')
 def step_impl(context, page, id):
-    #print(context.browser.title)
     context.browser.get(context.target + page)
     #time.sleep(30)
     element = WebDriverWait(context.browser, 60).until(EC.presence_of_element_located((By.ID, id)))
@@ -38,10 +36,9 @@ def step_impl(context, page, id):
 
 @given('I click the "{id}"')
 def step_impl(context, id):
-    #print(context.browser.title)
     webelt = context.browser.find_element_by_id(id)
     webelt.click()
-    
+
 ## URL Check
 @then('the url will be "{url}"')
 def step_impl(context, url):
@@ -51,8 +48,6 @@ def step_impl(context, url):
 ## Title check.
 @then('the title should be "{title}"')
 def step_impl(context, title):
-    #print(context.browser.title)
-    #print(title)
     assert context.browser.title == title
 
 ## The empty title check, a bit of a special case for known "bad" page
