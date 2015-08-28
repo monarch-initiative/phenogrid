@@ -18,7 +18,9 @@ between the human language-esque tests and the plumbing will allow
 us to actually build up a body of tests without taking too much away
 from development time.
 
-# Install Python virtualenv
+# Setting Up Testing Environment
+
+We use Python's virtualenv (Virtual Environments) to create isolated Python environments for this behave test.
 
 ## On Ubuntu 14.04 LTS
 
@@ -44,9 +46,9 @@ Now virtualenv, and dependencies, can be installed using the YUM package manager
 sudo yum -y install python-virtualenv
 ````
 
-# Run the behave tests
+# Run Tests
 
-Note: you need to have the desktop installed in order to run the tests in web browser. 
+Note: you need to have the desktop and web browser (it uses Firefox by default) installed in order to run the tests. 
 
 Starting from the phenogrid root directory, we create a virtual environment for this behave test:
 
@@ -63,14 +65,14 @@ source bin/activate
 
 The `activate` script will modify the path and shell prompt (the name of the current virtual environment will now appear on the left of the prompt, which is 'behave' in this case) to let you know that it's active.
 
-Now we will need to install the following tools in order to run the behave tests. And any package that you install using pip will be placed in the current folder, isolated from the global Python installation.
+Now we will need to install the following tools (Selenium WebDriver and behave) in order to run the behave tests. And any package that you install using pip will be placed in the current folder, isolated from the global Python installation.
 
 ````
 pip install selenium
 pip install behave
 ````
 
-The products of these steps should all be hidden by the .gitignore file.
+Note: the products of these steps have been added to the .gitignore file.
 
 Running all tests (the *.feature files) should be as simple as:
 
@@ -92,6 +94,6 @@ Once you are done working in the virtual environment for the moment, you can dea
 deactivate
 ````
 
-# Debugging tests
+# Debugging Tests
 
 It is sometimes useful to pause the tests so that you can see what Selenium sees. This can be accomplished with Python's `time.sleep` function (don't forget to add `import time`). Example usage can be found in the `steps/phenogrid.py`.
