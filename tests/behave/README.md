@@ -94,13 +94,4 @@ deactivate
 
 # Debugging tests
 
-It is sometimes useful to pause the tests so that you can see what Selenium sees. This can
-be accomplished with Python's 'time.sleep' function:
-
-````
-import time
-````
-
-````
-time.sleep(5)  # 5 seconds
-````
+It is sometimes useful to pause the tests so that you can see what Selenium sees. This can be accomplished with Python's `time.sleep` function (don't forget to add `import time`). Example usage can be found in the `steps/phenogrid.py`.
