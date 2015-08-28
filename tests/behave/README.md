@@ -63,7 +63,7 @@ cd tests/behave
 virtualenv `pwd`
 ````
 
-Now we've created a virtual environment in the current working directory, which is `phenogrid/tests/behave/`. To begin using the virtual environment, it needs to be activated, there's a `activate` shell script in `bin/`.
+You sure can use a different name (say venv) for your virtual environment other than the current directory (`pwd`). Now we've created a virtual environment in the current working directory, which is `phenogrid/tests/behave/`. To begin using the virtual environment, it needs to be activated, there's a `activate` shell script in `bin/`.
 
 ````
 source bin/activate
