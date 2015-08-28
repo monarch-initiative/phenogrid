@@ -13,7 +13,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait # available since 2.4.0
 from selenium.webdriver.support import expected_conditions as EC # available since 2.26.0
 
-## The basic and critical "go to page".
+# The basic and critical "go to page".
 @given('I go to page "{page}"')
 def step_impl(context, page):
     context.browser.get(context.target + page)
@@ -39,24 +39,12 @@ def step_impl(context, id):
     webelt = context.browser.find_element_by_id(id)
     webelt.click()
 
-## URL Check
-@then('the url will be "{url}"')
-def step_impl(context, url):
-    full_url = context.target + url
-    assert context.browser.current_url == full_url
-
-## Title check.
+# Title check.
 @then('the title should be "{title}"')
 def step_impl(context, title):
     assert context.browser.title == title
 
-## The empty title check, a bit of a special case for known "bad" page
-## titles.
-@then('the title should be ""')
-def step_impl(context):
-    assert( context.browser.title == "" or context.browser.title == None )
-
-## The document body should contain a certain piece of text.
+# The document body should contain a certain piece of text.
 @then('the document should contain "{text}"')
 def step_impl(context, text):
     print(context.browser.title)
@@ -67,7 +55,7 @@ def step_impl(context, text):
     # print(webelt.get_attribute('innerHTML'))
     # assert webelt.get_attribute('innerHTML').rfind(text) != -1
 
-## The document body should not contain a hyperlink with text.
+# The document body should not contain a hyperlink with text.
 @then('the document should not contain link with "{text}"')
 def step_impl(context, text):
     from selenium.common.exceptions import NoSuchElementException
@@ -78,7 +66,7 @@ def step_impl(context, text):
         isNotFound = True
     assert isNotFound
 
-## The document body should not contain an internal hyperlink to {link}
+# The document body should not contain an internal hyperlink to {link}
 @then('the document should not contain an internal link to "{link}"')
 def step_impl(context, link):
     webelts = context.browser.find_elements_by_tag_name('a')
@@ -89,8 +77,8 @@ def step_impl(context, link):
             isNotFound = False
     assert isNotFound == True
 
-## A given id should contain a given piece of text/content. 
-## Not generably usable by non-dev test writers.
+# A given id should contain a given piece of text/content. 
+# Not generably usable by non-dev test writers.
 @then('the id "{id}" should contain "{text}"')
 def step_impl(context, id, text):
     webelt = context.browser.find_element_by_id(id)
