@@ -83,22 +83,22 @@ Now we can go to the terminal and run all tests (the `phenogrid.feature` file):
 When you have phenogrid embedded as a widget, you can either run the behave tests against the phenogrid file path (e,g., `file:///home/phenogrid`) or server path (if it's placed inside the HTTP server, e.g., `http://localhost:8080/phenogrid`)
 
 ````
-PATH=file:///home/phenogrid behave
+TARGET=file:///home/phenogrid behave
 ````
 or
 ````
-PATH=http://localhost:8080/phenogrid behave
+TARGET=http://localhost:8080/phenogrid behave
 ````
 (If you are running HTTP server on a different port number, adjust accordingly.)
 
 This will test the index.html page in the phenogrid directory. And if you would like to export all the test running details into a log file, you can use the following command:
 
 ````
-PATH=file://home/phenogrid behave > log
+TARGET=file://home/phenogrid behave > log
 ````
 or 
 ````
-PATH=http://localhost:8080/phenogrid behave > log
+TARGET=http://localhost:8080/phenogrid behave > log
 ````
 
 This will create a file in the current directory named `log` that contians all the testing outputs. Make sure to add this log file in `.gitignore` if you do this.
