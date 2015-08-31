@@ -80,10 +80,10 @@ Note: the products of these steps have been added to the .gitignore file.
 
 Now we can go to the terminal and run all tests (the `phenogrid.feature` file):
 
-When you have phenogrid embedded as a widget, you can either run the behave tests against the phenogrid file path (e,g., `file://home/phenogrid`) or server path (if it's placed inside the HTTP server, e.g., `http://localhost:8080/phenogrid`)
+When you have phenogrid embedded as a widget, you can either run the behave tests against the phenogrid file path (e,g., `file:///home/phenogrid`) or server path (if it's placed inside the HTTP server, e.g., `http://localhost:8080/phenogrid`)
 
 ````
-PATH=file://home/phenogrid behave
+PATH=file:///home/phenogrid behave
 ````
 or
 ````
