@@ -15,11 +15,11 @@ from selenium import webdriver
 
 # Run this before anything else.
 def before_all(context):
-    # Determine the server target base URL. 
-    if 'TARGET' in os.environ:
-        context.target = os.environ['TARGET']
+    # Determine the target path. Can either be file path or base URL. 
+    if 'PATH' in os.environ:
+        context.target = os.environ['PATH']
     else:
-        print("Please specify the Base URL with 'TARGET=' format")
+        print("Please specify the Base URL with 'PATH=' format")
         sys.exit(1)
 		
 	# Check to see which browser to use, default to use Firefox
