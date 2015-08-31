@@ -19,7 +19,7 @@ def before_all(context):
     if 'TARGET' in os.environ:
         context.target = os.environ['TARGET']
     else:
-        print("Please specify the Base URL with 'TARGET=' format")
+        print("Please specify the Phenogrid file path or base URL with 'TARGET=' format")
         sys.exit(1)
 		
 	# Check to see which browser to use, default to use Firefox
