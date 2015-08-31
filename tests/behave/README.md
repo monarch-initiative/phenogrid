@@ -108,6 +108,8 @@ or
 TARGET=http://localhost:8282/node_modules/phenogrid behave > log
 ````
 
+This will create a file in the current directory named `log` that contians all the testing outputs. Make sure to add this log file in `.gitignore` if you do this.
+
 Once you are done working in the virtual environment for the moment, you can deactivate it, this will undo the changes to your path and prompt.
 
 ````
