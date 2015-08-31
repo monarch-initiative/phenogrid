@@ -57,7 +57,7 @@ cd tests/behave
 virtualenv `pwd`
 ````
 
-You sure can use a different name (say venv) for your virtual environment other than the current directory (`pwd`). Now we've created a virtual environment in the current working directory, which is `phenogrid/tests/behave/`. To begin using the virtual environment, it needs to be activated, there's a `activate` shell script in `bin/`.
+You sure can use a different name (say venv) for your virtual environment other than the current directory (``pwd``). Now we've created a virtual environment in the current working directory, which is `phenogrid/tests/behave/`. To begin using the virtual environment, it needs to be activated, there's a `activate` shell script in `bin/`.
 
 ````
 source bin/activate
@@ -74,19 +74,27 @@ pip install behave
 
 Note: the products of these steps have been added to the .gitignore file.
 
-Running all tests (the *.feature files) should be as simple as:
+Now we can go to the terminal and run all tests (the `phenogrid.feature` file):
+
+## Standalone Phenogrid
+
+When you have phenogrid installed as a standalone widget, you'll need to put the phenogrid and all its content inside the HTTP server DocumentRoot (or www folder). Then do the following to specify the base URL to run the behave tests against:
 
 ````
 TARGET=http://localhost:8080/phenogrid behave
 ````
 
-If you are running Phenogrid on a different port number of the web server, adjust accordingly. If you run Phenogrid inside Monarch-App, you can do the following:
+If you are running HTTP server on a different port number, adjust accordingly.
+
+## Phenogrid inside Monarch-App
+
+If you run Phenogrid inside Monarch-App, do the following:
 
 ````
 TARGET=http://localhost:8282/node_modules/phenogrid behave
 ````
 
-This will test the index.html page.
+Both will test the index.html page in the phenogrid directory.
 
 Once you are done working in the virtual environment for the moment, you can deactivate it, this will undo the changes to your path and prompt.
 
