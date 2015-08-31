@@ -2930,7 +2930,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
 
 		// Inverted and multi species
-		if (this.state.invertAxis && speciesList.length > 1) {
+		if (this.state.invertAxis) { //&& speciesList.length > 1) {
 			var heightPerSpecies = this._gridHeight()/speciesList.length;
 
 			this.state.svg.selectAll(".pg_species_name")
