@@ -80,32 +80,25 @@ Note: the products of these steps have been added to the .gitignore file.
 
 Now we can go to the terminal and run all tests (the `phenogrid.feature` file):
 
-## Standalone Phenogrid
-
-When you have phenogrid installed as a standalone widget, you'll need to put the phenogrid and all its content inside the HTTP server DocumentRoot (or www folder). Then do the following to specify the base URL to run the behave tests against:
+When you have phenogrid embedded as a widget, you can either run the behave tests against the phenogrid file path (e,g., `file://home/phenogrid`) or server path (if it's placed inside the HTTP server, e.g., `http://localhost:8080/phenogrid`)
 
 ````
-TARGET=http://localhost:8080/phenogrid behave
+PATH=file://home/phenogrid behave
 ````
-
-If you are running HTTP server on a different port number, adjust accordingly.
-
-## Phenogrid inside Monarch-App
-
-If you run Phenogrid inside Monarch-App, do the following:
-
+or
 ````
-TARGET=http://localhost:8282/node_modules/phenogrid behave
+PATH=http://localhost:8080/phenogrid behave
 ````
+(If you are running HTTP server on a different port number, adjust accordingly.)
 
-Both will test the index.html page in the phenogrid directory. And if you would like to export all the test running details into a log file, you can use the following command:
+This will test the index.html page in the phenogrid directory. And if you would like to export all the test running details into a log file, you can use the following command:
 
 ````
-TARGET=http://localhost:8080/phenogrid behave > log
+PATH=file://home/phenogrid behave > log
 ````
 or 
 ````
-TARGET=http://localhost:8282/node_modules/phenogrid behave > log
+PATH=http://localhost:8080/phenogrid behave > log
 ````
 
 This will create a file in the current directory named `log` that contians all the testing outputs. Make sure to add this log file in `.gitignore` if you do this.
