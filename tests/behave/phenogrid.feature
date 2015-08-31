@@ -46,3 +46,8 @@ Feature: Phenogrid works as a standalone widget
             And I click the "pg_scores_tip_icon"
             Then the document should contain "What is the score shown at the top of the grid?"
 
+
+    Scenario: Check default target label text link
+        Given I go to page "/index.html"
+            And I move mouse to the "pg_grid_col_0"
+            Then the document should contain link with "Trp63"
