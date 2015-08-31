@@ -46,6 +46,10 @@ Now virtualenv, and dependencies, can be installed using the YUM package manager
 sudo yum -y install python-virtualenv
 ````
 
+## On Mac OS X
+
+You can install the Python virtualenv through Homebrew on Mac.
+
 # Runing Tests
 
 Note: you need to have the desktop and web browser (it uses Firefox by default) installed in order to run the tests. 
@@ -94,7 +98,15 @@ If you run Phenogrid inside Monarch-App, do the following:
 TARGET=http://localhost:8282/node_modules/phenogrid behave
 ````
 
-Both will test the index.html page in the phenogrid directory.
+Both will test the index.html page in the phenogrid directory. And if you would like to export all the test running details into a log file, you can use the following command:
+
+````
+TARGET=http://localhost:8080/phenogrid behave > log
+````
+or 
+````
+TARGET=http://localhost:8282/node_modules/phenogrid behave > log
+````
 
 Once you are done working in the virtual environment for the moment, you can deactivate it, this will undo the changes to your path and prompt.
 
