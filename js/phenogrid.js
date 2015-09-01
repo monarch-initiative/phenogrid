@@ -162,7 +162,6 @@ var Utils = require('./utils.js');
 		invertAxis: false,
 		dummyModelName: "dummy",
 		simServerURL: "",  // URL of the server for similarity searches
-		preloadHPO: false,	// Boolean value that allows for preloading of all HPO data at start.  If false, the user will have to manually select what HPO relations to load via hoverbox.
 		selectedCompareSpecies: [],
 		gridRegion: {x:254, y:200, // origin coordinates for grid region (matrix)
 						ypad:13, xpad:15, // x/y padding between the labels and grid
@@ -277,13 +276,8 @@ var Utils = require('./utils.js');
 
 		self.state.dataManager = new DataManager(self.state.dataLoader);
 
-		//if (preloadHPO) {
-		// MKD: preload just one source id, to initialize the ontologyCache
+		// initialize the ontologyCache
 		self.state.ontologyCache = {};
-
-		//var srcs = self.state.dataManager.keys("source");
-		//self.state.ontologyCache = self.state.dataLoader.getOntology(srcs[0], self.state.ontologyDirection, self.state.ontologyDepth);
-		//}
 		
 	    // initialize axis groups
 	    self._createAxisRenderingGroups();
@@ -292,18 +286,6 @@ var Utils = require('./utils.js');
 		self._processDisplay();
 
 	},
-
-	// _parseSpeciesList: function(species) {
-	// 	var self = this;
-	// 	var s = [];
-	// 	var temp = species.split(";");
-	// 	for(var t in temp) {
-	// 		var tax = self._getTargetSpeciesTaxonByName(self, temp[t]);
-	// 		var el = {name: temp[t], taxon: tax};
-	// 		s.push(el);
-	// 	}
-	// 	return s;
-	// }, 
 
 	//Originally part of _init
 	_initDefaults: function() {
@@ -339,12 +321,10 @@ var Utils = require('./utils.js');
 
 		// set default display limits based on displaying defaultSourceDisplayLimit
     	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-		
-		console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
+	
 
 		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
 			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
-			console.log('AFTER    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
 		}
 
        	// creates AxisGroup with full source and target lists with default rendering range
@@ -362,18 +342,15 @@ var Utils = require('./utils.js');
 			// get the length of the targetlist, this sets that limit since we are in comparison mode
 			// only the defaultCrossCompareTargetLimitPerSpecies is set, which provides the overall display limit
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
-console.log('ORGI  CrossComparisonView   targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
+
 		} else if (this.state.selectedCompareSpecies.length === 1) {
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
 			targetList = this.state.dataManager.getData("target", singleSpeciesName);
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
-
-console.log('ORGI  singlespecies  targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
 			
 			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
 				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
 			} 
-console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
 		}
     	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
 
@@ -405,9 +382,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 
 			this._addLogoImage();
 
-			//var rectHeight = this._createRectangularContainers();
-
-			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
+//			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
 
 			this._createPhenogridControls();
 			this._positionPhenogridControls();
@@ -509,7 +484,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      			 })  
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
-//			.attr("data-tooltip", "sticky1")   				      
+//			.attr("data-tooltip", "stickyInner")   				      
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
@@ -532,17 +507,15 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      .attr("transform", function(d) { 
 	      	var offset = gridRegion.colLabelOffset;
 	      	var xs = xScale(d.id);
-//	      	if (self.state.invertAxis) {offset = colLabelOffset;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
 			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
 	      				 "," + (gridRegion.y-offset) + ")rotate(-45)"; }); //-45
 
 	    // create column labels
 	  	column.append("text")
-	  		//.style("font-size", "11px")
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-//		    .attr("data-tooltip", "sticky1")   			
+		    //.attr("data-tooltip", "stickyInner")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
@@ -568,7 +541,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-			//	.attr("data-tooltip", "sticky1")   					        
+//				.attr("data-tooltip", "stickyInner")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
@@ -659,8 +632,14 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		parent._createHoverBox(data);
 
 		// get the position of object where the mouse event happened
-		var position = p.position();
 		
+		var pos = p.offset();
+		console.log(pos);		
+		var newLeft = pos.left + p[0].getBoundingClientRect().width;
+		var position = {left: newLeft, top: pos.top};
+
+		console.log(position);
+
 		// show a stickytooltip
 		stickytooltip.show(position);
 
@@ -683,8 +662,8 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 
 
 		if (!stickytooltip.isdocked) {
-			// hide the tooltip
-			stickytooltip.closetooltip();
+		// 	// hide the tooltip
+		 	stickytooltip.closetooltip();
 		}
 
 	},
@@ -1245,45 +1224,46 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		this.element.append(svgContainer);
 	},
 
-	// NEW - add a sticky tooltip div stub, this is used to dynamically set a tooltip for gene info and expansion
+	// add a sticky tooltip div stub, this is used to dynamically set a tooltip info 
 	_addStickyTooltipAreaStub: function() {
 		var sticky = $("<div>")
 						.attr("id", "mystickytooltip")
-						.attr("class", "stickytooltip");
+						.attr("style", "padding: 1px");
+						//.attr("class", "stickytooltip");
 					
-		var inner1 = $("<div>")
-						.attr("style", "padding:5px");
+		// var inner1 = $("<div>")
+		// 				.attr("id", "sticky1")
+		// 				.attr("style", "padding:5px");
 
-		var atip =  $("<div>")
-						.attr("id", "sticky1")
-						.attr("class", "atip");
+		var stickyInner =  $("<div>")
+						.attr("id", "stickyInner");
+						
 		
 		var img = $("<img>")
 				.attr("id", "img-spinner")
 				.attr("src", this.state.imagePath + "waiting_ac.gif")
 				.attr("alt", "Loading, please wait...");
 
-		var wait = $("<div>")
-			.attr("id", "wait")
-			//.attr("class", "spinner")
-			.attr("style", "display:none")
-			.text("Searching for data...");
+		// var wait = $("<div>")
+		// 	.attr("id", "wait")
+		// 	//.attr("class", "spinner")
+		// 	.attr("style", "display:none")
+		// 	.text("Searching for data...");
 
-			wait.append(img);
-		var status = $("<div>")
-			.attr("class", "stickystatus");
+		// 	wait.append(img);
+		// var status = $("<div>")
+		// 	.attr("class", "stickystatus");
 
-		inner1.append(wait).append(atip);
+		sticky.append(stickyInner);
 
-		sticky.append(inner1);
+		//sticky.append(inner1);
 				//.append(wait);
 				//.append(status);
 
 		// always append to body
 		sticky.appendTo('body');
-			sticky.mouseleave("mouseout",function(e) {
-			//console.log("sticky mouse out. of sticky.");
-			stickytooltip.closetooltip();
+		sticky.mouseleave("mouseout",function(e) {
+		 	stickytooltip.closetooltip();
 		});
 	},
 	
@@ -1388,14 +1368,14 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var retData = this.state.tooltipRender.html({parent: this, id:id, data: data});   
 
 		// update the stub stickytool div dynamically to display
-		$("#sticky1").empty();
-		$("#sticky1").html(retData);
+		$("#stickyInner").empty();
+		$("#stickyInner").html(retData);
 
-		// For phenotype HPO tree 
+		// For phenotype ontology tree 
 		if (data.type === 'phenotype') {
 			// https://api.jqueryui.com/jquery.widget/#method-_on
-			// Binds click event to the HPO tree expand icon - Joe
-			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="expandHPO_HP_0001300" - Joe
+			// Binds click event to the ontology tree expand icon - Joe
+			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_expandOntology_HP_0001300" - Joe
 			var expandOntol_icon = $('#pg_expandOntology_' + id);
 			this._on(expandOntol_icon, {
 				"click": function(event) {
@@ -1405,7 +1385,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		}
 	},
 
-	// This builds the string to show the relations of the HPO nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
+	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
 	buildOntologyTree: function(id, edges, level) {
 		var results = "";
 		var nextResult;
@@ -1459,9 +1439,8 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return label;
 	},
 
-	// Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
+	// Based on the ID, it pulls the label from CacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 	_buildOntologyHyperLink: function(id){
-		//var label = this.state.hpoCacheLabels.get(id);
 		var label = this._getOntologyLabel(id);
 		var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
 		return link;
@@ -1684,31 +1663,31 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 
 	// Build out the positions of the 3 boxes
-	_buildAxisPositionList: function() {
-		// For Overview of Organisms 0 width = ((defaultVisibleModelCt*2)+2) *this.state.widthOfSingleCell	
-		// Add two extra columns as separators
-		this.state.axis_pos_list = [];
-		// calculate width of model section
-		//this.state.modelWidth = this.state.filteredXAxis.size() * this.state.widthOfSingleCell;
-		this.state.modelWidth = this.state.xAxisRender.displayLength() * this.state.widthOfSingleCell;
+	// _buildAxisPositionList: function() {
+	// 	// For Overview of Organisms 0 width = ((defaultVisibleModelCt*2)+2) *this.state.widthOfSingleCell	
+	// 	// Add two extra columns as separators
+	// 	this.state.axis_pos_list = [];
+	// 	// calculate width of model section
+	// 	//this.state.modelWidth = this.state.filteredXAxis.size() * this.state.widthOfSingleCell;
+	// 	this.state.modelWidth = this.state.xAxisRender.displayLength() * this.state.widthOfSingleCell;
 
-		// add an axis for each ordinal scale found in the data
-		for (var i = 0; i < 3; i++) {
-			// move the last accent over a bit for the scrollbar
-			if (i === 2) {
-				// make sure it's not too narrow i
-				var w = this.state.modelWidth;
-				if(w < this.state.smallestModelWidth) {
-					w = this.state.smallestModelWidth;
-				}
-				this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
-			} else if (i === 1 ){
-				this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
-			} else {
-				this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
-			}
-		}	
-	},
+	// 	// add an axis for each ordinal scale found in the data
+	// 	for (var i = 0; i < 3; i++) {
+	// 		// move the last accent over a bit for the scrollbar
+	// 		if (i === 2) {
+	// 			// make sure it's not too narrow i
+	// 			var w = this.state.modelWidth;
+	// 			if(w < this.state.smallestModelWidth) {
+	// 				w = this.state.smallestModelWidth;
+	// 			}
+	// 			this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
+	// 		} else if (i === 1 ){
+	// 			this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
+	// 		} else {
+	// 			this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
+	// 		}
+	// 	}	
+	// },
 
 	/*
 	 * Add the gradient legend (bar and label texts) to the grid bottom
@@ -2150,12 +2129,10 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return newlist;
 	},
 
-	// Will call the getHPO function to either load the HPO info or to make it visible if it was previously hidden.  Not available if preloading
 	_expandOntology: function(id){
 		var self = this;
 
 		// check to see if id has been cached
-		//var cache = this.state.ontologyCache[fixedId];
 		var cache = this.state.dataLoader.checkOntologyCache(id);
 
 		if (typeof(cache) == 'undefined') 
@@ -2185,7 +2162,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 		}
 
-		$("#sticky1").html(ontologyData);
+		$("#stickyInner").html(ontologyData);
 
 		// reshow the sticky with updated info
 		stickytooltip.show(null);

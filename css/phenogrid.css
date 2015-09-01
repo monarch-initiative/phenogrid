@@ -186,28 +186,19 @@ font-size:1.4em;
 font-weight:bold;
 }
 
-
-
-.stickytooltip{
-box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
--webkit-box-shadow: 5px 5px 8px #818181;
--moz-box-shadow: 5px 5px 8px #818181;
-display:none;
-position:absolute;
-display:none;
-border:1px solid #000;
-background:#fff;
-z-index:3000;
-font:10px Arial;
+#mystickytooltip {
+  position: absolute;
 }
 
-
-.stickytooltip .stickystatus{ /*Style for footer bar within tooltip*/
-background:black;
-color:white;
-padding-top:5px;
-text-align:center;
-font:bold 11px Arial;
+#stickyInner {
+  box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
+-webkit-box-shadow: 5px 5px 8px #818181;
+-moz-box-shadow: 5px 5px 8px #818181;
+border:1px solid #000;
+background:#fff;
+/*z-index:3000;*/
+font:10px Arial;
+padding: 3px;
 }
 
 /** Overwrite jquery-ui default style */
@@ -353,8 +344,8 @@ word-break:normal;
 }
 
 .pg_target_grp_divider {
-  stroke: gray; /*#0B20AE; #8763A3;  #0F473E;*/
-  stroke-dasharray: 2;  /* small dots */
+  stroke: black; /*#0B20AE; #8763A3;  #0F473E;*/
+  /*stroke-dasharray: 2;   /*small dots */
   shape-rendering: crispEdges;
 }
 

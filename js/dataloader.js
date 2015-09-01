@@ -22,9 +22,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.simServerURL = simServerUrl;
 	this.serverURL = serverUrl;	
 	this.simSearchURL = serverUrl + simSearchQuery;
-//	this.qrySourceList = qrySourceList;
 	this.qryString = '';
-//	this.targetGroupList = targetGroupList;
 	this.limit = limit;
 	this.apiEntityMap = apiEntityMap;
 	this.owlsimsData = [];
@@ -36,7 +34,6 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
 	this.postDataLoadCallback = '';
-	//this.load(this.qrySourceList, this.targetGroupList, this.limit);
 
 };
 
@@ -79,6 +76,15 @@ DataLoader.prototype = {
 
 	},
 
+	/*
+		Function: process
+
+			process routine being async query to load data from external source (i.e., owlsims)
+
+		Parameters:	
+			targetGrpList - list of target Group items (i.e., species)
+			qryString - query list url parameters, which includes list of sources
+	*/
 	process: function(targetGrpList, qryString) {
 		var postData = '';
 
@@ -102,7 +108,7 @@ DataLoader.prototype = {
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
-		//var self = s;
+
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
 
@@ -152,8 +158,6 @@ DataLoader.prototype = {
 				// }
 
 				// TODO: THIS NEEDS CHANGED TO CATEGORY (I THINK MONARCH TEAM MENTIONED ADDING THIS)
-				//type = this.parent.defaultApiEntity;
-
 				var type = '';
 				for (var j in this.apiEntityMap) {
 				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
@@ -363,6 +367,17 @@ DataLoader.prototype = {
 
 	},
 
+	/*
+		Function: postOntologyCb
+
+			post callback from async call to gets the ontology for a given id
+	
+	 	Parameters:
+			self - immediate parent
+	 		id - id which was searched
+	 		finalCallback - final callback function
+	 		parent - top level parent
+	*/
 	postOntologyCb: function(self, id, results, finalCallback, parent) {
 		var ontologyInfo = [];	
 		var nodes, edges;
@@ -439,6 +454,15 @@ DataLoader.prototype = {
 		return this.maxICScore;
 	},
 
+
+	/*
+		Function: dataExists
+
+			convienent function to check the cell data for a given target group (i.e., species)
+	
+	 	Parameters:
+	 		targetGroup - target Group label
+	*/
 	dataExists: function(targetGroup) {
 		var t = this.cellData[targetGroup]  || this.targetData[targetGroup];
 		if (typeof(t) === 'undefined') {
@@ -447,6 +471,14 @@ DataLoader.prototype = {
 		return true;
 	},
 
+	/*
+		Function: checkOntologyCache
+
+			convienent function to check the ontology cache for a given id
+	
+	 	Parameters:
+	 		id - id to check
+	*/
 	checkOntologyCache: function(id) {
 		return this.ontologyCache[id];
 	}

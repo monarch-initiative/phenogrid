@@ -328,9 +328,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.simServerURL = simServerUrl;
 	this.serverURL = serverUrl;	
 	this.simSearchURL = serverUrl + simSearchQuery;
-//	this.qrySourceList = qrySourceList;
 	this.qryString = '';
-//	this.targetGroupList = targetGroupList;
 	this.limit = limit;
 	this.apiEntityMap = apiEntityMap;
 	this.owlsimsData = [];
@@ -342,7 +340,6 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
 	this.postDataLoadCallback = '';
-	//this.load(this.qrySourceList, this.targetGroupList, this.limit);
 
 };
 
@@ -385,6 +382,15 @@ DataLoader.prototype = {
 
 	},
 
+	/*
+		Function: process
+
+			process routine being async query to load data from external source (i.e., owlsims)
+
+		Parameters:	
+			targetGrpList - list of target Group items (i.e., species)
+			qryString - query list url parameters, which includes list of sources
+	*/
 	process: function(targetGrpList, qryString) {
 		var postData = '';
 
@@ -408,7 +414,7 @@ DataLoader.prototype = {
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
-		//var self = s;
+
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
 
@@ -458,8 +464,6 @@ DataLoader.prototype = {
 				// }
 
 				// TODO: THIS NEEDS CHANGED TO CATEGORY (I THINK MONARCH TEAM MENTIONED ADDING THIS)
-				//type = this.parent.defaultApiEntity;
-
 				var type = '';
 				for (var j in this.apiEntityMap) {
 				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
@@ -669,6 +673,17 @@ DataLoader.prototype = {
 
 	},
 
+	/*
+		Function: postOntologyCb
+
+			post callback from async call to gets the ontology for a given id
+	
+	 	Parameters:
+			self - immediate parent
+	 		id - id which was searched
+	 		finalCallback - final callback function
+	 		parent - top level parent
+	*/
 	postOntologyCb: function(self, id, results, finalCallback, parent) {
 		var ontologyInfo = [];	
 		var nodes, edges;
@@ -745,6 +760,15 @@ DataLoader.prototype = {
 		return this.maxICScore;
 	},
 
+
+	/*
+		Function: dataExists
+
+			convienent function to check the cell data for a given target group (i.e., species)
+	
+	 	Parameters:
+	 		targetGroup - target Group label
+	*/
 	dataExists: function(targetGroup) {
 		var t = this.cellData[targetGroup]  || this.targetData[targetGroup];
 		if (typeof(t) === 'undefined') {
@@ -753,6 +777,14 @@ DataLoader.prototype = {
 		return true;
 	},
 
+	/*
+		Function: checkOntologyCache
+
+			convienent function to check the ontology cache for a given id
+	
+	 	Parameters:
+	 		id - id to check
+	*/
 	checkOntologyCache: function(id) {
 		return this.ontologyCache[id];
 	}
@@ -1505,7 +1537,6 @@ var Utils = require('./utils.js');
 		invertAxis: false,
 		dummyModelName: "dummy",
 		simServerURL: "",  // URL of the server for similarity searches
-		preloadHPO: false,	// Boolean value that allows for preloading of all HPO data at start.  If false, the user will have to manually select what HPO relations to load via hoverbox.
 		selectedCompareSpecies: [],
 		gridRegion: {x:254, y:200, // origin coordinates for grid region (matrix)
 						ypad:13, xpad:15, // x/y padding between the labels and grid
@@ -1620,13 +1651,8 @@ var Utils = require('./utils.js');
 
 		self.state.dataManager = new DataManager(self.state.dataLoader);
 
-		//if (preloadHPO) {
-		// MKD: preload just one source id, to initialize the ontologyCache
+		// initialize the ontologyCache
 		self.state.ontologyCache = {};
-
-		//var srcs = self.state.dataManager.keys("source");
-		//self.state.ontologyCache = self.state.dataLoader.getOntology(srcs[0], self.state.ontologyDirection, self.state.ontologyDepth);
-		//}
 		
 	    // initialize axis groups
 	    self._createAxisRenderingGroups();
@@ -1635,18 +1661,6 @@ var Utils = require('./utils.js');
 		self._processDisplay();
 
 	},
-
-	// _parseSpeciesList: function(species) {
-	// 	var self = this;
-	// 	var s = [];
-	// 	var temp = species.split(";");
-	// 	for(var t in temp) {
-	// 		var tax = self._getTargetSpeciesTaxonByName(self, temp[t]);
-	// 		var el = {name: temp[t], taxon: tax};
-	// 		s.push(el);
-	// 	}
-	// 	return s;
-	// }, 
 
 	//Originally part of _init
 	_initDefaults: function() {
@@ -1682,12 +1696,10 @@ var Utils = require('./utils.js');
 
 		// set default display limits based on displaying defaultSourceDisplayLimit
     	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-		
-		console.log('ORGI    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
+	
 
 		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
 			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
-			console.log('AFTER    sourceDisplayLimit-----------: ' + this.state.sourceDisplayLimit);
 		}
 
        	// creates AxisGroup with full source and target lists with default rendering range
@@ -1705,18 +1717,15 @@ var Utils = require('./utils.js');
 			// get the length of the targetlist, this sets that limit since we are in comparison mode
 			// only the defaultCrossCompareTargetLimitPerSpecies is set, which provides the overall display limit
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
-console.log('ORGI  CrossComparisonView   targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
+
 		} else if (this.state.selectedCompareSpecies.length === 1) {
 			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
 			targetList = this.state.dataManager.getData("target", singleSpeciesName);
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
-
-console.log('ORGI  singlespecies  targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
 			
 			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
 				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
 			} 
-console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state.targetDisplayLimit);
 		}
     	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
 
@@ -1748,9 +1757,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 
 			this._addLogoImage();
 
-			//var rectHeight = this._createRectangularContainers();
-
-			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
+//			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
 
 			this._createPhenogridControls();
 			this._positionPhenogridControls();
@@ -1852,7 +1859,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      			 })  
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
-//			.attr("data-tooltip", "sticky1")   				      
+//			.attr("data-tooltip", "stickyInner")   				      
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
@@ -1875,17 +1882,15 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 	      .attr("transform", function(d) { 
 	      	var offset = gridRegion.colLabelOffset;
 	      	var xs = xScale(d.id);
-//	      	if (self.state.invertAxis) {offset = colLabelOffset;}  // if it's flipped then make minor adjustment to narrow gap due to removal of scores	      	
 			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
 	      				 "," + (gridRegion.y-offset) + ")rotate(-45)"; }); //-45
 
 	    // create column labels
 	  	column.append("text")
-	  		//.style("font-size", "11px")
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-//		    .attr("data-tooltip", "sticky1")   			
+		    //.attr("data-tooltip", "stickyInner")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
@@ -1911,7 +1916,7 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-			//	.attr("data-tooltip", "sticky1")   					        
+//				.attr("data-tooltip", "stickyInner")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
@@ -2002,8 +2007,14 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 		parent._createHoverBox(data);
 
 		// get the position of object where the mouse event happened
-		var position = p.position();
 		
+		var pos = p.offset();
+		console.log(pos);		
+		var newLeft = pos.left + p[0].getBoundingClientRect().width;
+		var position = {left: newLeft, top: pos.top};
+
+		console.log(position);
+
 		// show a stickytooltip
 		stickytooltip.show(position);
 
@@ -2026,8 +2037,8 @@ console.log('AFTER  singlespecies  targetDisplayLimit-----------: ' + this.state
 
 
 		if (!stickytooltip.isdocked) {
-			// hide the tooltip
-			stickytooltip.closetooltip();
+		// 	// hide the tooltip
+		 	stickytooltip.closetooltip();
 		}
 
 	},
@@ -2588,45 +2599,46 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		this.element.append(svgContainer);
 	},
 
-	// NEW - add a sticky tooltip div stub, this is used to dynamically set a tooltip for gene info and expansion
+	// add a sticky tooltip div stub, this is used to dynamically set a tooltip info 
 	_addStickyTooltipAreaStub: function() {
 		var sticky = $("<div>")
 						.attr("id", "mystickytooltip")
-						.attr("class", "stickytooltip");
+						.attr("style", "padding: 1px");
+						//.attr("class", "stickytooltip");
 					
-		var inner1 = $("<div>")
-						.attr("style", "padding:5px");
+		// var inner1 = $("<div>")
+		// 				.attr("id", "sticky1")
+		// 				.attr("style", "padding:5px");
 
-		var atip =  $("<div>")
-						.attr("id", "sticky1")
-						.attr("class", "atip");
+		var stickyInner =  $("<div>")
+						.attr("id", "stickyInner");
+						
 		
 		var img = $("<img>")
 				.attr("id", "img-spinner")
 				.attr("src", this.state.imagePath + "waiting_ac.gif")
 				.attr("alt", "Loading, please wait...");
 
-		var wait = $("<div>")
-			.attr("id", "wait")
-			//.attr("class", "spinner")
-			.attr("style", "display:none")
-			.text("Searching for data...");
+		// var wait = $("<div>")
+		// 	.attr("id", "wait")
+		// 	//.attr("class", "spinner")
+		// 	.attr("style", "display:none")
+		// 	.text("Searching for data...");
 
-			wait.append(img);
-		var status = $("<div>")
-			.attr("class", "stickystatus");
+		// 	wait.append(img);
+		// var status = $("<div>")
+		// 	.attr("class", "stickystatus");
 
-		inner1.append(wait).append(atip);
+		sticky.append(stickyInner);
 
-		sticky.append(inner1);
+		//sticky.append(inner1);
 				//.append(wait);
 				//.append(status);
 
 		// always append to body
 		sticky.appendTo('body');
-			sticky.mouseleave("mouseout",function(e) {
-			//console.log("sticky mouse out. of sticky.");
-			stickytooltip.closetooltip();
+		sticky.mouseleave("mouseout",function(e) {
+		 	stickytooltip.closetooltip();
 		});
 	},
 	
@@ -2731,14 +2743,14 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var retData = this.state.tooltipRender.html({parent: this, id:id, data: data});   
 
 		// update the stub stickytool div dynamically to display
-		$("#sticky1").empty();
-		$("#sticky1").html(retData);
+		$("#stickyInner").empty();
+		$("#stickyInner").html(retData);
 
-		// For phenotype HPO tree 
+		// For phenotype ontology tree 
 		if (data.type === 'phenotype') {
 			// https://api.jqueryui.com/jquery.widget/#method-_on
-			// Binds click event to the HPO tree expand icon - Joe
-			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="expandHPO_HP_0001300" - Joe
+			// Binds click event to the ontology tree expand icon - Joe
+			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_expandOntology_HP_0001300" - Joe
 			var expandOntol_icon = $('#pg_expandOntology_' + id);
 			this._on(expandOntol_icon, {
 				"click": function(event) {
@@ -2748,7 +2760,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		}
 	},
 
-	// This builds the string to show the relations of the HPO nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
+	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
 	buildOntologyTree: function(id, edges, level) {
 		var results = "";
 		var nextResult;
@@ -2802,9 +2814,8 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return label;
 	},
 
-	// Based on the ID, it pulls the label from hpoCacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
+	// Based on the ID, it pulls the label from CacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 	_buildOntologyHyperLink: function(id){
-		//var label = this.state.hpoCacheLabels.get(id);
 		var label = this._getOntologyLabel(id);
 		var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
 		return link;
@@ -2930,7 +2941,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
 
 		// Inverted and multi species
-		if (this.state.invertAxis) { //&& speciesList.length > 1) {
+		if (this.state.invertAxis) { 
 			var heightPerSpecies = this._gridHeight()/speciesList.length;
 
 			this.state.svg.selectAll(".pg_species_name")
@@ -3027,31 +3038,31 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 
 	// Build out the positions of the 3 boxes
-	_buildAxisPositionList: function() {
-		// For Overview of Organisms 0 width = ((defaultVisibleModelCt*2)+2) *this.state.widthOfSingleCell	
-		// Add two extra columns as separators
-		this.state.axis_pos_list = [];
-		// calculate width of model section
-		//this.state.modelWidth = this.state.filteredXAxis.size() * this.state.widthOfSingleCell;
-		this.state.modelWidth = this.state.xAxisRender.displayLength() * this.state.widthOfSingleCell;
+	// _buildAxisPositionList: function() {
+	// 	// For Overview of Organisms 0 width = ((defaultVisibleModelCt*2)+2) *this.state.widthOfSingleCell	
+	// 	// Add two extra columns as separators
+	// 	this.state.axis_pos_list = [];
+	// 	// calculate width of model section
+	// 	//this.state.modelWidth = this.state.filteredXAxis.size() * this.state.widthOfSingleCell;
+	// 	this.state.modelWidth = this.state.xAxisRender.displayLength() * this.state.widthOfSingleCell;
 
-		// add an axis for each ordinal scale found in the data
-		for (var i = 0; i < 3; i++) {
-			// move the last accent over a bit for the scrollbar
-			if (i === 2) {
-				// make sure it's not too narrow i
-				var w = this.state.modelWidth;
-				if(w < this.state.smallestModelWidth) {
-					w = this.state.smallestModelWidth;
-				}
-				this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
-			} else if (i === 1 ){
-				this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
-			} else {
-				this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
-			}
-		}	
-	},
+	// 	// add an axis for each ordinal scale found in the data
+	// 	for (var i = 0; i < 3; i++) {
+	// 		// move the last accent over a bit for the scrollbar
+	// 		if (i === 2) {
+	// 			// make sure it's not too narrow i
+	// 			var w = this.state.modelWidth;
+	// 			if(w < this.state.smallestModelWidth) {
+	// 				w = this.state.smallestModelWidth;
+	// 			}
+	// 			this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
+	// 		} else if (i === 1 ){
+	// 			this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
+	// 		} else {
+	// 			this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
+	// 		}
+	// 	}	
+	// },
 
 	/*
 	 * Add the gradient legend (bar and label texts) to the grid bottom
@@ -3493,12 +3504,10 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return newlist;
 	},
 
-	// Will call the getHPO function to either load the HPO info or to make it visible if it was previously hidden.  Not available if preloading
 	_expandOntology: function(id){
 		var self = this;
 
 		// check to see if id has been cached
-		//var cache = this.state.ontologyCache[fixedId];
 		var cache = this.state.dataLoader.checkOntologyCache(id);
 
 		if (typeof(cache) == 'undefined') 
@@ -3528,7 +3537,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 		}
 
-		$("#sticky1").html(ontologyData);
+		$("#stickyInner").html(ontologyData);
 
 		// reshow the sticky with updated info
 		stickytooltip.show(null);
@@ -3932,7 +3941,8 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 (function () {
 'use strict';
 
-/* Sticky Tooltip script (v1.0)
+/* 
+* minor code based adapted from Sticky Tooltip script (v1.0)
 * Created: Nov 25th, 2009. This notice must stay intact for usage 
 * Author: Dynamic Drive at http://www.dynamicdrive.com/
 * Visit http://www.dynamicdrive.com/ for full source code
@@ -3941,35 +3951,14 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 var $ = jQuery;
 
-/* Sticky Tooltip script (v1.0)
-* Created: Nov 25th, 2009. This notice must stay intact for usage 
-* Author: Dynamic Drive at http://www.dynamicdrive.com/
-* Visit http://www.dynamicdrive.com/ for full source code
-*/
-
-
 var stickytooltip = {
-	tooltipoffsets: {x:1, y:1}, //additional x and y offset from mouse cursor for tooltips 0,-3  [10, 10]
+	tooltipoffsets: {x:0, y:0}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
 	fadeinspeed: 1, //duration of fade effect in milliseconds
-	rightclickstick: true, //sticky tooltip when user right clicks over the triggering element (apart from pressing "s" key) ?
-	stickybordercolors: ["black", "darkred"], //border color of tooltip depending on sticky state
-	stickynotice1: ["Press \"s\" or right click to activate sticky box. \"h\" to hide"], //, "or right click", "to sticky box"], //customize tooltip status message
-	stickynotice2: "Click outside this box to hide it", //customize tooltip status message
-	lastEvent: null,  // saves last mouseevent
-
-	//***** NO NEED TO EDIT BEYOND HERE
-
 	isdocked: false,  // force sticky mode
 
 
 	positiontooltip:function($, $tooltip, e){
-		//var x=e.pageX+this.tooltipoffsets[0], y=e.pageY+this.tooltipoffsets[1]
-		console.log(e);
 		var x = e.left + this.tooltipoffsets.x, y = e.top + this.tooltipoffsets.y;
-	    //var x=e.pageX+1, y=e.pageY-1;
-		var tipw=$tooltip.outerWidth(), tiph=$tooltip.outerHeight(), 
-		x=(x+tipw>$(document).scrollLeft()+$(window).width())? x-tipw-(stickytooltip.tooltipoffsets[0]*2) : x
-		y=(y+tiph>$(document).scrollTop()+$(window).height())? $(document).scrollTop()+$(window).height()-tiph-10 : y
 		$tooltip.css({left:x, top:y});
 	},
 	
@@ -3981,8 +3970,7 @@ var stickytooltip = {
 
 	// wrapper function
 	show:function(e) {
-		if (e == null) e = stickytooltip.lastEvent;
-		var $tooltip=$('#mystickytooltip');
+		var $tooltip = $('#mystickytooltip');
 		stickytooltip.isdocked = true;
 		stickytooltip.showbox($, $tooltip, e);
 	},
@@ -3991,18 +3979,12 @@ var stickytooltip = {
 		if (!this.isdocked){
 			$tooltip.stop(false, true).hide();
 			stickytooltip.isdocked = false;
-//			$tooltip.css({borderColor:'black'}).find('.stickystatus:eq(0)').css({background:this.stickybordercolors[0]}).html(this.stickynotice1)
 		}
-	},
-
-	docktooltip:function($, $tooltip, e){
-		this.isdocked=true
-		//$tooltip.css({borderColor:'darkred'}).find('.stickystatus:eq(0)').css({background:this.stickybordercolors[1]}).html(this.stickynotice2)
 	},
 
 	// wrapper function
 	closetooltip:function() {		
-		var $tooltip= jQuery('#mystickytooltip');
+		var $tooltip = jQuery('#mystickytooltip');
 		stickytooltip.isdocked = false;
 		stickytooltip.hidebox($, $tooltip);
 	},
@@ -4010,30 +3992,15 @@ var stickytooltip = {
 	init:function(targetselector, tipid){
 		jQuery(document).ready(function($){
 			var self = this;			
-			var $targets= jQuery(targetselector);  //    $(targetselector);
-			var $tooltip=$('#'+tipid).appendTo(document.body);
-			if ($targets.length==0)
+			var $targets = jQuery(targetselector);  //    $(targetselector);
+			var $tooltip = $('#'+tipid).appendTo(document.body);
+			if ($targets.length == 0)
 				return;
-			var $alltips=$tooltip.find('div.atip');
-			if (!stickytooltip.rightclickstick)
-				stickytooltip.stickynotice1[1]='';
 
 			stickytooltip.hidebox($, $tooltip);
 			
-			$targets.bind('mouseenter', function(e){  
-				//var elem = e.relatedTarget ||  e.toElement || e.fromElement;
-				//console.log("sticky:mouseenter: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
-				//console.log("sticky mouseenter...");
-				if  (!stickytooltip.isdocked) {
-					// this forces the tooltip to be shown
-		  			stickytooltip.showbox($, $tooltip, e);
-		  			stickytooltip.lastEvent = e;  
-		  		}
-		     });
-			 $targets.bind('mouseout', function(e){  // mouseleave
+			$targets.bind('mouseout', function(e){  // mouseleave
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
-				//console.log("sticky:mouseout: docked=" +stickytooltip.isdocked + " elemid: " + JSON.stringify(elem.id));
-				//console.log("sticky mouseout...");
 				if (typeof(elem) !== 'undefined' ) {
 					if (elem.id != 'mystickytooltip' && elem.id != "") {					    
 						stickytooltip.isdocked = false;
@@ -4041,46 +4008,9 @@ var stickytooltip = {
 					}
 				}
 			 });
-			// $targets.bind('mousemove', function(e){
-			// 	if (!stickytooltip.isdocked){
-			// 		stickytooltip.positiontooltip($, $tooltip, e);
-			// 	}				
-			// 	//console.log('mousemove');
-			// })
-			// $tooltip.bind("mouseenter", function(){
-			// 	stickytooltip.hidebox($, $tooltip);
-			// 	//console.log('mouseenter2');
-			// })
-			// $tooltip.bind("click", function(e){
-			// 	e.stopPropagation();
-			// })
-			// $(this).bind("click", function(e){
-			// 	if (e.button==0){
-			// 		stickytooltip.isdocked=false;
-			// 		stickytooltip.hidebox($, $tooltip);
-			// 	}
-			// })
-			// $(this).bind("contextmenu", function(e){
-			// 	if (stickytooltip.rightclickstick && $(e.target).parents().andSelf().filter(targetselector).length==1){ //if oncontextmenu over a target element
-			// 		stickytooltip.docktooltip($, $tooltip, e);
-			// 		return false;
-			// 	}
-			// })
-			// $(this).bind('keypress', function(e){
-			// 	var keyunicode=e.charCode || e.keyCode;
-			// 	if (keyunicode==115){ //if "s" key was pressed
-			// 		stickytooltip.docktooltip($, $tooltip, e);
-			// 	} else if (keyunicode==104){ //if "h" key was pressed
-			// 		stickytooltip.isdocked=false;
-			// 		stickytooltip.hidebox($, $tooltip);
-			// 	}
-			// })
 		}) //end dom ready
 	}
 };
-
-//stickytooltip.init("targetElementSelector", "tooltipcontainer")
-//stickytooltip.init("*[data-tooltip]", "mystickytooltip")
 
 // CommonJS format
 module.exports=stickytooltip;
@@ -4264,17 +4194,19 @@ TooltipRender.prototype = {
 		var suffix = "";
 		var selCalc = tooltip.parent.state.selectedCalculation;
 
-		var prefix, targetId, sourceId, targetInfo;
+		var prefix, targetId, sourceId, targetInfo, sourceInfo;
 			//var taxon = d.taxon;
 
 		if (tooltip.parent.state.invertAxis) {
 			sourceId = d.target_id;
 			targetId = d.source_id;
 			targetInfo = tooltip.parent.state.yAxisRender.get(d.target_id); 
+			sourceInfo = tooltip.parent.state.xAxisRender.get(d.source_id); 			
 		 } else {
 			sourceId = d.source_id;
 			targetId = d.target_id;
 			targetInfo = tooltip.parent.state.xAxisRender.get(d.target_id); 
+			sourceInfo = tooltip.parent.state.yAxisRender.get(d.source_id); 						
 		 }
 
 		 
@@ -4296,15 +4228,15 @@ TooltipRender.prototype = {
 
 		returnHtml = "<table class=\"pgtb\">" +
 			"<tbody><tr><td><u><b>Query</b></u><br>" +   //Utils.capitalizeString(d.type) + 
-			"<b>Source: </b>" + this.entityHreflink(d.type, sourceId, d.a_label ) +  
+			"<b>Source: </b>" + this.entityHreflink(sourceInfo.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
 			"<b>" + prefix + ":</b> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + '%' + "<br>" +		
 			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetSpeciesByName[d.targetGroup].taxon + ")</td>" + 
 			"<tr><td><u><b><br>In-common</b></u><br>" + 
-		this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label ) +
+		this.entityHreflink(sourceInfo.type, d.subsumer_id, d.subsumer_label ) +
 				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
 				"<tr><td><br><u><b>Match</b></u><br>" + 
-		this.entityHreflink(d.type, d.b_id, d.b_label ) +
+		this.entityHreflink(sourceInfo.type, d.b_id, d.b_label ) +
 			Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
 			"<tr><td><br><u><b>Target</b></u><br>" + 
 			"<b>Name:</b> " + 

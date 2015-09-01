@@ -175,17 +175,19 @@ TooltipRender.prototype = {
 		var suffix = "";
 		var selCalc = tooltip.parent.state.selectedCalculation;
 
-		var prefix, targetId, sourceId, targetInfo;
+		var prefix, targetId, sourceId, targetInfo, sourceInfo;
 			//var taxon = d.taxon;
 
 		if (tooltip.parent.state.invertAxis) {
 			sourceId = d.target_id;
 			targetId = d.source_id;
 			targetInfo = tooltip.parent.state.yAxisRender.get(d.target_id); 
+			sourceInfo = tooltip.parent.state.xAxisRender.get(d.source_id); 			
 		 } else {
 			sourceId = d.source_id;
 			targetId = d.target_id;
 			targetInfo = tooltip.parent.state.xAxisRender.get(d.target_id); 
+			sourceInfo = tooltip.parent.state.yAxisRender.get(d.source_id); 						
 		 }
 
 		 
@@ -207,15 +209,15 @@ TooltipRender.prototype = {
 
 		returnHtml = "<table class=\"pgtb\">" +
 			"<tbody><tr><td><u><b>Query</b></u><br>" +   //Utils.capitalizeString(d.type) + 
-			"<b>Source: </b>" + this.entityHreflink(d.type, sourceId, d.a_label ) +  
+			"<b>Source: </b>" + this.entityHreflink(sourceInfo.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
 			"<b>" + prefix + ":</b> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + '%' + "<br>" +		
 			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetSpeciesByName[d.targetGroup].taxon + ")</td>" + 
 			"<tr><td><u><b><br>In-common</b></u><br>" + 
-		this.entityHreflink(d.type, d.subsumer_id, d.subsumer_label ) +
+		this.entityHreflink(sourceInfo.type, d.subsumer_id, d.subsumer_label ) +
 				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
 				"<tr><td><br><u><b>Match</b></u><br>" + 
-		this.entityHreflink(d.type, d.b_id, d.b_label ) +
+		this.entityHreflink(sourceInfo.type, d.b_id, d.b_label ) +
 			Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
 			"<tr><td><br><u><b>Target</b></u><br>" + 
 			"<b>Name:</b> " + 
