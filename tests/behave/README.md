@@ -54,7 +54,13 @@ You can install the Python virtualenv through Homebrew on Mac.
 
 Note: you need to have the desktop and web browser (it uses Firefox by default) installed in order to run the tests. 
 
-Starting from the phenogrid root directory, we create a virtual environment for this behave test:
+Starting from the phenogrid root directory, type the following in your terminal:
+
+````
+PGDIR=`pwd`
+````
+
+Then we create a virtual environment for this behave test in the `tests/behave` directory:
 
 ````
 cd tests/behave
@@ -80,10 +86,10 @@ Note: the products of these steps have been added to the .gitignore file.
 
 Now we can go to the terminal and run all tests (the `phenogrid.feature` file):
 
-When you have phenogrid embedded as a widget, you can either run the behave tests against the phenogrid file path (e,g., `file:///home/phenogrid`) or server path (if it's placed inside the HTTP server, e.g., `http://localhost:8080/phenogrid`)
+When you have phenogrid embedded as a widget, you can either run the behave tests against the phenogrid file path (e,g., `file://PGDIR`) or web server base URL (if it's placed inside the HTTP server, e.g., `http://localhost:8080/phenogrid`)
 
 ````
-TARGET=file:///home/phenogrid behave
+TARGET=file://PGDIR behave
 ````
 or
 ````
@@ -94,7 +100,7 @@ TARGET=http://localhost:8080/phenogrid behave
 This will test the index.html page in the phenogrid directory. And if you would like to export all the test running details into a log file, you can use the following command:
 
 ````
-TARGET=file://home/phenogrid behave > log
+TARGET=file://PGDIR behave > log
 ````
 or 
 ````
