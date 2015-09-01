@@ -24,8 +24,13 @@ var stickytooltip = {
 	
 	showbox:function($, $tooltip, e){
 		$tooltip.fadeIn(this.fadeinspeed);
+		//$tooltip.fadeOut(10000);		
 		this.positiontooltip($, $tooltip, e);
 		stickytooltip.isdocked = true;
+
+		// this will fade out the stickytooltip if idle too long
+		setTimeout(function() { 
+        $('#mystickytooltip').fadeOut();}, 11000); 
 	},
 
 	// wrapper function

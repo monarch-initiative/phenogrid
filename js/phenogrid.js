@@ -631,14 +631,13 @@ var Utils = require('./utils.js');
 		// show tooltip
 		parent._createHoverBox(data);
 
-		// get the position of object where the mouse event happened
-		
+		// get the position of object where the mouse event happened		
 		var pos = p.offset();
-		console.log(pos);		
-		var newLeft = pos.left + p[0].getBoundingClientRect().width;
+
+		// add the width of the client rect to the left position to place it at the end
+		var newLeft = pos.left + p[0].getBoundingClientRect().width;  
 		var position = {left: newLeft, top: pos.top};
 
-		console.log(position);
 
 		// show a stickytooltip
 		stickytooltip.show(position);
@@ -661,18 +660,20 @@ var Utils = require('./utils.js');
 				.classed("pg_cursor_pointer", false);					  				  
 
 
-		if (!stickytooltip.isdocked) {
-		// 	// hide the tooltip
-		 	stickytooltip.closetooltip();
-		}
+		// if (!stickytooltip.isdocked) {
+		// // 	// hide the tooltip
+		//  	stickytooltip.closetooltip();
+		// }
 
 	},
 
 	_highlightMatching: function(s, data) {
 		var hightlightSources = true;
 		var currenPos = this._getAxisDataPosition(data.id);
+		var nameId = s.parentNode.id;  // using parentNode is compatible across browsers, not s.parentElement.id
+
 		// did we hover over a grid column
-		if (s.parentElement.id.indexOf('grid_col') > -1) {
+		if (nameId.indexOf('grid_col') > -1) {
 			hightlightSources = true;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
 
