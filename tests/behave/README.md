@@ -107,7 +107,7 @@ or
 TARGET=http://localhost:8080/phenogrid BROWSER=phantomjs behave
 ````
 
-Make sure after you have PhantomJS installed, create a symbolic link of the phantomjs executable to the `/usr/bin/` so Selenium webdriver knows where to find the PhantomJS to run the tests against. For example:
+Make sure after you have PhantomJS installed (let's say at `/usr/local/phantomjs/bin/phantomjs`), create a symbolic link of the phantomjs executable to the `/usr/bin/` so Selenium webdriver knows where to find the PhantomJS executable to run the tests against. For example:
 
 ````
 ln -s /usr/local/phantomjs/bin/phantomjs /usr/bin/
