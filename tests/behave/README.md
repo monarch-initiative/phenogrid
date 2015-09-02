@@ -97,7 +97,7 @@ TARGET=http://localhost:8080/phenogrid behave
 ````
 (If you are running HTTP server on a different port number, adjust accordingly.)
 
-This will test the index.html page in the phenogrid directory and run the behave tests in Firefox by default. If you want to use other browsers, e.g., PhantomJS (a headless browser), you can do this:
+This will test the index.html page in the phenogrid directory and run the behave tests in Firefox by default. If you want to use other browsers, e.g., [PhantomJS](http://phantomjs.org/) (a headless browser), you can do this:
 
 ````
 TARGET=file://PGDIR BROWSER=phantomjs behave
