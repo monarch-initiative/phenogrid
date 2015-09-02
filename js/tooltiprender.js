@@ -51,7 +51,7 @@ TooltipRender.prototype = {
 			// this creates the standard information portion of the tooltip, 
 			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
 						this.entityHreflink(this.data.type, this.data.id, this.data.label ) +
-						"<br/>" + this._rank() + this._score() + this._ic();
+						"<br/>" + this._rank() + this._score() + this._ic() + this._targetGroup();
 
 			// this creates the extended information for specialized tooltip info and functionality
 			// try to dynamically invoke the function that matches the data.type
@@ -71,8 +71,8 @@ TooltipRender.prototype = {
 	_ic: function() {
 		return (typeof(this.data.IC) !== 'undefined'?"<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br/>":"");
 	},
-	_species: function() {
-		return (typeof(this.data.species) !== 'undefined'?"<strong>Species:</strong> " + this.data.species+"<br/>":"");
+	_targetGroup: function() {
+		return (typeof(this.data.targetGroup) !== 'undefined'?"<strong>Species:</strong> " + this.data.targetGroup+"<br/>":"");
 	},
 
 	_capitalizeString: function(word){
@@ -105,18 +105,12 @@ TooltipRender.prototype = {
 				ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
 			}
 		}
-		// Used font awesome for expand buttons - Joe
-//		if (!tooltip.parent.state.preloadHPO){
-			if (expand){
-				returnHtml += ontologyData;
-			} else {
-				//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
-				returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
-			}
-		// }
-		// else {
-		// 	returnHtml = ontologyData;
-		// }
+		if (expand){
+			returnHtml += ontologyData;
+		} else {
+			//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
+			returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+		}
 	return returnHtml;		
 
 	},
@@ -124,8 +118,8 @@ TooltipRender.prototype = {
 	gene: function(tooltip) {
 		var returnHtml = "";	
 	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
-		// for gene and species mode only, show genotype link
-		if (tooltip.parent.state.targetSpeciesName !== "Overview"){
+		
+		if (tooltip.parent.state.targetGroupName !== "Overview"){
 			var isExpanded = false;
 			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
 			if (gtCached !== null) { isExpanded = gtCached.expanded;}
@@ -212,7 +206,7 @@ TooltipRender.prototype = {
 			"<b>Source: </b>" + this.entityHreflink(sourceInfo.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
 			"<b>" + prefix + ":</b> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + '%' + "<br>" +		
-			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetSpeciesByName[d.targetGroup].taxon + ")</td>" + 
+			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetGroupByName[d.targetGroup].taxon + ")</td>" + 
 			"<tr><td><u><b><br>In-common</b></u><br>" + 
 		this.entityHreflink(sourceInfo.type, d.subsumer_id, d.subsumer_label ) +
 				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +

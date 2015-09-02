@@ -1388,7 +1388,6 @@ module.exports = Expander;
  *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
  *         serverURL : "http://beta.monarchinitiative.org",
  *         phenotypeData: phenotypes,
- *         targetSpeciesName: "Mus musculus"
  *     });
  * }
  *
@@ -1514,7 +1513,7 @@ var Utils = require('./utils.js');
 		headerAreaHeight: 160,
 		comparisonTypes: [ { organism: "Homo sapiens", comparison: "diseases"}],
 		defaultComparisonType: { comparison: "genes"},
-		speciesLabels: [ { abbrev: "HP", label: "Human"},
+		targetGroupLabels: [ { abbrev: "HP", label: "Human"},
 			{ abbrev: "MP", label: "Mouse"},
 			{ abbrev: "ZFIN", label: "Zebrafish"},
 			{ abbrev: "ZP", label: "Zebrafish"},
@@ -1537,18 +1536,18 @@ var Utils = require('./utils.js');
 		invertAxis: false,
 		dummyModelName: "dummy",
 		simServerURL: "",  // URL of the server for similarity searches
-		selectedCompareSpecies: [],
+		selectedCompareTargetGroup: [],
 		gridRegion: {x:254, y:200, // origin coordinates for grid region (matrix)
 						ypad:13, xpad:15, // x/y padding between the labels and grid
 						cellwd:10, cellht:10, // // cell width and height
 						rowLabelOffset:-25, // offset of the row label (left side)
 						colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
 						scoreOffset:5,  // score text offset from the top of grid squares
-						speciesLabelOffset: -200    // -100offset of the species label, above grid
+						targetGroupLabelOffset: -200    // -100offset of the targetGroup label, above grid
 					},
 		defaultTargetDisplayLimit: 40, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
-		defaultCrossCompareTargetLimitPerSpecies: 10,    // the number of visible targets per organisms to be displayed in cross compare mode
+		defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per organisms to be displayed in cross compare mode
 		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
 	},
 
@@ -1563,8 +1562,6 @@ var Utils = require('./utils.js');
 		ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
 							// [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
 		selectedSort: "Frequency",
-		defaulTargetSpeciesName: "Overview",  // MKD: not sure this works setting it here, need to look into this
-		refSpecies: "Homo sapiens",
 		genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid
 	    providedData: {},   
 	    axisFlipConfig: {
@@ -1595,11 +1592,8 @@ var Utils = require('./utils.js');
 		// will this work?
 		this.configoptions = undefined;
 
-		// set the current target species to the default
-		//this.state.currentTargetSpeciesName = this.state.defaulTargetSpeciesName;
+		this._createTargetGroupIndices();
 
-		this._createTargetSpeciesIndices();
-		// index species
 		this._reset();
 
 		console.log("in create func...");
@@ -1617,18 +1611,18 @@ var Utils = require('./utils.js');
 
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
-		this.state.selectedCompareSpecies = [];
-		var speciesLoadList = [];
+		this.state.selectedCompareTargetGroup = [];
+		var targetGroupLoadList = [];
 
-		// load the default selected target species list based on the active flag
-		for(var idx in this.state.targetSpeciesList) {
-			// for active species pre-load them
-			if (this.state.targetSpeciesList[idx].active) {
-				speciesLoadList.push(this.state.targetSpeciesList[idx]);	
+		// load the default selected target targetGroup list based on the active flag
+		for(var idx in this.state.targetGroupList) {
+			// for active targetGroup pre-load them
+			if (this.state.targetGroupList[idx].active) {
+				targetGroupLoadList.push(this.state.targetGroupList[idx]);	
 			}	
 			// should they be shown in the comparison view
-			if (this.state.targetSpeciesList[idx].crossComparisonView) {
-				this.state.selectedCompareSpecies.push(this.state.targetSpeciesList[idx]);	
+			if (this.state.targetGroupList[idx].crossComparisonView) {
+				this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
 			}			
 		}
 		var self = this;
@@ -1640,7 +1634,7 @@ var Utils = require('./utils.js');
 						 this.state.apiEntityMap);
 
 		// starting loading the data
-		this.state.dataLoader.load(querySourceList, speciesLoadList, postAsyncCallback);  //optional parm:   this.limit);
+		this.state.dataLoader.load(querySourceList, targetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
 	
 
 	},
@@ -1708,20 +1702,20 @@ var Utils = require('./utils.js');
 		// sort source with default sorting type
 		this.state.sourceAxis.sort(this.state.selectedSort); 
 
-		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareSpecies > 1 then it's Comparision mode 
+		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareTargetGroup > 1 then it's Comparision mode 
 		if (this._isCrossComparisonView()) {        			
 
 			// create a combined list of targets
-			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareSpecies, this.state.defaultCrossCompareTargetLimitPerSpecies);	
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.defaultCrossCompareTargetLimitPerTargetGroup);	
 
 			// get the length of the targetlist, this sets that limit since we are in comparison mode
-			// only the defaultCrossCompareTargetLimitPerSpecies is set, which provides the overall display limit
+			// only the defaultCrossCompareTargetLimitPerTargetGroup is set, which provides the overall display limit
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
 
-		} else if (this.state.selectedCompareSpecies.length === 1) {
-			var singleSpeciesName = this.state.selectedCompareSpecies[0].name;
-			targetList = this.state.dataManager.getData("target", singleSpeciesName);
-			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleSpeciesName);
+		} else if (this.state.selectedCompareTargetGroup.length === 1) {
+			var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
+			targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);
 			
 			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
 				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
@@ -1763,7 +1757,7 @@ var Utils = require('./utils.js');
 			this._positionPhenogridControls();
 
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
-			 	this._createOverviewSpeciesLabels();
+			 	this._createOverviewTargetGroupLabels();
 			}
 			this._createGrid();
 			
@@ -1773,7 +1767,7 @@ var Utils = require('./utils.js');
 			
 			this._createOverviewSection();
 			this._createGradientLegend();
-			this._createSpeciesDividerLines();
+			this._createTargetGroupDividerLines();
 
 			// this must be initialized here after the _createModelLabels, or the mouse events don't get
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
@@ -2013,7 +2007,6 @@ var Utils = require('./utils.js');
 		var newLeft = pos.left + p[0].getBoundingClientRect().width;  
 		var position = {left: newLeft, top: pos.top};
 
-
 		// show a stickytooltip
 		stickytooltip.show(position);
 
@@ -2183,7 +2176,7 @@ var Utils = require('./utils.js');
 
 		//var error = "<br /><div id='err'><h4>" + msg + "</h4></div><br /><div id='return'><button id='button' type='button'>Return</button></div>";
 		//this.element.append(error);
-		//if (this.state.currentTargetSpeciesName != "Overview"){
+		//if (this.state.currentTargetGroupName != "Overview"){
 		if (!self._isCrossComparisonView()) {			
 			html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><p><button id='button' type='button'>Return</button></p><br/></div>";
 			//this.element.append(html);
@@ -2195,7 +2188,7 @@ var Utils = require('./utils.js');
 					d3.select("#pg_svg_area").remove();
 
 					//self._reset();
-					//self.state.currentTargetSpeciesName = "Overview";
+					//self.state.currentTargetGroupName = "Overview";
 					self._init();
 				});
 		}else{
@@ -2296,9 +2289,7 @@ var Utils = require('./utils.js');
      	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
 	    var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
 		var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-		
-console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:----- ' + startYId, 'lastYId:----- ' + lastYId);
+	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  	
 
         // start point (x, y) of the shaded draggable area
 		var selectRectX = this.state.smallXScale(startXId);
@@ -2306,13 +2297,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		// width and height of the shaded draggable area
 		var selectRectHeight = this.state.smallYScale(lastYId) - this.state.smallYScale(startYId);
 		var selectRectWidth = this.state.smallXScale(lastXId) - this.state.smallXScale(startXId);
-		//var selectRectHeight = this.state.smallYScale(lastYId);
-		//var selectRectWidth = this.state.smallXScale(lastXId);
 		
-		console.log("yRenderedSize:" + yRenderedSize +" xRenderedSize" +xRenderedSize +
-				 " selectRectX: " + selectRectX +  " selectRectY:" + selectRectY + 
-			" selectRectHeight:" + selectRectHeight + " selectRectWidth:" + selectRectWidth);
-
 		// Also add the shaded area in the pg_navigator group - Joe
 		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
 			.attr("x", overviewX + selectRectX)
@@ -2477,7 +2462,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	// 		if ( ! this.state.comparisonTypes.hasOwnProperty(i)) {
 	// 				break;
 	// 			}
-	// 		if (this.state.currentTargetSpeciesName === this.state.comparisonTypes[i].organism) {
+	// 		if (this.state.currentTargetGroupName === this.state.comparisonTypes[i].organism) {
 	// 			comp = this.state.comparisonTypes[i];
 	// 		}
 	// 	}
@@ -2529,7 +2514,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 
 	_getIDTypeDetail: function(key) {
 		//var info = this.state.modelListHash.get(key);
-		//var info = this.state.dataManager.getElement("target", key, this.state.currentTargetSpeciesName);
+		//var info = this.state.dataManager.getElement("target", key, this.state.currentTargetGroupName);
 		var info;
 	     if (this.state.yAxisRender.contains(key)){
 		     info = this.state.yAxisRender.get(key);
@@ -2645,16 +2630,16 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	
 	// Grid main top title
 	_addGridTitle: function() {
-		var species = '';
+		var targetGroup = '';
 
 		// set up defaults as if overview
-		var titleText = "Cross-Species Comparison";
+		var titleText = "Cross-TargetGroup Comparison";
 
-		//if (this.state.currentTargetSpeciesName !== "Overview") {
+		//if (this.state.currentTargetGroupName !== "Overview") {
 		if ( ! this._isCrossComparisonView()) {
-			species = this.state.currentTargetSpeciesName;
-			var comp = this._getComparisonType(species);
-			titleText = "Phenotype Comparison (grouped by " + species + " " + comp + ")";
+			targetGroup = this.state.currentTargetGroupName;
+			var comp = this._getComparisonType(targetGroup);
+			titleText = "Phenotype Comparison (grouped by " + targetGroup + " " + comp + ")";
 		}
 		// COMPARE CALL HACK - REFACTOR OUT
 		if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser'){
@@ -2822,7 +2807,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		return link;
 	},
 
-	_createSpeciesDividerLines: function() {
+	_createTargetGroupDividerLines: function() {
 		var self = this;
 		var gridRegion = self.state.gridRegion;
 		var x = gridRegion.x;     
@@ -2831,11 +2816,11 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		var width = self._gridWidth();
 
 		if (self._isCrossComparisonView() ) {
-			var numOfSpecies = self.state.selectedCompareSpecies.length;
+			var numOfTargetGroup = self.state.selectedCompareTargetGroup.length;
 			var xScale = self.state.xAxisRender.getScale();
 
-			//var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfSpecies);
-			var cellsDisplayedPer = self.state.defaultCrossCompareTargetLimitPerSpecies;
+			//var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfTargetGroup);
+			var cellsDisplayedPer = self.state.defaultCrossCompareTargetLimitPerTargetGroup;
 			var x1 = 0;
 			if (self.state.invertAxis) {
 				x1 = ((gridRegion.ypad * (cellsDisplayedPer-1)) + gridRegion.cellht);  //-gridRegion.rowLabelOffset; 								
@@ -2844,7 +2829,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 				y = y - gridRegion.colLabelOffset;  // offset the line to reach the labels
 			}
 
-			for (var i=1; i < numOfSpecies; i++) {
+			for (var i=1; i < numOfTargetGroup; i++) {
 
 				var fudgeFactor = 3; //magic num
 						if (i > 1) {
@@ -2873,7 +2858,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 					.attr("y2", height);
 
 
-					// render the slanted line between targetGroup (species) columns
+					// render the slanted line between targetGroup (targetGroup) columns
 					 this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
 					.attr("transform","translate(" + x + "," + y + ")rotate(-45 " + x1 + " 0)")				
@@ -2935,45 +2920,45 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
 
-	// Add species labels (watermark-like) to top of grid
-	_createOverviewSpeciesLabels: function () {
+	// Add targetGroup labels (watermark-like) to top of grid
+	_createOverviewTargetGroupLabels: function () {
 		var self = this;
-		// speciesList is an array that contains all the selected species names
-		var speciesList = this.state.selectedCompareSpecies.map( function(d) {return d.name;});  //[];
+		// targetGroupList is an array that contains all the selected targetGroup names
+		var targetGroupList = this.state.selectedCompareTargetGroup.map( function(d) {return d.name;});  //[];
 
-		// Inverted and multi species
+		// Inverted and multi targetGroup
 		if (this.state.invertAxis) { 
-			var heightPerSpecies = this._gridHeight()/speciesList.length;
+			var heightPerTargetGroup = this._gridHeight()/targetGroupList.length;
 
-			this.state.svg.selectAll(".pg_species_name")
-				.data(speciesList)
+			this.state.svg.selectAll(".pg_targetGroup_name")
+				.data(targetGroupList)
 				.enter()
 				.append("text")
 				.attr("x", this.state.gridRegion.x + this._gridWidth() + 20) // 20 is margin - Joe
 				.attr("y", function(d, i) { 
-						return self.state.gridRegion.y + ((i + 1/2 ) * heightPerSpecies);
+						return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
 					})
 				.attr('transform', function(d, i) {
 					var currX = self.state.gridRegion.x + self._gridWidth() + 20;
-					var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerSpecies);
+					var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
 					return 'rotate(90 ' + currX + ' ' + currY + ')';
 				}) // rotate by 90 degrees 
-				.attr("class", "pg_species_name") // Need to use id instead of class - Joe
-				.text(function (d, i){return speciesList[i];})
+				.attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+				.text(function (d, i){return targetGroupList[i];})
 				.attr("text-anchor", "middle");
 		} else {
-			var widthPerSpecies = this._gridWidth()/speciesList.length;
+			var widthPerTargetGroup = this._gridWidth()/targetGroupList.length;
 
-			this.state.svg.selectAll(".pg_species_name")
-				.data(speciesList)
+			this.state.svg.selectAll(".pg_targetGroup_name")
+				.data(targetGroupList)
 				.enter()
 				.append("text")
 				.attr("x", function(d, i){ 
-						return self.state.gridRegion.x + ((i + 1/2 ) * widthPerSpecies);
+						return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
 					})
 				.attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
-				.attr("class", "pg_species_name") // Need to use id instead of class - Joe
-				.text(function (d, i){return speciesList[i];})
+				.attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+				.text(function (d, i){return targetGroupList[i];})
 				.attr("text-anchor", "middle");
 		}
 	},
@@ -3192,15 +3177,15 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 			for (var idx = 0; idx < items.length; idx++) {
 
 				if (items[idx].childNodes[0].checked) {
-					var rec = self._getTargetSpeciesInfo(self, items[idx].textContent);
+					var rec = self._getTargetGroupInfo(self, items[idx].textContent);
 					temp.push(rec);
 				}
 			}
 			
 			if (temp.length > 0) {
-				self.state.selectedCompareSpecies = temp;				
+				self.state.selectedCompareTargetGroup = temp;				
 			} else {
-				alert("You must have at least 1 species selected.");
+				alert("You must have at least 1 targetGroup selected.");
 			}
 
 			self._createAxisRenderingGroups();
@@ -3267,17 +3252,17 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	_createOrganismSelection: function() {
 		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism(s)</label>" + 
 			"<div id='pg_organism'>";
-		for (var idx in this.state.targetSpeciesList) {
-			if ( ! this.state.targetSpeciesList.hasOwnProperty(idx)) {
+		for (var idx in this.state.targetGroupList) {
+			if ( ! this.state.targetGroupList.hasOwnProperty(idx)) {
 				break;
 			}
 			var checked = "";
-			if (this.state.targetSpeciesList[idx].active) { 
-				if (this._isTargetSpeciesSelected(this, this.state.targetSpeciesList[idx].name)) {
+			if (this.state.targetGroupList[idx].active) { 
+				if (this._isTargetGroupSelected(this, this.state.targetGroupList[idx].name)) {
 					checked = "checked";
 				}
-				optionhtml += "<div class='pg_select_item'><input type='checkbox' value=\"" + this.state.targetSpeciesList[idx].name +
-				"\" " + checked + ">" + this.state.targetSpeciesList[idx].name + '</div>';
+				optionhtml += "<div class='pg_select_item'><input type='checkbox' value=\"" + this.state.targetGroupList[idx].name +
+				"\" " + checked + ">" + this.state.targetGroupList[idx].name + '</div>';
 			}
 		}
 		optionhtml += "</div></div>";
@@ -3809,56 +3794,56 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	// MKD: MAYBE GET RID OF THIS
 	_reset: function(type) {
 
-		// target species name might be provided as a name or as taxon. Make sure that we translate to name
-		this.state.currentTargetSpeciesName = this._getTargetSpeciesNameByTaxon(this,this.state.currentTargetSpeciesName);
+		// target targetGroup name might be provided as a name or as taxon. Make sure that we translate to name
+		this.state.currentTargetGroupName = this._getTargetGroupNameByTaxon(this,this.state.currentTargetGroupName);
 
 		this.state.yAxisMax = 0;
 		this.state.yoffset = this.state.baseYOffset;
 		this.state.h = this.config.h;
 	},
 
-	_isTargetSpeciesSelected: function(self, name) {
-		for (var i in self.state.selectedCompareSpecies) {
-			if (self.state.selectedCompareSpecies[i].name == name) {
+	_isTargetGroupSelected: function(self, name) {
+		for (var i in self.state.selectedCompareTargetGroup) {
+			if (self.state.selectedCompareTargetGroup[i].name == name) {
 				return true;
 			}
 		}
 		return false;
 	},
 
-	_getTargetSpeciesInfo: function(self, name) {
-		for (var i in self.state.targetSpeciesList) {
-			if (self.state.targetSpeciesList[i].name == name) {
-				return self.state.targetSpeciesList[i];
+	_getTargetGroupInfo: function(self, name) {
+		for (var i in self.state.targetGroupList) {
+			if (self.state.targetGroupList[i].name == name) {
+				return self.state.targetGroupList[i];
 			}
 		}
 	},
 
-	// Several procedures for various aspects of filtering/identifying appropriate entries in the target species list.. 
-	_getTargetSpeciesIndexByName: function(self,name) {
+	// Several procedures for various aspects of filtering/identifying appropriate entries in the target targetGroup list.. 
+	_getTargetGroupIndexByName: function(self,name) {
 		var index = -1;
-		if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
-			index = self.state.targetSpeciesByName[name].index;
+		if (typeof(self.state.targetGroupByName[name]) !== 'undefined') {
+			index = self.state.targetGroupByName[name].index;
 		}
 		return index;
 	},
 
-	_getTargetSpeciesNameByIndex: function(self,index) {
-		var species;
-		if (typeof(self.state.targetSpeciesList[index]) !== 'undefined') {
-			species = self.state.targetSpeciesList[index].name;
+	_getTargetGroupNameByIndex: function(self,index) {
+		var targetGroup;
+		if (typeof(self.state.targetGroupList[index]) !== 'undefined') {
+			targetGroup = self.state.targetGroupList[index].name;
 		}
 		else {
-			species = 'Overview';
+			targetGroup = 'Overview';
 		}
-		return species;
+		return targetGroup;
 	},
 
-	_getTargetSpeciesTaxonByName: function(self,name) {
+	_getTargetGroupTaxonByName: function(self,name) {
 		var taxon;
 		// first, find something that matches by name
-		if (typeof(self.state.targetSpeciesByName[name]) !== 'undefined') {
-			taxon = self.state.targetSpeciesByName[name].taxon;
+		if (typeof(self.state.targetGroupByName[name]) !== 'undefined') {
+			taxon = self.state.targetGroupByName[name].taxon;
 		}
 		// default to overview, so as to always do somethign sensible
 		if (typeof(taxon) === 'undefined') {
@@ -3872,11 +3857,11 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	* some installations might send in a taxon - "10090" - as opposed to a name - "Mus musculus".
 	* here, we make sure that we are dealing with names by translating back
 	* this might be somewhat inefficient, as we will later translate to taxon, but it will
-	* make other calls easier to be consitently talking in terms of species name
+	* make other calls easier to be consitently talking in terms of targetGroup name
 	*/
-	_getTargetSpeciesNameByTaxon: function(self,name) {
-		// default - it actually was a species name
-		var species = name;
+	_getTargetGroupNameByTaxon: function(self,name) {
+		// default - it actually was a targetGroup name
+		var targetGroup = name;
 		var found = false;
 
 		/*
@@ -3885,37 +3870,37 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 		 * if, however, it matches the taxon, take the index in the array.
 		 */
 
-		for (var sname in self.state.targetSpeciesByName) {
-			if(!self.state.targetSpeciesByName.hasOwnProperty(sname)){break;}
+		for (var sname in self.state.targetGroupByName) {
+			if(!self.state.targetGroupByName.hasOwnProperty(sname)){break;}
 			// we've found a matching name.
 			if (name == sname) {
 				found = true;
 			}
 
-			if (name == self.state.targetSpeciesByName[sname].taxon) {
+			if (name == self.state.targetGroupByName[sname].taxon) {
 				found = true;
-				species = sname;
+				targetGroup = sname;
 				break;
 			}
 		}
 		// if not found, it's overview.
 		if (found === false) {
-			species = "Overview";
+			targetGroup = "Overview";
 		}
-		return species;
+		return targetGroup;
 	},
 
-	// create a shortcut index for quick access to target species by name - to get index (position) and taxon
-	_createTargetSpeciesIndices: function() {
-		this.state.targetSpeciesByName = {};
-		for (var j in this.state.targetSpeciesList) {
+	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
+	_createTargetGroupIndices: function() {
+		this.state.targetGroupByName = {};
+		for (var j in this.state.targetGroupList) {
 			// list starts as name, taxon pairs
-			var name = this.state.targetSpeciesList[j].name;
-			var taxon = this.state.targetSpeciesList[j].taxon;
+			var name = this.state.targetGroupList[j].name;
+			var taxon = this.state.targetGroupList[j].taxon;
 			var entry = {};
 			entry.index = j;
 			entry.taxon = taxon;
-			this.state.targetSpeciesByName[name] = entry;
+			this.state.targetGroupByName[name] = entry;
 		}
 	},
 
@@ -3924,7 +3909,7 @@ console.log('startXId:----- ' + startXId, 'lastXId:----- ' + lastXId, 'startYId:
 	},
 
 	_isCrossComparisonView: function() {
-		if (this.state.selectedCompareSpecies.length == 1) {
+		if (this.state.selectedCompareTargetGroup.length == 1) {
 			return false;
 		}
 		return true;
@@ -4076,7 +4061,7 @@ TooltipRender.prototype = {
 			// this creates the standard information portion of the tooltip, 
 			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
 						this.entityHreflink(this.data.type, this.data.id, this.data.label ) +
-						"<br/>" + this._rank() + this._score() + this._ic();
+						"<br/>" + this._rank() + this._score() + this._ic() + this._targetGroup();
 
 			// this creates the extended information for specialized tooltip info and functionality
 			// try to dynamically invoke the function that matches the data.type
@@ -4096,8 +4081,8 @@ TooltipRender.prototype = {
 	_ic: function() {
 		return (typeof(this.data.IC) !== 'undefined'?"<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br/>":"");
 	},
-	_species: function() {
-		return (typeof(this.data.species) !== 'undefined'?"<strong>Species:</strong> " + this.data.species+"<br/>":"");
+	_targetGroup: function() {
+		return (typeof(this.data.targetGroup) !== 'undefined'?"<strong>Species:</strong> " + this.data.targetGroup+"<br/>":"");
 	},
 
 	_capitalizeString: function(word){
@@ -4130,18 +4115,12 @@ TooltipRender.prototype = {
 				ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
 			}
 		}
-		// Used font awesome for expand buttons - Joe
-//		if (!tooltip.parent.state.preloadHPO){
-			if (expand){
-				returnHtml += ontologyData;
-			} else {
-				//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
-				returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
-			}
-		// }
-		// else {
-		// 	returnHtml = ontologyData;
-		// }
+		if (expand){
+			returnHtml += ontologyData;
+		} else {
+			//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
+			returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+		}
 	return returnHtml;		
 
 	},
@@ -4149,8 +4128,8 @@ TooltipRender.prototype = {
 	gene: function(tooltip) {
 		var returnHtml = "";	
 	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
-		// for gene and species mode only, show genotype link
-		if (tooltip.parent.state.targetSpeciesName !== "Overview"){
+		
+		if (tooltip.parent.state.targetGroupName !== "Overview"){
 			var isExpanded = false;
 			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
 			if (gtCached !== null) { isExpanded = gtCached.expanded;}
@@ -4237,7 +4216,7 @@ TooltipRender.prototype = {
 			"<b>Source: </b>" + this.entityHreflink(sourceInfo.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
 			"<b>" + prefix + ":</b> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + '%' + "<br>" +		
-			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetSpeciesByName[d.targetGroup].taxon + ")</td>" + 
+			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetGroupByName[d.targetGroup].taxon + ")</td>" + 
 			"<tr><td><u><b><br>In-common</b></u><br>" + 
 		this.entityHreflink(sourceInfo.type, d.subsumer_id, d.subsumer_label ) +
 				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
