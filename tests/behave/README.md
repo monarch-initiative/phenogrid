@@ -89,7 +89,7 @@ Now we can go to the terminal and run all tests (the `phenogrid.feature` file):
 When you have phenogrid embedded as a widget, you can either run the behave tests against the phenogrid file path (e,g., `file://PGDIR`) or web server base URL (if it's placed inside the HTTP server, e.g., `http://localhost:8080/phenogrid`)
 
 ````
-TARGET=file://PGDIR behave
+TARGET=file://$PGDIR behave
 ````
 or
 ````
@@ -100,7 +100,7 @@ TARGET=http://localhost:8080/phenogrid behave
 This will test the index.html page in the phenogrid directory and run the behave tests in Firefox by default. If you want to use other browsers, e.g., [PhantomJS](http://phantomjs.org/) (a headless browser), you can do this:
 
 ````
-TARGET=file://PGDIR BROWSER=phantomjs behave
+TARGET=file://$PGDIR BROWSER=phantomjs behave
 ````
 or
 ````
@@ -116,7 +116,7 @@ ln -s /usr/local/phantomjs/bin/phantomjs /usr/bin/
 And if you would like to export all the test running details into a log file, you can use the following command:
 
 ````
-TARGET=file://PGDIR behave > log
+TARGET=file://$PGDIR behave > log
 ````
 or 
 ````
