@@ -1,0 +1,24 @@
+sudo: required
+
+language: node_js
+
+node_js:
+  - "0.12"
+
+before_install:
+  - "sudo pip install --upgrade pip"
+  - "sudo pip install selenium"
+  - "sudo pip install behave"
+  
+install:
+  - "npm install"
+  - "gulp bundle"
+
+script: 
+  - "PGDIR=`pwd`"
+  - "cd tests/behave"
+  - "TARGET=file://$PGDIR BROWSER=phantomjs behave"
+
+branches:
+  only:
+    - refact-md
