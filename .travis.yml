@@ -14,13 +14,6 @@ install:
   - "npm install"
   - "gulp bundle"
 
-# Travis supports running a real browser (Firefox) with a virtual screen
-# https://en.wikipedia.org/wiki/Xvfb
-# http://docs.travis-ci.com/user/gui-and-headless-browsers/
-before_script:
-  - "export DISPLAY=:99.0" 
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
-  
 script: 
   - "PGDIR=`pwd`"
   - "cd tests/behave"
