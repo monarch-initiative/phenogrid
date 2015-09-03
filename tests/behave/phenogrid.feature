@@ -10,15 +10,15 @@ Feature: Phenogrid works as a standalone widget
         Given I go to page "/index.html"
     	    Then the id "<id>" should contain "<text>"
             Examples: <id> - <text> list
-            | id                       | text                     |
-            | pg_toptitle              | Cross-Species Comparison |
-            | pg_grid_row_0            | Macrocytic anemia        |
-            | pg_grid_row_1            | Bradykinesia             |
-            | pg_grid_col_0            | Trp63                    |
-            | pg_grid_col_1            | Sfn                      |
-            | pg_slide_btn             | OPTIONS                  |
-            | pg_gradient_legend_texts | Similarity               |
-            | pg_svg_area              | Danio rerio              |
+            | id                       | text                         |
+            | pg_toptitle              | Cross-TargetGroup Comparison |
+            | pg_grid_row_0            | Macrocytic anemia            |
+            | pg_grid_row_1            | Bradykinesia                 |
+            | pg_grid_col_0            | Trp63                        |
+            | pg_grid_col_1            | Sfn                          |
+            | pg_slide_btn             | OPTIONS                      |
+            | pg_gradient_legend_texts | Similarity                   |
+            | pg_svg_area              | Danio rerio                  |
 
 
     Scenario Outline: Visible items after clicking options panel
@@ -26,12 +26,12 @@ Feature: Phenogrid works as a standalone widget
             And I click the "pg_slide_btn"
             Then the id "<id>" should contain "<text>"
             Examples: <id> - <text> list
-            | id                       | text                     |
-            | pg_organism              | Homo sapiens             |
-            | pg_sortphenotypes        | Frequency and Rarity     |
-            | pg_calculation           | Ratio (q)                |
-            | pg_controls_options      | Invert Axis              |
-            | pg_controls_options      | About Phenogrid          |
+            | id                       | text                         |
+            | pg_organism              | Homo sapiens                 |
+            | pg_sortphenotypes        | Frequency and Rarity         |
+            | pg_calculation           | Ratio (q)                    |
+            | pg_controls_options      | Invert Axis                  |
+            | pg_controls_options      | About Phenogrid              |
 
 
     Scenario: Inver Axis
