@@ -1,6 +1,12 @@
 ## Ignore npm libs.
 node_modules
 
+## Ignore python behave tests generated libs
+tests/behave/lib
+tests/behave/bin
+tests/behave/lib64
+tests/behave/inclue 
+
 ## Others
 .DS_Store
 
