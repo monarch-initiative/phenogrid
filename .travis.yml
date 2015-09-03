@@ -21,4 +21,4 @@ script:
 
 branches:
   only:
-    - behave-travis-refact-md
+    - refact-md
