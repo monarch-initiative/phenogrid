@@ -24,7 +24,7 @@ before_script:
 script: 
   - "PGDIR=`pwd`"
   - "cd tests/behave"
-  - "TARGET=file://$PGDIR behave"
+  - "TARGET=file://$PGDIR BROWSER=phantomjs behave"
 
 branches:
   only:
