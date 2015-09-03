@@ -22,7 +22,3 @@ script:
 branches:
   only:
     - behave-travis-refact-md
-
-notifications:
-  email:
-    - zhy19@pitt.edu
