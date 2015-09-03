@@ -40,6 +40,7 @@ def step_impl(context, page, id):
 def step_impl(context, id):
     webelt = context.browser.find_element_by_id(id)
     webelt.click()
+    context.browser.implicitly_wait(30)
 
 # Mouse over
 # http://selenium.googlecode.com/svn/trunk/docs/api/py/webdriver/selenium.webdriver.common.action_chains.html
