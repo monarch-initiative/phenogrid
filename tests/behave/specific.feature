@@ -28,12 +28,6 @@ Feature: Specific features work when running Phenogrid as a standalone widget
             Then the id "pg_grid_row_10" should contain "Trp63"
 
 
-    Scenario: Model scores popup dialog
-        Given I go to page "/index.html"
-            And I click the "pg_scores_tip_icon"
-            Then the document should contain "What is the score shown at the top of the grid?"
-
-
     Scenario: Check default target label text link
         Given I go to page "/index.html"
             And I move mouse to the "pg_grid_col_10"
