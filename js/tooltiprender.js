@@ -202,20 +202,21 @@ TooltipRender.prototype = {
 		if ( selCalc !== 2) {suffix = '%';}
 
 		returnHtml = "<table class=\"pgtb\">" +
-			"<tbody><tr><td><u><b>Query</b></u><br>" +   //Utils.capitalizeString(d.type) + 
+			"<tbody><tr><td>" +   //<u><b>Query</b></u><br>" +   
 			"<b>Source: </b>" + this.entityHreflink(sourceInfo.type, sourceId, d.a_label ) +  
 			" " + Utils.formatScore(d.a_IC.toFixed(2)) + "<br>" + 
-			"<b>" + prefix + ":</b> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + '%' + "<br>" +		
-			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetGroupByName[d.targetGroup].taxon + ")</td>" + 
-			"<tr><td><u><b><br>In-common</b></u><br>" + 
+			"</td><tr><td><u><b><br>In-common</b></u><br>" + 
 		this.entityHreflink(sourceInfo.type, d.subsumer_id, d.subsumer_label ) +
-				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "</td></tr>" +
+				Utils.formatScore(d.subsumer_IC.toFixed(2)) + "<br>" +
+			"<b>" + prefix + ":</b> " + d.value[tooltip.parent.state.selectedCalculation].toFixed(2) + '%' + "<br>" +		
+				"</td></tr>" +
 				"<tr><td><br><u><b>Match</b></u><br>" + 
 		this.entityHreflink(sourceInfo.type, d.b_id, d.b_label ) +
 			Utils.formatScore(d.b_IC.toFixed(2))+ "</td></tr>" +
 			"<tr><td><br><u><b>Target</b></u><br>" + 
 			"<b>Name:</b> " + 
-			this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) +
+			this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) + "<br>" +	
+			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetGroupByName[d.targetGroup].taxon + ")</td>" + 			
 			"</td></tr>" +
 			"</tbody>" + "</table>";
 		

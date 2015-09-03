@@ -141,9 +141,9 @@ DataLoader.prototype = {
 			if (typeof (data.metadata) !== 'undefined') {
 				this.maxICScore = data.metadata.maxMaxIC;
 			}
+			// just initialize the specific targetGroup
 			this.cellData[targetGroup] = [];
 			this.targetData[targetGroup] = [];
-			this.sourceData = [];
 
 			//var variantNum = 0;
 			for (var idx in data.b) {
