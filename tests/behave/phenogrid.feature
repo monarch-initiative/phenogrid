@@ -3,7 +3,7 @@ Feature: Phenogrid works as a standalone widget
 
     Scenario: Loading the phenogrid widget
         Given I go to slow page "/index.html" and wait for id "pg_svg_container"
-            Then the document should contain "Loading Phenogrid Widget..."
+            Then the document should contain "OPTIONS"
 
 
     Scenario Outline: Visible items once the widget is loaded
