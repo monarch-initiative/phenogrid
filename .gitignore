@@ -5,7 +5,8 @@ node_modules
 tests/behave/lib
 tests/behave/bin
 tests/behave/lib64
-tests/behave/inclue 
+tests/behave/include 
+tests/behave/ghostdriver.log
 
 ## Others
 .DS_Store
