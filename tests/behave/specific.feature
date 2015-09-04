@@ -18,11 +18,6 @@ Feature: Specific features work when running Phenogrid as a standalone widget
             | pg_svg_area              | Danio rerio                  |
 
             
-    Scenario: Frequency is default sort
-        Given I go to page "/index.html"
-            Then the id "pg_grid_row_0" should contain "Hypoplasia of the maxilla"
-    
-
     Scenario: Sort phenotype labels by Alphabetic
         Given I go to page "/index.html"
             And I click the "pg_slide_btn"
@@ -37,16 +32,3 @@ Feature: Specific features work when running Phenogrid as a standalone widget
             Then the id "pg_grid_row_0" should contain "Hypoplasia of the maxilla"
        
 
-    Scenario: Invert Axis
-        Given I go to page "/index.html"
-            And I click the "pg_slide_btn"
-            And I click the "pg_axisflip"
-            Then the id "pg_grid_col_0" should contain "Hypoplasia of the..."
-
-
-    Scenario: Check default source label tooltip
-        Given I go to page "/index.html"
-            And I move mouse to the "pg_cell_0_0"
-            Then the document should contain link with "Hypoplasia of the maxilla"
-
-            
