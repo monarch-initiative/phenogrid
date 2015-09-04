@@ -1,6 +1,7 @@
 ##############################################################################
 #
 # A set of basic steps.
+# https://selenium-python.readthedocs.org/
 # 
 ##############################################################################
 
@@ -49,6 +50,14 @@ def step_impl(context, id):
     elem = context.browser.find_element_by_id(id)
     hover = ActionChains(context.browser).move_to_element(elem)
     hover.perform()
+
+# Check radio button
+@given('I check the radio button labelled as "{text}"')
+def step_impl(context, text):
+    target = "input[type='radio'][value='" + text + "']"
+    radio_btn = context.browser.find_element_by_css_selector(target)
+    radio_btn.click()
+    context.browser.implicitly_wait(30)
     
 # The document body should contain a certain piece of text.
 @then('the document should contain "{text}"')
