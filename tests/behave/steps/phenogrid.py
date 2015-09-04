@@ -19,6 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC # available sin
 @given('I go to page "{page}"')
 def step_impl(context, page):
     context.browser.get(context.target + page)
+    context.browser.implicitly_wait(30)
     # time.sleep(10)
     # from selenium.webdriver.support import expected_conditions as EC
     # wait = WebDriverWait(driver, 10)

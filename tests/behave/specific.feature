@@ -17,6 +17,7 @@ Feature: Specific features work when running Phenogrid as a standalone widget
             | pg_gradient_legend_texts | Max                          |
             | pg_svg_area              | Danio rerio                  |
 
+            
     Scenario: Frequency is default sort
         Given I go to page "/index.html"
             Then the id "pg_grid_row_0" should contain "Hypoplasia of the maxilla"
