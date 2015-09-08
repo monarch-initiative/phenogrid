@@ -12,7 +12,7 @@ var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 var $ = jQuery;
 
 var stickytooltip = {
-	tooltipoffsets: {x:0, y:0}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
+	tooltipoffsets: {x:-4, y:2}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
 	fadeinspeed: 1, //duration of fade effect in milliseconds
 	isdocked: false,  // force sticky mode
 
@@ -30,7 +30,7 @@ var stickytooltip = {
 
 		// this will fade out the stickytooltip if idle too long
 		setTimeout(function() { 
-        $('#mystickytooltip').fadeOut();}, 11000); 
+        $('#mystickytooltip').fadeOut();}, 9000); 
 	},
 
 	// wrapper function
@@ -64,7 +64,8 @@ var stickytooltip = {
 
 			stickytooltip.hidebox($, $tooltip);
 			
-			$targets.bind('mouseout', function(e){  // mouseleave
+			// this mouseout helps make the overall mouse out process smoother
+			$targets.bind('mouseout', function(e){  
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				if (typeof(elem) !== 'undefined' ) {
 					if (elem.id != 'mystickytooltip' && elem.id != "") {					    

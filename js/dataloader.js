@@ -125,7 +125,10 @@ DataLoader.prototype = {
 		Function: transform
 
 			transforms data from raw owlsims into simplified format
-	
+
+		 	For a given model, extract the sim search data including IC scores and the triple:
+		    The a column, b column, and lowest common subsumer for the triple's IC score, use the LCS score
+		 	
 	 	Parameters:
 
 	 		targetGroup - targetGroup name
@@ -144,6 +147,7 @@ DataLoader.prototype = {
 			// just initialize the specific targetGroup
 			this.cellData[targetGroup] = [];
 			this.targetData[targetGroup] = [];
+			this.sourceData[targetGroup] = [];
 
 			//var variantNum = 0;
 			for (var idx in data.b) {
@@ -180,9 +184,9 @@ DataLoader.prototype = {
 				var sourceID_a, currID_b, currID_lcs;  // Added currID_b - Joe
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 
-					var sum =0, count=0;
 					for (var matchIdx in matches) 
 					{
+						var sum = 0, count = 0;						
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
 						currID_b = Utils.getConceptId(curr_row.b.id);
@@ -191,19 +195,23 @@ DataLoader.prototype = {
 						// get the normalized IC
 						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
 
-						var srcElement = this.sourceData[sourceID_a]; // this checks to see if source already exists
+						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
 						if (typeof(srcElement) === 'undefined') {
+							count++;
+							sum += parseFloat(curr_row.lcs.IC);
+
+							// create a new source object
 							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
 											"count": count, "sum": sum, "type": "phenotype"};
-							this.sourceData[sourceID_a] = dataVals;
+							this.sourceData[targetGroup][sourceID_a] = dataVals;
 							// if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
 							// 	this._getHPO(this.getConceptId(curr_row.a.id));
 							// }
 						} else {
-							this.sourceData[sourceID_a].count += 1;
-							this.sourceData[sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
+							this.sourceData[targetGroup][sourceID_a].count += 1;
+							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
 						}
 
 						// building cell data points

@@ -121,7 +121,7 @@ DataManager.prototype = {
 	     return rec;
 	 },
 
-        // list of everything tht matches key - either as source or target.
+        // list of everything that matches key - either as source or target.
         // two possibilities - either key is a source, in which case I get the whole list
         // or its a target, in which case I look in each source... 
  	matches: function (key, targetGroup) {
@@ -360,10 +360,54 @@ DataManager.prototype = {
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];
 				i++;
+
+				// if we've reached our limit break out
 				if (i >= limit) {break;}
 			}
 		}
 		return combinedTargetList;
+	},
+
+	createCombinedSourceList: function(targetGroupList, limit) {
+		var combinedSourceList = [];
+
+		// loop thru for the number of comparisons and build a combined list
+		// also build the frequency and sum for the subset (or limit)
+		for (var k in targetGroupList) {
+			var srcs = this.getData("source", targetGroupList[k].name);
+
+			for (var idx in srcs) {
+				var id = srcs[idx].id;
+
+				// try adding source as an associative array, if not found then add new object
+				var srcData = combinedSourceList[id];
+				if (typeof(srcData) == 'undefined') {	
+					combinedSourceList[id] = srcs[idx];	
+				}
+			}
+
+		}
+		// compute the frequency and rarity across all targetgroups
+		for (var s in combinedSourceList) {
+				combinedSourceList[s].count = 0;
+				combinedSourceList[s].sum = 0;
+
+			for (var k in targetGroupList) {
+				// get all the cell data
+				var cellData = this.getData("cellData", targetGroupList[k].name);
+				for (var cd in cellData) {
+
+				var cells = cellData[cd];
+					for (var c in cells) {
+						if (combinedSourceList[s].id == cells[c].source_id) {
+							combinedSourceList[s].count += 1;
+							combinedSourceList[s].sum += cells[c].subsumer_IC;
+						}
+					}
+				}
+			}	
+		}
+		return combinedSourceList;
 	},
 
 	getOntologyLabel: function(id) {

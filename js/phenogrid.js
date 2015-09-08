@@ -311,24 +311,16 @@ var Utils = require('./utils.js');
        information for axis rendering. Then, switch source and target
        groups to be x or y depending on "flip axis" choice*/
     _createAxisRenderingGroups: function() {
-    	var targetList = [];
+    	var targetList = [], sourceList = [];
 
-		// set default display limits based on displaying defaultSourceDisplayLimit
-    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-	
+		if (this._isCrossComparisonView()) {  
 
-		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
-			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
-		}
+			// create a combined list of targets
+			sourceList = this.state.dataManager.createCombinedSourceList(this.state.selectedCompareTargetGroup, this.state.defaultCrossCompareTargetLimitPerTargetGroup);	
 
-       	// creates AxisGroup with full source and target lists with default rendering range
-    	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
-					  this.state.dataManager.getData("source"));
-		// sort source with default sorting type
-		this.state.sourceAxis.sort(this.state.selectedSort); 
-
-		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareTargetGroup > 1 then it's Comparision mode 
-		if (this._isCrossComparisonView()) {        			
+			// get the length of the sourceList, this sets that limit since we are in comparison mode
+			// only the defaultCrossCompareTargetLimitPerTargetGroup is set, which provides the overall display limit
+			this.state.sourceDisplayLimit = Object.keys(sourceList).length;
 
 			// create a combined list of targets
 			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.defaultCrossCompareTargetLimitPerTargetGroup);	
@@ -338,14 +330,36 @@ var Utils = require('./utils.js');
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
 
 		} else if (this.state.selectedCompareTargetGroup.length === 1) {
+
+			// just get the target group name 
 			var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
-			targetList = this.state.dataManager.getData("target", singleTargetGroupName);
-			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);
 			
-			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
-				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
-			} 
+			sourceList = this.state.dataManager.getData("source", singleTargetGroupName);
+
+			// set default display limits based on displaying defaultSourceDisplayLimit
+    		this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
+	
+			// target list
+			targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
 		}
+
+		// check to make sure the display limits are not over the default display limits
+		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
+			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+		}
+
+		if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
+				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+		} 
+
+       	// creates AxisGroup with full source and target lists with default rendering range
+    	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit, sourceList);
+		
+		// sort source with default sorting type
+		this.state.sourceAxis.sort(this.state.selectedSort); 
+
+		//create target axis group
     	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
 
     	this._setAxisRenderers();
@@ -478,7 +492,7 @@ var Utils = require('./utils.js');
 	      			 })  
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
-//			.attr("data-tooltip", "stickyInner")   				      
+			.attr("data-tooltip", "stickyInner")   				      
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
@@ -486,10 +500,10 @@ var Utils = require('./utils.js');
 				var p = $(this);			
 				self._crossHairsOn(d.id, i, focus, 'horizontal');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				self._cellover(this, data, self, p);})
+				self._mouseover(this, data, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
-				self._cellout(d);});
+				self._mouseout(d);});
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -509,17 +523,17 @@ var Utils = require('./utils.js');
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-		    //.attr("data-tooltip", "stickyInner")   			
+		    .attr("data-tooltip", "stickyInner")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 
 		    	var p = $(this);					
 		    	self._crossHairsOn(d.id, i, focus, 'vertical');
-		    	self._cellover(this, d, self, p);})
+		    	self._mouseover(this, d, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
-				self._cellout(d);});
+				self._mouseout(d);});
 	      	
 	    // add the scores  
 	    self._createTextScores();
@@ -535,7 +549,7 @@ var Utils = require('./utils.js');
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-//				.attr("data-tooltip", "stickyInner")   					        
+				.attr("data-tooltip", "stickyInner")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
@@ -543,10 +557,10 @@ var Utils = require('./utils.js');
 		        .on("mouseenter", function(d) { 
 		        	var p = $(this);					
 		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
-		        	self._cellover(this, d, self, p);})							
+		        	self._mouseover(this, d, self, p);})							
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
-		        	self._cellout(d);});
+		        	self._mouseout(d, $(this));});
 		}
 	},
 
@@ -601,7 +615,7 @@ var Utils = require('./utils.js');
 		return (y+(i*ypad));
 	},
 
-	_cellover: function (self, d, parent, p) {
+	_mouseover: function (self, d, parent, p) {
 
 		var data;
 		if (d.type == 'cell') {  
@@ -637,7 +651,7 @@ var Utils = require('./utils.js');
 
 	},
 
-	_cellout: function(d) {
+	_mouseout: function(d, p) {
 		
 		// unhighlight row/col
 		d3.selectAll(".row text")
@@ -653,6 +667,9 @@ var Utils = require('./utils.js');
 				.classed("pg_cursor_pointer", false);					  				  
 
 
+		if (typeof(p) !== 'undefined') {
+			console.log(p);
+		}
 		// if (!stickytooltip.isdocked) {
 		// // 	// hide the tooltip
 		//  	stickytooltip.closetooltip();
@@ -1258,11 +1275,11 @@ var Utils = require('./utils.js');
 		var targetGroup = '';
 
 		// set up defaults as if overview
-		var titleText = "Cross-TargetGroup Comparison";
+		var titleText = "Cross-Target Comparison";
 
 		//if (this.state.currentTargetGroupName !== "Overview") {
 		if ( ! this._isCrossComparisonView()) {
-			targetGroup = this.state.currentTargetGroupName;
+			targetGroup = this.state.selectedCompareTargetGroup[0].name;
 			var comp = this._getComparisonType(targetGroup);
 			titleText = "Phenotype Comparison (grouped by " + targetGroup + " " + comp + ")";
 		}

@@ -51,7 +51,8 @@ TooltipRender.prototype = {
 			// this creates the standard information portion of the tooltip, 
 			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
 						this.entityHreflink(this.data.type, this.data.id, this.data.label ) +
-						"<br/>" + this._rank() + this._score() + this._ic() + this._targetGroup();
+						"<br/>" + this._rank() + this._score() + this._ic() + this._sum() + 
+						this._freq() + this._targetGroup();
 
 			// this creates the extended information for specialized tooltip info and functionality
 			// try to dynamically invoke the function that matches the data.type
@@ -73,6 +74,12 @@ TooltipRender.prototype = {
 	},
 	_targetGroup: function() {
 		return (typeof(this.data.targetGroup) !== 'undefined'?"<strong>Species:</strong> " + this.data.targetGroup+"<br/>":"");
+	},
+	_sum: function() {
+		return (typeof(this.data.sum) !== 'undefined'?"<strong>Sum:</strong> " + this.data.sum.toFixed(2)+"<br/>":"");
+	},
+	_freq: function() {
+		return (typeof(this.data.count) !== 'undefined'?"<strong>Frequency:</strong> " + this.data.count +"<br/>":"");
 	},
 
 	_capitalizeString: function(word){

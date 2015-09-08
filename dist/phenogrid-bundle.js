@@ -431,7 +431,10 @@ DataLoader.prototype = {
 		Function: transform
 
 			transforms data from raw owlsims into simplified format
-	
+
+		 	For a given model, extract the sim search data including IC scores and the triple:
+		    The a column, b column, and lowest common subsumer for the triple's IC score, use the LCS score
+		 	
 	 	Parameters:
 
 	 		targetGroup - targetGroup name
@@ -450,6 +453,7 @@ DataLoader.prototype = {
 			// just initialize the specific targetGroup
 			this.cellData[targetGroup] = [];
 			this.targetData[targetGroup] = [];
+			this.sourceData[targetGroup] = [];
 
 			//var variantNum = 0;
 			for (var idx in data.b) {
@@ -486,9 +490,9 @@ DataLoader.prototype = {
 				var sourceID_a, currID_b, currID_lcs;  // Added currID_b - Joe
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 
-					var sum =0, count=0;
 					for (var matchIdx in matches) 
 					{
+						var sum = 0, count = 0;						
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
 						currID_b = Utils.getConceptId(curr_row.b.id);
@@ -497,19 +501,23 @@ DataLoader.prototype = {
 						// get the normalized IC
 						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
 
-						var srcElement = this.sourceData[sourceID_a]; // this checks to see if source already exists
+						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
 						if (typeof(srcElement) === 'undefined') {
+							count++;
+							sum += parseFloat(curr_row.lcs.IC);
+
+							// create a new source object
 							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
 											"count": count, "sum": sum, "type": "phenotype"};
-							this.sourceData[sourceID_a] = dataVals;
+							this.sourceData[targetGroup][sourceID_a] = dataVals;
 							// if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
 							// 	this._getHPO(this.getConceptId(curr_row.a.id));
 							// }
 						} else {
-							this.sourceData[sourceID_a].count += 1;
-							this.sourceData[sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
+							this.sourceData[targetGroup][sourceID_a].count += 1;
+							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
 						}
 
 						// building cell data points
@@ -920,7 +928,7 @@ DataManager.prototype = {
 	     return rec;
 	 },
 
-        // list of everything tht matches key - either as source or target.
+        // list of everything that matches key - either as source or target.
         // two possibilities - either key is a source, in which case I get the whole list
         // or its a target, in which case I look in each source... 
  	matches: function (key, targetGroup) {
@@ -1159,10 +1167,54 @@ DataManager.prototype = {
 			for (var idx in data) {
 				combinedTargetList[data[idx].id] = data[idx];
 				i++;
+
+				// if we've reached our limit break out
 				if (i >= limit) {break;}
 			}
 		}
 		return combinedTargetList;
+	},
+
+	createCombinedSourceList: function(targetGroupList, limit) {
+		var combinedSourceList = [];
+
+		// loop thru for the number of comparisons and build a combined list
+		// also build the frequency and sum for the subset (or limit)
+		for (var k in targetGroupList) {
+			var srcs = this.getData("source", targetGroupList[k].name);
+
+			for (var idx in srcs) {
+				var id = srcs[idx].id;
+
+				// try adding source as an associative array, if not found then add new object
+				var srcData = combinedSourceList[id];
+				if (typeof(srcData) == 'undefined') {	
+					combinedSourceList[id] = srcs[idx];	
+				}
+			}
+
+		}
+		// compute the frequency and rarity across all targetgroups
+		for (var s in combinedSourceList) {
+				combinedSourceList[s].count = 0;
+				combinedSourceList[s].sum = 0;
+
+			for (var k in targetGroupList) {
+				// get all the cell data
+				var cellData = this.getData("cellData", targetGroupList[k].name);
+				for (var cd in cellData) {
+
+				var cells = cellData[cd];
+					for (var c in cells) {
+						if (combinedSourceList[s].id == cells[c].source_id) {
+							combinedSourceList[s].count += 1;
+							combinedSourceList[s].sum += cells[c].subsumer_IC;
+						}
+					}
+				}
+			}	
+		}
+		return combinedSourceList;
 	},
 
 	getOntologyLabel: function(id) {
@@ -1686,24 +1738,16 @@ var Utils = require('./utils.js');
        information for axis rendering. Then, switch source and target
        groups to be x or y depending on "flip axis" choice*/
     _createAxisRenderingGroups: function() {
-    	var targetList = [];
+    	var targetList = [], sourceList = [];
 
-		// set default display limits based on displaying defaultSourceDisplayLimit
-    	this.state.sourceDisplayLimit = this.state.dataManager.length("source");
-	
+		if (this._isCrossComparisonView()) {  
 
-		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
-			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
-		}
+			// create a combined list of targets
+			sourceList = this.state.dataManager.createCombinedSourceList(this.state.selectedCompareTargetGroup, this.state.defaultCrossCompareTargetLimitPerTargetGroup);	
 
-       	// creates AxisGroup with full source and target lists with default rendering range
-    	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit,
-					  this.state.dataManager.getData("source"));
-		// sort source with default sorting type
-		this.state.sourceAxis.sort(this.state.selectedSort); 
-
-		// there is no longer a flag for 'Overview' mode, if the selected selectedCompareTargetGroup > 1 then it's Comparision mode 
-		if (this._isCrossComparisonView()) {        			
+			// get the length of the sourceList, this sets that limit since we are in comparison mode
+			// only the defaultCrossCompareTargetLimitPerTargetGroup is set, which provides the overall display limit
+			this.state.sourceDisplayLimit = Object.keys(sourceList).length;
 
 			// create a combined list of targets
 			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.defaultCrossCompareTargetLimitPerTargetGroup);	
@@ -1713,14 +1757,36 @@ var Utils = require('./utils.js');
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
 
 		} else if (this.state.selectedCompareTargetGroup.length === 1) {
+
+			// just get the target group name 
 			var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
-			targetList = this.state.dataManager.getData("target", singleTargetGroupName);
-			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);
 			
-			if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
-				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
-			} 
+			sourceList = this.state.dataManager.getData("source", singleTargetGroupName);
+
+			// set default display limits based on displaying defaultSourceDisplayLimit
+    		this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
+	
+			// target list
+			targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
 		}
+
+		// check to make sure the display limits are not over the default display limits
+		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
+			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+		}
+
+		if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
+				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+		} 
+
+       	// creates AxisGroup with full source and target lists with default rendering range
+    	this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit, sourceList);
+		
+		// sort source with default sorting type
+		this.state.sourceAxis.sort(this.state.selectedSort); 
+
+		//create target axis group
     	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
 
     	this._setAxisRenderers();
@@ -1853,7 +1919,7 @@ var Utils = require('./utils.js');
 	      			 })  
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
-//			.attr("data-tooltip", "stickyInner")   				      
+			.attr("data-tooltip", "stickyInner")   				      
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
@@ -1861,10 +1927,10 @@ var Utils = require('./utils.js');
 				var p = $(this);			
 				self._crossHairsOn(d.id, i, focus, 'horizontal');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				self._cellover(this, data, self, p);})
+				self._mouseover(this, data, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
-				self._cellout(d);});
+				self._mouseout(d);});
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -1884,17 +1950,17 @@ var Utils = require('./utils.js');
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-		    //.attr("data-tooltip", "stickyInner")   			
+		    .attr("data-tooltip", "stickyInner")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 
 		    	var p = $(this);					
 		    	self._crossHairsOn(d.id, i, focus, 'vertical');
-		    	self._cellover(this, d, self, p);})
+		    	self._mouseover(this, d, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
-				self._cellout(d);});
+				self._mouseout(d);});
 	      	
 	    // add the scores  
 	    self._createTextScores();
@@ -1910,7 +1976,7 @@ var Utils = require('./utils.js');
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-//				.attr("data-tooltip", "stickyInner")   					        
+				.attr("data-tooltip", "stickyInner")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
@@ -1918,10 +1984,10 @@ var Utils = require('./utils.js');
 		        .on("mouseenter", function(d) { 
 		        	var p = $(this);					
 		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
-		        	self._cellover(this, d, self, p);})							
+		        	self._mouseover(this, d, self, p);})							
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
-		        	self._cellout(d);});
+		        	self._mouseout(d, $(this));});
 		}
 	},
 
@@ -1976,7 +2042,7 @@ var Utils = require('./utils.js');
 		return (y+(i*ypad));
 	},
 
-	_cellover: function (self, d, parent, p) {
+	_mouseover: function (self, d, parent, p) {
 
 		var data;
 		if (d.type == 'cell') {  
@@ -2012,7 +2078,7 @@ var Utils = require('./utils.js');
 
 	},
 
-	_cellout: function(d) {
+	_mouseout: function(d, p) {
 		
 		// unhighlight row/col
 		d3.selectAll(".row text")
@@ -2028,6 +2094,9 @@ var Utils = require('./utils.js');
 				.classed("pg_cursor_pointer", false);					  				  
 
 
+		if (typeof(p) !== 'undefined') {
+			console.log(p);
+		}
 		// if (!stickytooltip.isdocked) {
 		// // 	// hide the tooltip
 		//  	stickytooltip.closetooltip();
@@ -2633,11 +2702,11 @@ var Utils = require('./utils.js');
 		var targetGroup = '';
 
 		// set up defaults as if overview
-		var titleText = "Cross-TargetGroup Comparison";
+		var titleText = "Cross-Target Comparison";
 
 		//if (this.state.currentTargetGroupName !== "Overview") {
 		if ( ! this._isCrossComparisonView()) {
-			targetGroup = this.state.currentTargetGroupName;
+			targetGroup = this.state.selectedCompareTargetGroup[0].name;
 			var comp = this._getComparisonType(targetGroup);
 			titleText = "Phenotype Comparison (grouped by " + targetGroup + " " + comp + ")";
 		}
@@ -3938,7 +4007,7 @@ var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 var $ = jQuery;
 
 var stickytooltip = {
-	tooltipoffsets: {x:0, y:0}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
+	tooltipoffsets: {x:-4, y:2}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
 	fadeinspeed: 1, //duration of fade effect in milliseconds
 	isdocked: false,  // force sticky mode
 
@@ -3956,7 +4025,7 @@ var stickytooltip = {
 
 		// this will fade out the stickytooltip if idle too long
 		setTimeout(function() { 
-        $('#mystickytooltip').fadeOut();}, 11000); 
+        $('#mystickytooltip').fadeOut();}, 9000); 
 	},
 
 	// wrapper function
@@ -3990,7 +4059,8 @@ var stickytooltip = {
 
 			stickytooltip.hidebox($, $tooltip);
 			
-			$targets.bind('mouseout', function(e){  // mouseleave
+			// this mouseout helps make the overall mouse out process smoother
+			$targets.bind('mouseout', function(e){  
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				if (typeof(elem) !== 'undefined' ) {
 					if (elem.id != 'mystickytooltip' && elem.id != "") {					    
@@ -4061,7 +4131,8 @@ TooltipRender.prototype = {
 			// this creates the standard information portion of the tooltip, 
 			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
 						this.entityHreflink(this.data.type, this.data.id, this.data.label ) +
-						"<br/>" + this._rank() + this._score() + this._ic() + this._targetGroup();
+						"<br/>" + this._rank() + this._score() + this._ic() + this._sum() + 
+						this._freq() + this._targetGroup();
 
 			// this creates the extended information for specialized tooltip info and functionality
 			// try to dynamically invoke the function that matches the data.type
@@ -4083,6 +4154,12 @@ TooltipRender.prototype = {
 	},
 	_targetGroup: function() {
 		return (typeof(this.data.targetGroup) !== 'undefined'?"<strong>Species:</strong> " + this.data.targetGroup+"<br/>":"");
+	},
+	_sum: function() {
+		return (typeof(this.data.sum) !== 'undefined'?"<strong>Sum:</strong> " + this.data.sum.toFixed(2)+"<br/>":"");
+	},
+	_freq: function() {
+		return (typeof(this.data.count) !== 'undefined'?"<strong>Frequency:</strong> " + this.data.count +"<br/>":"");
 	},
 
 	_capitalizeString: function(word){
