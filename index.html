@@ -57,8 +57,14 @@ window.onload = function() {
 <pre><code>curl -sL https://rpm.nodesource.com/setup | bash -
 
 yum install -y nodejs
-</code></pre><p>For OS X machines, you can try these instructions: <a href="http://blog.teamtreehouse.com/install-node-js-npm-mac">http://blog.teamtreehouse.com/install-node-js-npm-mac</a>. Or, just visit nodejs.org.</p>
-<h2 id="2-install-phenogrid-widget">2. Install phenogrid widget</h2>
+</code></pre><p>This above commands work on RedHat and CentOS.</p>
+<p>For OS X machines, you can try these instructions: <a href="http://blog.teamtreehouse.com/install-node-js-npm-mac">http://blog.teamtreehouse.com/install-node-js-npm-mac</a>. Or, just visit nodejs.org.</p>
+<p>If you are running Ubuntu, you can </p>
+<pre><code>sudo apt-get install nodejs
+sudo apt-get install npm
+</code></pre><p>Then create a symbolic link for “node” as many Node.js tools use this name to execute.</p>
+<pre><code>sudo ln -s /usr/bin/nodejs /usr/bin/node
+</code></pre><h2 id="2-install-phenogrid-widget">2. Install phenogrid widget</h2>
 <p>To download and install the phenogrid widget, run</p>
 <pre><code>npm install
 </code></pre><p>from this directory. Sometimes, it requires root access to for the installation, just run the following instead</p>
@@ -135,7 +141,7 @@ window.onload = function() {
 <li>Name: Drosophila melanogaster Taxon: 7227</li>
 </ul>
 <h1 id="testing-and-further-configuration">Testing and further configuration</h1>
-<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files cia ajax call, so you may find out that the FAQ popup dialog won’t show the content if you open <code>index.html</code> in the <code>file:///</code> format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
+<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files via ajax call, so you may find out that the FAQ popup dialog won’t show the content if you open <code>index.html</code> in the <code>file:///</code> format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
 <h1 id="web-browser-support">Web Browser Support</h1>
 <p>Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.</p>
 
