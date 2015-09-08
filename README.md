@@ -20,7 +20,23 @@ curl -sL https://rpm.nodesource.com/setup | bash -
 yum install -y nodejs
 ```
 
+This above commands work on RedHat and CentOS.
+
 For OS X machines, you can try these instructions: http://blog.teamtreehouse.com/install-node-js-npm-mac. Or, just visit nodejs.org.
+
+If you are running Ubuntu, you can 
+
+````
+sudo apt-get install nodejs
+sudo apt-get install npm
+````
+
+Then create a symbolic link for "node" as many Node.js tools use this name to execute.
+
+````
+sudo ln -s /usr/bin/nodejs /usr/bin/node
+````
+
 
 ## 2. Install phenogrid widget
 
@@ -129,7 +145,7 @@ This parameter defaults to 10090 (mus musculus). Change this parameter if you wa
 
 # Testing and further configuration
 
-Open the modified `index.html` or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files cia ajax call, so you may find out that the FAQ popup dialog won't show the content if you open `index.html` in the `file:///` format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.
+Open the modified `index.html` or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files via ajax call, so you may find out that the FAQ popup dialog won't show the content if you open `index.html` in the `file:///` format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.
 
 # Web Browser Support
 

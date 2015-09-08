@@ -48,7 +48,7 @@ var paths = {
 };
 
 // The default task is to build the different distributions.
-gulp.task('bundle', ['lint', 'create-index', 'js-bundle', 'css-bundle']);
+gulp.task('bundle', ['create-index', 'js-bundle', 'css-bundle']);
 
 
 // an alternate task that won't uglify. useful for debugging
