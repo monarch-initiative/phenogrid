@@ -1,0 +1,57 @@
+{
+  "b": [
+    {
+      "id": "",
+      "label": "",
+      "type": "",
+      "matches": [
+        {
+          "b": {
+            "id": "",
+            "IC": "",
+            "label": ""
+          },
+          "a": {
+            "id": "",
+            "IC": "",
+            "label": ""
+          },
+          "lcs": {
+            "id": "",
+            "IC": "",
+            "label": ""
+          }
+        }
+      ],
+      "score": {
+        "metric": "",
+        "score": "",
+        "rank": ""
+      },
+      "taxon": {
+        "id": "",
+        "label": ""
+      }
+    }
+  ],
+  "metadata": {
+    "maxSumIC": "",
+    "meanMaxIC": "",
+    "meanMeanIC": "",
+    "meanSumIC": "",
+    "maxMaxIC": "",
+    "meanN": "",
+    "individuals": "",
+    "metric_stats": {
+      "metric": "",
+      "maxscore": "",
+      "avgscore": "",
+      "stdevscore": "",
+      "comment": ""
+    }
+  },
+  "resource": "",
+  "a": "",
+  "cutoff": "",
+  "apiVersionInfo": ""
+}
