@@ -131,6 +131,10 @@ Once you are done working in the virtual environment for the moment, you can dea
 deactivate
 ````
 
+# Adding More Test Scenarios
+
+You will see there are two `.feature` files, the `generic.feature` contains all the test scenarios that don't rely on the data input. And the `specific.feature` contains tests specific to the data input provided in the `index.html` array. You should change the test scenarios based on your data input.
+
 # Debugging Tests
 
 It is sometimes useful to pause the tests so that you can see what Selenium sees. This can be accomplished with Python's `time.sleep` function (don't forget to add `import time`). Example usage can be found in the `steps/phenogrid.py`.

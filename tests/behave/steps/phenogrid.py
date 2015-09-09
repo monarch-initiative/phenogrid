@@ -1,6 +1,7 @@
 ##############################################################################
 #
 # A set of basic steps.
+# https://selenium-python.readthedocs.org/
 # 
 ##############################################################################
 
@@ -18,6 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC # available sin
 @given('I go to page "{page}"')
 def step_impl(context, page):
     context.browser.get(context.target + page)
+    context.browser.implicitly_wait(30)
     # time.sleep(10)
     # from selenium.webdriver.support import expected_conditions as EC
     # wait = WebDriverWait(driver, 10)
@@ -49,6 +51,14 @@ def step_impl(context, id):
     elem = context.browser.find_element_by_id(id)
     hover = ActionChains(context.browser).move_to_element(elem)
     hover.perform()
+
+# Check radio button
+@given('I check the radio button labelled as "{text}"')
+def step_impl(context, text):
+    target = "input[type='radio'][value='" + text + "']"
+    radio_btn = context.browser.find_element_by_css_selector(target)
+    radio_btn.click()
+    context.browser.implicitly_wait(30)
     
 # The document body should contain a certain piece of text.
 @then('the document should contain "{text}"')
