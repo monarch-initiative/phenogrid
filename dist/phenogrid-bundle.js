@@ -851,16 +851,7 @@ DataManager.prototype = {
 		}
 		return this.initialized;
 	},
-	/*
-		Function: getOriginalSource
-			gets the original source listing used for query 
 
-		Returns:
-			array of objects
-	*/
-	getOriginalSource: function() {
-		return this.qrySourceList;
-	},
 	/*
 		Function: getData
 			gets a list of entries from specified dataset
@@ -1597,7 +1588,7 @@ var Utils = require('./utils.js');
 						scoreOffset:5,  // score text offset from the top of grid squares
 						targetGroupLabelOffset: -200    // -100offset of the targetGroup label, above grid
 					},
-		defaultTargetDisplayLimit: 40, //  defines the limit of the number of targets to display
+		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per organisms to be displayed in cross compare mode
 		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
@@ -2557,11 +2548,17 @@ var Utils = require('./utils.js');
 
 	// Previously processSelected
 	_processDisplay: function(){
+        // Array
         this.state.unmatchedSources = this._getUnmatchedSources();
-        // Fetch labels for unmatched sources via async ajax calls
-        // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
-        // by the time the unmatched checkbox is clicked - Joe
-        this._formatUnmatchedSources(this.state.unmatchedSources);
+        
+        // Proceed if there's any unmatched
+        if (this.state.unmatchedSources.length > 0) {
+            // Fetch labels for unmatched sources via async ajax calls
+            // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
+            // by the time the unmatched checkbox is clicked - Joe
+            this._formatUnmatchedSources(this.state.unmatchedSources);
+        }
+        
 		this.element.empty();
 		this._reDraw();
 	},
@@ -3411,7 +3408,7 @@ var Utils = require('./utils.js');
 	
 	_getUnmatchedSources: function(){
 		//var fullset = this.state.origPhenotypeData;
-		var fullset = this.state.dataManager.getOriginalSource();
+		var fullset = this.state.dataLoader.origSourceList; // Get the original source list
 		var partialset = this.state.dataManager.keys("source");
 		var full = [];
 		var partial = [];
