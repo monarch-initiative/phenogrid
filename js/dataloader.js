@@ -51,7 +51,7 @@ DataLoader.prototype = {
 			limit - value to limit targets returned
 	*/
 	load: function(qrySourceList, targetGroup, postDataLoadCB, limit) {
-		var targetGroupList = [];
+        var targetGroupList = [];
 
 		// save the original source listing
 		this.origSourceList = qrySourceList;

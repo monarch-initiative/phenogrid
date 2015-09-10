@@ -111,6 +111,31 @@ font-size:12px;
 cursor:pointer;
 }
 
+
+/* Unmatched Sources */
+#pg_unmatched_phenotypes_container{
+position:absolute;
+left:139px;
+top:700px;
+}
+
+/* Create some spacing between the checkbox and the label */
+#pg_unmatched_checkbox{
+margin-right:5px;
+}
+
+#pg_unmatched_phenotypes ul{
+margin-left: 0;
+padding-left: 0;
+}
+
+#pg_unmatched_phenotypes ul li{
+margin-left:1.8em;
+line-height:1.5;
+font-size:.85em;
+}
+
+
 #pg_errmsg {
 padding-top: 30px;
 font-size:1.2em;
@@ -265,22 +290,6 @@ display: table; /* 2 */
 }
 
 .clearfix:after {
-clear: both;
-}
-
-#unmatchedimg,
-#unmatchedhideimg {
-font-size:1.1em;
-font-weight:bold;
-color: #428bca;
-vertical-align:middle;
-}
-
-#unmatchedimg {
-font-size:1.4em;
-}
-
-.clearfix:after {
 content: " "; /* Older browser do not support empty content */
 visibility: hidden;
 display: block;
@@ -385,7 +394,6 @@ margin-right: 5px;
   border-style: solid;
   border-width: medium;
 }
-
 
 
 

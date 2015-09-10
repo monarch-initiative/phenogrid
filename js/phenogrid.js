@@ -214,6 +214,9 @@ var Utils = require('./utils.js');
 			this.state.simServerURL=this.state.serverURL;
 		}
 		this.state.data = {};
+        
+        this.state.unmatchedSourceLabels = []; // Holds the unmatched label of each source - Joe
+        
 		// will this work?
 		this.configoptions = undefined;
 
@@ -1127,7 +1130,11 @@ var Utils = require('./utils.js');
 
 	// Previously processSelected
 	_processDisplay: function(){
-//		this.state.unmatchedSources = this._getUnmatchedSources();
+        this.state.unmatchedSources = this._getUnmatchedSources();
+        // Fetch labels for unmatched sources via async ajax calls
+        // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
+        // by the time the unmatched checkbox is clicked - Joe
+        this._formatUnmatchedSources(this.state.unmatchedSources);
 		this.element.empty();
 		this._reDraw();
 	},
@@ -1876,6 +1883,9 @@ var Utils = require('./utils.js');
 		$("#pg_about_phenogrid").click(function() {	
 			self._showDialog("faq");
 		});
+        
+        // Unmatched sources and the display
+		this._buildUnmatchedSourcesDisplay();
 	},
 
 	// Position the control panel when the gridRegion changes
@@ -2022,81 +2032,98 @@ var Utils = require('./utils.js');
 		return dupArray;
 	},
 
-	_buildUnmatchedSourceDisplay: function() {
-		var optionhtml;
-		var prebl = $("#pg_prebl");
-		if (prebl.length === 0) {
-			var preblHtml ="<div id='pg_prebl'></div>";
-			this.element.append(preblHtml);
-			prebl = $("#pg_prebl");
-		}
-		prebl.empty();
+	_buildUnmatchedSourcesDisplay: function() {
+        var self = this;
+        var pg_ctrl = $("#pg_controls");
+        var pg_unmatched_sources_html = '<div id="pg_unmatched_sources_container" class="clearfix">';
+        
+        if (this.state.unmatchedSources !== undefined && this.state.unmatchedSources.length > 0) {
+            pg_unmatched_sources_html += "<div class='clearfix'><input type='checkbox' id='pg_unmatched_checkbox'>Show Unmatched Sources</div>" +
+                                            "<div id='pg_unmatched_sources'></div>";
+        } else {
+            // No unmatched sources
+            pg_unmatched_sources_html += "<div class='clearfix'>No Unmatched Sources</div>";
+        }
 
-		if (this.state.unmatchedSources !== undefined && this.state.unmatchedSources.length > 0){
-			optionhtml = "<div class='clearfix'><form id='pg_matches'><input type='checkbox' name='unmatched' value='unmatched' >&nbsp;&nbsp;View Unmatched Phenotypes<br /><form><div id='clear'></div>";
-			var phenohtml = this._buildUnmatchedPhenotypeTable();
-			optionhtml = optionhtml + "<div id='unmatched' style='display:none;'>" + phenohtml + "</div></div>";
-			prebl.append(optionhtml);
-		} else { 
-			// no unmatched phenotypes
-			optionhtml = "<div id='pg_unmatchedlabel'>No Unmatched Phenotypes</div>";
-			prebl.append(optionhtml);
-		}
+        pg_unmatched_sources_html += '</div>'; // closing tag
+        
+        // Append to phenogrid controls
+        pg_ctrl.append(pg_unmatched_sources_html);
+        
+        // By default hide the unmatched source list
+        $("#pg_unmatched_sources").hide();
+        
+        // Click and Toggle
+        $("#pg_unmatched_checkbox").click(function() {
+            // By now the unmatchedSourceLabels should be set by all the aync ajax calls - Joe
+            var cnt = self.state.unmatchedSourceLabels.length;
+            if (cnt = self.state.unmatchedSources.length) {
+                var unmatchedListHtml = '<ul>';
+                for (var i = 0; i < cnt; i++ ) {
+                    unmatchedListHtml += "<li><a href='" + self.state.serverURL + "/phenotype/" + self.state.unmatchedSourceLabels[i].id + "' target='_blank'>" + self.state.unmatchedPhenotypeLabels[i].label + "</a></li>";
+                }
+                unmatchedListHtml += "</ul>";
+                // Insert the html list in #pg_unmatched_phenotypes div
+                $("#pg_unmatched_sources").html(unmatchedListHtml);
+            }
 
-	$("#pg_matches[type=checkbox]").click(function() {
-			var $this = $(this);
-			// $this will contain a reference to the checkbox 
-			if ($this.is(':checked')) {
-				// the checkbox was checked 
-				$("#pg_unmatched").show();
-			} else {
-				// the checkbox was unchecked
-				$("#pg_unmatched").hide();
-			}
-		});
-	},
+            var $this = $(this);
+            if ($this.prop('checked')) {
+                $("#pg_unmatched_sources").show();
+            } else {
+                $("#pg_unmatched_sources").hide();
+            }
+        });
+    },
 
-	_buildUnmatchedPhenotypeTable: function(){
-		var self = this;
-		var columns = 4;
-		var outer1 = "<table id='phentable'>";
-		var outer2 = "</table>";
-		var inner = "";
+    // ajax callback
+    _fetchSourceLabelCallback: function(self, target, targets, data) {
+        var label;
+        // Show id if label is not found
+        if (data.label !== undefined) {
+            label = data.label;
+        } else {
+            label = data.id;
+        }
+        // 'observed' is not here, add it when needed in the future - Joe
+        self.state.unmatchedSourceLabels.push({'id': target.id, 'label': label});
 
-		var unmatched = self.state.unmatchedSources;
-		var text = "";
-		var i = 0;
-		var label, id, url_origin;
-		while (i < unmatched.length) {
-			inner += "<tr>"; 
-			text = "";
-			for (var j = 0; j < columns; j++){
-				id = Utils.getConceptId(unmatched[i++].id);
-				if (unmatched[i - 1].label !== undefined){
-					label = unmatched[i - 1].label;
-				} else {
-					label = unmatched[i - 1].id;
-				}
-				url_origin = self.document[0].location.origin;
-				text += "<td><a href='" + url_origin + "/phenotype/" + id + "' target='_blank'>" + label + "</a></td>";
-				if (i === unmatched.length) {
-					break;
-				}
-			}
-			inner += text + "</tr>";
-		}
-		return outer1 + inner + outer2;
-	},
+        // iterative back to process to make sure we processed all the targets
+        self._formatUnmatchedSources(targets);
+    },
+    
+    // ajax
+    _fetchUnmatchedLabel: function(target, targets, callback) {
+        var self = this;
+        
+        // Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
+        // so we need to fetch each label from the monarch-app server
+        // Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
+        $.ajax({
+            url: this.state.serverURL + "/phenotype/" + target.id + ".json",
+            async: true,
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                callback(self, target, targets, data); // callback needs self for reference to global this - Joe
+            },
+            error: function (xhr, errorType, exception) {
+                console.log("We are having problems fetching the unmatched phenotypes from the server. Please try again later. Error:" + xhr.status);
+            }
+        });
+    },
+    
+    _formatUnmatchedSources: function(targetGrpList) {
+        //console.log(targetGrpList);
+        if (targetGrpList.length > 0) {
+            var target = targetGrpList[0];  // pull off the first to start processing
+            targetGrpList = targetGrpList.slice(1);
 
-	_matchedClick: function(checkboxEl) {
-		if (checkboxEl.checked) {
-			// Do something special
-			$("#pg_unmatched").show();
-		} else {
-			// Do something else
-			$("#pg_unmatched").hide();
-		}
-	},
+            var callback = this._fetchSourceLabelCallback;
+            // Make the ajax call to fetch phenotype label
+            this._fetchUnmatchedLabel(target, targetGrpList, callback);
+        }
+    },
 
 	/*
 	 * given an array of phenotype objects edit the object array.
