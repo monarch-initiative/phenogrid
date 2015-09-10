@@ -115,7 +115,7 @@ cursor:pointer;
 /* Unmatched Sources */
 #pg_unmatched{
 position:absolute;
-left:139px;
+left:43px;
 }
 
 /* Create some spacing between the checkbox and the label */
@@ -123,12 +123,12 @@ left:139px;
 margin-right:5px;
 }
 
-#pg_unmatched_sourcess ul{
+#pg_unmatched_sources ul{
 margin-left: 0;
 padding-left: 0;
 }
 
-#pg_unmatched_sourcess ul li{
+#pg_unmatched_sources ul li{
 margin-left:1.8em;
 line-height:1.5;
 font-size:.85em;
