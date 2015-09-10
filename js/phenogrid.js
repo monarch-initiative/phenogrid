@@ -416,6 +416,10 @@ var Utils = require('./utils.js');
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
 
 			this._togglePgControls();
+            
+            // Unmatched sources
+            this._createUnmatchedSources();
+            this._positionUnmatchedSources();
 		} else {
 			var msg = "There are no results available.";
 				this._createSvgContainer();
@@ -1889,9 +1893,6 @@ var Utils = require('./utils.js');
 		$("#pg_about_phenogrid").click(function() {	
 			self._showDialog("faq");
 		});
-        
-        // Unmatched sources and the display
-		this._buildUnmatchedSourcesDisplay();
 	},
 
 	// Position the control panel when the gridRegion changes
@@ -2038,9 +2039,9 @@ var Utils = require('./utils.js');
 		return dupArray;
 	},
 
-	_buildUnmatchedSourcesDisplay: function() {
+	_createUnmatchedSources: function() {
         var self = this;
-        var pg_ctrl = $("#pg_controls");
+        var pg_unmatched = $('<div id="pg_unmatched"></div>');
         var pg_unmatched_sources_html = '<div id="pg_unmatched_sources_container" class="clearfix">';
         
         if (this.state.unmatchedSources !== undefined && this.state.unmatchedSources.length > 0) {
@@ -2053,8 +2054,11 @@ var Utils = require('./utils.js');
 
         pg_unmatched_sources_html += '</div>'; // closing tag
         
-        // Append to phenogrid controls
-        pg_ctrl.append(pg_unmatched_sources_html);
+        // Append phenogrid unmatched to pg_svg_container
+        $('#pg_svg_container').append(pg_unmatched);
+        
+        // Append unmarched list to phenogrid unmatched
+        pg_unmatched.append(pg_unmatched_sources_html);
         
         // By default hide the unmatched source list
         $("#pg_unmatched_sources").hide();
@@ -2066,7 +2070,7 @@ var Utils = require('./utils.js');
             if (cnt = self.state.unmatchedSources.length) {
                 var unmatchedListHtml = '<ul>';
                 for (var i = 0; i < cnt; i++ ) {
-                    unmatchedListHtml += "<li><a href='" + self.state.serverURL + "/phenotype/" + self.state.unmatchedSourceLabels[i].id + "' target='_blank'>" + self.state.unmatchedPhenotypeLabels[i].label + "</a></li>";
+                    unmatchedListHtml += "<li><a href='" + self.state.serverURL + "/phenotype/" + self.state.unmatchedSourceLabels[i].id + "' target='_blank'>" + self.state.unmatchedSourceLabels[i].label + "</a></li>";
                 }
                 unmatchedListHtml += "</ul>";
                 // Insert the html list in #pg_unmatched_phenotypes div
@@ -2082,6 +2086,13 @@ var Utils = require('./utils.js');
         });
     },
 
+    // Position the unmatched sources when the gridRegion changes
+	_positionUnmatchedSources: function(){
+		var gridRegion = this.state.gridRegion; 
+		var marginTop = 45; // Create some whitespace between the container and the y labels 
+		$('#pg_unmatched').css('top', gridRegion.y + this._gridHeight() + marginTop);
+    },	
+    
     // ajax callback
     _fetchSourceLabelCallback: function(self, target, targets, data) {
         var label;
