@@ -1,6 +1,8 @@
 (function () {
 'use strict';
 
+require('jquery'); 
+var $ = jQuery;
 /*
  	Package: datamanager.js
 
@@ -368,11 +370,19 @@ DataManager.prototype = {
 		return combinedTargetList;
 	},
 
-	createCombinedSourceList: function(targetGroupList, limit) {
+	/*
+		Function: createCombinedSourceList
+
+			generates a combined source list for multiple organisms/targetGroup
+
+		Parameters:
+			targetGroupList - targetGroup list
+	*/
+	createCombinedSourceList: function(targetGroupList) {
 		var combinedSourceList = [];
 
 		// loop thru for the number of comparisons and build a combined list
-		// also build the frequency and sum for the subset (or limit)
+		// also build the frequency and sum for the subset
 		for (var k in targetGroupList) {
 			var srcs = this.getData("source", targetGroupList[k].name);
 
@@ -382,7 +392,9 @@ DataManager.prototype = {
 				// try adding source as an associative array, if not found then add new object
 				var srcData = combinedSourceList[id];
 				if (typeof(srcData) == 'undefined') {	
-					combinedSourceList[id] = srcs[idx];	
+					var newElement = {};
+					// this needs to be a copy, don't assign srcs[idx] directly to avoid object reference problems when modifying
+					combinedSourceList[id] = $.extend({}, newElement, srcs[idx]);	
 				}
 			}
 
@@ -392,9 +404,9 @@ DataManager.prototype = {
 				combinedSourceList[s].count = 0;
 				combinedSourceList[s].sum = 0;
 
-			for (var k in targetGroupList) {
+			for (var t in targetGroupList) {
 				// get all the cell data
-				var cellData = this.getData("cellData", targetGroupList[k].name);
+				var cellData = this.getData("cellData", targetGroupList[t].name);
 				for (var cd in cellData) {
 
 				var cells = cellData[cd];

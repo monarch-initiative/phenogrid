@@ -56,11 +56,11 @@ var stickytooltip = {
 
 	init:function(targetselector, tipid){
 		jQuery(document).ready(function($){
-			var self = this;			
 			var $targets = jQuery(targetselector);  //    $(targetselector);
 			var $tooltip = $('#'+tipid).appendTo(document.body);
-			if ($targets.length == 0)
+			if ($targets.length == 0) {
 				return;
+			}
 
 			stickytooltip.hidebox($, $tooltip);
 			
@@ -74,7 +74,7 @@ var stickytooltip = {
 					}
 				}
 			 });
-		}) //end dom ready
+		}); //end dom ready
 	}
 };
 

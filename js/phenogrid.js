@@ -220,15 +220,12 @@ var Utils = require('./utils.js');
 		this._createTargetGroupIndices();
 
 		this._reset();
-
-		console.log("in create func...");
 	},
 
 	
 	//init is now reduced down completely to loading
 	_init: function() {
 
-		console.log("init...");
 		this.element.empty();
 
 		// show loading spinner - Joe
@@ -503,7 +500,8 @@ var Utils = require('./utils.js');
 				self._mouseover(this, data, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
-				self._mouseout(d);});
+				self._mouseout(d);
+			});
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -666,10 +664,6 @@ var Utils = require('./utils.js');
 				.classed("rowcolmatch", false)
 				.classed("pg_cursor_pointer", false);					  				  
 
-
-		if (typeof(p) !== 'undefined') {
-			console.log(p);
-		}
 		// if (!stickytooltip.isdocked) {
 		// // 	// hide the tooltip
 		//  	stickytooltip.closetooltip();
@@ -846,10 +840,8 @@ var Utils = require('./utils.js');
 		var self = this;
 
 		// set the display counts on each axis
-		var yCount = self.state.yAxisRender.displayLength();  //self.state.sourceDisplayLimit;
-	    var xCount = self.state.xAxisRender.displayLength();  //self.state.targetDisplayLimit;
-
-	    console.log("YYYYYYYYYY - yCount: " + yCount + " XXXXXXXXXXX - xCount: " + xCount);
+		var yCount = self.state.yAxisRender.displayLength();  
+	    var xCount = self.state.xAxisRender.displayLength();  
 
 		// add-ons for stroke size on view box. Preferably even numbers
 		var linePad = self.state.navigator.miniCellSize;
@@ -960,8 +952,6 @@ var Utils = require('./utils.js');
 					var curX = parseFloat(current.attr("x"));
 					var curY = parseFloat(current.attr("y"));
 
-					console.log("curX:" + curX + " curY:"+ curY);
-
 					var rect = self.state.svg.select("#pg_navigator_shaded_area");
 					rect.attr("transform","translate(0,0)");
 
@@ -1008,8 +998,6 @@ var Utils = require('./utils.js');
 
 					var jj = self._invertOverviewDragPosition(self.state.smallYScale,newY);
 					var newYPos = jj + yCount;
-
-					console.log("newXPos:" + newXPos + " newYPos:"+newYPos);
 
 					self._updateGrid(newXPos, newYPos);
 		}));
@@ -1556,7 +1544,6 @@ var Utils = require('./utils.js');
 	},
 
 	_clearGrid: function() {
-		console.log("in clearGrid()....");
 		this.state.svg.selectAll("g.row").remove();
 		this.state.svg.selectAll("g.column").remove();
 		this.state.svg.selectAll("g.pg_score_text").remove();
@@ -1812,7 +1799,6 @@ var Utils = require('./utils.js');
 		
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
-			console.log('in the change()..');
 
 			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
 			var temp = [];

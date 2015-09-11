@@ -808,6 +808,8 @@ module.exports = DataLoader;
 (function () {
 'use strict';
 
+require('jquery'); 
+var $ = jQuery;
 /*
  	Package: datamanager.js
 
@@ -1175,11 +1177,19 @@ DataManager.prototype = {
 		return combinedTargetList;
 	},
 
-	createCombinedSourceList: function(targetGroupList, limit) {
+	/*
+		Function: createCombinedSourceList
+
+			generates a combined source list for multiple organisms/targetGroup
+
+		Parameters:
+			targetGroupList - targetGroup list
+	*/
+	createCombinedSourceList: function(targetGroupList) {
 		var combinedSourceList = [];
 
 		// loop thru for the number of comparisons and build a combined list
-		// also build the frequency and sum for the subset (or limit)
+		// also build the frequency and sum for the subset
 		for (var k in targetGroupList) {
 			var srcs = this.getData("source", targetGroupList[k].name);
 
@@ -1189,7 +1199,9 @@ DataManager.prototype = {
 				// try adding source as an associative array, if not found then add new object
 				var srcData = combinedSourceList[id];
 				if (typeof(srcData) == 'undefined') {	
-					combinedSourceList[id] = srcs[idx];	
+					var newElement = {};
+					// this needs to be a copy, don't assign srcs[idx] directly to avoid object reference problems when modifying
+					combinedSourceList[id] = $.extend({}, newElement, srcs[idx]);	
 				}
 			}
 
@@ -1199,9 +1211,9 @@ DataManager.prototype = {
 				combinedSourceList[s].count = 0;
 				combinedSourceList[s].sum = 0;
 
-			for (var k in targetGroupList) {
+			for (var t in targetGroupList) {
 				// get all the cell data
-				var cellData = this.getData("cellData", targetGroupList[k].name);
+				var cellData = this.getData("cellData", targetGroupList[t].name);
 				for (var cd in cellData) {
 
 				var cells = cellData[cd];
@@ -1226,7 +1238,7 @@ DataManager.prototype = {
 module.exports=DataManager;
 
 }());
-},{}],4:[function(require,module,exports){
+},{"jquery":11}],4:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -1647,15 +1659,12 @@ var Utils = require('./utils.js');
 		this._createTargetGroupIndices();
 
 		this._reset();
-
-		console.log("in create func...");
 	},
 
 	
 	//init is now reduced down completely to loading
 	_init: function() {
 
-		console.log("init...");
 		this.element.empty();
 
 		// show loading spinner - Joe
@@ -1930,7 +1939,8 @@ var Utils = require('./utils.js');
 				self._mouseover(this, data, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
-				self._mouseout(d);});
+				self._mouseout(d);
+			});
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -2093,10 +2103,6 @@ var Utils = require('./utils.js');
 				.classed("rowcolmatch", false)
 				.classed("pg_cursor_pointer", false);					  				  
 
-
-		if (typeof(p) !== 'undefined') {
-			console.log(p);
-		}
 		// if (!stickytooltip.isdocked) {
 		// // 	// hide the tooltip
 		//  	stickytooltip.closetooltip();
@@ -2273,10 +2279,8 @@ var Utils = require('./utils.js');
 		var self = this;
 
 		// set the display counts on each axis
-		var yCount = self.state.yAxisRender.displayLength();  //self.state.sourceDisplayLimit;
-	    var xCount = self.state.xAxisRender.displayLength();  //self.state.targetDisplayLimit;
-
-	    console.log("YYYYYYYYYY - yCount: " + yCount + " XXXXXXXXXXX - xCount: " + xCount);
+		var yCount = self.state.yAxisRender.displayLength();  
+	    var xCount = self.state.xAxisRender.displayLength();  
 
 		// add-ons for stroke size on view box. Preferably even numbers
 		var linePad = self.state.navigator.miniCellSize;
@@ -2387,8 +2391,6 @@ var Utils = require('./utils.js');
 					var curX = parseFloat(current.attr("x"));
 					var curY = parseFloat(current.attr("y"));
 
-					console.log("curX:" + curX + " curY:"+ curY);
-
 					var rect = self.state.svg.select("#pg_navigator_shaded_area");
 					rect.attr("transform","translate(0,0)");
 
@@ -2435,8 +2437,6 @@ var Utils = require('./utils.js');
 
 					var jj = self._invertOverviewDragPosition(self.state.smallYScale,newY);
 					var newYPos = jj + yCount;
-
-					console.log("newXPos:" + newXPos + " newYPos:"+newYPos);
 
 					self._updateGrid(newXPos, newYPos);
 		}));
@@ -2983,7 +2983,6 @@ var Utils = require('./utils.js');
 	},
 
 	_clearGrid: function() {
-		console.log("in clearGrid()....");
 		this.state.svg.selectAll("g.row").remove();
 		this.state.svg.selectAll("g.column").remove();
 		this.state.svg.selectAll("g.pg_score_text").remove();
@@ -3239,7 +3238,6 @@ var Utils = require('./utils.js');
 		
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
-			console.log('in the change()..');
 
 			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
 			var temp = [];
@@ -4051,11 +4049,11 @@ var stickytooltip = {
 
 	init:function(targetselector, tipid){
 		jQuery(document).ready(function($){
-			var self = this;			
 			var $targets = jQuery(targetselector);  //    $(targetselector);
 			var $tooltip = $('#'+tipid).appendTo(document.body);
-			if ($targets.length == 0)
+			if ($targets.length == 0) {
 				return;
+			}
 
 			stickytooltip.hidebox($, $tooltip);
 			
@@ -4069,7 +4067,7 @@ var stickytooltip = {
 					}
 				}
 			 });
-		}) //end dom ready
+		}); //end dom ready
 	}
 };
 
