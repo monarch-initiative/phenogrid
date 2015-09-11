@@ -387,8 +387,6 @@ var Utils = require('./utils.js');
 
 			this._addLogoImage();
 
-//			this._buildAxisPositionList();  // MKD: THIS NEEDS REFACTORED
-
 			this._createPhenogridControls();
 			this._positionPhenogridControls();
 
@@ -641,7 +639,12 @@ var Utils = require('./utils.js');
 		var pos = p.offset();
 
 		// add the width of the client rect to the left position to place it at the end
-		var newLeft = pos.left + p[0].getBoundingClientRect().width;  
+		var newLeft = pos.left; 
+
+		// did we hover over a grid row, place the tooltip on the far right of the label
+		if (self.parentNode.id.indexOf('grid_row') > -1) {
+			newLeft += p[0].getBoundingClientRect().width;
+		} 
 		var position = {left: newLeft, top: pos.top};
 
 		// show a stickytooltip
@@ -1650,34 +1653,6 @@ var Utils = require('./utils.js');
 		$dialog.dialog('open');
 		self.state.tooltips[name] = text;
 	},
-
-
-	// Build out the positions of the 3 boxes
-	// _buildAxisPositionList: function() {
-	// 	// For Overview of Organisms 0 width = ((defaultVisibleModelCt*2)+2) *this.state.widthOfSingleCell	
-	// 	// Add two extra columns as separators
-	// 	this.state.axis_pos_list = [];
-	// 	// calculate width of model section
-	// 	//this.state.modelWidth = this.state.filteredXAxis.size() * this.state.widthOfSingleCell;
-	// 	this.state.modelWidth = this.state.xAxisRender.displayLength() * this.state.widthOfSingleCell;
-
-	// 	// add an axis for each ordinal scale found in the data
-	// 	for (var i = 0; i < 3; i++) {
-	// 		// move the last accent over a bit for the scrollbar
-	// 		if (i === 2) {
-	// 			// make sure it's not too narrow i
-	// 			var w = this.state.modelWidth;
-	// 			if(w < this.state.smallestModelWidth) {
-	// 				w = this.state.smallestModelWidth;
-	// 			}
-	// 			this.state.axis_pos_list.push((this.state.textWidth + 50) + this.state.colStartingPos + w);
-	// 		} else if (i === 1 ){
-	// 			this.state.axis_pos_list.push((i * (this.state.textWidth + this.state.xOffsetOver + 10)) + this.state.colStartingPos);
-	// 		} else {
-	// 			this.state.axis_pos_list.push((i * (this.state.textWidth + 10)) + this.state.colStartingPos);
-	// 		}
-	// 	}	
-	// },
 
 	/*
 	 * Add the gradient legend (bar and label texts) to the grid bottom
