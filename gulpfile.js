@@ -14,7 +14,7 @@ var gulp = require('gulp');
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var rename = require("gulp-rename");
-var mocha = require('gulp-mocha');
+var mocha = require('gulp-mocha'); // Keep in mind that this is just a thin wrapper around Mocha and your issue is most likely with Mocha
 var streamify = require('gulp-streamify');
 var uglify = require('gulp-uglify');
 var minifyCSS = require('gulp-minify-css');
@@ -44,7 +44,7 @@ var paths = {
     readme: ['./README.md'],
     transients:[],
     js: ['js/*.js'],
-    tests: ['tests/*.test.js', 'tests/*.tests.js']
+    tests: ['tests/mocha/*.test.js']
 };
 
 // The default task is to build the different distributions.
@@ -125,17 +125,16 @@ gulp.task('clean', function(cb) {
     cb(null);
 });
 
-// Testing with mocha/chai.
-gulp.task('tests', function() {
-    return gulp.src(paths.tests, { read: false }).pipe(mocha({
-    reporter: 'spec',
-    globals: {
-        // Use a different should.
-        should: require('chai').should()
-    }
+
+// Testing with mocha/chai
+gulp.task('test', function() {
+    return gulp.src(paths.tests, {read: false}).pipe(mocha({
+        reporter: 'spec' // or 'nyan'
     }));
 });
 
+
+// Publishing
 gulp.task('release', ['build', 'publish-npm']);
 
 // Needs to have ""
