@@ -230,7 +230,6 @@ var Utils = require('./utils.js');
 	
 	//init is now reduced down completely to loading
 	_init: function() {
-
 		console.log("init...");
 		this.element.empty();
 
@@ -256,7 +255,8 @@ var Utils = require('./utils.js');
 		}
 		var self = this;
 		var postAsyncCallback = function() {
-					self._postDataInitCB(self); };
+            self._postDataInitCB(); 
+        };
 
 		// initialize data processing class, 
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, this.state.apiEntityMap);
@@ -265,21 +265,30 @@ var Utils = require('./utils.js');
 		this.state.dataLoader.load(querySourceList, targetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
 	},
 
-	_postDataInitCB: function (self) {
+	_postDataInitCB: function () {
 		// set a max IC score
-		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
+		this.state.maxICScore = this.state.dataLoader.getMaxICScore();
 
-		self.state.dataManager = new DataManager(self.state.dataLoader);
+		this.state.dataManager = new DataManager(this.state.dataLoader);
 
 		// initialize the ontologyCache
-		self.state.ontologyCache = {};
+		this.state.ontologyCache = {};
 		
 	    // initialize axis groups
-	    self._createAxisRenderingGroups();
+	    this._createAxisRenderingGroups();
 
-		self._initDefaults();   
-		self._processDisplay();
-
+        // Array of unmatched source IDs
+        this.state.unmatchedSources = this._getUnmatchedSources();
+        // Proceed if there's any unmatched
+        if (this.state.unmatchedSources.length > 0) {
+            // Fetch labels for unmatched sources via async ajax calls
+            // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
+            // by the time the unmatched checkbox is clicked - Joe
+            this._formatUnmatchedSources(this.state.unmatchedSources);
+        }
+        
+		this._initDefaults();   
+		this._processDisplay();
 	},
 
 	//Originally part of _init
@@ -1071,13 +1080,13 @@ var Utils = require('./utils.js');
 
 		self.state.smallYScale = d3.scale.ordinal()
 			.domain(sourceList.map(function (d) {return d; }))
-			.rangePoints([0,overviewRegionSize]);
+			.rangePoints([0, overviewRegionSize]);
 
 		self.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
 				var td = d;
 				return d; }))
-			.rangePoints([0,overviewRegionSize]);   	    
+			.rangePoints([0, overviewRegionSize]);   	    
 	},
 
 	_invertOverviewDragPosition: function(scale,value) {
@@ -1132,17 +1141,6 @@ var Utils = require('./utils.js');
 
 	// Previously processSelected
 	_processDisplay: function(){
-        // Array
-        this.state.unmatchedSources = this._getUnmatchedSources();
-        
-        // Proceed if there's any unmatched
-        if (this.state.unmatchedSources.length > 0) {
-            // Fetch labels for unmatched sources via async ajax calls
-            // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
-            // by the time the unmatched checkbox is clicked - Joe
-            this._formatUnmatchedSources(this.state.unmatchedSources);
-        }
-        
 		this.element.empty();
 		this._reDraw();
 	},
