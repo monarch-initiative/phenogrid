@@ -1987,13 +1987,12 @@ var Utils = require('./utils.js');
 		return $(html);
 	},
 	
-	_getUnmatchedSources: function(){
-		//var fullset = this.state.origPhenotypeData;
+	_getUnmatchedSources: function() {
 		var fullset = this.state.dataLoader.origSourceList; // Get the original source list of IDs
-		var partialset = this.state.dataManager.keys("source"); // Homo sapiens, Mus musculus, Danio rerio
+		var matchedset = this.state.yAxisRender.groupIDs();
         
 console.log('Unmatched-------fullset: ' + fullset);
-console.log('Unmatched-------partialset: ' + partialset);
+console.log('Unmatched-------matchedset: ' + matchedset);
 
 		var full = [];
 		var partial = [];
@@ -2001,7 +2000,7 @@ console.log('Unmatched-------partialset: ' + partialset);
 		var tempObject = {"id": 0, "observed": "positive"};
 
 		for (var i in fullset) {
-			if (typeof(fullset[i].id) === 'undefined'){
+			if (typeof(fullset[i].id) === 'undefined') {
 				tempObject.id = fullset[i];
 				full.push(tempObject);
 			} else {
@@ -2009,8 +2008,8 @@ console.log('Unmatched-------partialset: ' + partialset);
 			}
 		}
 
-		for (var j in partialset){
-			partial.push(partialset[j].replace("_", ":"));
+		for (var j in matchedset){
+			partial.push(matchedset[j].replace("_", ":"));
 		}
 
 		for (var k in full) {
@@ -2024,7 +2023,7 @@ console.log('Unmatched-------partialset: ' + partialset);
 		var dupArray = [];
 		dupArray.push(unmatchedset[0]);	
 		// check for dups
-		for (var l in unmatchedset){
+		for (var l in unmatchedset) {
 			var found = false;
 			for (var m in dupArray) {
 				if (dupArray[m].id === unmatchedset[l].id) {

@@ -360,6 +360,7 @@ DataLoader.prototype = {
         var targetGroupList = [];
 
 		// save the original source listing
+        // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
 		if (typeof(targetGroup) === 'object') {
@@ -1655,6 +1656,7 @@ var Utils = require('./utils.js');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
+        // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
 		this.state.selectedCompareTargetGroup = [];
@@ -1676,13 +1678,10 @@ var Utils = require('./utils.js');
 					self._postDataInitCB(self); };
 
 		// initialize data processing class, 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
-						 this.state.apiEntityMap);
+		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, this.state.apiEntityMap);
 
 		// starting loading the data
 		this.state.dataLoader.load(querySourceList, targetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
-	
-
 	},
 
 	_postDataInitCB: function (self) {
@@ -3407,13 +3406,12 @@ var Utils = require('./utils.js');
 		return $(html);
 	},
 	
-	_getUnmatchedSources: function(){
-		//var fullset = this.state.origPhenotypeData;
-		var fullset = this.state.dataLoader.origSourceList; // Get the original source list
-		var partialset = this.state.dataManager.keys("source");
+	_getUnmatchedSources: function() {
+		var fullset = this.state.dataLoader.origSourceList; // Get the original source list of IDs
+		var matchedset = this.state.yAxisRender.groupIDs();
         
 console.log('Unmatched-------fullset: ' + fullset);
-console.log('Unmatched-------partialset: ' + partialset);
+console.log('Unmatched-------matchedset: ' + matchedset);
 
 		var full = [];
 		var partial = [];
@@ -3421,7 +3419,7 @@ console.log('Unmatched-------partialset: ' + partialset);
 		var tempObject = {"id": 0, "observed": "positive"};
 
 		for (var i in fullset) {
-			if (typeof(fullset[i].id) === 'undefined'){
+			if (typeof(fullset[i].id) === 'undefined') {
 				tempObject.id = fullset[i];
 				full.push(tempObject);
 			} else {
@@ -3429,8 +3427,8 @@ console.log('Unmatched-------partialset: ' + partialset);
 			}
 		}
 
-		for (var j in partialset){
-			partial.push(partialset[j].replace("_", ":"));
+		for (var j in matchedset){
+			partial.push(matchedset[j].replace("_", ":"));
 		}
 
 		for (var k in full) {
@@ -3444,7 +3442,7 @@ console.log('Unmatched-------partialset: ' + partialset);
 		var dupArray = [];
 		dupArray.push(unmatchedset[0]);	
 		// check for dups
-		for (var l in unmatchedset){
+		for (var l in unmatchedset) {
 			var found = false;
 			for (var m in dupArray) {
 				if (dupArray[m].id === unmatchedset[l].id) {
