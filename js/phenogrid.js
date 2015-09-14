@@ -237,6 +237,7 @@ var Utils = require('./utils.js');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
+        // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
 		this.state.selectedCompareTargetGroup = [];
@@ -258,13 +259,10 @@ var Utils = require('./utils.js');
 					self._postDataInitCB(self); };
 
 		// initialize data processing class, 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
-						 this.state.apiEntityMap);
+		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, this.state.apiEntityMap);
 
 		// starting loading the data
 		this.state.dataLoader.load(querySourceList, targetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
-	
-
 	},
 
 	_postDataInitCB: function (self) {
@@ -1991,8 +1989,12 @@ var Utils = require('./utils.js');
 	
 	_getUnmatchedSources: function(){
 		//var fullset = this.state.origPhenotypeData;
-		var fullset = this.state.dataLoader.origSourceList; // Get the original source list
-		var partialset = this.state.dataManager.keys("source");
+		var fullset = this.state.dataLoader.origSourceList; // Get the original source list of IDs
+		var partialset = this.state.dataManager.keys("source"); // Homo sapiens, Mus musculus, Danio rerio
+        
+console.log('Unmatched-------fullset: ' + fullset);
+console.log('Unmatched-------partialset: ' + partialset);
+
 		var full = [];
 		var partial = [];
 		var unmatchedset = [];

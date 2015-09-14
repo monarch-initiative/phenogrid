@@ -54,6 +54,7 @@ DataLoader.prototype = {
         var targetGroupList = [];
 
 		// save the original source listing
+        // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
 		if (typeof(targetGroup) === 'object') {

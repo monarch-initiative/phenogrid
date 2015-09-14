@@ -3411,6 +3411,10 @@ var Utils = require('./utils.js');
 		//var fullset = this.state.origPhenotypeData;
 		var fullset = this.state.dataLoader.origSourceList; // Get the original source list
 		var partialset = this.state.dataManager.keys("source");
+        
+console.log('Unmatched-------fullset: ' + fullset);
+console.log('Unmatched-------partialset: ' + partialset);
+
 		var full = [];
 		var partial = [];
 		var unmatchedset = [];
