@@ -1696,16 +1696,6 @@ var Utils = require('./utils.js');
 	    // initialize axis groups
 	    this._createAxisRenderingGroups();
 
-        // Array of unmatched source IDs
-        this.state.unmatchedSources = this._getUnmatchedSources();
-        // Proceed if there's any unmatched
-        if (this.state.unmatchedSources.length > 0) {
-            // Fetch labels for unmatched sources via async ajax calls
-            // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
-            // by the time the unmatched checkbox is clicked - Joe
-            this._formatUnmatchedSources(this.state.unmatchedSources);
-        }
-        
 		this._initDefaults();   
 		this._processDisplay();
 	},
@@ -2560,7 +2550,17 @@ var Utils = require('./utils.js');
 
 	// Previously processSelected
 	_processDisplay: function(){
-		this.element.empty();
+		// Array of unmatched source IDs
+        this.state.unmatchedSources = this._getUnmatchedSources();
+        // Proceed if there's any unmatched
+        if (this.state.unmatchedSources.length > 0) {
+            // Fetch labels for unmatched sources via async ajax calls
+            // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
+            // by the time the unmatched checkbox is clicked - Joe
+            this._formatUnmatchedSources(this.state.unmatchedSources);
+        }
+        
+        this.element.empty();
 		this._reDraw();
 	},
 
@@ -3406,11 +3406,7 @@ var Utils = require('./utils.js');
 	
 	_getUnmatchedSources: function() {
 		var fullset = this.state.dataLoader.origSourceList; // Get the original source list of IDs
-		var matchedset = this.state.yAxisRender.groupIDs();
-        
-console.log('Unmatched-------fullset: ' + fullset);
-console.log('Unmatched-------matchedset: ' + matchedset);
-
+		var matchedset = this.state.yAxisRender.groupIDs(); // Get all the matched source IDs
 		var full = [];
 		var partial = [];
 		var unmatchedset = [];
