@@ -2070,7 +2070,7 @@ var Utils = require('./utils.js');
             if (cnt = self.state.unmatchedSources.length) {
                 var unmatchedListHtml = '<ul>';
                 for (var i = 0; i < cnt; i++ ) {
-                    unmatchedListHtml += "<li><a href='" + self.state.serverURL + "/phenotype/" + self.state.unmatchedSourceLabels[i].id + "' target='_blank'>" + "(" + self.state.unmatchedSourceLabels[i].id + ") " + self.state.unmatchedSourceLabels[i].label + "</a></li>";
+                    unmatchedListHtml += "<li><a href='" + self.state.serverURL + "/phenotype/" + self.state.unmatchedSourceLabels[i].id + "' target='_blank'>" + self.state.unmatchedSourceLabels[i].label + " (" + self.state.unmatchedSourceLabels[i].id + ")" + "</a></li>";
                 }
                 unmatchedListHtml += "</ul>";
                 // Insert the html list in #pg_unmatched_phenotypes div
