@@ -465,7 +465,7 @@ var Utils = require('./utils.js');
 		var gridWidth = self._gridWidth();		
 
 		// use the x/y renders to generate the matrix
-	    var matrix = self.state.dataManager.getMatrix(xvalues, yvalues, false);
+	    var matrix = self.state.dataManager.buildMatrix(xvalues, yvalues, false);
 
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
@@ -639,13 +639,17 @@ var Utils = require('./utils.js');
 		var pos = p.offset();
 
 		// add the width of the client rect to the left position to place it at the end
-		var newLeft = pos.left; 
+		var leftPos = pos.left, topPos = pos.top; 
+
 
 		// did we hover over a grid row, place the tooltip on the far right of the label
 		if (self.parentNode.id.indexOf('grid_row') > -1) {
-			newLeft += p[0].getBoundingClientRect().width;
-		} 
-		var position = {left: newLeft, top: pos.top};
+			leftPos += p[0].getBoundingClientRect().width;
+		} else { // columns add a little spacing from the current mouse position
+			leftPos += 20;
+			//topPos += -5;
+		}
+		var position = {left: leftPos, top: topPos};
 
 		// show a stickytooltip
 		stickytooltip.show(position);
@@ -873,15 +877,12 @@ var Utils = require('./utils.js');
 		// create the scales
 		this._createSmallScales(overviewRegionSize);
 
-		// add the items using smaller rects
-		//var cellData = self._mergeHashEntries(self.state.cellDataHash);
-		//var data = self.state.filteredCellData;
-
 		// this should be the full set of cellData
 		var xvalues = this.state.xAxisRender.groupEntries();
 		//console.log(JSON.stringify(xvalues));
 		var yvalues = this.state.yAxisRender.groupEntries();		
-		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
+		var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true);
+		//var data = this.state.dataManager.getFlattenMatrix();
 
 		// Group all mini cells in g element - Joe
 		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
@@ -889,7 +890,7 @@ var Utils = require('./utils.js');
 						
         // Add cells to the miniCellsGrp - Joe						
 		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
-			.data(data, function(d) {return d.source_id + d.target_id;});   //D.Yid + D.xID;});
+			.data(data, function(d) {return d.source_id + d.target_id;});  
 			
 			
 		overviewX++;	// Corrects the gapping on the sides
@@ -1936,7 +1937,7 @@ var Utils = require('./utils.js');
 	_getUnmatchedSources: function(){
 		//var fullset = this.state.origPhenotypeData;
 		var fullset = this.state.dataManager.getOriginalSource();
-		var partialset = this.state.dataManager.keys("source");
+		var partialset = this.state.dataManager.keys("source"); 
 		var full = [];
 		var partial = [];
 		var unmatchedset = [];

@@ -1051,22 +1051,26 @@ DataManager.prototype = {
 	}, 	
 
 	/*
-		Function: getMatrix
+		Function: buildMatrix
 
 			builds a matrix data set from the source and target lists 
 
 		Parameters:
 			xvals - target value list
 			yvals - source value list
-			flattened - flag to flatten the array into a single list of data points
+			flattened - flag to flatten the array into a single list of data points; true for usage with overview map
 
 		Returns:
 			array
 	*/
-	getMatrix: function(xvals, yvals, flattened) {
+	buildMatrix: function(xvals, yvals, flattened) {
 	    var xvalues = xvals, yvalues = yvals;     
-	    //var matrix = []; 
-	    this.matrix = [];
+	    var matrixFlatten = []; 
+
+	    // if it's not a flattened, reset matrix
+	    if (!flattened) { 
+	    	this.matrix = []; 
+	    }
 
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
@@ -1083,7 +1087,7 @@ DataManager.prototype = {
 									ypos: y, targetGroup: targetGroup, type: 'cell'};
 						// this will create a array as a 'flattened' list of data points, used by mini mapping
 						if (flattened) {
-							this.matrix.push(rec);
+							matrixFlatten.push(rec);
 						} else {  // else, just create an array of arrays, grid likes this format
 							list.push(rec);	
 						}
@@ -1091,11 +1095,15 @@ DataManager.prototype = {
 					}
 				}
 			}
-			if (!flattened) {  //list.length > 0 && 
+			if (!flattened) {  
 				this.matrix.push(list);
 			} 
 		}
-	    return this.matrix;
+		if (flattened) {
+			return matrixFlatten;
+		} else {
+	    	return this.matrix;
+		}
 	},
 
 	getMatrixSourceTargetMatches: function(matchpos, highlightSources) {
@@ -1103,10 +1111,12 @@ DataManager.prototype = {
 
 		for (var i in this.matrix) {
 			var r = this.matrix[i];
-			if (r.ypos == matchpos && !highlightSources) {
-				matchedPositions.push(r);
-			} else if (r.xpos == matchpos && highlightSources) {
-				matchedPositions.push(r);
+			for (var j=0; j < r.length; j++) {
+				if (r[j].ypos == matchpos && !highlightSources) {
+					matchedPositions.push(r[j]);
+				} else if (r[j].xpos == matchpos && highlightSources) {
+					matchedPositions.push(r[j]);
+				}
 			}
 		}
 			
@@ -1904,7 +1914,7 @@ var Utils = require('./utils.js');
 		var gridWidth = self._gridWidth();		
 
 		// use the x/y renders to generate the matrix
-	    var matrix = self.state.dataManager.getMatrix(xvalues, yvalues, false);
+	    var matrix = self.state.dataManager.buildMatrix(xvalues, yvalues, false);
 
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
@@ -2078,13 +2088,17 @@ var Utils = require('./utils.js');
 		var pos = p.offset();
 
 		// add the width of the client rect to the left position to place it at the end
-		var newLeft = pos.left; 
+		var leftPos = pos.left, topPos = pos.top; 
+
 
 		// did we hover over a grid row, place the tooltip on the far right of the label
 		if (self.parentNode.id.indexOf('grid_row') > -1) {
-			newLeft += p[0].getBoundingClientRect().width;
-		} 
-		var position = {left: newLeft, top: pos.top};
+			leftPos += p[0].getBoundingClientRect().width;
+		} else { // columns add a little spacing from the current mouse position
+			leftPos += 20;
+			//topPos += -5;
+		}
+		var position = {left: leftPos, top: topPos};
 
 		// show a stickytooltip
 		stickytooltip.show(position);
@@ -2312,15 +2326,12 @@ var Utils = require('./utils.js');
 		// create the scales
 		this._createSmallScales(overviewRegionSize);
 
-		// add the items using smaller rects
-		//var cellData = self._mergeHashEntries(self.state.cellDataHash);
-		//var data = self.state.filteredCellData;
-
 		// this should be the full set of cellData
 		var xvalues = this.state.xAxisRender.groupEntries();
 		//console.log(JSON.stringify(xvalues));
 		var yvalues = this.state.yAxisRender.groupEntries();		
-		var data = this.state.dataManager.getMatrix(xvalues, yvalues, true);
+		var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true);
+		//var data = this.state.dataManager.getFlattenMatrix();
 
 		// Group all mini cells in g element - Joe
 		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
@@ -2328,7 +2339,7 @@ var Utils = require('./utils.js');
 						
         // Add cells to the miniCellsGrp - Joe						
 		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
-			.data(data, function(d) {return d.source_id + d.target_id;});   //D.Yid + D.xID;});
+			.data(data, function(d) {return d.source_id + d.target_id;});  
 			
 			
 		overviewX++;	// Corrects the gapping on the sides
@@ -3375,7 +3386,7 @@ var Utils = require('./utils.js');
 	_getUnmatchedSources: function(){
 		//var fullset = this.state.origPhenotypeData;
 		var fullset = this.state.dataManager.getOriginalSource();
-		var partialset = this.state.dataManager.keys("source");
+		var partialset = this.state.dataManager.keys("source"); 
 		var full = [];
 		var partial = [];
 		var unmatchedset = [];
@@ -3980,13 +3991,14 @@ var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 var $ = jQuery;
 
 var stickytooltip = {
-	tooltipoffsets: {x:-4, y:2}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
+	tooltipoffsets: {x:0, y:0}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
 	fadeinspeed: 1, //duration of fade effect in milliseconds
 	isdocked: false,  // force sticky mode
 
 
 	positiontooltip:function($, $tooltip, e){
-		var x = e.left + this.tooltipoffsets.x, y = e.top + this.tooltipoffsets.y;
+		var x = e.left; // + this.tooltipoffsets.x, 
+		var y = e.top; //+ this.tooltipoffsets.y;
 		$tooltip.css({left:x, top:y});
 	},
 	
@@ -3997,8 +4009,8 @@ var stickytooltip = {
 		stickytooltip.isdocked = true;
 
 		// this will fade out the stickytooltip if idle too long
-		setTimeout(function() { 
-        $('#mystickytooltip').fadeOut();}, 9000); 
+		// setTimeout(function() { 
+  //       $('#mystickytooltip').fadeOut();}, 9000); 
 	},
 
 	// wrapper function

@@ -244,22 +244,26 @@ DataManager.prototype = {
 	}, 	
 
 	/*
-		Function: getMatrix
+		Function: buildMatrix
 
 			builds a matrix data set from the source and target lists 
 
 		Parameters:
 			xvals - target value list
 			yvals - source value list
-			flattened - flag to flatten the array into a single list of data points
+			flattened - flag to flatten the array into a single list of data points; true for usage with overview map
 
 		Returns:
 			array
 	*/
-	getMatrix: function(xvals, yvals, flattened) {
+	buildMatrix: function(xvals, yvals, flattened) {
 	    var xvalues = xvals, yvalues = yvals;     
-	    //var matrix = []; 
-	    this.matrix = [];
+	    var matrixFlatten = []; 
+
+	    // if it's not a flattened, reset matrix
+	    if (!flattened) { 
+	    	this.matrix = []; 
+	    }
 
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
@@ -276,7 +280,7 @@ DataManager.prototype = {
 									ypos: y, targetGroup: targetGroup, type: 'cell'};
 						// this will create a array as a 'flattened' list of data points, used by mini mapping
 						if (flattened) {
-							this.matrix.push(rec);
+							matrixFlatten.push(rec);
 						} else {  // else, just create an array of arrays, grid likes this format
 							list.push(rec);	
 						}
@@ -284,11 +288,15 @@ DataManager.prototype = {
 					}
 				}
 			}
-			if (!flattened) {  //list.length > 0 && 
+			if (!flattened) {  
 				this.matrix.push(list);
 			} 
 		}
-	    return this.matrix;
+		if (flattened) {
+			return matrixFlatten;
+		} else {
+	    	return this.matrix;
+		}
 	},
 
 	getMatrixSourceTargetMatches: function(matchpos, highlightSources) {
@@ -296,10 +304,12 @@ DataManager.prototype = {
 
 		for (var i in this.matrix) {
 			var r = this.matrix[i];
-			if (r.ypos == matchpos && !highlightSources) {
-				matchedPositions.push(r);
-			} else if (r.xpos == matchpos && highlightSources) {
-				matchedPositions.push(r);
+			for (var j=0; j < r.length; j++) {
+				if (r[j].ypos == matchpos && !highlightSources) {
+					matchedPositions.push(r[j]);
+				} else if (r[j].xpos == matchpos && highlightSources) {
+					matchedPositions.push(r[j]);
+				}
 			}
 		}
 			

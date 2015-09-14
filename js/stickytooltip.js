@@ -12,13 +12,14 @@ var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 var $ = jQuery;
 
 var stickytooltip = {
-	tooltipoffsets: {x:-4, y:2}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
+	tooltipoffsets: {x:0, y:0}, //additional x and y offset from mouse cursor for tooltips 0,-6  [10, 10]
 	fadeinspeed: 1, //duration of fade effect in milliseconds
 	isdocked: false,  // force sticky mode
 
 
 	positiontooltip:function($, $tooltip, e){
-		var x = e.left + this.tooltipoffsets.x, y = e.top + this.tooltipoffsets.y;
+		var x = e.left; // + this.tooltipoffsets.x, 
+		var y = e.top; //+ this.tooltipoffsets.y;
 		$tooltip.css({left:x, top:y});
 	},
 	
@@ -29,8 +30,8 @@ var stickytooltip = {
 		stickytooltip.isdocked = true;
 
 		// this will fade out the stickytooltip if idle too long
-		setTimeout(function() { 
-        $('#mystickytooltip').fadeOut();}, 9000); 
+		// setTimeout(function() { 
+  //       $('#mystickytooltip').fadeOut();}, 9000); 
 	},
 
 	// wrapper function
