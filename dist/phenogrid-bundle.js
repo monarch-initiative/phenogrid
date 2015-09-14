@@ -1674,7 +1674,7 @@ var Utils = require('./utils.js');
 		}
 		var self = this;
 		var postAsyncCallback = function() {
-            self._postDataInitCB(); 
+            self._postDataInitCB(self); 
         };
 
 		// initialize data processing class, 
@@ -1684,24 +1684,20 @@ var Utils = require('./utils.js');
 		this.state.dataLoader.load(querySourceList, targetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
 	},
 
-	_postDataInitCB: function () {
+	_postDataInitCB: function (self) {
 		// set a max IC score
-		this.state.maxICScore = this.state.dataLoader.getMaxICScore();
+		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
 
-		this.state.dataManager = new DataManager(this.state.dataLoader);
+		self.state.dataManager = new DataManager(self.state.dataLoader);
 
 		// initialize the ontologyCache
-		this.state.ontologyCache = {};
+		self.state.ontologyCache = {};
 		
 	    // initialize axis groups
-	    this._createAxisRenderingGroups();
+	    self._createAxisRenderingGroups();
 
-        // Get unmatched sources, add labels via async ajax calls if not found - Joe
-        // Must be called after _createAxisRenderingGroups() - Joe
-        this._getUnmatchedSources();
-        
-		this._initDefaults();   
-		this._processDisplay();
+		self._initDefaults();   
+		self._processDisplay();
 	},
 
 	//Originally part of _init
@@ -2591,6 +2587,16 @@ var Utils = require('./utils.js');
 
 	// Previously processSelected
 	_processDisplay: function(){
+        // Get unmatched sources, add labels via async ajax calls if not found - Joe
+        // Must be called after _createAxisRenderingGroups() - Joe
+        this.state.unmatchedSources = this._getUnmatchedSources();
+        // Proceed if there's any unmatched
+        if (this.state.unmatchedSources.length > 0) {
+            // Fetch labels for unmatched sources via async ajax calls
+            // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
+            this._formatUnmatchedSources(this.state.unmatchedSources);
+        }
+        
         this.element.empty();
 		this._reDraw();
 	},
@@ -3516,15 +3522,7 @@ var Utils = require('./utils.js');
 			dupArray = [];
 		}
 
-        // Unmatched display needs to be reset every time the species is changed - Joe
-        // Array of unmatched source IDs
-        this.state.unmatchedSources = dupArray;
-        // Proceed if there's any unmatched
-        if (this.state.unmatchedSources.length > 0) {
-            // Fetch labels for unmatched sources via async ajax calls
-            // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
-            this._formatUnmatchedSources(this.state.unmatchedSources);
-        }
+        return dupArray;
 	},
 
     // Position the unmatched sources when the gridRegion changes
