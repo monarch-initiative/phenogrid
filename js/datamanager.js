@@ -1,8 +1,8 @@
 (function () {
 'use strict';
 
-require('jquery'); 
-var $ = jQuery;
+var $ = require('jquery'); 
+
 /*
  	Package: datamanager.js
 
