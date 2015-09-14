@@ -113,27 +113,62 @@ cursor:pointer;
 
 
 /* Unmatched Sources */
-#pg_unmatched{
+#pg_unmatched {
 position:absolute;
-left:43px;
+left:0;
+top:0;
 }
 
-/* Create some spacing between the checkbox and the label */
-#pg_unmatched_checkbox{
-margin-right:5px;
+#pg_unmatched_list {
+position:absolute;
+min-width:200px;
+height:204px;
+background:#F1F3F8;
+padding:20px;
+font-size:12px;
+color:#111;
+border:1px solid #222;
+box-shadow: 4px 4px 2px #ddd;
 }
 
-#pg_unmatched_sources ul{
-margin-left: 0;
-padding-left: 0;
+.pg_unmatched_list_arrow_border{
+display: block;
+position: absolute;
+left: 17px;
+bottom: -16px;
+border-color: #222 transparent transparent transparent;
+border-style: solid;
+border-width: 8px;
+height: 0;
+width: 0;
 }
 
-#pg_unmatched_sources ul li{
-margin-left:1.8em;
-line-height:1.5;
-font-size:.85em;
+.pg_unmatched_list_arrow{
+display: block;
+position: absolute;
+left: 17px;
+bottom: -15px;
+border-color: #F1F3F8 transparent transparent transparent;
+border-style: solid;
+border-width: 8px;
+height: 0;
+width: 0;
 }
 
+#pg_unmatched_btn{
+position:absolute;
+font-size:14px;
+color:#44A293;
+}
+
+#pg_unmatched_btn:hover{
+cursor:pointer;
+color:#DD3835;
+}
+
+.pg_unmatched_open{
+color:#DD3835 !important;
+}
 
 #pg_errmsg {
 padding-top: 30px;
@@ -244,27 +279,6 @@ fill: black;
 #matches input {
 padding-top:5px;
 }*/
-
-#pg_matches,
-#pg_unmatchedlabel,
-#pg_unmatchedlabelhide {
-clear:both;
-font-weight: bold;
-color: rgb(68,162,147);
-margin-top: 5px;
-margin-left: 10px;
-margin-bottom:20px;
-}
-
-#pg_unmatched a {
-margin-left:19px;
-}
-
-#pg_unmatched table {
-font-size: 0.8em;
-padding-bottom:10px;
-margin-top:10px;
-}
 
 .cursor_pointer {
 cursor:pointer;
