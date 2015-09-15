@@ -359,6 +359,7 @@ DataLoader.prototype = {
 	load: function(qrySourceList, targetGroup, postDataLoadCB, limit) {
 		var targetGroupList = [];
 
+limit = 10;
 		// save the original source listing
 		this.origSourceList = qrySourceList;
 
@@ -808,8 +809,8 @@ module.exports = DataLoader;
 (function () {
 'use strict';
 
-require('jquery'); 
-var $ = jQuery;
+var $ = require('jquery'); 
+
 /*
  	Package: datamanager.js
 
