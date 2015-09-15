@@ -46,16 +46,7 @@ DataManager.prototype = {
 		}
 		return this.initialized;
 	},
-	/*
-		Function: getOriginalSource
-			gets the original source listing used for query 
 
-		Returns:
-			array of objects
-	*/
-	getOriginalSource: function() {
-		return this.qrySourceList;
-	},
 	/*
 		Function: getData
 			gets a list of entries from specified dataset

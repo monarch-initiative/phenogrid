@@ -51,9 +51,10 @@ DataLoader.prototype = {
 			limit - value to limit targets returned
 	*/
 	load: function(qrySourceList, targetGroup, postDataLoadCB, limit) {
-		var targetGroupList = [];
+        var targetGroupList = [];
 
 		// save the original source listing
+        // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
 		if (typeof(targetGroup) === 'object') {

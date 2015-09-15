@@ -122,7 +122,7 @@ var Utils = require('./utils.js');
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
 		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
-		logo: {width: 26, height: 13},
+		logo: {x: 110, y: 25, width: 26, height: 13},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -170,7 +170,7 @@ var Utils = require('./utils.js');
 						scoreOffset:5,  // score text offset from the top of grid squares
 						targetGroupLabelOffset: -200    // -100offset of the targetGroup label, above grid
 					},
-		defaultTargetDisplayLimit: 40, //  defines the limit of the number of targets to display
+		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per organisms to be displayed in cross compare mode
 		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
@@ -214,6 +214,7 @@ var Utils = require('./utils.js');
 			this.state.simServerURL=this.state.serverURL;
 		}
 		this.state.data = {};
+
 		// will this work?
 		this.configoptions = undefined;
 
@@ -225,12 +226,12 @@ var Utils = require('./utils.js');
 	
 	//init is now reduced down completely to loading
 	_init: function() {
-
 		this.element.empty();
 
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
+        // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
 		this.state.selectedCompareTargetGroup = [];
@@ -249,16 +250,14 @@ var Utils = require('./utils.js');
 		}
 		var self = this;
 		var postAsyncCallback = function() {
-					self._postDataInitCB(self); };
+            self._postDataInitCB(self); 
+        };
 
 		// initialize data processing class, 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, 
-						 this.state.apiEntityMap);
+		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, this.state.apiEntityMap);
 
 		// starting loading the data
 		this.state.dataLoader.load(querySourceList, targetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
-	
-
 	},
 
 	_postDataInitCB: function (self) {
@@ -275,7 +274,6 @@ var Utils = require('./utils.js');
 
 		self._initDefaults();   
 		self._processDisplay();
-
 	},
 
 	//Originally part of _init
@@ -389,7 +387,8 @@ var Utils = require('./utils.js');
 
 			this._createPhenogridControls();
 			this._positionPhenogridControls();
-
+            this._togglePhenogridControls();
+            
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
 			 	this._createOverviewTargetGroupLabels();
 			}
@@ -407,17 +406,30 @@ var Utils = require('./utils.js');
 			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
 
-			this._togglePgControls();
+            // Unmatched sources
+            this._createUnmatchedSources();
+            this._positionUnmatchedSources();
+            this._toggleUnmatchedSources();
+            
+            // Get unmatched sources, add labels via async ajax calls if not found
+            // Must be called after _createAxisRenderingGroups() - Joe
+            this.state.unmatchedSources = this._getUnmatchedSources();
+            // Proceed if there's any unmatched
+            if (this.state.unmatchedSources.length > 0) {
+                // Fetch labels for unmatched sources via async ajax calls
+                // then format and append them to the pg_unmatched_list div - Joe
+                this._formatUnmatchedSources(this.state.unmatchedSources);
+            }
 		} else {
 			var msg = "There are no results available.";
-				this._createSvgContainer();
-				this._createEmptyVisualization(msg);
+			this._createSvgContainer();
+			this._createEmptyVisualization(msg);
 		}
 	},
 
 	// Click the setting button to open/close the control options
 	// Click anywhere inside #pg_svg_area to close the options when it's open
-	_togglePgControls: function() {
+	_togglePhenogridControls: function() {
 		var self = this; // Needed for inside the anonymous function - Joe
 		// Slide control panel - Joe
 		$("#pg_controls_options").hide(); // Hide the options by default
@@ -453,6 +465,43 @@ var Utils = require('./utils.js');
 		});
 	},
 	
+    // Click the setting button to open/close the control options
+	// Click anywhere inside #pg_svg_area to close the options when it's open
+	_toggleUnmatchedSources: function() {
+		var self = this; // Needed for inside the anonymous function - Joe
+		$("#pg_unmatched_list").hide(); // Hide the options by default
+		
+		// Toggle the options panel by clicking the button
+		$("#pg_unmatched_btn").click(function() {
+			// $(this) refers to $("#pg_slide_btn")
+			if ( ! $(this).hasClass("pg_unmatched_open")) {
+				// Show the phenogrid controls
+				$("#pg_unmatched_list").fadeIn();
+				// Remove the top border of the button by adding .pg_unmatched_open CSS class
+				$(this).addClass("pg_unmatched_open");
+			} else {
+				$("#pg_unmatched_list").fadeOut();
+				// Add top border back
+				$(this).removeClass("pg_unmatched_open");
+			}
+		});
+		
+		// When the options panel is visible, click anywhere inside #pg_svg_area to close the options, 
+		// more user-friendly than just force to click the button again
+		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg_area', it won't work - Joe
+		$('#pg_svg_area').click(function(event) {
+			if ($(event.target) !== $('#pg_unmatched_btn') && $(event.target) !== $('#pg_unmatched_list')) {
+				// Only close the options if it's visible
+				if ($('#pg_unmatched_list').is(':visible')) {
+					// Add the top border of the button back
+					$("#pg_unmatched_btn").removeClass("pg_unmatched_open");
+					// Then close the options
+					$("#pg_unmatched_list").fadeOut();
+				}
+			}
+		});
+	},
+    
 	// create the grid
 	_createGrid: function() {
 		var self = this;
@@ -644,10 +693,10 @@ var Utils = require('./utils.js');
 
 		// did we hover over a grid row, place the tooltip on the far right of the label
 		if (self.parentNode.id.indexOf('grid_row') > -1) {
-			leftPos += p[0].getBoundingClientRect().width;
+			leftPos += p[0].getBoundingClientRect().width-5;
+			topPos += 7;
 		} else { // columns add a little spacing from the current mouse position
 			leftPos += 20;
-			//topPos += -5;
 		}
 		var position = {left: leftPos, top: topPos};
 
@@ -1058,13 +1107,13 @@ var Utils = require('./utils.js');
 
 		self.state.smallYScale = d3.scale.ordinal()
 			.domain(sourceList.map(function (d) {return d; }))
-			.rangePoints([0,overviewRegionSize]);
+			.rangePoints([0, overviewRegionSize]);
 
 		self.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
 				var td = d;
 				return d; }))
-			.rangePoints([0,overviewRegionSize]);   	    
+			.rangePoints([0, overviewRegionSize]);   	    
 	},
 
 	_invertOverviewDragPosition: function(scale,value) {
@@ -1117,13 +1166,11 @@ var Utils = require('./utils.js');
 		self.state.selectedSort = type;
 	},
 
-	// Previously processSelected
+	// Previously  
 	_processDisplay: function(){
-//		this.state.unmatchedSources = this._getUnmatchedSources();
-		this.element.empty();
+        this.element.empty();
 		this._reDraw();
 	},
-
 
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
@@ -1294,8 +1341,8 @@ var Utils = require('./utils.js');
 	_addLogoImage: function() { 
 		this.state.svg.append("svg:image")
 			.attr("xlink:href", this.state.imagePath + "logo.png")
-			.attr("x", this.state.gridRegion.x + this._gridWidth() - this.state.logo.width) // Logo right aligns to the grid region right boundary - Joe
-			.attr("y", this.state.gridRegion.y + this._gridHeight() + 20) // 20 is the margin to top - Joe
+			.attr("x", this.state.logo.x)
+			.attr("y", this.state.logo.y)
 			.attr("id", "pg_logo")
 			.attr('class', 'pg_cursor_pointer')
 			.attr("width", this.state.logo.width)
@@ -1741,6 +1788,27 @@ var Utils = require('./utils.js');
 	},
 
 
+    _createUnmatchedSources: function() {
+        var pg_unmatched = $('<div id="pg_unmatched"></div>');
+
+        // Not in the #pg_svg_area div since it's HTML - Joe
+		$('#pg_svg_container').append(pg_unmatched);
+        
+        // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
+		var pg_unmatched_list = '<div id="pg_unmatched_list"><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span></div>';
+		
+		// Hide/show unmatched - button - Joe
+		var pg_unmatched_btn ='<div id="pg_unmatched_btn">UNMATCHED SOURCES <i class="fa fa-outdent"></i> </div>';
+ 
+        pg_unmatched.append(pg_unmatched_list);
+		pg_unmatched.append(pg_unmatched_btn);
+        
+        // Show no unmatched by default, if there's any unmatched found, add the labels in ajax callback - Joe
+        var pg_unmatched_list_default = '<div id="pg_unmatched_list_default">No unmatched sources</div>';
+        // Insert the html list in #pg_unmatched_list div
+        $("#pg_unmatched_list").append(pg_unmatched_list_default);
+    },
+
 	// Phengrid controls/options
 	_createPhenogridControls: function() {
 		var self = this; // Use self inside anonymous functions 
@@ -1751,10 +1819,10 @@ var Utils = require('./utils.js');
 		$('#pg_svg_container').append(phenogridControls);
 		
 		// Need to put .pg_controls_options_arrow_border span before .pg_controls_options_arrow span - Joe
-		var optionhtml ='<div id="pg_controls_options"><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
+		var optionhtml = '<div id="pg_controls_options"><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
-		var slideBtn ='<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
+		var slideBtn = '<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
 		
 		var options = $(optionhtml);
 		var orgSel = this._createOrganismSelection();
@@ -1793,6 +1861,7 @@ var Utils = require('./utils.js');
 			}
 
 			self._createAxisRenderingGroups();
+            
 			self._processDisplay();
 		});
 
@@ -1823,6 +1892,8 @@ var Utils = require('./utils.js');
 			}
 		    self._setAxisRenderers();
 		    self._processDisplay();
+            
+            // Flip shouldn't reset the unmatched - Joe
 		});
 
 		
@@ -1845,12 +1916,14 @@ var Utils = require('./utils.js');
 		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
 		// we won't have the _gridHeight() by that time - Joe
 		var gridRegion = this.state.gridRegion; 
-		var marginTop = 15; // Create some whitespace between the button and the y labels 
+		var marginTop = 17; // Create some whitespace between the button and the y labels 
 		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+        $('#pg_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
 		// The height of #pg_controls_options defined in phenogrid.css - Joe
 		var pg_ctrl_options = $('#pg_controls_options');
 		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
+        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 20);
     },	
 	
 	_createOrganismSelection: function() {
@@ -1934,17 +2007,16 @@ var Utils = require('./utils.js');
 		return $(html);
 	},
 	
-	_getUnmatchedSources: function(){
-		//var fullset = this.state.origPhenotypeData;
-		var fullset = this.state.dataManager.getOriginalSource();
-		var partialset = this.state.dataManager.keys("source"); 
+	_getUnmatchedSources: function() {
+		var fullset = this.state.dataLoader.origSourceList; // Get the original source list of IDs
+		var matchedset = this.state.yAxisRender.groupIDs(); // Get all the matched source IDs
 		var full = [];
 		var partial = [];
 		var unmatchedset = [];
 		var tempObject = {"id": 0, "observed": "positive"};
 
 		for (var i in fullset) {
-			if (typeof(fullset[i].id) === 'undefined'){
+			if (typeof(fullset[i].id) === 'undefined') {
 				tempObject.id = fullset[i];
 				full.push(tempObject);
 			} else {
@@ -1952,8 +2024,8 @@ var Utils = require('./utils.js');
 			}
 		}
 
-		for (var j in partialset){
-			partial.push(partialset[j].replace("_", ":"));
+		for (var j in matchedset){
+			partial.push(matchedset[j].replace("_", ":"));
 		}
 
 		for (var k in full) {
@@ -1967,7 +2039,7 @@ var Utils = require('./utils.js');
 		var dupArray = [];
 		dupArray.push(unmatchedset[0]);	
 		// check for dups
-		for (var l in unmatchedset){
+		for (var l in unmatchedset) {
 			var found = false;
 			for (var m in dupArray) {
 				if (dupArray[m].id === unmatchedset[l].id) {
@@ -1981,84 +2053,68 @@ var Utils = require('./utils.js');
 		if (dupArray[0] === undefined) {
 			dupArray = [];
 		}
-		return dupArray;
+
+        return dupArray;
 	},
 
-	_buildUnmatchedSourceDisplay: function() {
-		var optionhtml;
-		var prebl = $("#pg_prebl");
-		if (prebl.length === 0) {
-			var preblHtml ="<div id='pg_prebl'></div>";
-			this.element.append(preblHtml);
-			prebl = $("#pg_prebl");
-		}
-		prebl.empty();
+    // Position the unmatched sources when the gridRegion changes
+	_positionUnmatchedSources: function(){
+		var gridRegion = this.state.gridRegion; 
+		$('#pg_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
+        $('#pg_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#pg_unmatched_btn').outerHeight() + + 17 + 10);
+    },	
+    
+    // ajax callback
+    _fetchSourceLabelCallback: function(self, target, targets, data) {
+        var label;
+        // Show id if label is not found
+        if (data.label !== undefined) {
+            label = data.label;
+        } else {
+            label = data.id;
+        }
 
-		if (this.state.unmatchedSources !== undefined && this.state.unmatchedSources.length > 0){
-			optionhtml = "<div class='clearfix'><form id='pg_matches'><input type='checkbox' name='unmatched' value='unmatched' >&nbsp;&nbsp;View Unmatched Phenotypes<br /><form><div id='clear'></div>";
-			var phenohtml = this._buildUnmatchedPhenotypeTable();
-			optionhtml = optionhtml + "<div id='unmatched' style='display:none;'>" + phenohtml + "</div></div>";
-			prebl.append(optionhtml);
-		} else { 
-			// no unmatched phenotypes
-			optionhtml = "<div id='pg_unmatchedlabel'>No Unmatched Phenotypes</div>";
-			prebl.append(optionhtml);
-		}
+        // Append unmatched phenotype to pg_unmatched_list - Joe
+        $('#pg_unmatched_list_default').hide();
+        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + ' (' + data.id + ')' + '</a></div>';
+        $('#pg_unmatched_list').append(pg_unmatched_list_item);
+        
+        // iterative back to process to make sure we processed all the targets
+        self._formatUnmatchedSources(targets);
+    },
+    
+    // ajax
+    _fetchUnmatchedLabel: function(target, targets, callback) {
+        var self = this;
+        
+        // Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
+        // so we need to fetch each label from the monarch-app server
+        // Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
+        $.ajax({
+            url: this.state.serverURL + "/phenotype/" + target.id + ".json",
+            async: true,
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                callback(self, target, targets, data); // callback needs self for reference to global this - Joe
+            },
+            error: function (xhr, errorType, exception) {
+                console.log("We are having problems fetching the unmatched phenotypes from the server. Please try again later. Error:" + xhr.status);
+            }
+        });
+    },
+    
+    _formatUnmatchedSources: function(targetGrpList) {
+        //console.log(targetGrpList);
+        if (targetGrpList.length > 0) {
+            var target = targetGrpList[0];  // pull off the first to start processing
+            targetGrpList = targetGrpList.slice(1);
 
-	$("#pg_matches[type=checkbox]").click(function() {
-			var $this = $(this);
-			// $this will contain a reference to the checkbox 
-			if ($this.is(':checked')) {
-				// the checkbox was checked 
-				$("#pg_unmatched").show();
-			} else {
-				// the checkbox was unchecked
-				$("#pg_unmatched").hide();
-			}
-		});
-	},
-
-	_buildUnmatchedPhenotypeTable: function(){
-		var self = this;
-		var columns = 4;
-		var outer1 = "<table id='phentable'>";
-		var outer2 = "</table>";
-		var inner = "";
-
-		var unmatched = self.state.unmatchedSources;
-		var text = "";
-		var i = 0;
-		var label, id, url_origin;
-		while (i < unmatched.length) {
-			inner += "<tr>"; 
-			text = "";
-			for (var j = 0; j < columns; j++){
-				id = Utils.getConceptId(unmatched[i++].id);
-				if (unmatched[i - 1].label !== undefined){
-					label = unmatched[i - 1].label;
-				} else {
-					label = unmatched[i - 1].id;
-				}
-				url_origin = self.document[0].location.origin;
-				text += "<td><a href='" + url_origin + "/phenotype/" + id + "' target='_blank'>" + label + "</a></td>";
-				if (i === unmatched.length) {
-					break;
-				}
-			}
-			inner += text + "</tr>";
-		}
-		return outer1 + inner + outer2;
-	},
-
-	_matchedClick: function(checkboxEl) {
-		if (checkboxEl.checked) {
-			// Do something special
-			$("#pg_unmatched").show();
-		} else {
-			// Do something else
-			$("#pg_unmatched").hide();
-		}
-	},
+            var callback = this._fetchSourceLabelCallback;
+            // Make the ajax call to fetch phenotype label
+            this._fetchUnmatchedLabel(target, targetGrpList, callback);
+        }
+    },
 
 	/*
 	 * given an array of phenotype objects edit the object array.
