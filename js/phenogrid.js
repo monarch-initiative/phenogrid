@@ -214,9 +214,7 @@ var Utils = require('./utils.js');
 			this.state.simServerURL=this.state.serverURL;
 		}
 		this.state.data = {};
-        
-        this.state.unmatchedSourceLabels = []; // Holds the unmatched label of each source - Joe
-        
+
 		// will this work?
 		this.configoptions = undefined;
 
@@ -417,6 +415,16 @@ var Utils = require('./utils.js');
             this._createUnmatchedSources();
             this._positionUnmatchedSources();
             this._toggleUnmatchedSources();
+            
+            // Get unmatched sources, add labels via async ajax calls if not found
+            // Must be called after _createAxisRenderingGroups() - Joe
+            this.state.unmatchedSources = this._getUnmatchedSources();
+            // Proceed if there's any unmatched
+            if (this.state.unmatchedSources.length > 0) {
+                // Fetch labels for unmatched sources via async ajax calls
+                // then format and append them to the pg_unmatched_list div - Joe
+                this._formatUnmatchedSources(this.state.unmatchedSources);
+            }
 		} else {
 			var msg = "There are no results available.";
 			this._createSvgContainer();
@@ -1166,18 +1174,8 @@ var Utils = require('./utils.js');
 		self.state.selectedSort = type;
 	},
 
-	// Previously processSelected
+	// Previously  
 	_processDisplay: function(){
-        // Get unmatched sources, add labels via async ajax calls if not found - Joe
-        // Must be called after _createAxisRenderingGroups() - Joe
-        this.state.unmatchedSources = this._getUnmatchedSources();
-        // Proceed if there's any unmatched
-        if (this.state.unmatchedSources.length > 0) {
-            // Fetch labels for unmatched sources via async ajax calls
-            // All the labels of unmatched sources SHOUDL be in this.state.unmatchedSourceLabels
-            this._formatUnmatchedSources(this.state.unmatchedSources);
-        }
-        
         this.element.empty();
 		this._reDraw();
 	},
@@ -1774,10 +1772,10 @@ var Utils = require('./utils.js');
 
 		// Create the gradient rect
 		gradientGrp.append("rect")
-			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 4) // Shift 4 (cells+spaceing) - Joe
+			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", gridRegion.y + this._gridHeight() + 22) // use x and y instead of transform since rect has x and y, 22 is margin - Joe
 			.attr("id", "pg_gradient_legend_rect")
-			.attr("width", this._gridWidth() - this.state.gridRegion.xpad * 4 * 2) // // Shift 4 (cells+spaceing) on each side - Joe
+			.attr("width", this._gridWidth() - this.state.gridRegion.xpad * 3 * 2) // // Shift 3 (cells+spaceing) on each side - Joe
 			.attr("height", this.state.gradientRegion.height) 
 			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 		
@@ -1806,7 +1804,7 @@ var Utils = require('./utils.js');
 
 		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 4) // Shift 4 (cells+spaceing) - Joe
+			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", yTexts)
 			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
@@ -1820,7 +1818,7 @@ var Utils = require('./utils.js');
 
 		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this._gridWidth() - this.state.gridRegion.xpad * 4) // Shift 4 (cells+spaceing) - Joe
+			.attr("x", gridRegion.x + this._gridWidth() - this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", yTexts)	
             .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
@@ -1842,21 +1840,10 @@ var Utils = require('./utils.js');
         pg_unmatched.append(pg_unmatched_list);
 		pg_unmatched.append(pg_unmatched_btn);
         
-        // By now the unmatchedSourceLabels should be set by all the aync ajax calls - Joe
-        var pg_unmatched_list_content;
-        var cnt = this.state.unmatchedSources.length;
-        // Double check to see if unmatchedSources is the same size as unmatchedSourceLabels - Joe
-        if ((cnt > 0) && (cnt === this.state.unmatchedSourceLabels.length)) {
-            pg_unmatched_list_content = '<ul>';
-            for (var i = 0; i < cnt; i++ ) {
-                pg_unmatched_list_content += "<li><a href='" + this.state.serverURL + "/phenotype/" + this.state.unmatchedSourceLabels[i].id + "' target='_blank'>" + this.state.unmatchedSourceLabels[i].label + " (" + this.state.unmatchedSourceLabels[i].id + ")" + "</a></li>";
-            }
-            pg_unmatched_list_content += "</ul>";
-        } else {
-            pg_unmatched_list_content = "No unmatched sources";
-        }
+        // Show no unmatched by default, if there's any unmatched found, add the labels in ajax callback - Joe
+        var pg_unmatched_list_default = '<div id="pg_unmatched_list_default">No unmatched sources</div>';
         // Insert the html list in #pg_unmatched_list div
-        $("#pg_unmatched_list").append(pg_unmatched_list_content);
+        $("#pg_unmatched_list").append(pg_unmatched_list_default);
     },
 
 	// Phengrid controls/options
@@ -1967,12 +1954,14 @@ var Utils = require('./utils.js');
 		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
 		// we won't have the _gridHeight() by that time - Joe
 		var gridRegion = this.state.gridRegion; 
-		var marginTop = 15; // Create some whitespace between the button and the y labels 
+		var marginTop = 17; // Create some whitespace between the button and the y labels 
 		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+        $('#pg_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
 		// The height of #pg_controls_options defined in phenogrid.css - Joe
 		var pg_ctrl_options = $('#pg_controls_options');
 		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
+        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 20);
     },	
 	
 	_createOrganismSelection: function() {
@@ -2109,12 +2098,8 @@ var Utils = require('./utils.js');
     // Position the unmatched sources when the gridRegion changes
 	_positionUnmatchedSources: function(){
 		var gridRegion = this.state.gridRegion; 
-		$('#pg_unmatched_btn').css('top', gridRegion.y + this._gridHeight());
-        $('#pg_unmatched_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin - Joe
-		
-        var pg_unmatched_list = $('#pg_unmatched_list');
-		pg_unmatched_list.css('top', gridRegion.y + this._gridHeight() - pg_unmatched_list.outerHeight() - 10);
-        pg_unmatched_list.css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin - Joe
+		$('#pg_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
+        $('#pg_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#pg_unmatched_btn').outerHeight() + + 17 + 10);
     },	
     
     // ajax callback
@@ -2126,9 +2111,12 @@ var Utils = require('./utils.js');
         } else {
             label = data.id;
         }
-        // 'observed' is not here, add it when needed in the future - Joe
-        self.state.unmatchedSourceLabels.push({'id': target.id, 'label': label});
 
+        // Append unmatched phenotype to pg_unmatched_list - Joe
+        $('#pg_unmatched_list_default').hide();
+        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + ' (' + data.id + ')' + '</a></div>';
+        $('#pg_unmatched_list').append(pg_unmatched_list_item);
+        
         // iterative back to process to make sure we processed all the targets
         self._formatUnmatchedSources(targets);
     },

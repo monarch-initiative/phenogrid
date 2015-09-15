@@ -20,7 +20,6 @@ top:0;
 
 #pg_controls_options {
 position:absolute;
-left:130px;
 min-width:200px;
 height:444px;
 background:#F1F3F8;
@@ -59,9 +58,7 @@ width: 0;
 
 #pg_slide_btn{
 position:absolute;
-left:139px;
 width:90px;
-text-align:right;
 font-size:14px;
 color:#44A293;
 }
@@ -111,7 +108,6 @@ font-size:12px;
 cursor:pointer;
 }
 
-
 /* Unmatched Sources */
 #pg_unmatched {
 position:absolute;
@@ -121,22 +117,26 @@ top:0;
 
 #pg_unmatched_list {
 position:absolute;
-min-width:200px;
-height:204px;
+left:50px;
+width:200px;
 background:#F1F3F8;
-padding:20px;
+padding:10px;
 font-size:12px;
 color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 }
 
+.pg_unmatched_list_item {
+margin:5px 0;
+}
+
 .pg_unmatched_list_arrow_border{
 display: block;
 position: absolute;
-left: 17px;
-bottom: -16px;
-border-color: #222 transparent transparent transparent;
+left: 80px;
+top: -16px;
+border-color: transparent transparent #222 transparent;
 border-style: solid;
 border-width: 8px;
 height: 0;
@@ -146,9 +146,9 @@ width: 0;
 .pg_unmatched_list_arrow{
 display: block;
 position: absolute;
-left: 17px;
-bottom: -15px;
-border-color: #F1F3F8 transparent transparent transparent;
+left: 80px;
+top: -15px;
+border-color: transparent transparent #F1F3F8 transparent;
 border-style: solid;
 border-width: 8px;
 height: 0;
@@ -157,6 +157,9 @@ width: 0;
 
 #pg_unmatched_btn{
 position:absolute;
+left:28px;
+width:200px;
+text-align:right;
 font-size:14px;
 color:#44A293;
 }
