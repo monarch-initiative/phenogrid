@@ -4,12 +4,12 @@
 #pg_container {
 margin:20px 10px;
 position:relative;
+border:1px solid #ddd;
 }
 
 #pg_svg {
 min-width:980px;
 min-height:780px;
-border:1px solid #ddd;
 }
 
 #pg_controls {

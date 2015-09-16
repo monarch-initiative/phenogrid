@@ -450,9 +450,8 @@ var Utils = require('./utils.js');
 			}
 		});
 		
-		// When the options panel is visible, click anywhere inside #pg_svg_group to close the options, 
-		// more user-friendly than just force to click the button again
-		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg', it won't work - Joe
+		// When the options panel is visible, click anywhere inside #pg_svg to close the options, 
+		// more user-friendly than just force to click the button again - Joe
 		$('#pg_svg').click(function(event) {
 			if ($(event.target) !== $('#pg_slide_btn') && $(event.target) !== $('#pg_controls_options')) {
 				// Only close the options if it's visible
@@ -1698,7 +1697,7 @@ var Utils = require('./utils.js');
 				position: {
 			 		my: "top", 
 					at: "top+25%",
-					of: "#pg_svg_group"
+					of: "#pg_container"
 				},
 				title: 'Phenogrid Notes',
 				
