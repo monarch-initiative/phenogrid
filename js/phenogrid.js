@@ -1887,7 +1887,7 @@ var Utils = require('./utils.js');
 			self._processDisplay();
 		});
 
-		$("#pg_axisflip").click(function(d) {	
+		$("#pg_axisflip").click(function() {	
 			var $this = $(this);
 			// $this will contain a reference to the checkbox 
 			if ($this.is(':checked')) {
@@ -1901,9 +1901,8 @@ var Utils = require('./utils.js');
             // Flip shouldn't reset the unmatched - Joe
 		});
 
-        $("#pg_export").click(function(d) {	
+        $("#pg_export").click(function() {	
 			var svgGraph = $('#pg_svg_area').html();
-            console.log(svgGraph);
             // The standard W3C File API Blob interface is not available in all browsers. 
             // Blob.js is a cross-browser Blob implementation that solves this.
             var blob = new Blob([svgGraph], {type: "image/svg+xml"});
@@ -2022,7 +2021,7 @@ var Utils = require('./utils.js');
 	
     // Export current state of phenogrid as SVG file to be used in publications
     _createExportPhenogridButton: function() {
-        var btn = '<div class="pg_hr"></div><button id="pg_export">Save Phenogrid as SVG file</button>';
+        var btn = '<div class="pg_hr"></div><button id="pg_export">Save Phenogrid as SVG</button>';
         
         return $(btn);
     },
