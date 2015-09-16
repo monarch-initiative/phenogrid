@@ -1,15 +1,15 @@
 /*
 *  Phenogrid related styling
 */
-#pg_svg_container {
+#pg_container {
 margin:20px 10px;
 position:relative;
-border:1px solid #ddd;
 }
 
-#pg_svg_area {
-min-width:960px;
+#pg_svg {
+min-width:980px;
 min-height:780px;
+border:1px solid #ddd;
 }
 
 #pg_controls {
@@ -173,32 +173,6 @@ color:#DD3835;
 color:#DD3835 !important;
 }
 
-#pg_errmsg {
-padding-top: 30px;
-font-size:1.2em;
-/**font-weight:bold;*/
-stroke:#ea763b;
-}
-
-#pg_gridline {
-fill: #fff;
-fill-opacity: 0;
-stroke: #e5e5e5;
-stroke-width: 1;
-}
-
-#pg_globalview {
-fill: #fff;
-stroke: #000;
-stroke-width: 2;
-}
-
-/* Shaded area in overview map */
-#pg_navigator_shaded_area{
-fill: grey;
-opacity: 0.5;
-}
-
 .pg_row_accent,
 .pg_col_accent {
 /*stroke:#ea763b;*/
@@ -221,39 +195,18 @@ fill-opacity: 0.1;
 font-size: 9px;
 }
 
-#pg_prebl {
-clear:both;
-/*background-color: #9999FF;*/
-float:left;
-}
-
-#pg_scorelist {
-font-size:10px;
-fill: #0F473E;
-}
-
-#pg_gradient_legend_texts{
-font-size:11px;
-}
-
 /* Used in _createModelScoresLegend() */
 .pg_tip {
 width: 80px;
 height:10px;
 font-size:10px;
 }
-
-#pg_toptitle {
-font-size:1.4em;
-font-weight:bold;
-}
-
 #mystickytooltip {
-  position: absolute;
+position: absolute;
 }
 
 #stickyInner {
-  box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
+box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
 -webkit-box-shadow: 5px 5px 8px #818181;
 -moz-box-shadow: 5px 5px 8px #818181;
 border:1px solid #000;
@@ -287,12 +240,6 @@ padding-top:5px;
 cursor:pointer;
 }
 
-.pg_species_name {
-font-weight: bold;
-font-size: 14px;
-opacity: .3;
-}
-
 /* Cursor for mini map */
 .pg_draggable{
 cursor:move;
@@ -318,12 +265,6 @@ clear: both;
 background-color: #fff !important;
 }
 
-.row,
-.column {
-font-family: Verdana, Geneva, sans-serif;              
-font-size: 11px;
-}
-
 .active {
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
@@ -335,13 +276,6 @@ fill: blue;
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 fill: blue;
-}
-
-.pg_score_text {
-/*font-family: Verdana, Geneva, sans-serif;               */
-  font-size: 9px;
-fill: #8763A3; /* purple */
-/*letter-spacing:-2px;*/
 }
 
 table.pgtb {
@@ -360,18 +294,11 @@ word-break:normal;
 table.pgtb th
 {
 font-family: Verdana, Geneva, sans-serif;
-/*  font-family:"Lucida Console", Monaco, monospace;*/
 font-size: 12px;
 font-weight: bold;
 padding:10px 5px;
 overflow:hidden;
 word-break:normal;
-}
-
-.pg_target_grp_divider {
-  stroke: black; /*#0B20AE; #8763A3;  #0F473E;*/
-  /*stroke-dasharray: 2;   /*small dots */
-  shape-rendering: crispEdges;
 }
 
 .pg_expandHPO{
@@ -400,15 +327,15 @@ margin-right: 5px;
 }
 
 .pg_focusLine {
-  fill: none;
-  stroke: red;
-  shape-rendering: crispEdges;
+fill: none;
+stroke: red;
+shape-rendering: crispEdges;
 }
 
 .rowcolmatch {
-  fill: red !important;
-  border-style: solid;
-  border-width: medium;
+fill: red !important;
+border-style: solid;
+border-width: medium;
 }
 
 

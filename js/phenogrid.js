@@ -123,7 +123,7 @@ var Utils = require('./utils.js');
 		detailRectHeight: 140,
 		detailRectStrokeWidth: 1,
 		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
-		logo: {x: 110, y: 25, width: 26, height: 13},
+		logo: {x: 80, y: 25, width: 26, height: 13},
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
@@ -376,8 +376,8 @@ var Utils = require('./utils.js');
 	// Loading spinner image from font awesome - Joe
 	_showLoadingSpinner: function() {
 		var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
-		this._createSvgContainer();
-		element.appendTo(this.state.svgContainer);
+		this._createPhenogridContainer();
+		element.appendTo(this.state.pgContainer);
 	},
 	
 	_reDraw: function() {
@@ -423,13 +423,13 @@ var Utils = require('./utils.js');
             }
 		} else {
 			var msg = "There are no results available.";
-			this._createSvgContainer();
+			this._createPhenogridContainer();
 			this._createEmptyVisualization(msg);
 		}
 	},
 
 	// Click the setting button to open/close the control options
-	// Click anywhere inside #pg_svg_area to close the options when it's open
+	// Click anywhere inside #pg_svg to close the options when it's open
 	_togglePhenogridControls: function() {
 		var self = this; // Needed for inside the anonymous function - Joe
 		// Slide control panel - Joe
@@ -450,10 +450,10 @@ var Utils = require('./utils.js');
 			}
 		});
 		
-		// When the options panel is visible, click anywhere inside #pg_svg_area to close the options, 
+		// When the options panel is visible, click anywhere inside #pg_svg_group to close the options, 
 		// more user-friendly than just force to click the button again
-		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg_area', it won't work - Joe
-		$('#pg_svg_area').click(function(event) {
+		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg', it won't work - Joe
+		$('#pg_svg').click(function(event) {
 			if ($(event.target) !== $('#pg_slide_btn') && $(event.target) !== $('#pg_controls_options')) {
 				// Only close the options if it's visible
 				if ($('#pg_controls_options').is(':visible')) {
@@ -467,7 +467,7 @@ var Utils = require('./utils.js');
 	},
 	
     // Click the setting button to open/close the control options
-	// Click anywhere inside #pg_svg_area to close the options when it's open
+	// Click anywhere inside #pg_container to close the options when it's open
 	_toggleUnmatchedSources: function() {
 		var self = this; // Needed for inside the anonymous function - Joe
 		$("#pg_unmatched_list").hide(); // Hide the options by default
@@ -487,10 +487,10 @@ var Utils = require('./utils.js');
 			}
 		});
 		
-		// When the options panel is visible, click anywhere inside #pg_svg_area to close the options, 
+		// When the options panel is visible, click anywhere inside #pg_svg to close the options, 
 		// more user-friendly than just force to click the button again
-		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg_area', it won't work - Joe
-		$('#pg_svg_area').click(function(event) {
+		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg', it won't work - Joe
+		$('#pg_svg').click(function(event) {
 			if ($(event.target) !== $('#pg_unmatched_btn') && $(event.target) !== $('#pg_unmatched_list')) {
 				// Only close the options if it's visible
 				if ($('#pg_unmatched_list').is(':visible')) {
@@ -521,7 +521,7 @@ var Utils = require('./utils.js');
 		var row = this.state.svg.selectAll(".row")
   			.data(matrix)
 				.enter().append("g")			
-			.attr("class", "row")	  			
+			.attr("class", "row")	 		
 			.attr("id", function(d, i) { 
 				return "pg_grid_row_"+i;})
   			 .attr("transform", function(d, i) { 
@@ -537,6 +537,7 @@ var Utils = require('./utils.js');
 	      			 })  
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
+            .style("font-size", "11px")
 			.attr("data-tooltip", "stickyInner")   				      
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
@@ -555,7 +556,8 @@ var Utils = require('./utils.js');
 	  	var column = this.state.svg.selectAll(".column")
 	      .data(xvalues)
 	    .enter().append("g")
-	      	.attr("class", "column")	  		    
+	      	.attr("class", "column")
+            .style("font-size", '11px')            
 			.attr("id", function(d, i) { 
 				return "pg_grid_col_"+i;})	      	
 	      .attr("transform", function(d) { 
@@ -808,13 +810,10 @@ var Utils = require('./utils.js');
 	    	    .attr("class", "pg_score_text");
 
 	    scores.append("text")	 
-		    //.attr("dy", ".32em")
-		  //   .attr("fill", function(d, i) {
-		  //   	var el = axRender.itemAt(i);
-				// return self._getColorForCellValue(self, el.score);
-		  //   })
 	      	.attr("text-anchor", "start")
-	      		.text(function(d, i) { 		      	
+            .style("font-size", "9px")
+            .style("fill", "#8763A3")
+	      	.text(function(d, i) { 		      	
 				var el = axRender.itemAt(i);
 	      		return el.score; 
 	      	});
@@ -857,12 +856,12 @@ var Utils = require('./utils.js');
 	_createEmptyVisualization: function(msg) {
 		var self = this;
 		var html;
-		d3.select("#pg_svg_area").remove();
-		//this.state.svgContainer.append("<svg id='svg_area'></svg>");
+		d3.select("#pg_svg_group").remove();
+		//this.state.pgContainer.append("<svg id='svg_area'></svg>");
 		//this.state.svg = d3.select("#svg_area");
 
-		//var svgContainer = this.state.svgContainer;
-		//svgContainer.append("<svg id='svg_area'></svg>");
+		//var pgContainer = this.state.pgContainer;
+		//pgContainer.append("<svg id='svg_area'></svg>");
 		//this.state.svg = d3.select("#svg_area")
 		//	.attr("width", this.state.emptySvgX)
 		//	.attr("height", this.state.emptySvgY);
@@ -873,12 +872,12 @@ var Utils = require('./utils.js');
 		if (!self._isCrossComparisonView()) {			
 			html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><p><button id='button' type='button'>Return</button></p><br/></div>";
 			//this.element.append(html);
-			this.state.svgContainer.append(html);
+			this.state.pgContainer.append(html);
 			d3.selectAll("#button")
 				.on("click", function(){
 					$("#return").remove();
 					$("#errmsg").remove();
-					d3.select("#pg_svg_area").remove();
+					d3.select("#pg_svg_group").remove();
 
 					//self._reset();
 					//self.state.currentTargetGroupName = "Overview";
@@ -887,7 +886,7 @@ var Utils = require('./utils.js');
 		}else{
 			html = "<h4 id='err'>" + msg + "</h4><br />";
 			//this.element.append(html);
-			this.state.svgContainer.append(html);
+			this.state.pgContainer.append(html);
 		}
 	},
 
@@ -994,6 +993,8 @@ var Utils = require('./utils.js');
 			.attr("height", selectRectHeight + 4)
 			.attr("width", selectRectWidth + 4)
 			.attr("class", "pg_draggable")
+            .style("fill", "grey")
+            .style("opacity", 0.5)
 			.call(d3.behavior.drag()
 				.on("drag", function(d) {
 					/*
@@ -1094,7 +1095,10 @@ var Utils = require('./utils.js');
 			.attr("y", overviewY)
 			.attr("id", "pg_globalview")
 			.attr("height", overviewBoxDim)
-			.attr("width", overviewBoxDim);
+			.attr("width", overviewBoxDim)
+            .style("fill", "#fff")
+            .style("stroke", "#000")
+            .style("stroke-width", 2);
 	},
 
 	_createSmallScales: function(overviewRegionSize) {
@@ -1249,22 +1253,23 @@ var Utils = require('./utils.js');
 	},
 
 	_initCanvas: function() {
-		this._createSvgContainer();
-		var svgContainer = this.state.svgContainer;
+		this._createPhenogridContainer();
+		var pgContainer = this.state.pgContainer;
 		var sourceDisplayCount = this.state.yAxisRender.displayLength();
 		var widthOfSingleCell = this.state.gridRegion.cellwd;
 
-		svgContainer.append("<svg id='pg_svg_area'></svg>");
-		this.state.svg = d3.select("#pg_svg_area");
-				//.attr("width", "100%")
-				//.attr("height", ((this.state.gridRegion.y + (sourceDisplayCount * widthOfSingleCell))+100));
-
+		pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
+	
+        // Define a font-family for all SVG texts 
+        // so we don't have to apply font-family separately for each SVG text - Joe
+        this.state.svg = d3.select("#pg_svg_group")
+            .style("font-family", "Verdana, Geneva, sans-serif");
 	},
 
-	_createSvgContainer: function() {
-		var svgContainer = $('<div id="pg_svg_container"></div>');
-		this.state.svgContainer = svgContainer;
-		this.element.append(svgContainer);
+	_createPhenogridContainer: function() {
+		var container = $('<div id="pg_container"></div>');
+		this.state.pgContainer = container;
+		this.element.append(container);
 	},
 
 	// add a sticky tooltip div stub, this is used to dynamically set a tooltip info 
@@ -1328,12 +1333,14 @@ var Utils = require('./utils.js');
 			titleText = "Phenotype Comparison";
 		}
 
-		// Add the top main title to pg_svg_area
+		// Add the top main title to pg_svg_group
 		this.state.svg.append("svg:text")
 			.attr("id", "pg_toptitle")
 			.attr("x", this.state.gridRegion.x + this._gridWidth()/2) // Calculated based on the gridRegion - Joe
 			.attr("y", 40) // Fixed y position - Joe
 			.style('text-anchor', 'middle') // Center the main title - Joe
+            .style('font-size', '1.4em')
+            .style('font-weight', 'bold')
 			.text(titleText);
 	},
 
@@ -1527,7 +1534,10 @@ var Utils = require('./utils.js');
 					.attr("x1", gridRegion.rowLabelOffset)  // 0
 					.attr("y1", x1-2)
 					.attr("x2", width)   // adjust this for to go beyond the row label
-					.attr("y2", x1-2);
+					.attr("y2", x1-2)
+                    .style("stroke", "black")
+                    .style("stroke-width", 1)
+                    .style("shape-rendering", "crispEdges");
 
 				} else {
 					// render vertical divider line
@@ -1537,7 +1547,10 @@ var Utils = require('./utils.js');
 					.attr("x1", x1)
 					.attr("y1", 0)
 					.attr("x2", x1)
-					.attr("y2", height);
+					.attr("y2", height)
+                    .style("stroke", "black")
+                    .style("stroke-width", 1)
+                    .style("shape-rendering", "crispEdges");
 
 
 					// render the slanted line between targetGroup (targetGroup) columns
@@ -1547,8 +1560,10 @@ var Utils = require('./utils.js');
 					.attr("x1", x1)
 					.attr("y1", 0)
 					.attr("x2", x1 + 110)  // extend the line out to underline the labels					
-					.attr("y2", 0);
-
+					.attr("y2", 0)
+                    .style("stroke", "black")
+                    .style("stroke-width", 1)
+                    .style("shape-rendering", "crispEdges");
 				}
 			}
 		}
@@ -1683,7 +1698,7 @@ var Utils = require('./utils.js');
 				position: {
 			 		my: "top", 
 					at: "top+25%",
-					of: "#pg_svg_area"
+					of: "#pg_svg_group"
 				},
 				title: 'Phenogrid Notes',
 				
@@ -1761,7 +1776,8 @@ var Utils = require('./utils.js');
 
 		// Create a group for gradient bar and legends - Joe
 		var gradientTextGrp = this.state.svg.select('#pg_gradient_legend').append("g")
-			.attr('id', 'pg_gradient_legend_texts');
+			.attr('id', 'pg_gradient_legend_texts')
+            .style('font-size', '11px');
 		
 		// Dynamicly change, relative to grid region - Joe
 		var yTexts = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
@@ -1792,8 +1808,8 @@ var Utils = require('./utils.js');
     _createUnmatchedSources: function() {
         var pg_unmatched = $('<div id="pg_unmatched"></div>');
 
-        // Not in the #pg_svg_area div since it's HTML - Joe
-		$('#pg_svg_container').append(pg_unmatched);
+        // Not in the #pg_svg_group div since it's HTML - Joe
+		$('#pg_container').append(pg_unmatched);
         
         // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
 		var pg_unmatched_list = '<div id="pg_unmatched_list"><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span></div>';
@@ -1816,8 +1832,8 @@ var Utils = require('./utils.js');
 		
 		var phenogridControls = $('<div id="pg_controls"></div>');
 
-		// Not in the #pg_svg_area div since it's HTML - Joe
-		$('#pg_svg_container').append(phenogridControls);
+		// Not in the #pg_svg_group div since it's HTML - Joe
+		$('#pg_container').append(phenogridControls);
 		
 		// Need to put .pg_controls_options_arrow_border span before .pg_controls_options_arrow span - Joe
 		var optionhtml = '<div id="pg_controls_options"><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
@@ -1901,21 +1917,13 @@ var Utils = require('./utils.js');
             // Flip shouldn't reset the unmatched - Joe
 		});
 
+        // Click save button to export the current phenogrid view as a SVG file - Joe
         $("#pg_export").click(function() {	
-			// Must use synchronous read since Node's readFile() is async (non-blocking) - Joe
-            var css = '';
-            var svgElementClone = $('#pg_svg_area').clone(); // clone the svg to manipulate
+            // SVG styles are applied with D3, not in CSS for this exporting purpose
+            var svgElementClone = $('#pg_svg').clone(); // clone the svg to manipulate
             svgElementClone.find('#pg_logo').remove(); // remove logo
             svgElementClone.find('#pg_scores_tip_icon').remove(); // remove fontawesome icon
-
-            var svgStr = '<svg xmlns="http://www.w3.org/2000/svg">' + 
-                '<style type="text/css" >' +
-                    '<![CDATA[' + 
-                    css +
-                    ']]>' +
-                '</style>' +
-                svgElementClone.html() + 
-                '<svg>';
+            var svgStr = '<svg xmlns="http://www.w3.org/2000/svg">' + svgElementClone.html() + '</svg>';
             // The standard W3C File API Blob interface is not available in all browsers. 
             // Blob.js is a cross-browser Blob implementation that solves this.
             var blob = new Blob([svgStr], {type: "image/svg+xml"});
