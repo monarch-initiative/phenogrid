@@ -61,8 +61,7 @@
 require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
 require('jquery-ui');
 var d3 = require('d3');
-var fs = require('fs');
-var xmldom = require('xmldom');
+require('filesaver.js');
 
 // load other non-npm dependencies - Joe
 // need to specify the relative path ./ and .js extension
@@ -1903,11 +1902,12 @@ var Utils = require('./utils.js');
 		});
 
         $("#pg_export").click(function(d) {	
-			var svgGraph = d3.select('svg')
-                .attr('xmlns', 'http://www.w3.org/2000/svg')
-                //.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-            var svgXML = (new xmldom.XMLSerializer()).serializeToString(svgGraph[0][0]);
-            fs.writeFile('phenogrid.svg', svgXML);
+			var svgGraph = $('#pg_svg_area').html();
+            console.log(svgGraph);
+            // The standard W3C File API Blob interface is not available in all browsers. 
+            // Blob.js is a cross-browser Blob implementation that solves this.
+            var blob = new Blob([svgGraph], {type: "image/svg+xml"});
+            saveAs(blob, "phenogrid.svg");
 		});
         
 		// FAQ popups

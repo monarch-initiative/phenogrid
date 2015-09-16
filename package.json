@@ -20,12 +20,11 @@
   "homepage": "https://github.com/monarch-initiative/phenogrid",
   "dependencies": {
     "d3": "^3.5.5",
-    "fs": "0.0.2",
+    "filesaver.js": "^0.2.0",
     "gfm.css": "^1.1.1",
     "jquery": "^2.1.4",
     "jquery-ui": "^1.10.5",
-    "vinyl-source-stream": "^1.1.0",
-    "xmldom": "^0.1.19"
+    "vinyl-source-stream": "^1.1.0"
   },
   "devDependencies": {
     "browserify": "^10.2.1",
