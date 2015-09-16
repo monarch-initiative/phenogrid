@@ -1902,7 +1902,20 @@ var Utils = require('./utils.js');
 		});
 
         $("#pg_export").click(function() {	
-			var svgStr = '<svg xmlns="http://www.w3.org/2000/svg">' + $('#pg_svg_area').html() + '<svg>';
+			// Must use synchronous read since Node's readFile() is async (non-blocking) - Joe
+            var css = '';
+            var svgElementClone = $('#pg_svg_area').clone(); // clone the svg to manipulate
+            svgElementClone.find('#pg_logo').remove(); // remove logo
+            svgElementClone.find('#pg_scores_tip_icon').remove(); // remove fontawesome icon
+
+            var svgStr = '<svg xmlns="http://www.w3.org/2000/svg">' + 
+                '<style type="text/css" >' +
+                    '<![CDATA[' + 
+                    css +
+                    ']]>' +
+                '</style>' +
+                svgElementClone.html() + 
+                '<svg>';
             // The standard W3C File API Blob interface is not available in all browsers. 
             // Blob.js is a cross-browser Blob implementation that solves this.
             var blob = new Blob([svgStr], {type: "image/svg+xml"});
