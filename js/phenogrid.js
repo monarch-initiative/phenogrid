@@ -61,6 +61,8 @@
 require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
 require('jquery-ui');
 var d3 = require('d3');
+var fs = require('fs');
+var xmldom = require('xmldom');
 
 // load other non-npm dependencies - Joe
 // need to specify the relative path ./ and .js extension
@@ -1833,7 +1835,11 @@ var Utils = require('./utils.js');
 		options.append(calcSel);
 		var axisSel = this._createAxisSelection();
 		options.append(axisSel);
-		var aboutPhenogrid = this._createAboutPhenogrid();
+		
+        var exportBtn = this._createExportPhenogridButton();
+		options.append(exportBtn);
+        
+        var aboutPhenogrid = this._createAboutPhenogrid();
 		options.append(aboutPhenogrid);
 		
 		phenogridControls.append(options);
@@ -1896,7 +1902,14 @@ var Utils = require('./utils.js');
             // Flip shouldn't reset the unmatched - Joe
 		});
 
-		
+        $("#pg_export").click(function(d) {	
+			var svgGraph = d3.select('svg')
+                .attr('xmlns', 'http://www.w3.org/2000/svg')
+                //.attr('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+            var svgXML = (new xmldom.XMLSerializer()).serializeToString(svgGraph[0][0]);
+            fs.writeFile('phenogrid.svg', svgXML);
+		});
+        
 		// FAQ popups
 		$("#pg_sorts_faq").click("click", function(){
 			self._showDialog("sorts");
@@ -2007,6 +2020,13 @@ var Utils = require('./utils.js');
 		return $(html);
 	},
 	
+    // Export current state of phenogrid as SVG file to be used in publications
+    _createExportPhenogridButton: function() {
+        var btn = '<div class="pg_hr"></div><button id="pg_export">Save Phenogrid as SVG file</button>';
+        
+        return $(btn);
+    },
+    
 	_getUnmatchedSources: function() {
 		var fullset = this.state.dataLoader.origSourceList; // Get the original source list of IDs
 		var matchedset = this.state.yAxisRender.groupIDs(); // Get all the matched source IDs
