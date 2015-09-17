@@ -10,12 +10,12 @@ Feature: Specific features work when running Phenogrid as a standalone widget
         Given I go to page "/index.html"
     	    Then the id "<id>" should contain "<text>"
             Examples: <id> - <text> list
-            | id                       | text                         |
-            | pg_toptitle              | Cross-Target Comparison      |
-            | pg_gradient_legend_texts | Min                          |
-            | pg_gradient_legend_texts | Similarity                   |
-            | pg_gradient_legend_texts | Max                          |
-            | pg_svg_group             | Danio rerio                  |
+            | id                       | text                            |
+            | pg_toptitle              | Phenotype Similarity Comparison |
+            | pg_gradient_legend_texts | Min                             |
+            | pg_gradient_legend_texts | Similarity                      |
+            | pg_gradient_legend_texts | Max                             |
+            | pg_svg_group             | Danio rerio                     |
 
             
     Scenario: Sort phenotype labels by Alphabetic
