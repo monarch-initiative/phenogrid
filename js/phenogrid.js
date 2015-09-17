@@ -171,7 +171,7 @@ var Utils = require('./utils.js');
 						scoreOffset:5,  // score text offset from the top of grid squares
 						targetGroupLabelOffset: -200    // -100offset of the targetGroup label, above grid
 					},
-		defaultTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
+		defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
 		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
 		defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per organisms to be displayed in cross compare mode
 		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
@@ -345,8 +345,8 @@ var Utils = require('./utils.js');
 			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
 		}
 
-		if ( this.state.targetDisplayLimit > this.state.defaultTargetDisplayLimit) {
-				this.state.targetDisplayLimit = this.state.defaultTargetDisplayLimit;
+		if ( this.state.targetDisplayLimit > this.state.defaultSingleTargetDisplayLimit) {
+				this.state.targetDisplayLimit = this.state.defaultSingleTargetDisplayLimit;
 		} 
 
        	// creates AxisGroup with full source and target lists with default rendering range
@@ -1507,7 +1507,7 @@ var Utils = require('./utils.js');
 			var numOfTargetGroup = self.state.selectedCompareTargetGroup.length;
 			var xScale = self.state.xAxisRender.getScale();
 
-			//var cellsDisplayedPer = (self.state.defaultTargetDisplayLimit / numOfTargetGroup);
+			//var cellsDisplayedPer = (self.state.defaultSingleTargetDisplayLimit / numOfTargetGroup);
 			var cellsDisplayedPer = self.state.defaultCrossCompareTargetLimitPerTargetGroup;
 			var x1 = 0;
 			if (self.state.invertAxis) {
