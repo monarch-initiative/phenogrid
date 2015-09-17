@@ -15,7 +15,7 @@ Feature: Specific features work when running Phenogrid as a standalone widget
             | pg_gradient_legend_texts | Min                          |
             | pg_gradient_legend_texts | Similarity                   |
             | pg_gradient_legend_texts | Max                          |
-            | pg_svg_area              | Danio rerio                  |
+            | pg_svg_group             | Danio rerio                  |
 
             
     Scenario: Sort phenotype labels by Alphabetic
