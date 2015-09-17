@@ -1,17 +1,20 @@
 /*
 *  Phenogrid related styling
 */
+/* #pg_container contains SVG (#pg_svg) and HTML (#pg_controls, #pg_unmatched) */
 #pg_container {
 margin:20px 10px;
 position:relative;
 border:1px solid #ddd;
 }
 
+/* SVG tag */
 #pg_svg {
 min-width:980px;
 min-height:780px;
 }
 
+/* HTML options popup */
 #pg_controls {
 position:absolute;
 left:0;
@@ -29,7 +32,6 @@ color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 }
-
 
 .pg_controls_options_arrow_border{
 display: block;
@@ -54,7 +56,6 @@ border-width: 8px;
 height: 0;
 width: 0;
 }
-
 
 #pg_slide_btn{
 position:absolute;
@@ -103,12 +104,7 @@ border-bottom:1px solid #cbcbcb;
 padding:2px 0;
 }
 
-#pg_scores_tip_icon{
-font-size:12px;
-cursor:pointer;
-}
-
-/* Unmatched Sources */
+/* HTML unmatched sources popup */
 #pg_unmatched {
 position:absolute;
 left:0;
@@ -175,32 +171,23 @@ color:#DD3835 !important;
 
 .pg_row_accent,
 .pg_col_accent {
-/*stroke:#ea763b;*/
-stroke:#4CA092;
-stroke-width: 2;
-fill: #4CA092;   /*#fff;*/
-fill-opacity: 0.1;    /*0.05;*/
-}
-
-/*
-.pg_gene_accent {
 stroke:#4CA092;
 stroke-width: 2;
 fill: #4CA092;
 fill-opacity: 0.1;
 }
-*/
 
-.pg_scroll_text {
-font-size: 9px;
-}
-
-/* Used in _createModelScoresLegend() */
 .pg_tip {
 width: 80px;
 height:10px;
 font-size:10px;
 }
+
+#pg_scores_tip_icon{
+font-size:12px;
+cursor:pointer;
+}
+
 #mystickytooltip {
 position: absolute;
 }
@@ -217,24 +204,11 @@ padding: 3px;
 }
 
 /** Overwrite jquery-ui default style */
-
 .ui-dialog-content {
 font-size:11px;
 font-family: arial;
 color:#000;
 }
-
-/* End jquery-ui stuff*/
-
-/*#redtext,
-#bluetext,
-#greentext {
-fill: black;
-}
-
-#matches input {
-padding-top:5px;
-}*/
 
 .cursor_pointer {
 cursor:pointer;
@@ -265,14 +239,14 @@ clear: both;
 background-color: #fff !important;
 }
 
-.active {
+.pg_active {
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 font-weight: bold;
 fill: blue;
 }
 
-.relatedActive {
+.pg_related_active {
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 fill: blue;
@@ -291,8 +265,8 @@ border-width:0px;
 overflow:hidden;
 word-break:normal;
 }
-table.pgtb th
-{
+
+table.pgtb th{
 font-family: Verdana, Geneva, sans-serif;
 font-size: 12px;
 font-weight: bold;
@@ -332,7 +306,7 @@ stroke: red;
 shape-rendering: crispEdges;
 }
 
-.rowcolmatch {
+.pg_rowcolmatch {
 fill: red !important;
 border-style: solid;
 border-width: medium;

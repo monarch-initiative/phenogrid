@@ -670,13 +670,13 @@ var Utils = require('./utils.js');
 
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
-				  .classed("active", true);
+				  .classed("pg_active", true);
 	  		d3.select("#pg_grid_col_" + d.xpos +" text")
-				  .classed("active", true);
+				  .classed("pg_active", true);
 			
 			// hightlight the cell
 	 		d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
-				  .classed("rowcolmatch", true)	
+				  .classed("pg_rowcolmatch", true)	
 				  .classed("pg_cursor_pointer", true);					  
 
 		} else {
@@ -711,15 +711,15 @@ var Utils = require('./utils.js');
 		
 		// unhighlight row/col
 		d3.selectAll(".row text")
-			  .classed("active", false);
+			  .classed("pg_active", false);
 		d3.selectAll(".column text")
-			  .classed("active", false);
+			  .classed("pg_active", false);
 		d3.selectAll(".row text")
-			  .classed("relatedActive", false);
+			  .classed("pg_related_active", false);
 		d3.selectAll(".column text")
-			  .classed("relatedActive", false);		
+			  .classed("pg_related_active", false);		
 		d3.selectAll(".cell")
-				.classed("rowcolmatch", false)
+				.classed("pg_rowcolmatch", false)
 				.classed("pg_cursor_pointer", false);					  				  
 
 		// if (!stickytooltip.isdocked) {
@@ -742,11 +742,11 @@ var Utils = require('./utils.js');
 			if (typeof(matches) != 'undefined') {
 				for (var k=0; k < matches.length; k++) {
 					d3.select("#pg_grid_row_" + matches[k].ypos +" text")
-				  	.classed("relatedActive", true);
+				  	.classed("pg_related_active", true);
 				}
 			}	
 	  		d3.select("#pg_grid_col_" + currenPos +" text")
-				  .classed("active", true);	
+				  .classed("pg_active", true);	
 		} else {  // hovered over a row
 			hightlightSources = false;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
@@ -754,11 +754,11 @@ var Utils = require('./utils.js');
 			if (typeof(matches) != 'undefined') {
 				for (var k=0; k < matches.length; k++) {
 					d3.select("#pg_grid_col_" + matches[k].xpos +" text")
-				  	.classed("relatedActive", true);
+				  	.classed("pg_related_active", true);
 				}
 			}		
 			d3.select("#pg_grid_row_" + currenPos +" text")
-				  .classed("active", true);
+				  .classed("pg_active", true);
 		}				
 
 	},
