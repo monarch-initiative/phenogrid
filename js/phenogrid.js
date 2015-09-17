@@ -127,7 +127,9 @@ var Utils = require('./utils.js');
 		minHeight: 310,
 		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
 		m :[ 30, 10, 10, 10 ],
-		phenotypeSort: ["Alphabetic", "Frequency and Rarity", "Frequency" ],
+		unmatchedButtonLabel: 'UNMATCHED PHENOTYPES',
+        gridTitle: 'Phenotype Similarity Comparison',
+        phenotypeSort: ["Alphabetic", "Frequency and Rarity", "Frequency" ],
 		similarityCalculation: [{label: "Similarity", calc: 0, high: "Max", low: "Min"}, 
 			{label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"}, 
 			{label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"} , 
@@ -156,7 +158,6 @@ var Utils = require('./utils.js');
 		widthOfSingleCell: 18,
 		heightOfSingleCell: 13,    
 		yoffsetOver: 30,
-		gridTitleYOffset: 20, // Needs to REFACTOR OUT - Joe
 		xOffsetOver: 20,
 		baseYOffset: 150,
 		invertAxis: false,
@@ -1319,17 +1320,17 @@ var Utils = require('./utils.js');
 		var targetGroup = '';
 
 		// set up defaults as if overview
-		var titleText = "Cross-Target Comparison";
+		var titleText = this.state.gridTitle;
 
 		//if (this.state.currentTargetGroupName !== "Overview") {
 		if ( ! this._isCrossComparisonView()) {
 			targetGroup = this.state.selectedCompareTargetGroup[0].name;
 			var comp = this._getComparisonType(targetGroup);
-			titleText = "Phenotype Comparison (grouped by " + targetGroup + " " + comp + ")";
+			titleText = this.state.gridTitle + " (grouped by " + targetGroup + " " + comp + ")";
 		}
 		// COMPARE CALL HACK - REFACTOR OUT
 		if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser'){
-			titleText = "Phenotype Comparison";
+			titleText = this.state.gridTitle;
 		}
 
 		// Add the top main title to pg_svg_group
@@ -1814,7 +1815,7 @@ var Utils = require('./utils.js');
 		var pg_unmatched_list = '<div id="pg_unmatched_list"><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span></div>';
 		
 		// Hide/show unmatched - button - Joe
-		var pg_unmatched_btn ='<div id="pg_unmatched_btn">UNMATCHED SOURCES <i class="fa fa-outdent"></i> </div>';
+		var pg_unmatched_btn ='<div id="pg_unmatched_btn">' + this.state.unmatchedButtonLabel + ' </div>';
  
         pg_unmatched.append(pg_unmatched_list);
 		pg_unmatched.append(pg_unmatched_btn);
