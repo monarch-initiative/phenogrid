@@ -1640,7 +1640,7 @@ var Utils = require('./utils.js');
 				}) // rotate by 90 degrees 
 				.attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
 				.text(function (d, i){return targetGroupList[i];})
-				.attr("text-anchor", "middle");
+				.attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
 		} else {
 			var widthPerTargetGroup = this._gridWidth()/targetGroupList.length;
 
@@ -1654,7 +1654,7 @@ var Utils = require('./utils.js');
 				.attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
 				.attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
 				.text(function (d, i){return targetGroupList[i];})
-				.attr("text-anchor", "middle");
+				.attr("text-anchor", "start"); // Based on the rotated divider line
 		}
 	},
 	
