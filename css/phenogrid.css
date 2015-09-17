@@ -1,37 +1,40 @@
 /*
 *  Phenogrid related styling
 */
-#pg_svg_container {
+/* #pg_container contains SVG (#pg_svg) and HTML (#pg_controls, #pg_unmatched) */
+#pg_container {
 margin:20px 10px;
 position:relative;
 border:1px solid #ddd;
+font-family:Verdana, Geneva, sans-serif;
+font-size:12px;
 }
 
-#pg_svg_area {
-min-width:960px;
+/* SVG tag */
+#pg_container  #pg_svg {
+min-width:980px;
 min-height:780px;
 }
 
-#pg_controls {
+/* HTML options popup */
+#pg_container  #pg_controls {
 position:absolute;
 left:0;
 top:0;
 }
 
-#pg_controls_options {
+#pg_container  #pg_controls_options {
 position:absolute;
-min-width:200px;
-height:444px;
+width:200px;
+height:434px;
 background:#F1F3F8;
 padding:20px;
-font-size:12px;
 color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 }
 
-
-.pg_controls_options_arrow_border{
+#pg_container  .pg_controls_options_arrow_border{
 display: block;
 position: absolute;
 left: 17px;
@@ -43,7 +46,7 @@ height: 0;
 width: 0;
 }
 
-.pg_controls_options_arrow{
+#pg_container  .pg_controls_options_arrow{
 display: block;
 position: absolute;
 left: 17px;
@@ -55,29 +58,29 @@ height: 0;
 width: 0;
 }
 
-
-#pg_slide_btn{
+#pg_container  #pg_slide_btn{
 position:absolute;
 width:90px;
 font-size:14px;
 color:#44A293;
 }
 
-#pg_slide_btn:hover{
+#pg_container  #pg_slide_btn:hover{
 cursor:pointer;
-color:#DD3835;
+color:#EA763B;
 }
 
-.pg_slide_open{
-color:#DD3835 !important;
+#pg_container  .pg_slide_open{
+color:#EA763B !important;
 }
 
-label.pg_ctrl_label{
+#pg_container  .pg_ctrl_label{
 font-weight:700;
-color:#DD3835;
+font-size:12px;
+margin-bottom:3px;
 }
 
-#pg_controls input[type="checkbox"] {
+#pg_container  #pg_controls input[type="checkbox"] {
 display:inline-block;
 width:11px;
 height:11px;
@@ -85,7 +88,7 @@ margin:-2px 4px 0 0;
 vertical-align:middle;
 }
 
-#pg_controls input[type="radio"] {
+#pg_container  #pg_controls input[type="radio"] {
 display:inline-block;
 width:11px;
 height:11px;
@@ -93,45 +96,40 @@ margin:-2px 4px 0 0;
 vertical-align:middle;
 }
 
-.pg_hr{
+#pg_container  .pg_hr{
 clear:both;
 margin:10px 0;
 border-bottom:1px solid #cbcbcb;
 }
 
-.pg_select_item{
-padding:2px 0;
+#pg_container  #pg_container  .pg_select_item{
+margin:2px 0;
+padding:0;
 }
 
-#pg_scores_tip_icon{
-font-size:12px;
-cursor:pointer;
-}
-
-/* Unmatched Sources */
-#pg_unmatched {
+/* HTML unmatched sources popup */
+#pg_container  #pg_unmatched {
 position:absolute;
 left:0;
 top:0;
 }
 
-#pg_unmatched_list {
+#pg_container  #pg_unmatched_list {
 position:absolute;
 left:50px;
 width:200px;
 background:#F1F3F8;
 padding:10px;
-font-size:12px;
 color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 }
 
-.pg_unmatched_list_item {
+#pg_container  .pg_unmatched_list_item {
 margin:5px 0;
 }
 
-.pg_unmatched_list_arrow_border{
+#pg_container  .pg_unmatched_list_arrow_border{
 display: block;
 position: absolute;
 left: 80px;
@@ -143,7 +141,7 @@ height: 0;
 width: 0;
 }
 
-.pg_unmatched_list_arrow{
+#pg_container  .pg_unmatched_list_arrow{
 display: block;
 position: absolute;
 left: 80px;
@@ -155,7 +153,7 @@ height: 0;
 width: 0;
 }
 
-#pg_unmatched_btn{
+#pg_container  #pg_unmatched_btn{
 position:absolute;
 left:28px;
 width:200px;
@@ -164,96 +162,40 @@ font-size:14px;
 color:#44A293;
 }
 
-#pg_unmatched_btn:hover{
+#pg_container  #pg_unmatched_btn:hover{
 cursor:pointer;
-color:#DD3835;
+color:#EA763B;
 }
 
-.pg_unmatched_open{
-color:#DD3835 !important;
+#pg_container  .pg_unmatched_open{
+color:#EA763B !important;
 }
 
-#pg_errmsg {
-padding-top: 30px;
-font-size:1.2em;
-/**font-weight:bold;*/
-stroke:#ea763b;
-}
-
-#pg_gridline {
-fill: #fff;
-fill-opacity: 0;
-stroke: #e5e5e5;
-stroke-width: 1;
-}
-
-#pg_globalview {
-fill: #fff;
-stroke: #000;
-stroke-width: 2;
-}
-
-/* Shaded area in overview map */
-#pg_navigator_shaded_area{
-fill: grey;
-opacity: 0.5;
-}
-
-.pg_row_accent,
-.pg_col_accent {
-/*stroke:#ea763b;*/
-stroke:#4CA092;
-stroke-width: 2;
-fill: #4CA092;   /*#fff;*/
-fill-opacity: 0.1;    /*0.05;*/
-}
-
-/*
-.pg_gene_accent {
+#pg_container  .pg_row_accent,
+#pg_container  .pg_col_accent {
 stroke:#4CA092;
 stroke-width: 2;
 fill: #4CA092;
 fill-opacity: 0.1;
 }
-*/
 
-.pg_scroll_text {
-font-size: 9px;
-}
-
-#pg_prebl {
-clear:both;
-/*background-color: #9999FF;*/
-float:left;
-}
-
-#pg_scorelist {
-font-size:10px;
-fill: #0F473E;
-}
-
-#pg_gradient_legend_texts{
+#pg_container  .pg_tip {
+width: 80px;
+height:10px;
 font-size:11px;
 }
 
-/* Used in _createModelScoresLegend() */
-.pg_tip {
-width: 80px;
-height:10px;
-font-size:10px;
+#pg_container  #pg_scores_tip_icon{
+cursor:pointer;
 }
 
-#pg_toptitle {
-font-size:1.4em;
-font-weight:bold;
-}
-
+/* Don't add #pg_container since it's not in it */
 #mystickytooltip {
-  position: absolute;
+position: absolute;
 }
 
 #stickyInner {
-  box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
+box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
 -webkit-box-shadow: 5px 5px 8px #818181;
 -moz-box-shadow: 5px 5px 8px #818181;
 border:1px solid #000;
@@ -264,37 +206,18 @@ padding: 3px;
 }
 
 /** Overwrite jquery-ui default style */
-
 .ui-dialog-content {
 font-size:11px;
 font-family: arial;
 color:#000;
 }
 
-/* End jquery-ui stuff*/
-
-/*#redtext,
-#bluetext,
-#greentext {
-fill: black;
-}
-
-#matches input {
-padding-top:5px;
-}*/
-
-.cursor_pointer {
+#pg_container  .cursor_pointer {
 cursor:pointer;
 }
 
-.pg_species_name {
-font-weight: bold;
-font-size: 14px;
-opacity: .3;
-}
-
 /* Cursor for mini map */
-.pg_draggable{
+#pg_container  .pg_draggable{
 cursor:move;
 }
 
@@ -318,38 +241,25 @@ clear: both;
 background-color: #fff !important;
 }
 
-.row,
-.column {
-font-family: Verdana, Geneva, sans-serif;              
-font-size: 11px;
-}
-
-.active {
+#pg_container  .pg_active {
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 font-weight: bold;
 fill: blue;
 }
 
-.relatedActive {
+#pg_container  .pg_related_active {
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 fill: blue;
 }
 
-.pg_score_text {
-/*font-family: Verdana, Geneva, sans-serif;               */
-  font-size: 9px;
-fill: #8763A3; /* purple */
-/*letter-spacing:-2px;*/
-}
-
-table.pgtb {
+#pg_container  table.pgtb {
 border-collapse: collapse;
 border-spacing: 0;
 }
 
-table.pgtb td {
+#pg_container  table.pgtb td {
 font-family: Verdana, Geneva, sans-serif;
 font-size:11px;
 border-style: none;
@@ -357,10 +267,9 @@ border-width:0px;
 overflow:hidden;
 word-break:normal;
 }
-table.pgtb th
-{
+
+#pg_container  table.pgtb th{
 font-family: Verdana, Geneva, sans-serif;
-/*  font-family:"Lucida Console", Monaco, monospace;*/
 font-size: 12px;
 font-weight: bold;
 padding:10px 5px;
@@ -368,47 +277,41 @@ overflow:hidden;
 word-break:normal;
 }
 
-.pg_target_grp_divider {
-  stroke: black; /*#0B20AE; #8763A3;  #0F473E;*/
-  /*stroke-dasharray: 2;   /*small dots */
-  shape-rendering: crispEdges;
-}
-
-.pg_expandHPO{
+#pg_container  .pg_expandHPO{
 text-decoration: underline;
 color:#DC4945;
 cursor:pointer;
 }
 
-.pg_HPO_icon{
+#pg_container  .pg_HPO_icon{
 margin-left:2px;
 }
 
-em.pg_tree_indent{
+#pg_container  em.pg_tree_indent{
 width:12px;
 float:left;
 display:inline-block;
 height:1px;
 }
 
-.pg_cursor_pointer {
+#pg_container  .pg_cursor_pointer {
 cursor:pointer;
 }
 
-#pg_org_sel {
+#pg_container  #pg_org_sel {
 margin-right: 5px;
 }
 
-.pg_focusLine {
-  fill: none;
-  stroke: red;
-  shape-rendering: crispEdges;
+#pg_container  .pg_focusLine {
+fill: none;
+stroke: red;
+shape-rendering: crispEdges;
 }
 
-.rowcolmatch {
-  fill: red !important;
-  border-style: solid;
-  border-width: medium;
+#pg_container  .pg_rowcolmatch {
+fill: red !important;
+border-style: solid;
+border-width: medium;
 }
 
 
