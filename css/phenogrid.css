@@ -323,7 +323,10 @@ border-width: medium;
 display:none;
 }
 
-
+#pg_container  #pg_export:hover{
+cursor:pointer;
+color:#EA763B;
+}
 
 
 
