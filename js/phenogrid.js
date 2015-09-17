@@ -1966,12 +1966,21 @@ var Utils = require('./utils.js');
 				break;
 			}
 			var checked = "";
+            var disabled = "";
+            var linethrough = "";
 			if (this.state.targetGroupList[idx].active) { 
 				if (this._isTargetGroupSelected(this, this.state.targetGroupList[idx].name)) {
 					checked = "checked";
 				}
-				optionhtml += "<div class='pg_select_item'><input type='checkbox' value=\"" + this.state.targetGroupList[idx].name +
-				"\" " + checked + ">" + this.state.targetGroupList[idx].name + '</div>';
+                // If there is no data for a given species, even if it's set as active in config, 
+                // it should not be shown in the species selector - Joe
+                if (this.state.dataManager.length('target', this.state.targetGroupList[idx].name) === 0) {
+					disabled = "disabled";
+                    linethrough = "pg_linethrough";
+				}
+
+				optionhtml += "<div class='pg_select_item " + linethrough + "'><input type='checkbox' value=\"" + this.state.targetGroupList[idx].name +
+				"\" " + checked + disabled + ">" + this.state.targetGroupList[idx].name + '</div>';
 			}
 		}
 		optionhtml += "</div>";

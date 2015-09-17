@@ -216,6 +216,11 @@ color:#000;
 cursor:pointer;
 }
 
+/* Used for disabled species checkbox */
+#pg_container  .pg_linethrough {
+text-decoration: line-through;
+}
+
 /* Cursor for mini map */
 #pg_container  .pg_draggable{
 cursor:move;
