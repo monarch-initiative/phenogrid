@@ -3232,7 +3232,7 @@ var Utils = require('./utils.js');
 		var pg_unmatched_list = '<div id="pg_unmatched_list"><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span></div>';
 		
 		// Hide/show unmatched - button - Joe
-		var pg_unmatched_btn ='<div id="pg_unmatched_btn">' + this.state.unmatchedButtonLabel + ' </div>';
+		var pg_unmatched_btn ='<div id="pg_unmatched_btn"><i class="fa fa-exclamation-triangle"></i> ' + this.state.unmatchedButtonLabel + ' </div>';
  
         pg_unmatched.append(pg_unmatched_list);
 		pg_unmatched.append(pg_unmatched_btn);
