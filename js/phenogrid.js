@@ -152,8 +152,8 @@ var Utils = require('./utils.js');
             logo: {
                 x: 80, 
                 y: 25, 
-                width: 26, 
-                height: 13
+                width: 40, 
+                height: 26
             },
             gridRegion: {
                 x:254, 
