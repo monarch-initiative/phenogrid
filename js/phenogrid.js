@@ -1959,7 +1959,7 @@ var Utils = require('./utils.js');
     },	
 	
 	_createOrganismSelection: function() {
-		var optionhtml = "<div id='pg_org_div'><label class='pg_ctrl_label'>Organism(s)</label>" + 
+		var optionhtml = "<div class='pg_ctrl_label'>Organism(s)</div>" + 
 			"<div id='pg_organism'>";
 		for (var idx in this.state.targetGroupList) {
 			if ( ! this.state.targetGroupList.hasOwnProperty(idx)) {
@@ -1974,15 +1974,15 @@ var Utils = require('./utils.js');
 				"\" " + checked + ">" + this.state.targetGroupList[idx].name + '</div>';
 			}
 		}
-		optionhtml += "</div></div>";
+		optionhtml += "</div>";
 
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
-		var optionhtml = "<div class='pg_hr'></div><div id='pg_calc_div'><label class='pg_ctrl_label'>Calculation Method</label>"+
-				" <i class='fa fa-info-circle cursor_pointer' id='pg_calcs_faq'></i>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+		var optionhtml = "<div class='pg_hr'></div><div class='pg_ctrl_label'>Calculation Method"+
+				" <i class='fa fa-info-circle cursor_pointer' id='pg_calcs_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_calculation'>";
 
 		for (var idx in this.state.similarityCalculation) {
@@ -1996,14 +1996,14 @@ var Utils = require('./utils.js');
 			// We need the name attr for radio inputs so only one is checked - Joe
 			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
 		}
-		optionhtml += "</div></div>";
+		optionhtml += "</div>";
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
-		var optionhtml ="<div class='pg_hr'></div><div id='pg_sort_div'><label class='pg_ctrl_label'>Sort Phenotypes</label>" + 
-				" <i class='fa fa-info-circle cursor_pointer' id='pg_sorts_faq'></i>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+		var optionhtml ="<div class='pg_hr'></div><div class='pg_ctrl_label'>Sort Phenotypes" + 
+				" <i class='fa fa-info-circle cursor_pointer' id='pg_sorts_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_sortphenotypes'>";
 
 		for (var idx in this.state.phenotypeSort) {
@@ -2018,7 +2018,7 @@ var Utils = require('./utils.js');
 			// We need the name attr for radio inputs so only one is checked - Joe
 			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + this.state.phenotypeSort[idx] + "' " + checked + ">" + this.state.phenotypeSort[idx] + '</div>';
 		}
-		optionhtml += "</div></div>";
+		optionhtml += "</div>";
 		return $(optionhtml);
 	},
 
