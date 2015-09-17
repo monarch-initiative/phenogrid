@@ -116,7 +116,7 @@ TooltipRender.prototype = {
 			returnHtml += ontologyData;
 		} else {
 			//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
-			returnHtml = "<br><div class=\"pg_expandHPO\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_HPO_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+			returnHtml = "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
 		}
 	return returnHtml;		
 

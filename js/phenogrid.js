@@ -1437,14 +1437,14 @@ var Utils = require('./utils.js');
 	},
 
 	_buildIndentMark: function (treeHeight){
-		var indent = "<em class='pg_tree_indent'></em>";
+		var indent = "<em class='pg_ontology_tree_indent'></em>";
 
 		if (treeHeight === 0) {
 			return indent;
 		}
 
 		for (var i = 1; i < treeHeight; i++){
-			indent += "<em class='pg_tree_indent'></em>";
+			indent += "<em class='pg_ontology_tree_indent'></em>";
 		}
 			 
 		return indent + '&#8627'; // HTML entity - Joe
