@@ -1643,7 +1643,9 @@ var Utils = require('./utils.js');
 				.text(function (d, i){return targetGroupList[i];})
 				.attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
 		} else {
-			var widthPerTargetGroup = this._gridWidth()/targetGroupList.length;
+			var self = this;
+            
+            var widthPerTargetGroup = this._gridWidth()/targetGroupList.length;
 
 			this.state.svg.selectAll(".pg_targetGroup_name")
 				.data(targetGroupList)
@@ -1654,8 +1656,14 @@ var Utils = require('./utils.js');
 					})
 				.attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
 				.attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-				.text(function (d, i){return targetGroupList[i];})
-				.attr("text-anchor", "start"); // Based on the rotated divider line
+				.text(function(d, i){return targetGroupList[i];})
+				.attr("text-anchor", function() {
+                    if (self._isCrossComparisonView()) {
+                        return 'start'; // Try to align with the rotated divider lines for cross-target comparison
+                    } else {
+                        return 'middle'; // Position the label in middle for single species
+                    }
+                }); 
 		}
 	},
 	
@@ -2618,7 +2626,7 @@ var Utils = require('./utils.js');
 	},
 
 	_isCrossComparisonView: function() {
-		if (this.state.selectedCompareTargetGroup.length == 1) {
+		if (this.state.selectedCompareTargetGroup.length === 1) {
 			return false;
 		}
 		return true;
