@@ -319,6 +319,9 @@ border-style: solid;
 border-width: medium;
 }
 
+#pg_container  .pg_hide {
+display:none;
+}
 
 
 

@@ -422,6 +422,9 @@ var Utils = require('./utils.js');
                 // then format and append them to the pg_unmatched_list div - Joe
                 this._formatUnmatchedSources(this.state.unmatchedSources);
             }
+            
+            // For exported phenogrid SVG, hide by default
+            this._createMonarchInitiativeText();
 		} else {
 			var msg = "There are no results available.";
 			this._createPhenogridContainer();
@@ -1931,6 +1934,8 @@ var Utils = require('./utils.js');
             var svgElementClone = $('#pg_svg').clone(); // clone the svg to manipulate
             svgElementClone.find('#pg_logo').remove(); // remove logo
             svgElementClone.find('#pg_scores_tip_icon').remove(); // remove fontawesome icon
+            svgElementClone.find('#pg_monarchinitiative_text').removeClass('pg_hide'); // Show text in exported SVG
+            
             var svgStr = '<svg xmlns="http://www.w3.org/2000/svg">' + svgElementClone.html() + '</svg>';
             // The standard W3C File API Blob interface is not available in all browsers. 
             // Blob.js is a cross-browser Blob implementation that solves this.
@@ -1952,6 +1957,18 @@ var Utils = require('./utils.js');
 		});
 	},
 
+    // To be used for exported phenogrid SVG, hide this by default
+    _createMonarchInitiativeText: function() {
+        this.state.svg.append("text")
+			.attr("x", this.state.gridRegion.x + this._gridWidth()/2)
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 60) // 60 is margin
+			.attr("id", "pg_monarchinitiative_text")
+			.attr('class', 'pg_hide') // Only show this text in exported SVG of Phenogrid 
+            .attr('text-anchor', 'middle')
+            .style('font-size', '11px')
+			.text('monarchinitiative.org');
+    },
+    
 	// Position the control panel when the gridRegion changes
 	_positionPhenogridControls: function(){
 		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
