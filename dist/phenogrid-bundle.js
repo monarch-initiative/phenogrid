@@ -2755,7 +2755,7 @@ var Utils = require('./utils.js');
 	// Positioned next to the grid region bottom
 	_addLogoImage: function() { 
 		this.state.svg.append("svg:image")
-			.attr("xlink:href", this.state.imagePath + "logo.png")
+			.attr("xlink:href", this.state.imagePath + "logo.svg")
 			.attr("x", this.state.logo.x)
 			.attr("y", this.state.logo.y)
 			.attr("id", "pg_logo")
