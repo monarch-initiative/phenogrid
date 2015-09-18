@@ -282,17 +282,17 @@ overflow:hidden;
 word-break:normal;
 }
 
-#pg_container  .pg_expandHPO{
+.pg_expand_ontology{
 text-decoration: underline;
 color:#DC4945;
 cursor:pointer;
 }
 
-#pg_container  .pg_HPO_icon{
+.pg_expand_ontology_icon{
 margin-left:2px;
 }
 
-#pg_container  em.pg_tree_indent{
+em.pg_ontology_tree_indent{
 width:12px;
 float:left;
 display:inline-block;
