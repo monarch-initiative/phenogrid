@@ -100,105 +100,101 @@ var Utils = require('./utils.js');
 	// Later can be called using $().phenogrid(); - Joe
 	// Widget factory API documentation https://api.jqueryui.com/jquery.widget/ - Joe
 	$.widget("ui.phenogrid", {
-		// core commit. Not changeable by options. 
-		// merged into this.state - Joe
-		// only used twice, one of them is for config.h, which according to the comments, h should be elimiated - Joe
-		// so we can just use one variable for all configs to contain everything in congig and internalOptions - Joe		
-	config: {		
-		imagePath: 'image/',
-		htmlPath: 'js/res/',		
-		colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
-		colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
-				'rgb(237,248,177)',
-				'rgb(199,233,180)',
-				'rgb(127,205,187)',
-				'rgb(65,182,196)', 
-				'rgb(29,145,192)',
-				'rgb(34,94,168)'
-			], // stop colors for corresponding stop points - Joe
-		emptySvgY: 200,
-		overviewCount: 3,
-		colStartingPos: 10,
-		detailRectWidth: 300,
-		detailRectHeight: 140,
-		detailRectStrokeWidth: 1,
-		navigator: {x:112, y: 65, size:110, reducedSize: 50, miniCellSize: 2},// controls the navigator mapview - Joe
-		logo: {x: 80, y: 25, width: 26, height: 13},
-		minHeight: 310,
-		h : 578,	// [vaa12] this number could/should be eliminated.  updateAxis sets it dynamically as it should be
-		m :[ 30, 10, 10, 10 ],
-		unmatchedButtonLabel: 'UNMATCHED PHENOTYPES',
-        gridTitle: 'Phenotype Similarity Comparison',
-        phenotypeSort: ["Alphabetic", "Frequency and Rarity", "Frequency" ],
-		similarityCalculation: [{label: "Similarity", calc: 0, high: "Max", low: "Min"}, 
-			{label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"}, 
-			{label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"} , 
-			{label: "Uniqueness", calc: 2, high: "Highest", low: "Lowest"}],
-		smallestModelWidth: 400,
-		textLength: 34,
-		textWidth: 200,
-		w : 720,
-		headerAreaHeight: 160,
-		comparisonTypes: [ { organism: "Homo sapiens", comparison: "diseases"}],
-		defaultComparisonType: { comparison: "genes"},
-		targetGroupLabels: [ { abbrev: "HP", label: "Human"},
-			{ abbrev: "MP", label: "Mouse"},
-			{ abbrev: "ZFIN", label: "Zebrafish"},
-			{ abbrev: "ZP", label: "Zebrafish"},
-			{ abbrev: "FB", label: "Fly"},
-			{ abbrev: "GO", label: "Gene Ontology"},
-			{ abbrev: "UDPICS", label: "UDP Patients"}],
-		labelCharDisplayCount : 20,
-		apiEntityMap: [ {prefix: "HP", apifragment: "disease"},
-			{prefix: "OMIM", apifragment: "disease"}, 
-			{prefix: "ZFIN", apifragment: "gene"}, 			
-			{prefix: "MGI", apifragment: "gene"}],
-		defaultApiEntity: "gene",
-		tooltips: {},
-		widthOfSingleCell: 18,
-		heightOfSingleCell: 13,    
-		yoffsetOver: 30,
-		xOffsetOver: 20,
-		baseYOffset: 150,
-		invertAxis: false,
-		dummyModelName: "dummy",
-		simServerURL: "",  // URL of the server for similarity searches
-		selectedCompareTargetGroup: [],
-		gridRegion: {x:254, y:200, // origin coordinates for grid region (matrix)
-						ypad:13, xpad:15, // x/y padding between the labels and grid
-						cellwd:10, cellht:10, // // cell width and height
-						rowLabelOffset:-25, // offset of the row label (left side)
-						colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
-						scoreOffset:5,  // score text offset from the top of grid squares
-						targetGroupLabelOffset: -200    // -100offset of the targetGroup label, above grid
-					},
-		defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
-		defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
-		defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per organisms to be displayed in cross compare mode
-		gradientRegion: {x:254, y:620, height:10} // width will be calculated - Joe
-	},
+	    // Public API, can be overwritten in Phenogrid constructor
+        config: {		
+            serverURL: "http://monarchinitiative.org",
+            selectedCalculation: 0,
+            invertAxis: false,
+            selectedSort: "Frequency",
+            targetGroupList: [
+                {name: "Homo sapiens", taxon: "9606",crossComparisonView: true, active: true},
+                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+            ]
+        },
 
-	internalOptions: {
-		/// good - legit options
-		serverURL: "http://monarchinitiative.org", // not using beta since monarch release - Joe
-		simServerURL: "",  // URL of the server for similarity searches
-		simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",
-		selectedCalculation: 0,
-		ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
-		ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
-		ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
-							// [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
-		selectedSort: "Frequency",
-		genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid
-	    providedData: {},   
-	    axisFlipConfig: {
-		colorSelector: { true: "source_id", false: "target_id"}   //{ true: "yID", false: "xID"}
-	    }
-	},
+        // Supposed to be used by developers for deeper customization
+        // can not be overwritten from constructor
+        internalOptions: {
+            imagePath: 'image/',
+            htmlPath: 'js/res/',	
+            simServerURL: "",  // URL of the server for similarity searches
+            simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",    
+            unmatchedButtonLabel: 'UNMATCHED PHENOTYPES',
+            gridTitle: 'Phenotype Similarity Comparison',       
+            defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
+            defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
+            defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per organisms to be displayed in cross compare mode  
+            labelCharDisplayCount : 20,
+            ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
+            ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
+            ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
+                                // [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
+            genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
+            colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
+            colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
+                'rgb(237,248,177)',
+                'rgb(199,233,180)',
+                'rgb(127,205,187)',
+                'rgb(65,182,196)', 
+                'rgb(29,145,192)',
+                'rgb(34,94,168)'
+            ], // stop colors for corresponding stop points - Joe
+            navigator: {
+                x:112, 
+                y: 65, 
+                size:110, 
+                reducedSize: 50, 
+                miniCellSize: 2
+            },// controls the navigator mapview - Joe
+            logo: {
+                x: 80, 
+                y: 25, 
+                width: 26, 
+                height: 13
+            },
+            gridRegion: {
+                x:254, 
+                y:200, // origin coordinates for grid region (matrix)
+                ypad:13, // x distance from the first cell to the next cell
+                xpad:15, // y distance from the first cell to the next cell
+                cellwd:10, 
+                cellht:10, // // cell width and height
+                rowLabelOffset:-25, // offset of the row label (left side)
+                colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
+                scoreOffset:5  // score text offset from the top of grid squares
+            },
+            gradientRegion: {
+                x:254, 
+                y:620, 
+                height:10
+            }, // width will be calculated - Joe
+            phenotypeSort: [
+                "Alphabetic", 
+                "Frequency and Rarity", 
+                "Frequency" 
+            ],
+            similarityCalculation: [
+                {label: "Similarity", calc: 0, high: "Max", low: "Min"}, 
+                {label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"}, 
+                {label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"} , 
+                {label: "Uniqueness", calc: 2, high: "Highest", low: "Lowest"}],
+            comparisonTypes: [ 
+                {organism: "Homo sapiens", comparison: "diseases"}
+            ],
+            defaultComparisonType: {comparison: "genes"},
+            apiEntityMap: [ 
+                {prefix: "HP", apifragment: "disease"},
+                {prefix: "OMIM", apifragment: "disease"}, 
+                {prefix: "ZFIN", apifragment: "gene"}, 			
+                {prefix: "MGI", apifragment: "gene"}
+            ]
+        },
 
-	// NOTE: I'm not too sure what the default init() method signature should be given an imageDiv and phenotype_data list
+
 	/*
-	 * imageDiv - the place you want the widget to appear
 	 * phenotype_data - a list of phenotypes in the following format:
 	 * [ {"id": "HP:12345", "observed" :"positive"}, {"id: "HP:23451", "observed" : "negative"},]
 	 * or simply a list of IDs.
@@ -217,12 +213,7 @@ var Utils = require('./utils.js');
 		}
 		this.state.data = {};
 
-		// will this work?
-		this.configoptions = undefined;
-
 		this._createTargetGroupIndices();
-
-		this._reset();
 	},
 
 	
@@ -239,8 +230,10 @@ var Utils = require('./utils.js');
 		this.state.selectedCompareTargetGroup = [];
 		var targetGroupLoadList = [];
 
+        this.state.tooltips = {}; // Holds the FAQ popups
+        
 		// load the default selected target targetGroup list based on the active flag
-		for(var idx in this.state.targetGroupList) {
+		for (var idx in this.state.targetGroupList) {
 			// for active targetGroup pre-load them
 			if (this.state.targetGroupList[idx].active) {
 				targetGroupLoadList.push(this.state.targetGroupList[idx]);	
@@ -422,6 +415,9 @@ var Utils = require('./utils.js');
                 // then format and append them to the pg_unmatched_list div - Joe
                 this._formatUnmatchedSources(this.state.unmatchedSources);
             }
+            
+            // For exported phenogrid SVG, hide by default
+            this._createMonarchInitiativeText();
 		} else {
 			var msg = "There are no results available.";
 			this._createPhenogridContainer();
@@ -764,19 +760,6 @@ var Utils = require('./utils.js');
 
 	},
 
-	_highlightColumn: function() {
-		// create the related model rectangles
-		var highlight_rect = self.state.svg.append("svg:rect")
-				.attr("transform","translate(" + (self.state.textWidth + self.state.xOffsetOver + 34.5) + "," + self.state.yoffsetOver + ")")
-				.attr("x", function(d) {
-					return (self.state.xScale(data) - 1);
-				})
-				.attr("y", self.state.yoffset + 3)
-				.attr("class", "pg_col_accent")
-				.attr("width", 15 * appearanceOverrides.offset)
-				.attr("height", (displayCount * self.state.heightOfSingleModel));
-	},
-
 	_gridWidth: function() {
         var gridRegion = this.state.gridRegion; 
         var gridWidth = (gridRegion.xpad * this.state.xAxisRender.displayLength()) - (gridRegion.xpad - gridRegion.cellwd);
@@ -878,9 +861,6 @@ var Utils = require('./utils.js');
 					$("#return").remove();
 					$("#errmsg").remove();
 					d3.select("#pg_svg_group").remove();
-
-					//self._reset();
-					//self.state.currentTargetGroupName = "Overview";
 					self._init();
 				});
 		}else{
@@ -945,8 +925,6 @@ var Utils = require('./utils.js');
 		overviewX++;	// Corrects the gapping on the sides
 		overviewY++;
 		var cellRectTransform = "translate(" + overviewX +	"," + overviewY + ")";
-
-	    var colorSelector = this.state.axisFlipConfig.colorSelector[this.state.invertAxis];
 
 		cell_rects.enter()
 			.append("rect")
@@ -1078,7 +1056,7 @@ var Utils = require('./utils.js');
 			.attr("id", "pg_scores_tip_icon")
 			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
 			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
-			.on("click", function(d) {
+			.on("click", function() {
 				self._showDialog("modelscores");
 			});
 	},
@@ -1144,18 +1122,6 @@ var Utils = require('./utils.js');
 		return label;
 	}, 
 
-	// _setComparisonType: function(){
-	// 	var comp = this.state.defaultComparisonType;
-	// 	for (var i in this.state.comparisonTypes) {
-	// 		if ( ! this.state.comparisonTypes.hasOwnProperty(i)) {
-	// 				break;
-	// 			}
-	// 		if (this.state.currentTargetGroupName === this.state.comparisonTypes[i].organism) {
-	// 			comp = this.state.comparisonTypes[i];
-	// 		}
-	// 	}
-	// 	this.state.comparisonType = comp;
-	// },
 
 	_setSelectedCalculation: function(calc) {
 		var self = this;
@@ -1667,7 +1633,9 @@ var Utils = require('./utils.js');
 		}
 	},
 	
-	// we might want to modify this to do a dynamic http retrieval to grab the dialog components...
+	// Google chrome disallows the access to local files cia ajax call, 
+    // so you may find out that the FAQ popup dialog won't show the content 
+    // if you open index.html in the file:/// format
 	_showDialog: function(name){
 		var self = this;
 		var url = this._getResourceUrl(name,'html');
@@ -1689,7 +1657,7 @@ var Utils = require('./utils.js');
 		}
 	},
 
-	_populateDialog: function(self,name,text) {
+	_populateDialog: function(self, name, text) {
 		var SplitText = "Title";
 		var $dialog = $('<div></div>')
 			.html(SplitText )
@@ -1931,6 +1899,8 @@ var Utils = require('./utils.js');
             var svgElementClone = $('#pg_svg').clone(); // clone the svg to manipulate
             svgElementClone.find('#pg_logo').remove(); // remove logo
             svgElementClone.find('#pg_scores_tip_icon').remove(); // remove fontawesome icon
+            svgElementClone.find('#pg_monarchinitiative_text').removeClass('pg_hide'); // Show text in exported SVG
+            
             var svgStr = '<svg xmlns="http://www.w3.org/2000/svg">' + svgElementClone.html() + '</svg>';
             // The standard W3C File API Blob interface is not available in all browsers. 
             // Blob.js is a cross-browser Blob implementation that solves this.
@@ -1952,6 +1922,18 @@ var Utils = require('./utils.js');
 		});
 	},
 
+    // To be used for exported phenogrid SVG, hide this by default
+    _createMonarchInitiativeText: function() {
+        this.state.svg.append("text")
+			.attr("x", this.state.gridRegion.x + this._gridWidth()/2)
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 60) // 60 is margin
+			.attr("id", "pg_monarchinitiative_text")
+			.attr('class', 'pg_hide') // Only show this text in exported SVG of Phenogrid 
+            .attr('text-anchor', 'middle')
+            .style('font-size', '11px')
+			.text('monarchinitiative.org');
+    },
+    
 	// Position the control panel when the gridRegion changes
 	_positionPhenogridControls: function(){
 		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
@@ -2505,19 +2487,6 @@ var Utils = require('./utils.js');
 		stickytooltip.closetooltip();
 	},
 
-		/*
-	 reset state values that must be cleared before reloading data
-	*/
-	// MKD: MAYBE GET RID OF THIS
-	_reset: function(type) {
-
-		// target targetGroup name might be provided as a name or as taxon. Make sure that we translate to name
-		this.state.currentTargetGroupName = this._getTargetGroupNameByTaxon(this,this.state.currentTargetGroupName);
-
-		this.state.yAxisMax = 0;
-		this.state.yoffset = this.state.baseYOffset;
-		this.state.h = this.config.h;
-	},
 
 	_isTargetGroupSelected: function(self, name) {
 		for (var i in self.state.selectedCompareTargetGroup) {
