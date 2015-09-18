@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/monarch-initiative/phenogrid.svg?branch=refact-md)](https://travis-ci.org/monarch-initiative/phenogrid)
+[![Build Status](https://travis-ci.org/monarch-initiative/phenogrid.svg)](https://travis-ci.org/monarch-initiative/phenogrid)
 
 # About Phenogrid
 
