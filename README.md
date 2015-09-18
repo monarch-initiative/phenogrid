@@ -196,13 +196,22 @@ This URL should be pointed to the OWLSim URL server associated with your install
 It is a Javascript array of objects listing the phenotypes to be rendered in the widget.
 
 
-## `targetSpecies`  string | optional
+## `targetGroupList`  array | optional
 
-This parameter defaults to 10090 (mus musculus). Change this parameter if you want to compare the phenotypes in the phenotypeData parameter against a different species. Available Species:
-- Name: Homo sapiens Taxon: 9606
-- Name: Dani rerio Taxon: 7955
-- Name: Drosophila melanogaster Taxon: 7227
+This option allows you to specify the set of target groups (i.e., species) that will be visible throughout Phenogrid. There are two parameters which allow you to control whether a target group is displayed as a default in the multi-target comparison view, `crossComparisonView` and whether it should be active, `active` fully visible within phenogrid. If `crossComparisonView = true`, for example, the target group will be visible as a default within the multi-target comparison view. For example, by default the following targets will be visible upon loading phenogrid (active must be set to true):
 
+```
+   {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
+   {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
+   {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
+```
+
+The `active` parameter can override other parameters, but activating or deactivating a target group. For example, if the `active = false`, then the target group is not active within phenogrid and is not shown in comparison nor is a selectable item from the menus. This is useful, if that target group should hidden within phenogrid. Fro example, the following are not active:
+
+```
+  {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
+  {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+```
 
 # Testing and further configuration
 
