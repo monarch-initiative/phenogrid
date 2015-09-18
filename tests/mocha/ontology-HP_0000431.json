@@ -1,0 +1,1376 @@
+{
+  "nodes": [
+    {
+      "id": "UBERON:0002268PHENOTYPE",
+      "lbl": "main olfactory organ phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "main olfactory organ phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0002268PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "HP:0000001",
+      "lbl": "All",
+      "meta": {
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#comment": [
+          "Root of all terms in the Human Phenotype Ontology."
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "All"
+        ],
+        "types": [
+          "Class"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000001"
+        ],
+        "fragment": [
+          "HP_0000001"
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0000033PHENOTYPE",
+      "lbl": "head phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "head phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0000033PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "HP:0000271",
+      "lbl": "Abnormality of the face",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "An abnormality of the face."
+        ],
+        "synonym": [
+          "Abnormal face"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "Abnormal face"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Abnormality of the face"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://purl.obolibrary.org/obo/HP_0040005": [
+          "An abnormality of the `face` (FMA:24728)."
+        ],
+        "fragment": [
+          "HP_0000271"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000271"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "An abnormality of the face."
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0013701PHENOTYPE",
+      "lbl": "main body axis phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "main body axis phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0013701PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "MP:0003743",
+      "lbl": "abnormal facial morphology",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "any structural anomaly of the face"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "MPheno.ontology"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "abnormal facial morphology"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "MP:0003743"
+        ],
+        "fragment": [
+          "MP_0003743"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "any structural anomaly of the face"
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0007811PHENOTYPE",
+      "lbl": "craniocervical region phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "craniocervical region phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0007811PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "HP:0000152",
+      "lbl": "Abnormality of head or neck",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "An abnormality of head and neck."
+        ],
+        "synonym": [
+          "Head and neck abnormality"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "Head and neck abnormality"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Abnormality of head or neck"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://purl.obolibrary.org/obo/HP_0040005": [
+          "An abnormality of `head and neck` (FMA:280881)."
+        ],
+        "fragment": [
+          "HP_0000152"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000152"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "An abnormality of head and neck."
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0006333PHENOTYPE",
+      "lbl": "snout phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "snout phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0006333PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0001032PHENOTYPE",
+      "lbl": "sensory system phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "sensory system phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0001032PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "MP:0000443",
+      "lbl": "abnormal snout morphology",
+      "meta": {
+        "definition": [
+          "any structural anomaly of the anterior facial part of the face or muzzle containing the oral and nasal regions"
+        ],
+        "synonym": [
+          "abnormal nose shape",
+          "snout dysplasia",
+          "snout abnormalities",
+          "abnormal snout shape",
+          "abnormal snout",
+          "abnormal muzzle morphology",
+          "snout shape abnormalities"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "MPheno.ontology"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "abnormal snout morphology"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId": [
+          "MP:0000444"
+        ],
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym": [
+          "snout dysplasia",
+          "snout abnormalities",
+          "abnormal snout",
+          "abnormal muzzle morphology"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#comment": [
+          "The term muzzle has multiple meanings and can be ambiguous. It has been added as a broad synonym, and in this case, refers both to the protruding part of the face seen in many animal species."
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym": [
+          "abnormal nose shape",
+          "abnormal snout shape",
+          "snout shape abnormalities"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "MP:0000443"
+        ],
+        "fragment": [
+          "MP_0000443"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "any structural anomaly of the anterior facial part of the face or muzzle containing the oral and nasal regions"
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0004456PHENOTYPE",
+      "lbl": "entire sense organ system phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "entire sense organ system phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0004456PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "MP:0000428",
+      "lbl": "abnormal craniofacial morphology",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "any structural anomaly of the face or head affecting appearance"
+        ],
+        "synonym": [
+          "craniofacial defects",
+          "craniofacial dysplasia",
+          "craniofacial abnormalities"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "craniofacial dysplasia"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym": [
+          "craniofacial defects",
+          "craniofacial abnormalities"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "MPheno.ontology"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "abnormal craniofacial morphology"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "MP_0000428"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "MP:0000428"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "any structural anomaly of the face or head affecting appearance"
+        ]
+      }
+    },
+    {
+      "id": "http://www.w3.org/2002/07/owl#Thing",
+      "lbl": null,
+      "meta": {
+        "types": [
+          "Class"
+        ],
+        "fragment": [
+          "Thing"
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0000153PHENOTYPE",
+      "lbl": "anterior region of body phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "anterior region of body phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0000153PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "HP:0000431",
+      "lbl": "Wide nasal bridge",
+      "meta": {
+        "definition": [
+          "Increased breadth of the nasal bridge (and with it, the nasal root)."
+        ],
+        "synonym": [
+          "Broad nasal bridge",
+          "Broad nasal root",
+          "BROAD FLAT NASAL BRIDGE",
+          "Nasal bridge broad",
+          "Widened nasal bridge",
+          "Broadened nasal bridge"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "Broad nasal bridge",
+          "Broad nasal root",
+          "Nasal bridge broad",
+          "Widened nasal bridge",
+          "Broadened nasal bridge"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Wide nasal bridge"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId": [
+          "HP:0000424",
+          "HP:0200139",
+          "HP:0004500",
+          "HP:0004504",
+          "HP:0004650"
+        ],
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym": [
+          "BROAD FLAT NASAL BRIDGE"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasDbXref": [
+          "UMLS:C1864688",
+          "UMLS:C1866488"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#comment": [
+          "Care should be taken to distinguish between increased width of bone and Fullness of paranasal tissue. A wide nasal bridge should be distinguished from Telecanthus and Hypertelorism. A wide nasal bridge can be either prominent or depressed, which should be coded separately."
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000431"
+        ],
+        "fragment": [
+          "HP_0000431"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "Increased breadth of the nasal bridge (and with it, the nasal root)."
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0008340PHENOTYPE",
+      "lbl": "nasal bridge phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "nasal bridge phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0008340PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "HP:0000118",
+      "lbl": "Phenotypic abnormality",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "A phenotypic abnormality."
+        ],
+        "synonym": [
+          "Organ abnormality"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "Organ abnormality"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#comment": [
+          "This is the root of the phenotypic abnormality subontology of the HPO."
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Phenotypic abnormality"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "HP_0000118"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000118"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "A phenotypic abnormality."
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0000020PHENOTYPE",
+      "lbl": "sense organ phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "sense organ phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0000020PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "OBO:UPHENO_0001001",
+      "lbl": "Phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UPHENO_0001001"
+        ]
+      }
+    },
+    {
+      "id": "HP:0001999",
+      "lbl": "Abnormal facial shape",
+      "meta": {
+        "definition": [
+          "An abnormal morphology (form) of the face or its components."
+        ],
+        "synonym": [
+          "Unusual facial appearance",
+          "Unusual facies",
+          "Distinctive facies",
+          "Craniofacial dysmorphism",
+          "Dysmorphic facies",
+          "Dysmorphic facial features",
+          "Craniofacial abnormalities",
+          "Facial dysmorphism"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "Unusual facial appearance",
+          "Unusual facies",
+          "Distinctive facies",
+          "Craniofacial dysmorphism",
+          "Dysmorphic facies",
+          "Dysmorphic facial features",
+          "Facial dysmorphism"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Abnormal facial shape"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId": [
+          "HP:0004649",
+          "HP:0002260",
+          "HP:0004675",
+          "HP:0004655",
+          "HP:0005124",
+          "HP:0002004",
+          "HP:0004652",
+          "HP:0004643"
+        ],
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym": [
+          "Craniofacial abnormalities"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasDbXref": [
+          "UMLS:C0266617"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#comment": [
+          "This term now covers many of the historical inexact descriptions such as Bird-like facies that probably should be avoided in modern genetics. This portion of the Ontology should be revised."
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0001999"
+        ],
+        "fragment": [
+          "HP_0001999"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "An abnormal morphology (form) of the face or its components."
+        ]
+      }
+    },
+    {
+      "id": "HP:0000422",
+      "lbl": "Abnormality of the nasal bridge",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "Abnormality of the nasal bridge, which is the saddle-shaped area that includes the nasal root and the lateral aspects of the nose. It lies between the glabella and the inferior boundary of the nasal bone, and extends laterally to the inner canthi."
+        ],
+        "synonym": [
+          "Abnormality of the nasal root"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "Abnormality of the nasal root"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#comment": [
+          "The nasal root is the most depressed, superior part of the nose along the nasal ridge."
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Abnormality of the nasal bridge"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "HP_0000422"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000422"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId": [
+          "HP:0000423"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "Abnormality of the nasal bridge, which is the saddle-shaped area that includes the nasal root and the lateral aspects of the nose. It lies between the glabella and the inferior boundary of the nasal bone, and extends laterally to the inner canthi."
+        ]
+      }
+    },
+    {
+      "id": "MP:0005382",
+      "lbl": "craniofacial phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "MPheno.ontology"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "craniofacial phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "MP:0005382"
+        ],
+        "fragment": [
+          "MP_0005382"
+        ]
+      }
+    },
+    {
+      "id": "OBO:UPHENO_0001002",
+      "lbl": "abnormal phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "abnormal phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UPHENO_0001002"
+        ]
+      }
+    },
+    {
+      "id": "MP:0000001",
+      "lbl": "mammalian phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "the observable morphological, physiological, behavioral and other characteristics of mammalian organisms that are manifested through development and lifespan"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "MPheno.ontology"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "mammalian phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "MP:0000001"
+        ],
+        "fragment": [
+          "MP_0000001"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "the observable morphological, physiological, behavioral and other characteristics of mammalian organisms that are manifested through development and lifespan"
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0004089PHENOTYPE",
+      "lbl": "midface phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "midface phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0004089PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0000004PHENOTYPE",
+      "lbl": "olfactory apparatus phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "olfactory apparatus phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0000004PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "MP:0005378",
+      "lbl": "growth/size/body region phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "MPheno.ontology"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "growth/size/body region phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "MP:0005378"
+        ],
+        "fragment": [
+          "MP_0005378"
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0004121PHENOTYPE",
+      "lbl": "ectoderm-derived structure phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "ectoderm-derived structure phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0004121PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "MP:0000432",
+      "lbl": "abnormal head morphology",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "any structural anomaly of the portion of the body containing the brain and organs of sight, hearing, taste, and smell"
+        ],
+        "synonym": [
+          "head abnormalities"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasBroadSynonym": [
+          "head abnormalities"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "MPheno.ontology"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "abnormal head morphology"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "MP_0000432"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "MP:0000432"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "any structural anomaly of the portion of the body containing the brain and organs of sight, hearing, taste, and smell"
+        ]
+      }
+    },
+    {
+      "id": "HP:0000366",
+      "lbl": "Abnormality of the nose",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "An abnormality of the nose."
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Abnormality of the nose"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://purl.obolibrary.org/obo/HP_0040005": [
+          "An abnormality of the `nose` (FMA:46472)."
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000366"
+        ],
+        "fragment": [
+          "HP_0000366"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "An abnormality of the nose."
+        ]
+      }
+    },
+    {
+      "id": "HP:0000309",
+      "lbl": "Abnormality of the midface",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "An anomaly of the midface, which is a region and not an anatomical term. It extends, superiorly, from the inferior orbital margin to, inferiorly, the level of nasal base. It is formed by the maxilla (upper jaw) and zygoma. Traditionally, the nose and premaxilla are not included in the midface."
+        ],
+        "synonym": [
+          "Anomaly of the midface"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "Anomaly of the midface"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Abnormality of the midface"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "HP_0000309"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000309"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "An anomaly of the midface, which is a region and not an anatomical term. It extends, superiorly, from the inferior orbital margin to, inferiorly, the level of nasal base. It is formed by the maxilla (upper jaw) and zygoma. Traditionally, the nose and premaxilla are not included in the midface."
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0013702PHENOTYPE",
+      "lbl": "body proper phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "body proper phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0013702PHENOTYPE"
+        ]
+      }
+    },
+    {
+      "id": "HP:0000234",
+      "lbl": "Abnormality of the head",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "definition": [
+          "An abnormality of the head."
+        ],
+        "synonym": [
+          "Abnormal head",
+          "Head abnormality"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasExactSynonym": [
+          "Abnormal head",
+          "Head abnormality"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#hasOBONamespace": [
+          "human_phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "Abnormality of the head"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "http://purl.obolibrary.org/obo/HP_0040005": [
+          "An abnormality of the `head` (FMA:7154)."
+        ],
+        "fragment": [
+          "HP_0000234"
+        ],
+        "http://www.geneontology.org/formats/oboInOwl#id": [
+          "HP:0000234"
+        ],
+        "http://purl.obolibrary.org/obo/IAO_0000115": [
+          "An abnormality of the head."
+        ]
+      }
+    },
+    {
+      "id": "UBERON:0001456PHENOTYPE",
+      "lbl": "face phenotype",
+      "meta": {
+        "category": [
+          "Phenotype"
+        ],
+        "http://www.w3.org/2000/01/rdf-schema#label": [
+          "face phenotype"
+        ],
+        "types": [
+          "Phenotype",
+          "Class"
+        ],
+        "fragment": [
+          "UBERON_0001456PHENOTYPE"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "sub": "UBERON:0001456PHENOTYPE",
+      "obj": "UBERON:0000033PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000443",
+      "obj": "HP:0000309",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0001999",
+      "obj": "HP:0000271",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0004456PHENOTYPE",
+      "obj": "OBO:UPHENO_0001001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000152",
+      "obj": "OBO:UPHENO_0001002",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000428",
+      "obj": "MP:0005382",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0005378",
+      "obj": "MP:0000001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0000033PHENOTYPE",
+      "obj": "UBERON:0007811PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "OBO:UPHENO_0001002",
+      "obj": "OBO:UPHENO_0001001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0001999",
+      "obj": "MP:0005382",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000431",
+      "obj": "MP:0000443",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000152",
+      "obj": "HP:0000118",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0006333PHENOTYPE",
+      "obj": "UBERON:0004089PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000422",
+      "obj": "UBERON:0008340PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0005382",
+      "obj": "MP:0000001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0002268PHENOTYPE",
+      "obj": "UBERON:0000020PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0000004PHENOTYPE",
+      "obj": "UBERON:0001456PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000443",
+      "obj": "HP:0001999",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000234",
+      "obj": "UBERON:0000033PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000366",
+      "obj": "HP:0000271",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000234",
+      "obj": "MP:0005378",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000422",
+      "obj": "HP:0000366",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000432",
+      "obj": "UBERON:0000033PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000271",
+      "obj": "HP:0000234",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0008340PHENOTYPE",
+      "obj": "UBERON:0006333PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0000004PHENOTYPE",
+      "obj": "UBERON:0004121PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0000020PHENOTYPE",
+      "obj": "UBERON:0001032PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000234",
+      "obj": "HP:0000152",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000271",
+      "obj": "UBERON:0001456PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000309",
+      "obj": "HP:0000271",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0005382",
+      "obj": "HP:0000152",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000001",
+      "obj": "http://www.w3.org/2002/07/owl#Thing",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0008340PHENOTYPE",
+      "obj": "UBERON:0000004PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0007811PHENOTYPE",
+      "obj": "UBERON:0000153PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000443",
+      "obj": "MP:0000428",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000443",
+      "obj": "MP:0003743",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0004121PHENOTYPE",
+      "obj": "OBO:UPHENO_0001001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000428",
+      "obj": "HP:0000271",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0007811PHENOTYPE",
+      "obj": "UBERON:0013702PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000118",
+      "obj": "HP:0000001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0013701PHENOTYPE",
+      "obj": "OBO:UPHENO_0001001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0000004PHENOTYPE",
+      "obj": "UBERON:0002268PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000271",
+      "obj": "MP:0000432",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000001",
+      "obj": "OBO:UPHENO_0001001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0004089PHENOTYPE",
+      "obj": "UBERON:0001456PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0003743",
+      "obj": "HP:0000271",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000118",
+      "obj": "OBO:UPHENO_0001001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0000153PHENOTYPE",
+      "obj": "OBO:UPHENO_0001001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "OBO:UPHENO_0001002",
+      "obj": "HP:0000001",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "OBO:UPHENO_0001001",
+      "obj": "http://www.w3.org/2002/07/owl#Thing",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000431",
+      "obj": "HP:0000422",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000309",
+      "obj": "UBERON:0004089PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000152",
+      "obj": "UBERON:0007811PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000432",
+      "obj": "HP:0000152",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "HP:0000366",
+      "obj": "UBERON:0000004PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0003743",
+      "obj": "MP:0005382",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "MP:0000432",
+      "obj": "MP:0005378",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0001032PHENOTYPE",
+      "obj": "UBERON:0004456PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    },
+    {
+      "sub": "UBERON:0013702PHENOTYPE",
+      "obj": "UBERON:0013701PHENOTYPE",
+      "pred": "subClassOf",
+      "meta": {}
+    }
+  ]
+}

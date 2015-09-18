@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -11,12 +10,12 @@
 
 <script>
 var phenotypes = [
+    {id:"HP:0000726", observed:"positive"},
     {id:"HP:0000746", observed:"positive"},
     {id:"HP:0001300", observed:"positive"},
     {id:"HP:0002367", observed:"positive"},
     {id:"HP:0000012", observed:"positive"},
     {id:"HP:0000716", observed:"positive"},
-    {id:"HP:0000726", observed:"positive"},
     {id:"HP:0000739", observed:"positive"},
     {id:"HP:0001332", observed:"positive"},
     {id:"HP:0001347", observed:"positive"},
@@ -24,14 +23,74 @@ var phenotypes = [
     {id:"HP:0002067", observed:"positive"},
     {id:"HP:0002172", observed:"positive"},
     {id:"HP:0002322", observed:"positive"},
-    {id:"HP:0007159", observed:"positive"}
+    {id:"HP:0007159", observed:"positive"},
+    {id:"HP:0009466", observed:"positive"},
+    {id:"HP:0001972", observed:"positive"},
+    {id:"HP:0003502", observed:"positive"},
+    {id:"HP:0005190", observed:"positive"},
+    {id:"HP:0001763", observed:"positive"},
+    {id:"HP:0003318", observed:"positive"},
+    {id:"HP:0001371", observed:"positive"},
+    {id:"HP:0001380", observed:"positive"},
+    {id:"HP:0001394", observed:"positive"},
+    {id:"HP:0001156", observed:"positive"},
+    {id:"HP:0001159", observed:"positive"},
+    {id:"HP:0001004", observed:"positive"},
+    {id:"HP:0010886", observed:"positive"},
+    {id:"HP:0006530", observed:"positive"},
+    {id:"HP:0004792", observed:"positive"},
+    {id:"HP:0002816", observed:"positive"},
+    {id:"HP:0000954", observed:"positive"},
+    {id:"HP:0000974", observed:"positive"},
+    {id:"HP:0000765", observed:"positive"},
+    {id:"HP:0000602", observed:"positive"},
+    {id:"HP:0002240", observed:"positive"},
+    {id:"HP:0030084", observed:"positive"},
+    {id:"HP:0000049", observed:"positive"},
+    {id:"HP:0000028", observed:"positive"},
+    {id:"HP:0000175", observed:"positive"},
+    {id:"HP:0000204", observed:"positive"},
+    {id:"HP:0000202", observed:"positive"},
+    {id:"HP:0000316", observed:"positive"},
+    {id:"HP:0000343", observed:"positive"},
+    {id:"HP:0000349", observed:"positive"},
+    {id:"HP:0002023", observed:"positive"},
+    {id:"HP:0000327", observed:"positive"},
+    {id:"HP:0002055", observed:"positive"},
+    {id:"HP:0000394", observed:"positive"},
+    {id:"HP:0000463", observed:"positive"},
+    {id:"HP:0000431", observed:"positive"},
+    {id:"HP:0000494", observed:"positive"},
+    {id:"HP:0000484", observed:"positive"},
+    {id:"HP:0000486", observed:"positive"},
+    {id:"HP:0000508", observed:"positive"},
+    {id:"HP:0009748", observed:"positive"},
+    {id:"HP:0007018", observed:"positive"},
+    {id:"HP:0001773", observed:"positive"},
+    {id:"HP:0001769", observed:"positive"},
+    {id:"HP:0003311", observed:"positive"},
+    {id:"HP:0001544", observed:"positive"},
+    {id:"HP:0001508", observed:"positive"},
+    {id:"HP:0003196", observed:"positive"},
+    {id:"HP:0001249", observed:"positive"},
+    {id:"HP:0001187", observed:"positive"},
+    {id:"HP:0001169", observed:"positive"},
+    {id:"HP:0012774", observed:"positive"},
+    {id:"HP:0002650", observed:"positive"}
 ];
+
 
 window.onload = function() {
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
-        serverURL : "http://beta.monarchinitiative.org",
+        serverURL : "http://monarchinitiative.org",
         phenotypeData: phenotypes,
-        targetSpeciesName: "Mus musculus"
+        targetGroupList: [
+            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
+            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
+            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
+            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+       ]
     });
 }
 </script>
@@ -40,12 +99,14 @@ window.onload = function() {
 
 <body>
 
+<div class="pg_index">
+
 <div id="phenogrid_container" class="clearfix"></div>
 
 <link rel="stylesheet" property="stylesheet" href="node_modules/gfm.css/gfm.css">
-
 <div style="padding:1%;margin:1%;border:1px solid lightgray;">
 <article class="markdown-body">
+<p><a href="https://travis-ci.org/monarch-initiative/phenogrid"><img src="https://travis-ci.org/monarch-initiative/phenogrid.svg?branch=refact-md" alt="Build Status"></a></p>
 <h1 id="about-phenogrid">About Phenogrid</h1>
 <p>Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by OWLSim (www.owlsim.org), as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).</p>
 <p>Given an input list of phenotypes (you will see the sample input below) and parameters specified in config/phenogrid_config.js indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.</p>
@@ -89,12 +150,12 @@ sudo apt-get install npm
 
 &lt;script&gt;
 var phenotypes = [
+    {id:&quot;HP:0000726&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0000746&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0001300&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0002367&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0000012&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0000716&quot;, observed:&quot;positive&quot;},
-    {id:&quot;HP:0000726&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0000739&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0001332&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0001347&quot;, observed:&quot;positive&quot;},
@@ -102,14 +163,73 @@ var phenotypes = [
     {id:&quot;HP:0002067&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0002172&quot;, observed:&quot;positive&quot;},
     {id:&quot;HP:0002322&quot;, observed:&quot;positive&quot;},
-    {id:&quot;HP:0007159&quot;, observed:&quot;positive&quot;}
+    {id:&quot;HP:0007159&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0009466&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001972&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0003502&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0005190&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001763&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0003318&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001371&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001380&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001394&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001156&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001159&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001004&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0010886&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0006530&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0004792&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002816&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000954&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000974&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000765&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000602&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002240&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0030084&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000049&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000028&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000175&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000204&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000202&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000316&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000343&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000349&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002023&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000327&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002055&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000394&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000463&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000431&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000494&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000484&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000486&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000508&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0009748&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0007018&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001773&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001769&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0003311&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001544&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001508&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0003196&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001249&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001187&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001169&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0012774&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002650&quot;, observed:&quot;positive&quot;}
 ];
 
 window.onload = function() {
     Phenogrid.createPhenogridForElement(document.getElementById(&#39;phenogrid_container&#39;), {
-        serverURL : &quot;http://beta.monarchinitiative.org&quot;,
+        serverURL : &quot;http://monarchinitiative.org&quot;,
         phenotypeData: phenotypes,
-        targetSpeciesName: &quot;Mus musculus&quot;
+        targetGroupList: [
+            {&quot;name&quot;: &quot;Homo sapiens&quot;, &quot;taxon&quot;: &quot;9606&quot;,&quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
+            {&quot;name&quot;: &quot;Mus musculus&quot;, &quot;taxon&quot;: &quot;10090&quot;, &quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
+            {&quot;name&quot;: &quot;Danio rerio&quot;, &quot;taxon&quot;: &quot;7955&quot;, &quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
+            {&quot;name&quot;: &quot;Drosophila melanogaster&quot;, &quot;taxon&quot;: &quot;7227&quot;, &quot;crossComparisonView&quot;: false, &quot;active&quot;: false},
+            {&quot;name&quot;: &quot;UDPICS&quot;, &quot;taxon&quot;: &quot;UDPICS&quot;, &quot;crossComparisonView&quot;: false, &quot;active&quot;: false}
+       ]
     });
 }
 &lt;/script&gt;
@@ -141,12 +261,12 @@ window.onload = function() {
 <li>Name: Drosophila melanogaster Taxon: 7227</li>
 </ul>
 <h1 id="testing-and-further-configuration">Testing and further configuration</h1>
-<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files via ajax call, so you may find out that the FAQ popup dialog won’t show the content if you open <code>index.html</code> in the <code>file:///</code> format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
+<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files cia ajax call, so you may find out that the FAQ popup dialog won’t show the content if you open <code>index.html</code> in the <code>file:///</code> format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
 <h1 id="web-browser-support">Web Browser Support</h1>
 <p>Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.</p>
 
 </article>
-</div>
+<div/>
 
 </body>
 </html>

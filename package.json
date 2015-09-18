@@ -1,6 +1,6 @@
 {
   "name": "phenogrid",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Monarch PhenoGrid widget",
   "repository": {
     "type": "git",
@@ -20,10 +20,10 @@
   "homepage": "https://github.com/monarch-initiative/phenogrid",
   "dependencies": {
     "d3": "^3.5.5",
+    "filesaver.js": "^0.2.0",
     "gfm.css": "^1.1.1",
     "jquery": "^2.1.4",
     "jquery-ui": "^1.10.5",
-    "jshashtable": "^0.1.0",
     "vinyl-source-stream": "^1.1.0"
   },
   "devDependencies": {
@@ -44,8 +44,9 @@
     "gulp-streamify": "0.0.5",
     "gulp-uglify": "^1.2.0",
     "jshint-stylish": "^2.0.1",
+    "lodash": "^3.10.1",
     "marked": "^0.3.3",
-    "npm": "^2.13.2"
+    "npm": "^2.12.1"
   },
   "main": "js/phenogrid.js"
 }

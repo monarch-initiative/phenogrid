@@ -1,158 +1,229 @@
 /*
 *  Phenogrid related styling
 */
-
-#pg_svg_area{
+/* #pg_container contains SVG (#pg_svg) and HTML (#pg_controls, #pg_unmatched) */
+#pg_container {
+margin:20px 10px;
 position:relative;
+border:1px solid #ddd;
+font-family:Verdana, Geneva, sans-serif;
+font-size:12px;
 }
 
-#pg_gridline {
-fill: #fff;
-fill-opacity: 0;
-stroke: #e5e5e5;
-stroke-width: 1;
+/* SVG tag */
+#pg_container  #pg_svg {
+min-width:980px;
+min-height:780px;
 }
 
-#pg_globalview {
-fill: #fff;
-stroke: #000;
-stroke-width: 2;
+/* HTML options popup */
+#pg_container  #pg_controls {
+position:absolute;
+left:0;
+top:0;
 }
 
-.pg_row_accent,
-.pg_col_accent {
+#pg_container  #pg_controls_options {
+position:absolute;
+width:200px;
+height:434px;
+background:#F1F3F8;
+padding:20px;
+color:#111;
+border:1px solid #222;
+box-shadow: 4px 4px 2px #ddd;
+}
+
+#pg_container  .pg_controls_options_arrow_border{
+display: block;
+position: absolute;
+left: 17px;
+bottom: -16px;
+border-color: #222 transparent transparent transparent;
+border-style: solid;
+border-width: 8px;
+height: 0;
+width: 0;
+}
+
+#pg_container  .pg_controls_options_arrow{
+display: block;
+position: absolute;
+left: 17px;
+bottom: -15px;
+border-color: #F1F3F8 transparent transparent transparent;
+border-style: solid;
+border-width: 8px;
+height: 0;
+width: 0;
+}
+
+#pg_container  #pg_slide_btn{
+position:absolute;
+width:90px;
+font-size:14px;
+color:#44A293;
+}
+
+#pg_container  #pg_slide_btn:hover{
+cursor:pointer;
+color:#EA763B;
+}
+
+#pg_container  .pg_slide_open{
+color:#EA763B !important;
+}
+
+#pg_container  .pg_ctrl_label{
+font-weight:700;
+font-size:12px;
+margin-bottom:3px;
+}
+
+#pg_container  #pg_controls input[type="checkbox"] {
+display:inline-block;
+width:11px;
+height:11px;
+margin:-2px 4px 0 0;
+vertical-align:middle;
+}
+
+#pg_container  #pg_controls input[type="radio"] {
+display:inline-block;
+width:11px;
+height:11px;
+margin:-2px 4px 0 0;
+vertical-align:middle;
+}
+
+#pg_container  .pg_hr{
+clear:both;
+margin:10px 0;
+border-bottom:1px solid #cbcbcb;
+}
+
+#pg_container  #pg_container  .pg_select_item{
+margin:2px 0;
+padding:0;
+}
+
+/* HTML unmatched sources popup */
+#pg_container  #pg_unmatched {
+position:absolute;
+left:0;
+top:0;
+}
+
+#pg_container  #pg_unmatched_list {
+position:absolute;
+left:50px;
+width:200px;
+background:#F1F3F8;
+padding:10px;
+color:#111;
+border:1px solid #222;
+box-shadow: 4px 4px 2px #ddd;
+}
+
+#pg_container  .pg_unmatched_list_item {
+margin:5px 0;
+}
+
+#pg_container  .pg_unmatched_list_arrow_border{
+display: block;
+position: absolute;
+left: 80px;
+top: -16px;
+border-color: transparent transparent #222 transparent;
+border-style: solid;
+border-width: 8px;
+height: 0;
+width: 0;
+}
+
+#pg_container  .pg_unmatched_list_arrow{
+display: block;
+position: absolute;
+left: 80px;
+top: -15px;
+border-color: transparent transparent #F1F3F8 transparent;
+border-style: solid;
+border-width: 8px;
+height: 0;
+width: 0;
+}
+
+#pg_container  #pg_unmatched_btn{
+position:absolute;
+left:29px;
+width:200px;
+text-align:right;
+font-size:14px;
+color:#44A293;
+}
+
+#pg_container  #pg_unmatched_btn:hover{
+cursor:pointer;
+color:#EA763B;
+}
+
+#pg_container  .pg_unmatched_open{
+color:#EA763B !important;
+}
+
+#pg_container  .pg_row_accent,
+#pg_container  .pg_col_accent {
 stroke:#4CA092;
 stroke-width: 2;
 fill: #4CA092;
 fill-opacity: 0.1;
 }
 
-.pg_model_score {
-font-size:10px;
-fill: #8763A3; /* purple */
-}
-
-.pg_model_label,
-.pg_phenotype_label {
-font-size:12px;
-fill: #222;
-}
-
-#pg_selectionrect {
-fill: grey;
-opacity: 0.5;
-cursor:move; /* Cursor for mini map */
-}
-
-.pg_instruct {
-font-size:12px;
-}
-
-.pg_tip {
+#pg_container  .pg_tip {
 width: 80px;
 height:10px;
-font-size:10px;
+font-size:11px;
 }
 
-#pg_toptitle {
-font-size:1.4em;
-font-weight:bold;
-}
-
-/* Phenogrid controls */
-#pg_org_div,
-#pg_sort_div,
-#pg_calc_div,
-#pg_axis_div {
-float: left;
-margin-right:10px;
-}
-
-#pg_org_div {
-width:140px;
-}
-
-#pg_sort_div {
-width:180px;
-}
-
-#pg_calc_div {
-width:120px;
-}
-
-#pg_axis_div {
-width: 120px;
-}
-
-#pg_organism,
-#pg_sortphenotypes,
-#pg_calculation,
-#pg_axisflip {
-margin-top: 5px; 
-width:100%;
-}
-
-label.pg_ctrl_label{
-font-weight:700;
-}
-
-.stickytooltip{
-box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
--webkit-box-shadow: 5px 5px 8px #818181;
--moz-box-shadow: 5px 5px 8px #818181;
-display:none;
-position:absolute;
-display:none;
-border:1px solid #000;
-background:#fff;
-z-index:3000;
-font:10px Arial;
-}
-
-
-.stickytooltip .stickystatus{ /*Style for footer bar within tooltip*/
-background:black;
-color:white;
-padding-top:5px;
-text-align:center;
-font:bold 11px Arial;
-}
-
-#pg_controls {
-margin-left:10px;
-}
-
-#pg_unmatched_phenotypes_container{
-margin-top:10px;
-}
-
-/* Create some spacing between the checkbox and the label */
-#pg_unmatched_checkbox{
-margin-right:5px;
-}
-
-#pg_unmatched_phenotypes ul{
-margin-left: 0;
-padding-left: 0;
-}
-
-#pg_unmatched_phenotypes ul li{
-margin-left:1.8em;
-line-height:1.5;
-font-size:.85em;
-}
-
-.pg_cursor_pointer {
+#pg_container  #pg_scores_tip_icon{
 cursor:pointer;
 }
 
-#pg_svg_container {
-margin-top:40px;
+/* Don't add #pg_container since it's not in it */
+#mystickytooltip {
+position: absolute;
 }
 
-#pg_specieslist {
-font-weight:bold;
-font-size:1.2em;
+#stickyInner {
+box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
+-webkit-box-shadow: 5px 5px 8px #818181;
+-moz-box-shadow: 5px 5px 8px #818181;
+border:1px solid #000;
+background:#fff;
+/*z-index:3000;*/
+font:10px Arial;
+padding: 3px;
+}
+
+/** Overwrite jquery-ui default style */
+.ui-dialog-content {
+font-size:11px;
+font-family: arial;
+color:#000;
+}
+
+#pg_container  .cursor_pointer {
+cursor:pointer;
+}
+
+/* Used for disabled species checkbox */
+#pg_container  .pg_linethrough {
+text-decoration: line-through;
+}
+
+/* Cursor for mini map */
+#pg_container  .pg_draggable{
+cursor:move;
 }
 
 /* clearfix hack http://nicolasgallagher.com/micro-clearfix-hack/ */
@@ -163,27 +234,98 @@ display: table; /* 2 */
 }
 
 .clearfix:after {
+content: " "; /* Older browser do not support empty content */
+visibility: hidden;
+display: block;
+height: 0;
 clear: both;
 }
 
 /* Background color of jquery-ui dialog */
-.pg_faqdialog_bg_color {
+.faqdialog_bg_color {
 background-color: #fff !important;
 }
 
-.pg_expandHPO{
+#pg_container  .pg_active {
+font-family: Verdana, Geneva, sans-serif;              
+font-size: 11px;
+font-weight: bold;
+fill: blue;
+}
+
+#pg_container  .pg_related_active {
+font-family: Verdana, Geneva, sans-serif;              
+font-size: 11px;
+fill: blue;
+}
+
+#pg_container  table.pgtb {
+border-collapse: collapse;
+border-spacing: 0;
+}
+
+#pg_container  table.pgtb td {
+font-family: Verdana, Geneva, sans-serif;
+font-size:11px;
+border-style: none;
+border-width:0px;
+overflow:hidden;
+word-break:normal;
+}
+
+#pg_container  table.pgtb th{
+font-family: Verdana, Geneva, sans-serif;
+font-size: 12px;
+font-weight: bold;
+padding:10px 5px;
+overflow:hidden;
+word-break:normal;
+}
+
+#pg_container  .pg_expandHPO{
 text-decoration: underline;
 color:#DC4945;
 cursor:pointer;
 }
 
-.pg_HPO_icon{
+#pg_container  .pg_HPO_icon{
 margin-left:2px;
 }
 
-em.pg_HPO_tree_indent{
+#pg_container  em.pg_tree_indent{
 width:12px;
 float:left;
 display:inline-block;
 height:1px;
 }
+
+#pg_container  .pg_cursor_pointer {
+cursor:pointer;
+}
+
+#pg_container  #pg_org_sel {
+margin-right: 5px;
+}
+
+#pg_container  .pg_focusLine {
+fill: none;
+stroke: red;
+shape-rendering: crispEdges;
+}
+
+#pg_container  .pg_rowcolmatch {
+fill: red !important;
+border-style: solid;
+border-width: medium;
+}
+
+
+
+
+
+
+
+
+
+
+
