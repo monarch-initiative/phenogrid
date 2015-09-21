@@ -200,9 +200,29 @@ box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
 -moz-box-shadow: 5px 5px 8px #818181;
 border:1px solid #000;
 background:#fff;
-/*z-index:3000;*/
-font:10px Arial;
 padding: 3px;
+}
+
+/* Don't add #pg_container since it's not in it */
+.pgtb {
+border-collapse: collapse;
+border-spacing: 0;
+font-family: Verdana, Geneva, sans-serif;              
+font-size: 11px;
+}
+
+.pgtb td {
+border-style: none;
+border-width:0px;
+overflow:hidden;
+word-break:normal;
+}
+
+.pgtb th{
+font-weight: bold;
+padding:5px;
+overflow:hidden;
+word-break:normal;
 }
 
 /** Overwrite jquery-ui default style */
@@ -257,29 +277,6 @@ fill: blue;
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 fill: blue;
-}
-
-#pg_container  table.pgtb {
-border-collapse: collapse;
-border-spacing: 0;
-}
-
-#pg_container  table.pgtb td {
-font-family: Verdana, Geneva, sans-serif;
-font-size:11px;
-border-style: none;
-border-width:0px;
-overflow:hidden;
-word-break:normal;
-}
-
-#pg_container  table.pgtb th{
-font-family: Verdana, Geneva, sans-serif;
-font-size: 12px;
-font-weight: bold;
-padding:10px 5px;
-overflow:hidden;
-word-break:normal;
 }
 
 .pg_expand_ontology{
