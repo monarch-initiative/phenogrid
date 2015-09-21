@@ -150,8 +150,8 @@ var Utils = require('./utils.js');
                 miniCellSize: 2
             },// controls the navigator mapview - Joe
             logo: {
-                x: 80, 
-                y: 25, 
+                x: 70, 
+                y: 65, 
                 width: 40, 
                 height: 26
             },
