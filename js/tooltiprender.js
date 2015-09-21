@@ -179,14 +179,13 @@ TooltipRender.prototype = {
 		var prefix, targetId, sourceId, targetInfo, sourceInfo;
 			//var taxon = d.taxon;
 
+        sourceId = d.source_id;
+		targetId = d.target_id;
+            
 		if (tooltip.parent.state.invertAxis) {
-			sourceId = d.target_id;
-			targetId = d.source_id;
 			targetInfo = tooltip.parent.state.yAxisRender.get(d.target_id); 
 			sourceInfo = tooltip.parent.state.xAxisRender.get(d.source_id); 			
 		 } else {
-			sourceId = d.source_id;
-			targetId = d.target_id;
 			targetInfo = tooltip.parent.state.xAxisRender.get(d.target_id); 
 			sourceInfo = tooltip.parent.state.yAxisRender.get(d.source_id); 						
 		 }
