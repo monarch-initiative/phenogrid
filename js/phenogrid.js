@@ -2042,7 +2042,7 @@ var Utils = require('./utils.js');
 	
     // Export current state of phenogrid as SVG file to be used in publications
     _createExportPhenogridButton: function() {
-        var btn = '<div class="pg_hr"></div><div id="pg_export">Save Phenogrid as SVG</div>';
+        var btn = '<div class="pg_hr"></div><div id="pg_export">Save as SVG...</div>';
         
         return $(btn);
     },
