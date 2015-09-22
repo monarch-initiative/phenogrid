@@ -270,7 +270,7 @@ var Utils = require('./utils.js');
 		self._initDefaults();   
         
         // Create all UI components
-		self._processDisplay();
+		self._createDisplay();
 	},
 
 	//Originally part of _init
@@ -374,7 +374,7 @@ var Utils = require('./utils.js');
 	},
 	
     // Recreates the SVG content and leave the HTML sections unchanged
-	_reDraw: function() {
+	_updateDisplay: function() {
         // Only remove the #pg_svg node and leave #pg_controls and #pg_unmatched there
         // since #pg_controls and #pg_unmatched are HTML not SVG - Joe
         this.element.find('#pg_svg').remove();
@@ -1067,7 +1067,7 @@ var Utils = require('./utils.js');
 
 
     // Being called only for the first time the widget is being loaded
-	_processDisplay: function(){
+	_createDisplay: function(){
         // This removes the loading spinner, otherwise the spinner will be always there - Joe
         this.element.empty();
         this._createPhenogridContainer();
@@ -1828,7 +1828,7 @@ var Utils = require('./utils.js');
 
 			self._createAxisRenderingGroups();
 
-            self._reDraw();
+            self._updateDisplay();
             
             // Update unmatched sources due to changes of species
             // No need to call this for other control actions - Joe
@@ -1837,7 +1837,7 @@ var Utils = require('./utils.js');
 
 		$("#pg_calculation").change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
-            self._reDraw();
+            self._updateDisplay();
 		});
 
 		// add the handler for the select control
@@ -1849,7 +1849,7 @@ var Utils = require('./utils.js');
 			} else {
 				self.state.yAxisRender.sort(self.state.selectedSort); 
 			}
-            self._reDraw();
+            self._updateDisplay();
 		});
 
 		$("#pg_axisflip").click(function() {	
@@ -1861,7 +1861,7 @@ var Utils = require('./utils.js');
 				self.state.invertAxis = false;
 			}
 		    self._setAxisRenderers();
-            self._reDraw();
+            self._updateDisplay();
 		});
 
         // Click save button to export the current phenogrid view as a SVG file - Joe
@@ -2217,7 +2217,7 @@ var Utils = require('./utils.js');
 			this.state.modelLength = this.state.modelListHash.size();
 
 //			this._setAxisValues();
-			this._reDraw();
+			this._updateDisplay();
 
 			// update the expanded flag
 			var vals = this.state.expandedHash.get(modelInfo.id);
@@ -2449,7 +2449,7 @@ var Utils = require('./utils.js');
 //			this._setAxisValues();
 
 			console.log("updating display...");
-			this._reDraw();
+			this._updateDisplay();
 		} else {
 			alert("No data found to expand targets");
 		}
