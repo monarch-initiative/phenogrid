@@ -255,7 +255,7 @@ var Utils = require('./utils.js');
 		this.state.dataLoader.load(querySourceList, targetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
 	},
 
-	_postDataInitCB: function (self) {
+	_postDataInitCB: function(self) {
 		// set a max IC score
 		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
 
@@ -268,6 +268,8 @@ var Utils = require('./utils.js');
 	    self._createAxisRenderingGroups();
 
 		self._initDefaults();   
+        
+        // Create all UI components
 		self._processDisplay();
 	},
 
@@ -374,16 +376,17 @@ var Utils = require('./utils.js');
 		element.appendTo(this.state.pgContainer);
 	},
 	
+    // Recreates the SVG content and leave the HTML sections unchanged
 	_reDraw: function() {
-		if (this.state.dataManager.isInitialized()) {
+        // Only remove the #pg_svg node and leave #pg_controls and #pg_unmatched there
+        // since #pg_controls and #pg_unmatched are HTML not SVG - Joe
+        this.element.find('#pg_svg').remove();
+        
+        if (this.state.dataManager.isInitialized()) {
 			this._initCanvas();
 
 			this._addLogoImage();
 
-			this._createPhenogridControls();
-			this._positionPhenogridControls();
-            this._togglePhenogridControls();
-            
 			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
 			 	this._createOverviewTargetGroupLabels();
 			}
@@ -402,9 +405,8 @@ var Utils = require('./utils.js');
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
 
             // Unmatched sources
-            this._createUnmatchedSources();
+            // No need to recreate
             this._positionUnmatchedSources();
-            this._toggleUnmatchedSources();
             
             // Get unmatched sources, add labels via async ajax calls if not found
             // Must be called after _createAxisRenderingGroups() - Joe
@@ -415,6 +417,10 @@ var Utils = require('./utils.js');
                 // then format and append them to the pg_unmatched_list div - Joe
                 this._formatUnmatchedSources(this.state.unmatchedSources);
             }
+            
+            // Options menu
+            // No need to recreate
+			this._positionPhenogridControls();
             
             // For exported phenogrid SVG, hide by default
             this._createMonarchInitiativeText();
@@ -429,9 +435,6 @@ var Utils = require('./utils.js');
 	// Click anywhere inside #pg_svg to close the options when it's open
 	_togglePhenogridControls: function() {
 		var self = this; // Needed for inside the anonymous function - Joe
-		// Slide control panel - Joe
-		$("#pg_controls_options").hide(); // Hide the options by default
-		
 		// Toggle the options panel by clicking the button
 		$("#pg_slide_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
@@ -446,28 +449,14 @@ var Utils = require('./utils.js');
 				$(this).removeClass("pg_slide_open");
 			}
 		});
-		
-		// When the options panel is visible, click anywhere inside #pg_svg to close the options, 
-		// more user-friendly than just force to click the button again - Joe
-		$('#pg_svg').click(function(event) {
-			if ($(event.target) !== $('#pg_slide_btn') && $(event.target) !== $('#pg_controls_options')) {
-				// Only close the options if it's visible
-				if ($('#pg_controls_options').is(':visible')) {
-					// Add the top border of the button back
-					$("#pg_slide_btn").removeClass("pg_slide_open");
-					// Then close the options
-					$("#pg_controls_options").fadeOut();
-				}
-			}
-		});
+
 	},
 	
     // Click the setting button to open/close the control options
 	// Click anywhere inside #pg_container to close the options when it's open
 	_toggleUnmatchedSources: function() {
 		var self = this; // Needed for inside the anonymous function - Joe
-		$("#pg_unmatched_list").hide(); // Hide the options by default
-		
+
 		// Toggle the options panel by clicking the button
 		$("#pg_unmatched_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
@@ -1137,10 +1126,64 @@ var Utils = require('./utils.js');
 		self.state.selectedSort = type;
 	},
 
-	// Previously  
+
 	_processDisplay: function(){
+        // This removes the loading spinner, otherwise the spinner will be always there - Joe
         this.element.empty();
-		this._reDraw();
+        
+        if (this.state.dataManager.isInitialized()) {
+			this._createPhenogridContainer();
+            
+            this._initCanvas();
+
+			this._addLogoImage();
+
+			
+            
+			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
+			 	this._createOverviewTargetGroupLabels();
+			}
+			this._createGrid();
+			
+			this._createScoresTipIcon();
+			
+			this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
+			
+			this._createOverviewSection();
+			this._createGradientLegend();
+			this._createTargetGroupDividerLines();
+
+			// this must be initialized here after the _createModelLabels, or the mouse events don't get
+			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
+			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
+
+            // Unmatched sources
+            this._createUnmatchedSources();
+            this._positionUnmatchedSources();
+            this._toggleUnmatchedSources();
+            
+            // Get unmatched sources, add labels via async ajax calls if not found
+            // Must be called after _createAxisRenderingGroups() - Joe
+            this.state.unmatchedSources = this._getUnmatchedSources();
+            // Proceed if there's any unmatched
+            if (this.state.unmatchedSources.length > 0) {
+                // Fetch labels for unmatched sources via async ajax calls
+                // then format and append them to the pg_unmatched_list div - Joe
+                this._formatUnmatchedSources(this.state.unmatchedSources);
+            }
+            
+            // Options menu
+            this._createPhenogridControls();
+			this._positionPhenogridControls();
+            this._togglePhenogridControls();
+            
+            // For exported phenogrid SVG, hide by default
+            this._createMonarchInitiativeText();
+		} else {
+			var msg = "There are no results available.";
+			this._createPhenogridContainer();
+			this._createEmptyVisualization(msg);
+		}
 	},
 
 	// Returns axis data from a ID of models or phenotypes
@@ -1219,7 +1262,6 @@ var Utils = require('./utils.js');
 	},
 
 	_initCanvas: function() {
-		this._createPhenogridContainer();
 		var pgContainer = this.state.pgContainer;
 		var sourceDisplayCount = this.state.yAxisRender.displayLength();
 		var widthOfSingleCell = this.state.gridRegion.cellwd;
@@ -1800,6 +1842,8 @@ var Utils = require('./utils.js');
         var pg_unmatched_list_default = '<div id="pg_unmatched_list_default">No unmatched sources</div>';
         // Insert the html list in #pg_unmatched_list div
         $("#pg_unmatched_list").append(pg_unmatched_list_default);
+        
+        $("#pg_unmatched_list").hide(); // Hide by default
     },
 
 	// Phengrid controls/options
@@ -1838,6 +1882,9 @@ var Utils = require('./utils.js');
 		// Append slide button - Joe
 		phenogridControls.append(slideBtn);
 		
+        // Hide options menu by default
+        $("#pg_controls_options").hide(); 
+        
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
 
@@ -1859,12 +1906,14 @@ var Utils = require('./utils.js');
 
 			self._createAxisRenderingGroups();
             
-			self._processDisplay();
+			//self._processDisplay();
+            self._reDraw();
 		});
 
 		$("#pg_calculation").change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
-			self._processDisplay();
+			//self._processDisplay();
+            self._reDraw();
 		});
 
 		// add the handler for the select control
@@ -1876,7 +1925,8 @@ var Utils = require('./utils.js');
 			} else {
 				self.state.yAxisRender.sort(self.state.selectedSort); 
 			}
-			self._processDisplay();
+			//self._processDisplay();
+            self._reDraw();
 		});
 
 		$("#pg_axisflip").click(function() {	
@@ -1888,7 +1938,8 @@ var Utils = require('./utils.js');
 				self.state.invertAxis = false;
 			}
 		    self._setAxisRenderers();
-		    self._processDisplay();
+		    //self._processDisplay();
+            self._reDraw();
             
             // Flip shouldn't reset the unmatched - Joe
 		});
@@ -2230,6 +2281,7 @@ var Utils = require('./utils.js');
 
 	},
 
+    // Used for genotype expansion - Joe
 	// collapse the expanded items for the current selected model targets
 	_collapse: function(curModel) {
 		var curData = this.state.dataManager.getElement("target", curModel);
@@ -2248,7 +2300,7 @@ var Utils = require('./utils.js');
 			this.state.modelLength = this.state.modelListHash.size();
 
 //			this._setAxisValues();
-			this._processDisplay();
+			this._reDraw();
 
 			// update the expanded flag
 			var vals = this.state.expandedHash.get(modelInfo.id);
@@ -2422,7 +2474,8 @@ var Utils = require('./utils.js');
 		$('#mystickytooltip').html(div);
 	},
 
-		// expand the model with the associated targets
+	// Used for genotype expansion - Joe
+    // expand the model with the associated targets
 	_expand: function(curModel) {
 		$('#wait').show();
 		var div=$('#mystickytooltip').html();
@@ -2479,7 +2532,7 @@ var Utils = require('./utils.js');
 //			this._setAxisValues();
 
 			console.log("updating display...");
-			this._processDisplay();
+			this._reDraw();
 		} else {
 			alert("No data found to expand targets");
 		}
