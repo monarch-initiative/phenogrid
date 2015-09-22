@@ -122,7 +122,7 @@ var Utils = require('./utils.js');
             htmlPath: 'js/res/',	
             simServerURL: "",  // URL of the server for similarity searches
             simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",    
-            unmatchedButtonLabel: 'UNMATCHED PHENOTYPES',
+            unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
             defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
@@ -1101,14 +1101,14 @@ var Utils = require('./utils.js');
         // Proceed if there's any unmatched
         if (self.state.unmatchedSources.length > 0) {
             // Reset/empty the list
-            $('#pg_unmatched_list').html('');
+            $('#pg_unmatched_list_data').html('');
             
             // Fetch labels for unmatched sources via async ajax calls
             // then format and append them to the pg_unmatched_list div - Joe
             self._formatUnmatchedSources(self.state.unmatchedSources);
         } else {
             // Show no unmatched message
-            $('#pg_unmatched_list').html('<div id="pg_unmatched_list_default">No unmatched sources</div>');
+            $('#pg_unmatched_list_data').html('<div class="pg_unmatched_list_item">No ' + self.state.unmatchedButtonLabel + '</div>');
         }
     },
     
@@ -1758,7 +1758,7 @@ var Utils = require('./utils.js');
 		$('#pg_container').append(pg_unmatched);
         
         // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
-		var pg_unmatched_list = '<div id="pg_unmatched_list"><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span></div>';
+		var pg_unmatched_list = '<div id="pg_unmatched_list"><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span><div id="pg_unmatched_list_data"></div></div>';
 		
 		// Hide/show unmatched - button - Joe
 		var pg_unmatched_btn ='<div id="pg_unmatched_btn"><i class="fa fa-exclamation-triangle"></i> ' + this.state.unmatchedButtonLabel + ' </div>';
