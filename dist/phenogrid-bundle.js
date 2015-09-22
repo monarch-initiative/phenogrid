@@ -1747,7 +1747,6 @@ var Utils = require('./utils.js');
     	var targetList = [], sourceList = [];
 
 		if (this._isCrossComparisonView()) {  
-
 			// create a combined list of targets
 			sourceList = this.state.dataManager.createCombinedSourceList(this.state.selectedCompareTargetGroup, this.state.defaultCrossCompareTargetLimitPerTargetGroup);	
 
@@ -1761,9 +1760,7 @@ var Utils = require('./utils.js');
 			// get the length of the targetlist, this sets that limit since we are in comparison mode
 			// only the defaultCrossCompareTargetLimitPerTargetGroup is set, which provides the overall display limit
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
-
 		} else if (this.state.selectedCompareTargetGroup.length === 1) {
-
 			// just get the target group name 
 			var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
 			
@@ -1782,8 +1779,8 @@ var Utils = require('./utils.js');
 			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
 		}
 
-		if ( this.state.targetDisplayLimit > this.state.defaultSingleTargetDisplayLimit) {
-				this.state.targetDisplayLimit = this.state.defaultSingleTargetDisplayLimit;
+		if (this.state.targetDisplayLimit > this.state.defaultSingleTargetDisplayLimit) {
+			this.state.targetDisplayLimit = this.state.defaultSingleTargetDisplayLimit;
 		} 
 
        	// creates AxisGroup with full source and target lists with default rendering range
@@ -1824,54 +1821,29 @@ var Utils = require('./utils.js');
         this.element.find('#pg_svg').remove();
         
         if (this.state.dataManager.isInitialized()) {
-			this._initCanvas();
+			this._createSvgComponents();
 
-			this._addLogoImage();
-
-			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
-			 	this._createOverviewTargetGroupLabels();
-			}
-			this._createGrid();
-			
-			this._createScoresTipIcon();
-			
-			this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
-			
-			this._createOverviewSection();
-			this._createGradientLegend();
-			this._createTargetGroupDividerLines();
-
-			// this must be initialized here after the _createModelLabels, or the mouse events don't get
-			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
-			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
-
-            // Unmatched sources
-            // No need to recreate
+            // Reposition HTML sections
             this._positionUnmatchedSources();
-            
-            // Get unmatched sources, add labels via async ajax calls if not found
-            // Must be called after _createAxisRenderingGroups() - Joe
-            this.state.unmatchedSources = this._getUnmatchedSources();
-            // Proceed if there's any unmatched
-            if (this.state.unmatchedSources.length > 0) {
-                // Fetch labels for unmatched sources via async ajax calls
-                // then format and append them to the pg_unmatched_list div - Joe
-                this._formatUnmatchedSources(this.state.unmatchedSources);
-            }
-            
-            // Options menu
-            // No need to recreate
 			this._positionPhenogridControls();
-            
-            // For exported phenogrid SVG, hide by default
-            this._createMonarchInitiativeText();
 		} else {
-			var msg = "There are no results available.";
-			this._createPhenogridContainer();
-			this._createEmptyVisualization(msg);
+			this._showNoResults();
 		}
 	},
 
+    _createSvgComponents: function() {
+        this._createSvgContainer();
+        this._addLogoImage();
+        this._createOverviewTargetGroupLabels();
+        this._createGrid();
+        this._createScoresTipIcon();
+        this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
+        this._createOverviewSection();
+        this._createGradientLegend();
+        this._createTargetGroupDividerLines();
+        this._createMonarchInitiativeText(); // For exported phenogrid SVG, hide by default
+    },
+    
 	// Click the setting button to open/close the control options
 	// Click anywhere inside #pg_svg to close the options when it's open
 	_togglePhenogridControls: function() {
@@ -2264,43 +2236,6 @@ var Utils = require('./utils.js');
 		this._super( options );
 	},
 
-	// create this visualization if no phenotypes or models are returned
-	// [vaa12] the commented-out code has been here for a while.  Check to see if its unneeded and good to remove
-	_createEmptyVisualization: function(msg) {
-		var self = this;
-		var html;
-		d3.select("#pg_svg_group").remove();
-		//this.state.pgContainer.append("<svg id='svg_area'></svg>");
-		//this.state.svg = d3.select("#svg_area");
-
-		//var pgContainer = this.state.pgContainer;
-		//pgContainer.append("<svg id='svg_area'></svg>");
-		//this.state.svg = d3.select("#svg_area")
-		//	.attr("width", this.state.emptySvgX)
-		//	.attr("height", this.state.emptySvgY);
-
-		//var error = "<br /><div id='err'><h4>" + msg + "</h4></div><br /><div id='return'><button id='button' type='button'>Return</button></div>";
-		//this.element.append(error);
-		//if (this.state.currentTargetGroupName != "Overview"){
-		if (!self._isCrossComparisonView()) {			
-			html = "<h4 id='err'>" + msg + "</h4><br /><div id='return'><p><button id='button' type='button'>Return</button></p><br/></div>";
-			//this.element.append(html);
-			this.state.pgContainer.append(html);
-			d3.selectAll("#button")
-				.on("click", function(){
-					$("#return").remove();
-					$("#errmsg").remove();
-					d3.select("#pg_svg_group").remove();
-					self._init();
-				});
-		}else{
-			html = "<h4 id='err'>" + msg + "</h4><br />";
-			//this.element.append(html);
-			this.state.pgContainer.append(html);
-		}
-	},
-
-
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
 	_createOverviewSection: function() {
 		var self = this;
@@ -2568,43 +2503,24 @@ var Utils = require('./utils.js');
 	},
 
 
+    // Being called only for the first time the widget is being loaded
 	_processDisplay: function(){
         // This removes the loading spinner, otherwise the spinner will be always there - Joe
         this.element.empty();
+        this._createPhenogridContainer();
         
         if (this.state.dataManager.isInitialized()) {
-			this._createPhenogridContainer();
+            this._createSvgComponents();
+
+            // Create and postion HTML sections
             
-            this._initCanvas();
-
-			this._addLogoImage();
-
-			
-            
-			if (this.state.owlSimFunction != 'compare' && this.state.owlSimFunction != 'exomiser'){
-			 	this._createOverviewTargetGroupLabels();
-			}
-			this._createGrid();
-			
-			this._createScoresTipIcon();
-			
-			this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
-			
-			this._createOverviewSection();
-			this._createGradientLegend();
-			this._createTargetGroupDividerLines();
-
-			// this must be initialized here after the _createModelLabels, or the mouse events don't get
-			// initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
-			stickytooltip.init("*[data-tooltip]", "mystickytooltip");	
-
             // Unmatched sources
             this._createUnmatchedSources();
             this._positionUnmatchedSources();
             this._toggleUnmatchedSources();
             
             // Get unmatched sources, add labels via async ajax calls if not found
-            // Must be called after _createAxisRenderingGroups() - Joe
+            // Must be called after _createUnmatchedSources()
             this.state.unmatchedSources = this._getUnmatchedSources();
             // Proceed if there's any unmatched
             if (this.state.unmatchedSources.length > 0) {
@@ -2617,16 +2533,15 @@ var Utils = require('./utils.js');
             this._createPhenogridControls();
 			this._positionPhenogridControls();
             this._togglePhenogridControls();
-            
-            // For exported phenogrid SVG, hide by default
-            this._createMonarchInitiativeText();
 		} else {
-			var msg = "There are no results available.";
-			this._createPhenogridContainer();
-			this._createEmptyVisualization(msg);
+			this._showNoResults();
 		}
 	},
 
+    _showNoResults: function() {
+        $('#pg_container').html('No results returned.');
+    },
+    
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
 	 
@@ -2702,12 +2617,8 @@ var Utils = require('./utils.js');
 		return cs;
 	},
 
-	_initCanvas: function() {
-		var pgContainer = this.state.pgContainer;
-		var sourceDisplayCount = this.state.yAxisRender.displayLength();
-		var widthOfSingleCell = this.state.gridRegion.cellwd;
-
-		pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
+	_createSvgContainer: function() {
+		this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
 	
         // Define a font-family for all SVG texts 
         // so we don't have to apply font-family separately for each SVG text - Joe
@@ -2715,7 +2626,7 @@ var Utils = require('./utils.js');
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
 
-	_createPhenogridContainer: function() {
+	_createPhenogridContainer: function(msg) {
 		var container = $('<div id="pg_container"></div>');
 		this.state.pgContainer = container;
 		this.element.append(container);
@@ -3067,53 +2978,55 @@ var Utils = require('./utils.js');
 
 	// Add targetGroup labels (watermark-like) to top of grid
 	_createOverviewTargetGroupLabels: function () {
-		var self = this;
-		// targetGroupList is an array that contains all the selected targetGroup names
-		var targetGroupList = this.state.selectedCompareTargetGroup.map( function(d) {return d.name;});  //[];
+		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser'){
+            var self = this;
+            // targetGroupList is an array that contains all the selected targetGroup names
+            var targetGroupList = this.state.selectedCompareTargetGroup.map( function(d) {return d.name;});  //[];
 
-		// Inverted and multi targetGroup
-		if (this.state.invertAxis) { 
-			var heightPerTargetGroup = this._gridHeight()/targetGroupList.length;
+            // Inverted and multi targetGroup
+            if (this.state.invertAxis) { 
+                var heightPerTargetGroup = this._gridHeight()/targetGroupList.length;
 
-			this.state.svg.selectAll(".pg_targetGroup_name")
-				.data(targetGroupList)
-				.enter()
-				.append("text")
-				.attr("x", this.state.gridRegion.x + this._gridWidth() + 20) // 20 is margin - Joe
-				.attr("y", function(d, i) { 
-						return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-					})
-				.attr('transform', function(d, i) {
-					var currX = self.state.gridRegion.x + self._gridWidth() + 20;
-					var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-					return 'rotate(90 ' + currX + ' ' + currY + ')';
-				}) // rotate by 90 degrees 
-				.attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-				.text(function (d, i){return targetGroupList[i];})
-				.attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
-		} else {
-			var self = this;
-            
-            var widthPerTargetGroup = this._gridWidth()/targetGroupList.length;
+                this.state.svg.selectAll(".pg_targetGroup_name")
+                    .data(targetGroupList)
+                    .enter()
+                    .append("text")
+                    .attr("x", this.state.gridRegion.x + this._gridWidth() + 20) // 20 is margin - Joe
+                    .attr("y", function(d, i) { 
+                            return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                        })
+                    .attr('transform', function(d, i) {
+                        var currX = self.state.gridRegion.x + self._gridWidth() + 20;
+                        var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                        return 'rotate(90 ' + currX + ' ' + currY + ')';
+                    }) // rotate by 90 degrees 
+                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                    .text(function (d, i){return targetGroupList[i];})
+                    .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
+            } else {
+                var self = this;
+                
+                var widthPerTargetGroup = this._gridWidth()/targetGroupList.length;
 
-			this.state.svg.selectAll(".pg_targetGroup_name")
-				.data(targetGroupList)
-				.enter()
-				.append("text")
-				.attr("x", function(d, i){ 
-						return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
-					})
-				.attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
-				.attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-				.text(function(d, i){return targetGroupList[i];})
-				.attr("text-anchor", function() {
-                    if (self._isCrossComparisonView()) {
-                        return 'start'; // Try to align with the rotated divider lines for cross-target comparison
-                    } else {
-                        return 'middle'; // Position the label in middle for single species
-                    }
-                }); 
-		}
+                this.state.svg.selectAll(".pg_targetGroup_name")
+                    .data(targetGroupList)
+                    .enter()
+                    .append("text")
+                    .attr("x", function(d, i){ 
+                            return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
+                        })
+                    .attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                    .text(function(d, i){return targetGroupList[i];})
+                    .attr("text-anchor", function() {
+                        if (self._isCrossComparisonView()) {
+                            return 'start'; // Try to align with the rotated divider lines for cross-target comparison
+                        } else {
+                            return 'middle'; // Position the label in middle for single species
+                        }
+                    }); 
+            }
+        } 
 	},
 	
 	// Google chrome disallows the access to local files cia ajax call, 
@@ -3328,7 +3241,6 @@ var Utils = require('./utils.js');
         
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
-
 			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
 			var temp = [];
 			for (var idx = 0; idx < items.length; idx++) {
@@ -3346,14 +3258,12 @@ var Utils = require('./utils.js');
 			}
 
 			self._createAxisRenderingGroups();
-            
-			//self._processDisplay();
+
             self._reDraw();
 		});
 
 		$("#pg_calculation").change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
-			//self._processDisplay();
             self._reDraw();
 		});
 
@@ -3366,7 +3276,6 @@ var Utils = require('./utils.js');
 			} else {
 				self.state.yAxisRender.sort(self.state.selectedSort); 
 			}
-			//self._processDisplay();
             self._reDraw();
 		});
 
@@ -3379,10 +3288,7 @@ var Utils = require('./utils.js');
 				self.state.invertAxis = false;
 			}
 		    self._setAxisRenderers();
-		    //self._processDisplay();
             self._reDraw();
-            
-            // Flip shouldn't reset the unmatched - Joe
 		});
 
         // Click save button to export the current phenogrid view as a SVG file - Joe
