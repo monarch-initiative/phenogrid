@@ -1842,6 +1842,10 @@ var Utils = require('./utils.js');
         this._createGradientLegend();
         this._createTargetGroupDividerLines();
         this._createMonarchInitiativeText(); // For exported phenogrid SVG, hide by default
+        
+        // this must be initialized here after the _createModelLabels, or the mouse events don't get
+        // initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
+        stickytooltip.init("*[data-tooltip]", "mystickytooltip");
     },
     
 	// Click the setting button to open/close the control options
@@ -2519,15 +2523,7 @@ var Utils = require('./utils.js');
             this._positionUnmatchedSources();
             this._toggleUnmatchedSources();
             
-            // Get unmatched sources, add labels via async ajax calls if not found
-            // Must be called after _createUnmatchedSources()
-            this.state.unmatchedSources = this._getUnmatchedSources();
-            // Proceed if there's any unmatched
-            if (this.state.unmatchedSources.length > 0) {
-                // Fetch labels for unmatched sources via async ajax calls
-                // then format and append them to the pg_unmatched_list div - Joe
-                this._formatUnmatchedSources(this.state.unmatchedSources);
-            }
+            this._addUnmatchedData(this);
             
             // Options menu
             this._createPhenogridControls();
@@ -2538,6 +2534,25 @@ var Utils = require('./utils.js');
 		}
 	},
 
+    // Add the unmatched data to #pg_unmatched_list
+    _addUnmatchedData: function(self) {
+        // Get unmatched sources, add labels via async ajax calls if not found
+        // Must be called after _createUnmatchedSources()
+        self.state.unmatchedSources = self._getUnmatchedSources();
+        // Proceed if there's any unmatched
+        if (self.state.unmatchedSources.length > 0) {
+            // Reset/empty the list
+            $('#pg_unmatched_list').html('');
+            
+            // Fetch labels for unmatched sources via async ajax calls
+            // then format and append them to the pg_unmatched_list div - Joe
+            self._formatUnmatchedSources(self.state.unmatchedSources);
+        } else {
+            // Show no unmatched message
+            $('#pg_unmatched_list').html('<div id="pg_unmatched_list_default">No unmatched sources</div>');
+        }
+    },
+    
     _showNoResults: function() {
         $('#pg_container').html('No results returned.');
     },
@@ -3191,12 +3206,7 @@ var Utils = require('./utils.js');
  
         pg_unmatched.append(pg_unmatched_list);
 		pg_unmatched.append(pg_unmatched_btn);
-        
-        // Show no unmatched by default, if there's any unmatched found, add the labels in ajax callback - Joe
-        var pg_unmatched_list_default = '<div id="pg_unmatched_list_default">No unmatched sources</div>';
-        // Insert the html list in #pg_unmatched_list div
-        $("#pg_unmatched_list").append(pg_unmatched_list_default);
-        
+
         $("#pg_unmatched_list").hide(); // Hide by default
     },
 
@@ -3260,6 +3270,10 @@ var Utils = require('./utils.js');
 			self._createAxisRenderingGroups();
 
             self._reDraw();
+            
+            // Update unmatched sources due to changes of species
+            // No need to call this for other control actions - Joe
+            self._addUnmatchedData(self);
 		});
 
 		$("#pg_calculation").change(function(d) {
@@ -3512,8 +3526,6 @@ var Utils = require('./utils.js');
             label = data.id;
         }
 
-        // Append unmatched phenotype to pg_unmatched_list - Joe
-        $('#pg_unmatched_list_default').hide();
         var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + ' (' + data.id + ')' + '</a></div>';
         $('#pg_unmatched_list').append(pg_unmatched_list_item);
         
@@ -3543,7 +3555,6 @@ var Utils = require('./utils.js');
     },
     
     _formatUnmatchedSources: function(targetGrpList) {
-        //console.log(targetGrpList);
         if (targetGrpList.length > 0) {
             var target = targetGrpList[0];  // pull off the first to start processing
             targetGrpList = targetGrpList.slice(1);
