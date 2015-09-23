@@ -1095,14 +1095,14 @@ var Utils = require('./utils.js');
 
     // Add the unmatched data to #pg_unmatched_list
     _addUnmatchedData: function(self) {
+        // Reset/empty the list
+        $('#pg_unmatched_list_data').html('');
+            
         // Get unmatched sources, add labels via async ajax calls if not found
         // Must be called after _createUnmatchedSources()
         self.state.unmatchedSources = self._getUnmatchedSources();
         // Proceed if there's any unmatched
         if (self.state.unmatchedSources.length > 0) {
-            // Reset/empty the list
-            $('#pg_unmatched_list_data').html('');
-            
             // Fetch labels for unmatched sources via async ajax calls
             // then format and append them to the pg_unmatched_list div - Joe
             self._formatUnmatchedSources(self.state.unmatchedSources);
@@ -2086,7 +2086,7 @@ var Utils = require('./utils.js');
         }
 
         var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + ' (' + data.id + ')' + '</a></div>';
-        $('#pg_unmatched_list').append(pg_unmatched_list_item);
+        $('#pg_unmatched_list_data').append(pg_unmatched_list_item);
         
         // iterative back to process to make sure we processed all the targets
         self._formatUnmatchedSources(targets);
