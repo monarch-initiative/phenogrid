@@ -410,7 +410,6 @@ var Utils = require('./utils.js');
 	// Click the setting button to open/close the control options
 	// Click anywhere inside #pg_svg to close the options when it's open
 	_togglePhenogridControls: function() {
-		var self = this; // Needed for inside the anonymous function - Joe
 		// Toggle the options panel by clicking the button
 		$("#pg_slide_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
@@ -425,14 +424,11 @@ var Utils = require('./utils.js');
 				$(this).removeClass("pg_slide_open");
 			}
 		});
-
 	},
 	
     // Click the setting button to open/close the control options
 	// Click anywhere inside #pg_container to close the options when it's open
 	_toggleUnmatchedSources: function() {
-		var self = this; // Needed for inside the anonymous function - Joe
-
 		// Toggle the options panel by clicking the button
 		$("#pg_unmatched_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
@@ -445,21 +441,6 @@ var Utils = require('./utils.js');
 				$("#pg_unmatched_list").fadeOut();
 				// Add top border back
 				$(this).removeClass("pg_unmatched_open");
-			}
-		});
-		
-		// When the options panel is visible, click anywhere inside #pg_svg to close the options, 
-		// more user-friendly than just force to click the button again
-		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg', it won't work - Joe
-		$('#pg_svg').click(function(event) {
-			if ($(event.target) !== $('#pg_unmatched_btn') && $(event.target) !== $('#pg_unmatched_list')) {
-				// Only close the options if it's visible
-				if ($('#pg_unmatched_list').is(':visible')) {
-					// Add the top border of the button back
-					$("#pg_unmatched_btn").removeClass("pg_unmatched_open");
-					// Then close the options
-					$("#pg_unmatched_list").fadeOut();
-				}
 			}
 		});
 	},
