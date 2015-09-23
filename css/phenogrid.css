@@ -13,7 +13,7 @@ font-size:12px;
 /* SVG tag */
 #pg_container  #pg_svg {
 min-width:980px;
-min-height:780px;
+min-height:550px;  //780
 }
 
 /* HTML options popup */

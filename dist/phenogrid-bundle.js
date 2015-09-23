@@ -416,6 +416,7 @@ DataLoader.prototype = {
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
 
+		if (data != null || typeof(data) != 'undefined') {
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
 
@@ -423,9 +424,9 @@ DataLoader.prototype = {
 				// now transform data to there basic data structures
 				self.transform(target.name, data);  
 			}
-
-			// iterative back to process to make sure we processed all the targetGrpList
-			self.process(targetGrpList, self.qryString);
+		}
+		// iterative back to process to make sure we processed all the targetGrpList
+		self.process(targetGrpList, self.qryString);
 	},
 
 	/*
@@ -598,6 +599,7 @@ DataLoader.prototype = {
 				method: 'POST', 
 				data: postData,
 				async : true,
+				timeout: 3000,
 				dataType : 'json',
 				success : function(data) {
 					callback(self, target, targets, data);
@@ -605,7 +607,11 @@ DataLoader.prototype = {
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
 
-				switch(xhr.status){
+				switch(xhr.status) {
+					case 0:
+						if (exception == 'timeout') {
+							callback(self, target, targets, null);
+						}
 					case 404:
 					case 500:
 					case 501:
@@ -890,7 +896,9 @@ DataManager.prototype = {
 			} else {
 				a = this[dataset][targetGroup];
 			}
-			len = Object.keys(a).length;
+			if (typeof(a) !== 'undefined') {
+				len = Object.keys(a).length;
+			}
 		return len;
 	},
 	/*
@@ -1167,13 +1175,15 @@ DataManager.prototype = {
 
 		for (var k in targetGroupList) {
 			var data = this.getData("target", targetGroupList[k].name);
-			var i=0;
-			for (var idx in data) {
-				combinedTargetList[data[idx].id] = data[idx];
-				i++;
+			if (typeof(data) !== 'undefined') {
+				var i=0;
+				for (var idx in data) {
+					combinedTargetList[data[idx].id] = data[idx];
+					i++;
 
-				// if we've reached our limit break out
-				if (i >= limit) {break;}
+					// if we've reached our limit break out
+					if (i >= limit) {break;}
+				}
 			}
 		}
 		return combinedTargetList;
@@ -1195,18 +1205,19 @@ DataManager.prototype = {
 		for (var k in targetGroupList) {
 			var srcs = this.getData("source", targetGroupList[k].name);
 
-			for (var idx in srcs) {
-				var id = srcs[idx].id;
+			if (typeof(srcs) !== 'undefined') {
+				for (var idx in srcs) {
+					var id = srcs[idx].id;
 
-				// try adding source as an associative array, if not found then add new object
-				var srcData = combinedSourceList[id];
-				if (typeof(srcData) == 'undefined') {	
-					var newElement = {};
-					// this needs to be a copy, don't assign srcs[idx] directly to avoid object reference problems when modifying
-					combinedSourceList[id] = $.extend({}, newElement, srcs[idx]);	
+					// try adding source as an associative array, if not found then add new object
+					var srcData = combinedSourceList[id];
+					if (typeof(srcData) == 'undefined') {	
+						var newElement = {};
+						// this needs to be a copy, don't assign srcs[idx] directly to avoid object reference problems when modifying
+						combinedSourceList[id] = $.extend({}, newElement, srcs[idx]);	
+					}
 				}
 			}
-
 		}
 		// compute the frequency and rarity across all targetgroups
 		for (var s in combinedSourceList) {
@@ -1654,7 +1665,10 @@ var Utils = require('./utils.js');
 		}
 		this.state.data = {};
 
-		this._createTargetGroupIndices();
+		this.state.selectedCompareTargetGroup = [];
+		this.state.initialTargetGroupLoadList = [];
+
+		this._createTargetGroupList(this.options.targetSpecies);
 	},
 
 	
@@ -1668,22 +1682,22 @@ var Utils = require('./utils.js');
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
-		this.state.selectedCompareTargetGroup = [];
-		var targetGroupLoadList = [];
+		// this.state.selectedCompareTargetGroup = [];
+		// var targetGroupLoadList = [];
 
         this.state.tooltips = {}; // Holds the FAQ popups
         
-		// load the default selected target targetGroup list based on the active flag
-		for (var idx in this.state.targetGroupList) {
-			// for active targetGroup pre-load them
-			if (this.state.targetGroupList[idx].active) {
-				targetGroupLoadList.push(this.state.targetGroupList[idx]);	
-			}	
-			// should they be shown in the comparison view
-			if (this.state.targetGroupList[idx].crossComparisonView) {
-				this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-			}			
-		}
+		// // load the default selected target targetGroup list based on the active flag
+		// for (var idx in this.state.targetGroupList) {
+		// 	// for active targetGroup pre-load them
+		// 	if (this.state.targetGroupList[idx].active) {
+		// 		targetGroupLoadList.push(this.state.targetGroupList[idx]);	
+		// 	}	
+		// 	// should they be shown in the comparison view
+		// 	if (this.state.targetGroupList[idx].crossComparisonView) {
+		// 		this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+		// 	}			
+		// }
 		var self = this;
 		var postAsyncCallback = function() {
             self._postDataInitCB(self); 
@@ -1693,7 +1707,7 @@ var Utils = require('./utils.js');
 		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, this.state.apiEntityMap);
 
 		// starting loading the data
-		this.state.dataLoader.load(querySourceList, targetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
+		this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
 	},
 
 	_postDataInitCB: function (self) {
@@ -1701,6 +1715,9 @@ var Utils = require('./utils.js');
 		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
 
 		self.state.dataManager = new DataManager(self.state.dataLoader);
+
+		// need to update the selectedCompareTargetGroup list depending on if we loaded all the data
+		self._updateSelectedCompareTargetGroup();
 
 		// initialize the ontologyCache
 		self.state.ontologyCache = {};
@@ -1711,6 +1728,22 @@ var Utils = require('./utils.js');
 		self._initDefaults();   
 		self._processDisplay();
 	},
+
+	_updateSelectedCompareTargetGroup: function() {
+		// loop through to make sure we have data to display
+		for ( var idx in this.state.selectedCompareTargetGroup) {
+			var r = this.state.selectedCompareTargetGroup[idx];
+
+			var len = this.state.dataManager.length("target", r.name);
+			if (typeof(len) === 'undefined'  || len < 1) {
+
+				this.state.selectedCompareTargetGroup.slice(idx, 1);
+
+//				this.state.selectedCompareTargetGroup[idx].active = false;
+//				this.state.selectedCompareTargetGroup[idx].crossComparisonView = false;
+			}
+		}
+	}, 
 
 	//Originally part of _init
 	_initDefaults: function() {
@@ -2912,7 +2945,8 @@ var Utils = require('./utils.js');
 		var width = self._gridWidth();
 
 		if (self._isCrossComparisonView() ) {
-			var numOfTargetGroup = self.state.selectedCompareTargetGroup.length;
+			//var grps = self.state.selectedCompareTargetGroup.forEach(function(d) { if(d.crossComparisonView)return d; });
+			var numOfTargetGroup = self.state.selectedCompareTargetGroup.length; 
 			var xScale = self.state.xAxisRender.getScale();
 
 			//var cellsDisplayedPer = (self.state.defaultSingleTargetDisplayLimit / numOfTargetGroup);
@@ -3023,21 +3057,20 @@ var Utils = require('./utils.js');
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
 
-	// Add targetGroup labels (watermark-like) to top of grid
 	_createOverviewTargetGroupLabels: function () {
 		var self = this;
 		// targetGroupList is an array that contains all the selected targetGroup names
-		var targetGroupList = this.state.selectedCompareTargetGroup.map( function(d) {return d.name;});  //[];
+		var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
 
 		// Inverted and multi targetGroup
-		if (this.state.invertAxis) { 
-			var heightPerTargetGroup = this._gridHeight()/targetGroupList.length;
+		if (self.state.invertAxis) { 
+			var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
 
 			this.state.svg.selectAll(".pg_targetGroup_name")
 				.data(targetGroupList)
 				.enter()
 				.append("text")
-				.attr("x", this.state.gridRegion.x + this._gridWidth() + 20) // 20 is margin - Joe
+				.attr("x", self.state.gridRegion.x + self._gridWidth() + 20) // 20 is margin - Joe
 				.attr("y", function(d, i) { 
 						return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
 					})
@@ -3052,7 +3085,7 @@ var Utils = require('./utils.js');
 		} else {
 			var self = this;
             
-            var widthPerTargetGroup = this._gridWidth()/targetGroupList.length;
+            var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
 
 			this.state.svg.selectAll(".pg_targetGroup_name")
 				.data(targetGroupList)
@@ -3061,7 +3094,7 @@ var Utils = require('./utils.js');
 				.attr("x", function(d, i){ 
 						return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
 					})
-				.attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+				.attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
 				.attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
 				.text(function(d, i){return targetGroupList[i];})
 				.attr("text-anchor", function() {
@@ -3947,88 +3980,111 @@ var Utils = require('./utils.js');
 		}
 	},
 
-	// Several procedures for various aspects of filtering/identifying appropriate entries in the target targetGroup list.. 
-	_getTargetGroupIndexByName: function(self,name) {
-		var index = -1;
-		if (typeof(self.state.targetGroupByName[name]) !== 'undefined') {
-			index = self.state.targetGroupByName[name].index;
-		}
-		return index;
-	},
-
-	_getTargetGroupNameByIndex: function(self,index) {
-		var targetGroup;
-		if (typeof(self.state.targetGroupList[index]) !== 'undefined') {
-			targetGroup = self.state.targetGroupList[index].name;
-		}
-		else {
-			targetGroup = 'Overview';
-		}
-		return targetGroup;
-	},
-
-	_getTargetGroupTaxonByName: function(self,name) {
-		var taxon;
-		// first, find something that matches by name
-		if (typeof(self.state.targetGroupByName[name]) !== 'undefined') {
-			taxon = self.state.targetGroupByName[name].taxon;
-		}
-		// default to overview, so as to always do somethign sensible
-		if (typeof(taxon) === 'undefined') {
-			taxon ='Overview';
-		}
-
-		return taxon;
-	},
-
-	/*
-	* some installations might send in a taxon - "10090" - as opposed to a name - "Mus musculus".
-	* here, we make sure that we are dealing with names by translating back
-	* this might be somewhat inefficient, as we will later translate to taxon, but it will
-	* make other calls easier to be consitently talking in terms of targetGroup name
-	*/
-	_getTargetGroupNameByTaxon: function(self,name) {
-		// default - it actually was a targetGroup name
-		var targetGroup = name;
-		var found = false;
-
-		/*
-		 * check to see if the name exists.
-		 * if it is found, then we say "true" and we're good.
-		 * if, however, it matches the taxon, take the index in the array.
-		 */
-
-		for (var sname in self.state.targetGroupByName) {
-			if(!self.state.targetGroupByName.hasOwnProperty(sname)){break;}
-			// we've found a matching name.
-			if (name == sname) {
-				found = true;
-			}
-
-			if (name == self.state.targetGroupByName[sname].taxon) {
-				found = true;
-				targetGroup = sname;
-				break;
+	_getTargetGroupTaxon: function(name) {
+		for (var i in this.state.targetGroupList) {
+			if (this.state.targetGroupList[i].name == name) {
+				return this.state.targetGroupList[i].taxon;
 			}
 		}
-		// if not found, it's overview.
-		if (found === false) {
-			targetGroup = "Overview";
-		}
-		return targetGroup;
+		return "";
 	},
+
+	// // Several procedures for various aspects of filtering/identifying appropriate entries in the target targetGroup list.. 
+	// _getTargetGroupIndexByName: function(self,name) {
+	// 	var index = -1;
+	// 	if (typeof(self.state.targetGroupByName[name]) !== 'undefined') {
+	// 		index = self.state.targetGroupByName[name].index;
+	// 	}
+	// 	return index;
+	// },
+
+	// _getTargetGroupNameByIndex: function(self,index) {
+	// 	var targetGroup;
+	// 	if (typeof(self.state.targetGroupList[index]) !== 'undefined') {
+	// 		targetGroup = self.state.targetGroupList[index].name;
+	// 	}
+	// 	else {
+	// 		targetGroup = 'Overview';
+	// 	}
+	// 	return targetGroup;
+	// },
+
+	// _getTargetGroupTaxonByName: function(self,name) {
+	// 	var taxon;
+	// 	// first, find something that matches by name
+	// 	if (typeof(self.state.targetGroupByName[name]) !== 'undefined') {
+	// 		taxon = self.state.targetGroupByName[name].taxon;
+	// 	}
+	// 	// default to overview, so as to always do somethign sensible
+	// 	if (typeof(taxon) === 'undefined') {
+	// 		taxon ='Overview';
+	// 	}
+
+	// 	return taxon;
+	// },
+
+	
+	// * some installations might send in a taxon - "10090" - as opposed to a name - "Mus musculus".
+	// * here, we make sure that we are dealing with names by translating back
+	// * this might be somewhat inefficient, as we will later translate to taxon, but it will
+	// * make other calls easier to be consitently talking in terms of targetGroup name
+	
+	// _getTargetGroupNameByTaxon: function(self,name) {
+	// 	// default - it actually was a targetGroup name
+	// 	var targetGroup = name;
+	// 	var found = false;
+
+	// 	/*
+	// 	 * check to see if the name exists.
+	// 	 * if it is found, then we say "true" and we're good.
+	// 	 * if, however, it matches the taxon, take the index in the array.
+	// 	 */
+
+	// 	for (var sname in self.state.targetGroupByName) {
+	// 		if(!self.state.targetGroupByName.hasOwnProperty(sname)){break;}
+	// 		// we've found a matching name.
+	// 		if (name == sname) {
+	// 			found = true;
+	// 		}
+
+	// 		if (name == self.state.targetGroupByName[sname].taxon) {
+	// 			found = true;
+	// 			targetGroup = sname;
+	// 			break;
+	// 		}
+	// 	}
+	// 	// if not found, it's overview.
+	// 	if (found === false) {
+	// 		targetGroup = "Overview";
+	// 	}
+	// 	return targetGroup;
+	// },
 
 	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
-	_createTargetGroupIndices: function() {
-		this.state.targetGroupByName = {};
-		for (var j in this.state.targetGroupList) {
-			// list starts as name, taxon pairs
-			var name = this.state.targetGroupList[j].name;
-			var taxon = this.state.targetGroupList[j].taxon;
-			var entry = {};
-			entry.index = j;
-			entry.taxon = taxon;
-			this.state.targetGroupByName[name] = entry;
+	_createTargetGroupList: function(targetSpecies) {
+	
+		if (typeof(targetSpecies) !== 'undefined' && targetSpecies != 'all') {   // for All option, see the Analyze page
+			// load just the one selected target targetGroup 
+			for (var idx in this.state.targetGroupList) {
+				// for active targetGroup pre-load them
+				if (this.state.targetGroupList[idx].taxon == targetSpecies) {
+					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+				}	
+			}
+
+		} else {
+			// load the default selected target targetGroup list based on the active flag
+			for (var idx in this.state.targetGroupList) {
+				// for active targetGroup pre-load them
+				if (this.state.targetGroupList[idx].active) {
+					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+				}	
+				// should they be shown in the comparison view
+				if (this.state.targetGroupList[idx].crossComparisonView) {
+					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+				}			
+			}
 		}
 	},
 
@@ -4362,7 +4418,7 @@ TooltipRender.prototype = {
 			"<tr><td><br><u><b>Target</b></u><br>" + 
 			"<b>Name:</b> " + 
 			this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) + "<br>" +	
-			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetGroupByName[d.targetGroup].taxon + ")</td>" + 			
+			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent._getTargetGroupTaxon(d.targetGroup) + ")</td>" + 			
 			"</td></tr>" +
 			"</tbody>" + "</table>";
 		

@@ -82,7 +82,9 @@ DataManager.prototype = {
 			} else {
 				a = this[dataset][targetGroup];
 			}
-			len = Object.keys(a).length;
+			if (typeof(a) !== 'undefined') {
+				len = Object.keys(a).length;
+			}
 		return len;
 	},
 	/*
@@ -359,13 +361,15 @@ DataManager.prototype = {
 
 		for (var k in targetGroupList) {
 			var data = this.getData("target", targetGroupList[k].name);
-			var i=0;
-			for (var idx in data) {
-				combinedTargetList[data[idx].id] = data[idx];
-				i++;
+			if (typeof(data) !== 'undefined') {
+				var i=0;
+				for (var idx in data) {
+					combinedTargetList[data[idx].id] = data[idx];
+					i++;
 
-				// if we've reached our limit break out
-				if (i >= limit) {break;}
+					// if we've reached our limit break out
+					if (i >= limit) {break;}
+				}
 			}
 		}
 		return combinedTargetList;
@@ -387,18 +391,19 @@ DataManager.prototype = {
 		for (var k in targetGroupList) {
 			var srcs = this.getData("source", targetGroupList[k].name);
 
-			for (var idx in srcs) {
-				var id = srcs[idx].id;
+			if (typeof(srcs) !== 'undefined') {
+				for (var idx in srcs) {
+					var id = srcs[idx].id;
 
-				// try adding source as an associative array, if not found then add new object
-				var srcData = combinedSourceList[id];
-				if (typeof(srcData) == 'undefined') {	
-					var newElement = {};
-					// this needs to be a copy, don't assign srcs[idx] directly to avoid object reference problems when modifying
-					combinedSourceList[id] = $.extend({}, newElement, srcs[idx]);	
+					// try adding source as an associative array, if not found then add new object
+					var srcData = combinedSourceList[id];
+					if (typeof(srcData) == 'undefined') {	
+						var newElement = {};
+						// this needs to be a copy, don't assign srcs[idx] directly to avoid object reference problems when modifying
+						combinedSourceList[id] = $.extend({}, newElement, srcs[idx]);	
+					}
 				}
 			}
-
 		}
 		// compute the frequency and rarity across all targetgroups
 		for (var s in combinedSourceList) {

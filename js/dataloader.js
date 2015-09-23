@@ -110,6 +110,7 @@ DataLoader.prototype = {
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
 
+		if (data != null || typeof(data) != 'undefined') {
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
 
@@ -117,9 +118,9 @@ DataLoader.prototype = {
 				// now transform data to there basic data structures
 				self.transform(target.name, data);  
 			}
-
-			// iterative back to process to make sure we processed all the targetGrpList
-			self.process(targetGrpList, self.qryString);
+		}
+		// iterative back to process to make sure we processed all the targetGrpList
+		self.process(targetGrpList, self.qryString);
 	},
 
 	/*
@@ -292,6 +293,7 @@ DataLoader.prototype = {
 				method: 'POST', 
 				data: postData,
 				async : true,
+				timeout: 3000,
 				dataType : 'json',
 				success : function(data) {
 					callback(self, target, targets, data);
@@ -299,7 +301,11 @@ DataLoader.prototype = {
 				error: function (xhr, errorType, exception) { 
 				// Triggered if an error communicating with server
 
-				switch(xhr.status){
+				switch(xhr.status) {
+					case 0:
+						if (exception == 'timeout') {
+							callback(self, target, targets, null);
+						}
 					case 404:
 					case 500:
 					case 501:
