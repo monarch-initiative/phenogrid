@@ -5,15 +5,8 @@
 #pg_container {
 margin:20px 10px;
 position:relative;
-border:1px solid #ddd;
 font-family:Verdana, Geneva, sans-serif;
 font-size:12px;
-}
-
-/* SVG tag */
-#pg_container  #pg_svg {
-min-width:980px;
-min-height:550px;  //780
 }
 
 /* HTML options popup */

@@ -410,6 +410,8 @@ var Utils = require('./utils.js');
 		} else {
 			this._showNoResults();
 		}
+        
+        this._setSvgSize();
 	},
 
     _createSvgComponents: function() {
@@ -432,7 +434,6 @@ var Utils = require('./utils.js');
 	// Click the setting button to open/close the control options
 	// Click anywhere inside #pg_svg to close the options when it's open
 	_togglePhenogridControls: function() {
-		var self = this; // Needed for inside the anonymous function - Joe
 		// Toggle the options panel by clicking the button
 		$("#pg_slide_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
@@ -447,14 +448,11 @@ var Utils = require('./utils.js');
 				$(this).removeClass("pg_slide_open");
 			}
 		});
-
 	},
 	
     // Click the setting button to open/close the control options
 	// Click anywhere inside #pg_container to close the options when it's open
 	_toggleUnmatchedSources: function() {
-		var self = this; // Needed for inside the anonymous function - Joe
-
 		// Toggle the options panel by clicking the button
 		$("#pg_unmatched_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
@@ -467,21 +465,6 @@ var Utils = require('./utils.js');
 				$("#pg_unmatched_list").fadeOut();
 				// Add top border back
 				$(this).removeClass("pg_unmatched_open");
-			}
-		});
-		
-		// When the options panel is visible, click anywhere inside #pg_svg to close the options, 
-		// more user-friendly than just force to click the button again
-		// NOTE: it's very interesting that if use 'html' or document instead of '#pg_svg', it won't work - Joe
-		$('#pg_svg').click(function(event) {
-			if ($(event.target) !== $('#pg_unmatched_btn') && $(event.target) !== $('#pg_unmatched_list')) {
-				// Only close the options if it's visible
-				if ($('#pg_unmatched_list').is(':visible')) {
-					// Add the top border of the button back
-					$("#pg_unmatched_btn").removeClass("pg_unmatched_open");
-					// Then close the options
-					$("#pg_unmatched_list").fadeOut();
-				}
 			}
 		});
 	},
@@ -1089,7 +1072,7 @@ var Utils = require('./utils.js');
 
 
     // Being called only for the first time the widget is being loaded
-	_createDisplay: function(){
+	_createDisplay: function() {
         // This removes the loading spinner, otherwise the spinner will be always there - Joe
         this.element.empty();
         this._createPhenogridContainer();
@@ -1113,18 +1096,27 @@ var Utils = require('./utils.js');
 		} else {
 			this._showNoResults();
 		}
+        
+        this._setSvgSize();
 	},
 
+    _setSvgSize: function() {
+        // Update the width and height of #pg_svg
+        d3.select("#pg_svg")
+            .attr('width', this.state.gridRegion.x + this._gridWidth() + 100)
+            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100) // Add an extra 100 to height - Joe
+    },
+    
     // Add the unmatched data to #pg_unmatched_list
     _addUnmatchedData: function(self) {
+        // Reset/empty the list
+        $('#pg_unmatched_list_data').html('');
+            
         // Get unmatched sources, add labels via async ajax calls if not found
         // Must be called after _createUnmatchedSources()
         self.state.unmatchedSources = self._getUnmatchedSources();
         // Proceed if there's any unmatched
         if (self.state.unmatchedSources.length > 0) {
-            // Reset/empty the list
-            $('#pg_unmatched_list_data').html('');
-            
             // Fetch labels for unmatched sources via async ajax calls
             // then format and append them to the pg_unmatched_list div - Joe
             self._formatUnmatchedSources(self.state.unmatchedSources);
@@ -2108,7 +2100,7 @@ var Utils = require('./utils.js');
         }
 
         var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + ' (' + data.id + ')' + '</a></div>';
-        $('#pg_unmatched_list').append(pg_unmatched_list_item);
+        $('#pg_unmatched_list_data').append(pg_unmatched_list_item);
         
         // iterative back to process to make sure we processed all the targets
         self._formatUnmatchedSources(targets);
@@ -2507,77 +2499,7 @@ var Utils = require('./utils.js');
 		return "";
 	},
 
-	// // Several procedures for various aspects of filtering/identifying appropriate entries in the target targetGroup list.. 
-	// _getTargetGroupIndexByName: function(self,name) {
-	// 	var index = -1;
-	// 	if (typeof(self.state.targetGroupByName[name]) !== 'undefined') {
-	// 		index = self.state.targetGroupByName[name].index;
-	// 	}
-	// 	return index;
-	// },
-
-	// _getTargetGroupNameByIndex: function(self,index) {
-	// 	var targetGroup;
-	// 	if (typeof(self.state.targetGroupList[index]) !== 'undefined') {
-	// 		targetGroup = self.state.targetGroupList[index].name;
-	// 	}
-	// 	else {
-	// 		targetGroup = 'Overview';
-	// 	}
-	// 	return targetGroup;
-	// },
-
-	// _getTargetGroupTaxonByName: function(self,name) {
-	// 	var taxon;
-	// 	// first, find something that matches by name
-	// 	if (typeof(self.state.targetGroupByName[name]) !== 'undefined') {
-	// 		taxon = self.state.targetGroupByName[name].taxon;
-	// 	}
-	// 	// default to overview, so as to always do somethign sensible
-	// 	if (typeof(taxon) === 'undefined') {
-	// 		taxon ='Overview';
-	// 	}
-
-	// 	return taxon;
-	// },
-
 	
-	// * some installations might send in a taxon - "10090" - as opposed to a name - "Mus musculus".
-	// * here, we make sure that we are dealing with names by translating back
-	// * this might be somewhat inefficient, as we will later translate to taxon, but it will
-	// * make other calls easier to be consitently talking in terms of targetGroup name
-	
-	// _getTargetGroupNameByTaxon: function(self,name) {
-	// 	// default - it actually was a targetGroup name
-	// 	var targetGroup = name;
-	// 	var found = false;
-
-	// 	/*
-	// 	 * check to see if the name exists.
-	// 	 * if it is found, then we say "true" and we're good.
-	// 	 * if, however, it matches the taxon, take the index in the array.
-	// 	 */
-
-	// 	for (var sname in self.state.targetGroupByName) {
-	// 		if(!self.state.targetGroupByName.hasOwnProperty(sname)){break;}
-	// 		// we've found a matching name.
-	// 		if (name == sname) {
-	// 			found = true;
-	// 		}
-
-	// 		if (name == self.state.targetGroupByName[sname].taxon) {
-	// 			found = true;
-	// 			targetGroup = sname;
-	// 			break;
-	// 		}
-	// 	}
-	// 	// if not found, it's overview.
-	// 	if (found === false) {
-	// 		targetGroup = "Overview";
-	// 	}
-	// 	return targetGroup;
-	// },
-
 	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
 	_createTargetGroupList: function(targetSpecies) {
 	
