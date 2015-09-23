@@ -388,6 +388,8 @@ var Utils = require('./utils.js');
 		} else {
 			this._showNoResults();
 		}
+        
+        this._setSvgSize();
 	},
 
     _createSvgComponents: function() {
@@ -1048,7 +1050,7 @@ var Utils = require('./utils.js');
 
 
     // Being called only for the first time the widget is being loaded
-	_createDisplay: function(){
+	_createDisplay: function() {
         // This removes the loading spinner, otherwise the spinner will be always there - Joe
         this.element.empty();
         this._createPhenogridContainer();
@@ -1072,8 +1074,17 @@ var Utils = require('./utils.js');
 		} else {
 			this._showNoResults();
 		}
+        
+        this._setSvgSize();
 	},
 
+    _setSvgSize: function() {
+        // Update the width and height of #pg_svg
+        d3.select("#pg_svg")
+            .attr('width', this.state.gridRegion.x + this._gridWidth())
+            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100) // Add an extra 100 to height - Joe
+    },
+    
     // Add the unmatched data to #pg_unmatched_list
     _addUnmatchedData: function(self) {
         // Reset/empty the list
