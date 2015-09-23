@@ -222,7 +222,7 @@ TooltipRender.prototype = {
 			"<tr><td><br><u><b>Target</b></u><br>" + 
 			"<b>Name:</b> " + 
 			this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) + "<br>" +	
-			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent.state.targetGroupByName[d.targetGroup].taxon + ")</td>" + 			
+			"<b>Species:</b> " + d.targetGroup + "(" + tooltip.parent._getTargetGroupTaxon(d.targetGroup) + ")</td>" + 			
 			"</td></tr>" +
 			"</tbody>" + "</table>";
 		
