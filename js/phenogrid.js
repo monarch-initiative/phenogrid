@@ -1914,11 +1914,10 @@ var Utils = require('./utils.js');
     // To be used for exported phenogrid SVG, hide this by default
     _createMonarchInitiativeText: function() {
         this.state.svg.append("text")
-			.attr("x", this.state.gridRegion.x + this._gridWidth()/2)
-			.attr("y", this.state.gridRegion.y + this._gridHeight() + 60) // 60 is margin
+			.attr("x", this.state.gridRegion.x)
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 90) // 90 is margin
 			.attr("id", "pg_monarchinitiative_text")
 			.attr('class', 'pg_hide') // Only show this text in exported SVG of Phenogrid 
-            .attr('text-anchor', 'middle')
             .style('font-size', '11px')
 			.text('monarchinitiative.org');
     },
