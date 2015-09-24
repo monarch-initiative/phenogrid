@@ -2032,54 +2032,38 @@ var Utils = require('./utils.js');
         return $(btn);
     },
     
+    // Returns the unmatched phenotype IDs as an array
 	_getUnmatchedSources: function() {
-		var fullset = this.state.dataLoader.origSourceList; // Get the original source list of IDs
-		var matchedset = this.state.yAxisRender.groupIDs(); // Get all the matched source IDs
-		var full = [];
-		var partial = [];
-		var unmatchedset = [];
-		var tempObject = {"id": 0, "observed": "positive"};
+		// Already removed duplicated phenotype IDs
+        var origSourceList = this.state.dataLoader.origSourceList; // Get the original source list of IDs
+		var matchedList = this.state.yAxisRender.groupIDs(); // Get all the matched source IDs
+		
+        console.log('origSourceList: ' + origSourceList + '-----' + origSourceList.length);
+        console.log('matchedList: ' + matchedList + '-----' + matchedList.length);
+        
 
-		for (var i in fullset) {
-			if (typeof(fullset[i].id) === 'undefined') {
-				tempObject.id = fullset[i];
-				full.push(tempObject);
-			} else {
-				full.push(fullset[i]);
-			}
+		var normalizedMatchedList = [];
+		var unmatchedList = [];
+
+        // Normalize. E.g., HP_0000252 -> HP:0000252
+		for (var j in matchedList){
+			normalizedMatchedList.push(matchedList[j].replace("_", ":"));
 		}
 
-		for (var j in matchedset){
-			partial.push(matchedset[j].replace("_", ":"));
-		}
-
-		for (var k in full) {
-			// if no match in fullset
-			if (partial.indexOf(full[k].id) < 0) {
+        console.log('normalizedMatchedList: ' + normalizedMatchedList + '-----' + normalizedMatchedList.length);
+        
+        // Now origSourceList should contain all elements that are in normalizedMatchedList
+        // but it's very possible that some elements in origSourceList are not in normalizedMatchedList - Joe
+        for (var i in origSourceList) {
+			if (normalizedMatchedList.indexOf(origSourceList[i]) === -1) {
 				// if there unmatched set is empty, add this umatched phenotype
-				unmatchedset.push(full[k]);
+				unmatchedList.push(origSourceList[i]);
 			}
 		}
-
-		var dupArray = [];
-		dupArray.push(unmatchedset[0]);	
-		// check for dups
-		for (var l in unmatchedset) {
-			var found = false;
-			for (var m in dupArray) {
-				if (dupArray[m].id === unmatchedset[l].id) {
-					found = true;
-				}
-			}
-			if (found === false) {
-				dupArray.push(unmatchedset[l]);
-			}
-		}
-		if (dupArray[0] === undefined) {
-			dupArray = [];
-		}
-
-        return dupArray;
+        
+        console.log('unmatchedList: ' + unmatchedList + '-----' + unmatchedList.length);
+        
+        return unmatchedList;
 	},
 
     // Position the unmatched sources when the gridRegion changes
@@ -2114,7 +2098,7 @@ var Utils = require('./utils.js');
         // so we need to fetch each label from the monarch-app server
         // Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
         $.ajax({
-            url: this.state.serverURL + "/phenotype/" + target.id + ".json",
+            url: this.state.serverURL + "/phenotype/" + target + ".json",
             async: true,
             method: 'GET',
             dataType: 'json',
