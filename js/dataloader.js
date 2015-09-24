@@ -293,7 +293,7 @@ DataLoader.prototype = {
 				method: 'POST', 
 				data: postData,
 				async : true,
-				timeout: 3000,
+				timeout: 60000,
 				dataType : 'json',
 				success : function(data) {
 					callback(self, target, targets, data);
