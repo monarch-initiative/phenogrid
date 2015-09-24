@@ -13,7 +13,7 @@
     "visualization"
   ],
   "author": "University of Pittsburgh, Department of Biomedical Informatics",
-  "license": "ISC",
+  "license": "GPLv2",
   "bugs": {
     "url": "https://github.com/monarch-initiative/phenogrid/issues"
   },
