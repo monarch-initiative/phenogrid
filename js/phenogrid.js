@@ -2071,6 +2071,7 @@ var Utils = require('./utils.js');
 		var gridRegion = this.state.gridRegion; 
 		$('#pg_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
         $('#pg_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#pg_unmatched_btn').outerHeight() + + 17 + 10);
+        $('#pg_unmatched_list').css('width', gridRegion.x + this._gridWidth());
     },	
     
     // ajax callback
@@ -2078,12 +2079,12 @@ var Utils = require('./utils.js');
         var label;
         // Show id if label is not found
         if (data.label !== undefined) {
-            label = data.label;
+            label = Utils.getShortLabel(data.label, self.state.labelCharDisplayCount);
         } else {
             label = data.id;
         }
 
-        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + ' (' + data.id + ')' + '</a></div>';
+        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + '</a></div>';
         $('#pg_unmatched_list_data').append(pg_unmatched_list_item);
         
         // iterative back to process to make sure we processed all the targets
