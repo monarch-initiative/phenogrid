@@ -167,9 +167,8 @@ var Utils = require('./utils.js');
                 scoreOffset:5  // score text offset from the top of grid squares
             },
             gradientRegion: {
-                x:254, 
-                y:620, 
-                height:10
+                width: 240,
+                height: 5
             }, // width will be calculated - Joe
             phenotypeSort: [
                 "Alphabetic", 
@@ -1102,8 +1101,12 @@ var Utils = require('./utils.js');
 
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
+        var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
+        var calculatedSvgWidth = this.state.gridRegion.x + this._gridWidth();
+        var svgWidth = (toptitleWidth >= calculatedSvgWidth) ? toptitleWidth : calculatedSvgWidth;
+        
         d3.select("#pg_svg")
-            .attr('width', this.state.gridRegion.x + this._gridWidth() + 100)
+            .attr('width', svgWidth + 100)
             .attr('height', this.state.gridRegion.y + this._gridHeight() + 100) // Add an extra 100 to height - Joe
     },
     
@@ -1711,10 +1714,10 @@ var Utils = require('./utils.js');
 
 		// Create the gradient rect
 		gradientGrp.append("rect")
-			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
-			.attr("y", gridRegion.y + this._gridHeight() + 22) // use x and y instead of transform since rect has x and y, 22 is margin - Joe
+			.attr("x", gridRegion.x)
+			.attr("y", gridRegion.y + this._gridHeight() + 60) // use x and y instead of transform since rect has x and y, 60 is margin - Joe
 			.attr("id", "pg_gradient_legend_rect")
-			.attr("width", this._gridWidth() - this.state.gridRegion.xpad * 3 * 2) // // Shift 3 (cells+spaceing) on each side - Joe
+			.attr("width", this.state.gradientRegion.width)
 			.attr("height", this.state.gradientRegion.height) 
 			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 		
@@ -1740,25 +1743,25 @@ var Utils = require('./utils.js');
             .style('font-size', '11px');
 		
 		// Dynamicly change, relative to grid region - Joe
-		var yTexts = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
+		var yTexts = gridRegion.y + this._gridHeight() + 57; // 57 is margin - Joe
 
 		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
+			.attr("x", gridRegion.x)
 			.attr("y", yTexts)
 			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
 
 		// create and position the display type label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + (this._gridWidth()/2))
+			.attr("x", gridRegion.x + (this.state.gradientRegion.width/2))
 			.attr("y", yTexts)	
 			.style('text-anchor', 'middle') // This renders the middle of the text string as the current text position x - Joe			
 			.text(labelText);
 
 		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this._gridWidth() - this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
+			.attr("x", gridRegion.x + this.state.gradientRegion.width) 
 			.attr("y", yTexts)	
             .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
@@ -1911,11 +1914,10 @@ var Utils = require('./utils.js');
     // To be used for exported phenogrid SVG, hide this by default
     _createMonarchInitiativeText: function() {
         this.state.svg.append("text")
-			.attr("x", this.state.gridRegion.x + this._gridWidth()/2)
-			.attr("y", this.state.gridRegion.y + this._gridHeight() + 60) // 60 is margin
+			.attr("x", this.state.gridRegion.x)
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 90) // 90 is margin
 			.attr("id", "pg_monarchinitiative_text")
 			.attr('class', 'pg_hide') // Only show this text in exported SVG of Phenogrid 
-            .attr('text-anchor', 'middle')
             .style('font-size', '11px')
 			.text('monarchinitiative.org');
     },
@@ -2032,54 +2034,30 @@ var Utils = require('./utils.js');
         return $(btn);
     },
     
+    // Returns the unmatched phenotype IDs as an array
 	_getUnmatchedSources: function() {
-		var fullset = this.state.dataLoader.origSourceList; // Get the original source list of IDs
-		var matchedset = this.state.yAxisRender.groupIDs(); // Get all the matched source IDs
-		var full = [];
-		var partial = [];
-		var unmatchedset = [];
-		var tempObject = {"id": 0, "observed": "positive"};
+		// Already removed duplicated phenotype IDs
+        var origSourceList = this.state.dataLoader.origSourceList; // Get the original source list of IDs
+		var matchedList = this.state.yAxisRender.groupIDs(); // Get all the matched source IDs
 
-		for (var i in fullset) {
-			if (typeof(fullset[i].id) === 'undefined') {
-				tempObject.id = fullset[i];
-				full.push(tempObject);
-			} else {
-				full.push(fullset[i]);
-			}
+		var normalizedMatchedList = [];
+		var unmatchedList = [];
+
+        // Normalize. E.g., HP_0000252 -> HP:0000252
+		for (var j in matchedList){
+			normalizedMatchedList.push(matchedList[j].replace("_", ":"));
 		}
 
-		for (var j in matchedset){
-			partial.push(matchedset[j].replace("_", ":"));
-		}
-
-		for (var k in full) {
-			// if no match in fullset
-			if (partial.indexOf(full[k].id) < 0) {
+        // Now origSourceList should contain all elements that are in normalizedMatchedList
+        // but it's very possible that some elements in origSourceList are not in normalizedMatchedList - Joe
+        for (var i in origSourceList) {
+			if (normalizedMatchedList.indexOf(origSourceList[i]) === -1) {
 				// if there unmatched set is empty, add this umatched phenotype
-				unmatchedset.push(full[k]);
+				unmatchedList.push(origSourceList[i]);
 			}
 		}
 
-		var dupArray = [];
-		dupArray.push(unmatchedset[0]);	
-		// check for dups
-		for (var l in unmatchedset) {
-			var found = false;
-			for (var m in dupArray) {
-				if (dupArray[m].id === unmatchedset[l].id) {
-					found = true;
-				}
-			}
-			if (found === false) {
-				dupArray.push(unmatchedset[l]);
-			}
-		}
-		if (dupArray[0] === undefined) {
-			dupArray = [];
-		}
-
-        return dupArray;
+        return unmatchedList;
 	},
 
     // Position the unmatched sources when the gridRegion changes
@@ -2087,6 +2065,7 @@ var Utils = require('./utils.js');
 		var gridRegion = this.state.gridRegion; 
 		$('#pg_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
         $('#pg_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#pg_unmatched_btn').outerHeight() + + 17 + 10);
+        $('#pg_unmatched_list').css('width', gridRegion.x + this._gridWidth());
     },	
     
     // ajax callback
@@ -2094,12 +2073,12 @@ var Utils = require('./utils.js');
         var label;
         // Show id if label is not found
         if (data.label !== undefined) {
-            label = data.label;
+            label = Utils.getShortLabel(data.label, self.state.labelCharDisplayCount);
         } else {
             label = data.id;
         }
 
-        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + ' (' + data.id + ')' + '</a></div>';
+        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + '</a></div>';
         $('#pg_unmatched_list_data').append(pg_unmatched_list_item);
         
         // iterative back to process to make sure we processed all the targets
@@ -2114,7 +2093,7 @@ var Utils = require('./utils.js');
         // so we need to fetch each label from the monarch-app server
         // Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
         $.ajax({
-            url: this.state.serverURL + "/phenotype/" + target.id + ".json",
+            url: this.state.serverURL + "/phenotype/" + target + ".json",
             async: true,
             method: 'GET',
             dataType: 'json',

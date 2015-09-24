@@ -109,17 +109,20 @@ top:0;
 
 #pg_container  #pg_unmatched_list {
 position:absolute;
-left:50px;
-width:200px;
+left:30px;
 background:#F1F3F8;
 padding:10px;
+margin-bottom:20px;
 color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 }
 
-#pg_container  .pg_unmatched_list_item {
-margin:5px 0;
+#pg_container  .pg_unmatched_list_item  a{
+padding:5px;
+width:155px;
+float:left;
+font-size:11px;
 }
 
 #pg_container  .pg_unmatched_list_arrow_border{
