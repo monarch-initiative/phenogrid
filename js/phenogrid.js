@@ -167,9 +167,7 @@ var Utils = require('./utils.js');
                 scoreOffset:5  // score text offset from the top of grid squares
             },
             gradientRegion: {
-                x:254, 
-                y:620, 
-                height:10
+                height:5
             }, // width will be calculated - Joe
             phenotypeSort: [
                 "Alphabetic", 
@@ -1102,8 +1100,12 @@ var Utils = require('./utils.js');
 
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
+        var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
+        var calculatedSvgWidth = this.state.gridRegion.x + this._gridWidth();
+        var svgWidth = (toptitleWidth >= calculatedSvgWidth) ? toptitleWidth : calculatedSvgWidth;
+        
         d3.select("#pg_svg")
-            .attr('width', this.state.gridRegion.x + this._gridWidth() + 100)
+            .attr('width', svgWidth + 100)
             .attr('height', this.state.gridRegion.y + this._gridHeight() + 100) // Add an extra 100 to height - Joe
     },
     
@@ -2037,10 +2039,6 @@ var Utils = require('./utils.js');
 		// Already removed duplicated phenotype IDs
         var origSourceList = this.state.dataLoader.origSourceList; // Get the original source list of IDs
 		var matchedList = this.state.yAxisRender.groupIDs(); // Get all the matched source IDs
-		
-        console.log('origSourceList: ' + origSourceList + '-----' + origSourceList.length);
-        console.log('matchedList: ' + matchedList + '-----' + matchedList.length);
-        
 
 		var normalizedMatchedList = [];
 		var unmatchedList = [];
@@ -2050,8 +2048,6 @@ var Utils = require('./utils.js');
 			normalizedMatchedList.push(matchedList[j].replace("_", ":"));
 		}
 
-        console.log('normalizedMatchedList: ' + normalizedMatchedList + '-----' + normalizedMatchedList.length);
-        
         // Now origSourceList should contain all elements that are in normalizedMatchedList
         // but it's very possible that some elements in origSourceList are not in normalizedMatchedList - Joe
         for (var i in origSourceList) {
@@ -2060,9 +2056,7 @@ var Utils = require('./utils.js');
 				unmatchedList.push(origSourceList[i]);
 			}
 		}
-        
-        console.log('unmatchedList: ' + unmatchedList + '-----' + unmatchedList.length);
-        
+
         return unmatchedList;
 	},
 
