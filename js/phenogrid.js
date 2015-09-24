@@ -1747,7 +1747,7 @@ var Utils = require('./utils.js');
 
 		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x) // Shift 3 (cells+spaceing) - Joe
+			.attr("x", gridRegion.x)
 			.attr("y", yTexts)
 			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
