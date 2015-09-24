@@ -167,7 +167,8 @@ var Utils = require('./utils.js');
                 scoreOffset:5  // score text offset from the top of grid squares
             },
             gradientRegion: {
-                height:5
+                width: 240,
+                height: 5
             }, // width will be calculated - Joe
             phenotypeSort: [
                 "Alphabetic", 
@@ -1713,10 +1714,10 @@ var Utils = require('./utils.js');
 
 		// Create the gradient rect
 		gradientGrp.append("rect")
-			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
-			.attr("y", gridRegion.y + this._gridHeight() + 22) // use x and y instead of transform since rect has x and y, 22 is margin - Joe
+			.attr("x", gridRegion.x)
+			.attr("y", gridRegion.y + this._gridHeight() + 60) // use x and y instead of transform since rect has x and y, 60 is margin - Joe
 			.attr("id", "pg_gradient_legend_rect")
-			.attr("width", this._gridWidth() - this.state.gridRegion.xpad * 3 * 2) // // Shift 3 (cells+spaceing) on each side - Joe
+			.attr("width", this.state.gradientRegion.width)
 			.attr("height", this.state.gradientRegion.height) 
 			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 		
@@ -1742,25 +1743,25 @@ var Utils = require('./utils.js');
             .style('font-size', '11px');
 		
 		// Dynamicly change, relative to grid region - Joe
-		var yTexts = gridRegion.y + this._gridHeight() + 20; // 20 is margin - Joe
+		var yTexts = gridRegion.y + this._gridHeight() + 57; // 57 is margin - Joe
 
 		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
+			.attr("x", gridRegion.x) // Shift 3 (cells+spaceing) - Joe
 			.attr("y", yTexts)
 			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
 
 		// create and position the display type label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + (this._gridWidth()/2))
+			.attr("x", gridRegion.x + (this.state.gradientRegion.width/2))
 			.attr("y", yTexts)	
 			.style('text-anchor', 'middle') // This renders the middle of the text string as the current text position x - Joe			
 			.text(labelText);
 
 		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this._gridWidth() - this.state.gridRegion.xpad * 3) // Shift 3 (cells+spaceing) - Joe
+			.attr("x", gridRegion.x + this.state.gradientRegion.width) 
 			.attr("y", yTexts)	
             .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
