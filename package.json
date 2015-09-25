@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/monarch-initiative/phenogrid",
   "scripts": {
-    "postinstall": "./node_modules/.bin/gulp bundle"
+    "phenogrid-bundle": "./node_modules/.bin/gulp bundle"
   },
   "dependencies": {
     "d3": "^3.5.5",
