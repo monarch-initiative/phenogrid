@@ -18,9 +18,6 @@
     "url": "https://github.com/monarch-initiative/phenogrid/issues"
   },
   "homepage": "https://github.com/monarch-initiative/phenogrid",
-  "scripts": {
-    "phenogrid-bundle": "./node_modules/.bin/gulp bundle"
-  },
   "dependencies": {
     "d3": "^3.5.5",
     "filesaver.js": "^0.2.0",
