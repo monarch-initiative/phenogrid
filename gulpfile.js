@@ -6,8 +6,6 @@
 //// Current top targets:
 ////  - bundle: create the distribution files
 ////  - tests: run the unit tests
-//// Watch targets:
-////  - watch-tests: run tests on changes to source files
 ////
 
 var gulp = require('gulp');
@@ -19,12 +17,8 @@ var streamify = require('gulp-streamify');
 var uglify = require('gulp-uglify');
 var minifyCSS = require('gulp-minify-css');
 var concat = require('gulp-concat');
-var bump = require('gulp-bump');
-var del = require('del');
-var shell = require('gulp-shell');
 var marked = require('marked');
 var jshint = require('gulp-jshint');
-var jshints = require('jshint-stylish');
 var fileinclude = require('gulp-file-include');
 
 function markdownHelper(text) {
@@ -54,6 +48,14 @@ gulp.task('bundle', ['create-index', 'js-bundle', 'css-bundle']);
 // an alternate task that won't uglify. useful for debugging
 gulp.task('dev-bundle', ['lint', 'create-index', 'js-dev-bundle', 'css-bundle']);
 
+// JSHint
+gulp.task("lint", function() {
+     return gulp.src(paths.js)
+        .pipe(jshint())
+        .pipe(jshint.reporter("jshint-stylish"));
+        //.pipe(jshint.reporter("fail"));
+});
+
 gulp.task('create-index', ['clean'], function(cb) {
   gulp.src(['templates/index.html'])
     .pipe(fileinclude({
@@ -62,6 +64,11 @@ gulp.task('create-index', ['clean'], function(cb) {
       }
     }))
     .pipe(gulp.dest('./'));
+});
+
+// Get rid of anything that is transient.
+gulp.task('clean', function(cb) {
+    cb(null);
 });
 
 // Bundle JS together with browserify
@@ -96,36 +103,6 @@ gulp.task('css-bundle', function(cb) {
     .pipe(gulp.dest('./dist/'));
 });
 
-// Browser runtime environment construction.
-gulp.task('build', ['bundle', 'patch-bump']);
-
-gulp.task('patch-bump', function(cb){
-    gulp.src('./package.json')
-    .pipe(bump({type: 'patch'}))
-    .pipe(gulp.dest('./'));
-    cb(null);
-});
-
-gulp.task('minor-bump', function(cb){
-    gulp.src('./package.json')
-    .pipe(bump({type: 'minor'}))
-    .pipe(gulp.dest('./'));
-    cb(null);
-});
-
-gulp.task('major-bump', function(cb){
-    gulp.src('./package.json')
-    .pipe(bump({type: 'major'}))
-    .pipe(gulp.dest('./'));
-    cb(null);
-});
-
-// Get rid of anything that is transient.
-gulp.task('clean', function(cb) {
-    cb(null);
-});
-
-
 // Testing with mocha/chai
 gulp.task('test', function() {
     return gulp.src(paths.tests, {read: false}).pipe(mocha({
@@ -134,29 +111,6 @@ gulp.task('test', function() {
 });
 
 
-// Publishing
-gulp.task('release', ['build', 'publish-npm']);
-
-// Needs to have ""
-gulp.task('publish-npm', function() {
-    var npm = require("npm");
-    npm.load(function (er, npm) {
-    // NPM
-    npm.commands.publish();
-    });
-});
-
-// Rerun test build when a file changes.
-gulp.task('watch-tests', function() {
-  gulp.watch(paths.tests, ['tests', 'bundle']);
-});
-
-gulp.task("lint", function() {
-     return gulp.src(paths.js)
-        .pipe(jshint())
-        .pipe(jshint.reporter("jshint-stylish"));
-        //.pipe(jshint.reporter("fail"));
-});
 
 // The default task (called when you run `gulp` from cli)
 gulp.task('default', function() {
