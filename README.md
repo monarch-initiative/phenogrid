@@ -51,7 +51,7 @@ Sometimes, it requires root access to for the installation, just run the followi
 sudo npm install phenogrid
 ```
 
-This will create a local `/node_modules` folder in your working directory, and download/install Phenogrid and all its dependencies into the local `/node_modules` folder.
+This will create a local `/node_modules` folder in your current working directory, and download/install Phenogrid package and all its dependencies (except the devDepencies) into the local `/node_modules` folder.
 
 
 # Add phenogrid in your target page
@@ -206,6 +206,14 @@ Open the modified `index.html` or your target web page that has the phenogrid em
 Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.
 
 # For developers
+
+If you would like to poke around Phenogrid and make changes to the source code, you will also need to have all the devDepencies downloaded by running the following code in the Phenogrid package root directory:
+
+````
+npm install
+````
+
+Once the installation is finished, you are welcome to make code changes and test them out by running
 
 ````
 gulp bundle
