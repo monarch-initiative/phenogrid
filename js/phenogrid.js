@@ -73,6 +73,9 @@ var TooltipRender = require('./tooltiprender.js');
 var Expander = require('./expander.js');
 var Utils = require('./utils.js');
 
+// html content to be used for popup dialogues
+var html = require('./html.json');
+
 (function(factory) {
 	// If there is a variable named module and it has an exports property,
 	// then we're working in a Node-like environment. Use require to load
@@ -118,8 +121,7 @@ var Utils = require('./utils.js');
         // Supposed to be used by developers for deeper customization
         // can not be overwritten from constructor
         internalOptions: {
-            imagePath: 'image/',
-            htmlPath: 'js/res/',	
+            imagePath: 'image/',	
             simServerURL: "",  // URL of the server for similarity searches
             simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",    
             unmatchedButtonLabel: 'Unmatched Phenotypes',
@@ -232,8 +234,6 @@ var Utils = require('./utils.js');
 		// this.state.selectedCompareTargetGroup = [];
 		// var targetGroupLoadList = [];
 
-        this.state.tooltips = {}; // Holds the FAQ popups
-        
 		// // load the default selected target targetGroup list based on the active flag
 		// for (var idx in this.state.targetGroupList) {
 		// 	// for active targetGroup pre-load them
@@ -989,7 +989,7 @@ var Utils = require('./utils.js');
 			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
 			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
 			.on("click", function() {
-				self._showDialog("modelscores");
+				self._populateDialog(html.scores);
 			});
 	},
 		
@@ -1612,32 +1612,8 @@ var Utils = require('./utils.js');
             }
         } 
 	},
-	
-	// Google chrome disallows the access to local files cia ajax call, 
-    // so you may find out that the FAQ popup dialog won't show the content 
-    // if you open index.html in the file:/// format
-	_showDialog: function(name){
-		var self = this;
-		var url = this._getResourceUrl(name,'html');
-		if (typeof(self.state.tooltips[name]) === 'undefined') {
-			$.ajax( {url: url,
-				dataType: 'html',
-				async: 'false',
-				success: function(data) {
-					self._populateDialog(self,name,data);
-				},
-				error: function ( xhr, errorType, exception ) { 
-				// Triggered if an error communicating with server
-					self._populateDialog(self,"Error", "We are having problems with the server. Please try again soon. Error:" + xhr.status);
-				}
-			});
-		}
-		else {
-			this._populateDialog(self,name,self.state.tooltips[name]);
-		}
-	},
 
-	_populateDialog: function(self, name, text) {
+	_populateDialog: function(text) {
 		var SplitText = "Title";
 		var $dialog = $('<div></div>')
 			.html(SplitText )
@@ -1671,7 +1647,6 @@ var Utils = require('./utils.js');
 
 		$dialog.html(text);
 		$dialog.dialog('open');
-		self.state.tooltips[name] = text;
 	},
 
 	/*
@@ -1892,15 +1867,15 @@ var Utils = require('./utils.js');
         
 		// FAQ popups
 		$("#pg_sorts_faq").click("click", function(){
-			self._showDialog("sorts");
+			self._populateDialog(html.sorts);
 		});
 
 		$("#pg_calcs_faq").click(function(){
-			self._showDialog("calcs");
+			self._populateDialog(html.calcs);
 		});
 		
 		$("#pg_about_phenogrid").click(function() {	
-			self._showDialog("faq");
+			self._populateDialog(html.faq);
 		});
 	},
 
@@ -2498,10 +2473,6 @@ var Utils = require('./utils.js');
 				}			
 			}
 		}
-	},
-
-	_getResourceUrl: function(name,type) {
-		return this.state.htmlPath + name + '.' + type;
 	},
 
 	_isCrossComparisonView: function() {
