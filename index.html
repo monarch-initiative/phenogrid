@@ -129,7 +129,7 @@ sudo apt-get install npm
 <pre><code>npm install phenogrid
 </code></pre><p>Sometimes, it requires root access to for the installation, just run the following instead</p>
 <pre><code>sudo npm install phenogrid
-</code></pre><p>This will create a local <code>/node_modules</code> folder in your working directory, and download/install Phenogrid and all its dependencies into the local <code>/node_modules</code> folder.</p>
+</code></pre><p>This will create a local <code>/node_modules</code> folder in your current working directory, and download/install Phenogrid package and all its dependencies (except the devDepencies) into the local <code>/node_modules</code> folder.</p>
 <h1 id="add-phenogrid-in-your-target-page">Add phenogrid in your target page</h1>
 <p>In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the <code>&lt;meta charset=&quot;UTF-8&quot;&gt;</code> tag in your HTML head.</p>
 <pre><code class="lang-html">&lt;html&gt;
@@ -260,6 +260,9 @@ window.onload = function() {
 <h1 id="web-browser-support">Web Browser Support</h1>
 <p>Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.</p>
 <h1 id="for-developers">For developers</h1>
+<p>If you would like to poke around Phenogrid and make changes to the source code, you will also need to have all the devDepencies downloaded by running the following code in the Phenogrid package root directory:</p>
+<pre><code>npm install
+</code></pre><p>Once the installation is finished, you are welcome to make code changes and test them out by running</p>
 <pre><code>gulp bundle
 </code></pre><p>This command will use browserify to bundle up phenogrid core and its dependencies into phenogrid-bundle.js and create the merged phenogrid-bundle.css and put both files under dist folder. And both bundled files will be minified.</p>
 <p>It’s helpful to have unminified versions of phenogrid-bundle.js and phenogrid-bundle.css for development and debugging. If this is the case, you can run the following command.</p>
