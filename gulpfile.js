@@ -114,7 +114,7 @@ gulp.task('test', function() {
 
 // The default task (called when you run `gulp` from cli)
 gulp.task('default', function() {
-    console.log("'allo 'allo!");
+    console.log("Please specify the task name!");
 });
 
 
