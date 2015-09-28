@@ -2,7 +2,7 @@
 
 # About Phenogrid
 
-Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by OWLSim (www.owlsim.org), as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
+Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by [OWLSim](www.owlsim.org), as provided through APIs from the [Monarch Initiative](www.monarchinitiative.org).
 
 Given an input list of phenotypes (you will see the sample input below) and parameters specified in config/phenogrid_config.js indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.
 
@@ -223,4 +223,4 @@ This will also show you all the JSHint messages for debugging or improving the c
 
 # License
 
-Phenogrid is released under []GPL-2.0 license](https://opensource.org/licenses/GPL-2.0).
+Phenogrid is released under [GPL-2.0 license](https://opensource.org/licenses/GPL-2.0).
