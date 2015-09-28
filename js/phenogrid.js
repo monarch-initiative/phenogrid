@@ -1236,12 +1236,6 @@ var Utils = require('./utils.js');
 
 		var stickyInner =  $("<div>")
 						.attr("id", "stickyInner");
-						
-		
-		var img = $("<img>")
-				.attr("id", "img-spinner")
-				.attr("src", this.state.imagePath + "waiting_ac.gif")
-				.attr("alt", "Loading, please wait...");
 
 		// var wait = $("<div>")
 		// 	.attr("id", "wait")
@@ -1249,7 +1243,6 @@ var Utils = require('./utils.js');
 		// 	.attr("style", "display:none")
 		// 	.text("Searching for data...");
 
-		// 	wait.append(img);
 		// var status = $("<div>")
 		// 	.attr("class", "stickystatus");
 
