@@ -1,0 +1,11 @@
+.travis.yml
+
+.jshintrc
+
+.gitignore
+
+tests/behave/lib
+tests/behave/bin
+tests/behave/lib64
+tests/behave/include 
+tests/behave/ghostdriver.log

@@ -108,13 +108,12 @@ window.onload = function() {
 <article class="markdown-body">
 <p><a href="https://travis-ci.org/monarch-initiative/phenogrid"><img src="https://travis-ci.org/monarch-initiative/phenogrid.svg" alt="Build Status"></a></p>
 <h1 id="about-phenogrid">About Phenogrid</h1>
-<p>Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by OWLSim (www.owlsim.org), as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).</p>
+<p>Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by <a href="https://github.com/owlcollab/owltools">OWLSim</a>, as provided through APIs from the <a href="http://monarchinitiative.org/">Monarch Initiative</a>.</p>
 <p>Given an input list of phenotypes (you will see the sample input below) and parameters specified in config/phenogrid_config.js indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.</p>
 <h1 id="installation-instructions">Installation Instructions</h1>
-<p>If you won’t be doing any development of Phenogrid, you can simply download the phenogrid github zip file and unzip, then open the <code>index.html</code> to run this widget.</p>
-<p>For developers who want to make changes to phenogrid, following is the process.</p>
+<p>Phenogrid is published as a npm package, so you will need to have npm (npm is bundled and installed automatically with node.js) installed before you can install Phenogrid.</p>
 <h2 id="1-install-npm">1. Install npm</h2>
-<p>Before you get started, you will need to make sure you have npm installed first. npm is bundled and installed automatically with node.js. If you have not installed node.js, try:</p>
+<p>If you have not installed node.js, try:</p>
 <pre><code>curl -sL https://rpm.nodesource.com/setup | bash -
 
 yum install -y nodejs
@@ -125,18 +124,13 @@ yum install -y nodejs
 sudo apt-get install npm
 </code></pre><p>Then create a symbolic link for “node” as many Node.js tools use this name to execute.</p>
 <pre><code>sudo ln -s /usr/bin/nodejs /usr/bin/node
-</code></pre><h2 id="2-install-phenogrid-widget">2. Install phenogrid widget</h2>
-<p>To download and install the phenogrid widget, run</p>
-<pre><code>npm install
-</code></pre><p>from this directory. Sometimes, it requires root access to for the installation, just run the following instead</p>
-<pre><code>sudo npm install
-</code></pre><p>This will create a local <code>/node_modules</code> folder in the phenogrid root directory, and download/install all the dependencies(jquery, jquery-ui, d3, and jshashtable) and tools (gulp, browserify, etc.) into the local <code>/node_modules</code> folder.</p>
-<h2 id="3-run-gulp-to-build-bundled-js-and-css">3. Run gulp to build bundled JS and CSS</h2>
-<pre><code>gulp bundle
-</code></pre><p>This command will use browserify to bundle up phenogrid core and its dependencies into <code>phenogrid-bundle.js</code> and create the merged <code>phenogrid-bundle.css</code> and put both files under <code>dist</code> folder. And both bundled files will be minified.</p>
-<p>It’s helpful to have unminified versions of <code>phenogrid-bundle.js</code> and <code>phenogrid-bundle.css</code> for development and debugging. If this is the case, you can run the following command.</p>
-<pre><code>gulp dev-bundle
-</code></pre><h2 id="4-add-phenogrid-in-your-target-page">4. Add phenogrid in your target page</h2>
+</code></pre><h2 id="2-install-phenogrid-package">2. Install Phenogrid package</h2>
+<p>To download and install the phenogrid widget, simply run</p>
+<pre><code>npm install phenogrid
+</code></pre><p>Sometimes, it requires root access to for the installation, just run the following instead</p>
+<pre><code>sudo npm install phenogrid
+</code></pre><p>This will create a local <code>/node_modules</code> folder in your current working directory, and download/install Phenogrid package and all its dependencies (except the devDepencies) into the local <code>/node_modules</code> folder.</p>
+<h1 id="add-phenogrid-in-your-target-page">Add phenogrid in your target page</h1>
 <p>In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the <code>&lt;meta charset=&quot;UTF-8&quot;&gt;</code> tag in your HTML head.</p>
 <pre><code class="lang-html">&lt;html&gt;
 &lt;head&gt;
@@ -255,16 +249,27 @@ window.onload = function() {
 <p>It is a Javascript array of objects listing the phenotypes to be rendered in the widget.</p>
 <h2 id="-targetgrouplist-array-optional"><code>targetGroupList</code>  array | optional</h2>
 <p>This option allows you to specify the set of target groups (i.e., species) that will be visible throughout Phenogrid. There are two parameters which allow you to control whether a target group is displayed as a default in the multi-target comparison view, <code>crossComparisonView</code> and whether it should be active, <code>active = true</code>,  and thus fully visible within phenogrid. If <code>crossComparisonView = true</code>, for example, the target group will be visible as a default within the multi-target comparison view. For example, by default the following targets will be visible upon loading phenogrid (active must be set to true):</p>
-<pre><code>   {&quot;name&quot;: &quot;Homo sapiens&quot;, &quot;taxon&quot;: &quot;9606&quot;,&quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
-   {&quot;name&quot;: &quot;Mus musculus&quot;, &quot;taxon&quot;: &quot;10090&quot;, &quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
-   {&quot;name&quot;: &quot;Danio rerio&quot;, &quot;taxon&quot;: &quot;7955&quot;, &quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
+<pre><code>{&quot;name&quot;: &quot;Homo sapiens&quot;, &quot;taxon&quot;: &quot;9606&quot;,&quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
+{&quot;name&quot;: &quot;Mus musculus&quot;, &quot;taxon&quot;: &quot;10090&quot;, &quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
+{&quot;name&quot;: &quot;Danio rerio&quot;, &quot;taxon&quot;: &quot;7955&quot;, &quot;crossComparisonView&quot;: true, &quot;active&quot;: true}
 </code></pre><p>The <code>active</code> parameter can override other parameters, but activating or deactivating a target group. For example, if the <code>active = false</code>, then the target group is not active within phenogrid and is not shown in comparison nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be displayed within phenogrid and would like to retain the target group reference within the list. For example, the following are not active and will not be visible within phenogrid:</p>
-<pre><code>  {&quot;name&quot;: &quot;Drosophila melanogaster&quot;, &quot;taxon&quot;: &quot;7227&quot;, &quot;crossComparisonView&quot;: false, &quot;active&quot;: false},
-  {&quot;name&quot;: &quot;UDPICS&quot;, &quot;taxon&quot;: &quot;UDPICS&quot;, &quot;crossComparisonView&quot;: false, &quot;active&quot;: false}
+<pre><code>{&quot;name&quot;: &quot;Drosophila melanogaster&quot;, &quot;taxon&quot;: &quot;7227&quot;, &quot;crossComparisonView&quot;: false, &quot;active&quot;: false},
+{&quot;name&quot;: &quot;UDPICS&quot;, &quot;taxon&quot;: &quot;UDPICS&quot;, &quot;crossComparisonView&quot;: false, &quot;active&quot;: false}
 </code></pre><h1 id="testing-and-further-configuration">Testing and further configuration</h1>
-<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files cia ajax call, so you may find out that the FAQ popup dialog won’t show the content if you open <code>index.html</code> in the <code>file:///</code> format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
+<p>Open the modified <code>index.html</code> or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files via ajax call, so you may find out that the FAQ popup dialog won’t show the content if you open <code>index.html</code> in the <code>file:///</code> format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.</p>
 <h1 id="web-browser-support">Web Browser Support</h1>
 <p>Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.</p>
+<h1 id="for-developers">For developers</h1>
+<p>If you would like to poke around Phenogrid and make changes to the source code, you will also need to have all the devDepencies downloaded by running the following code in the Phenogrid package root directory:</p>
+<pre><code>npm install
+</code></pre><p>Once the installation is finished, you are welcome to make code changes and test them out by running</p>
+<pre><code>gulp bundle
+</code></pre><p>This command will use browserify to bundle up phenogrid core and its dependencies into phenogrid-bundle.js and create the merged phenogrid-bundle.css and put both files under dist folder. And both bundled files will be minified.</p>
+<p>It’s helpful to have unminified versions of phenogrid-bundle.js and phenogrid-bundle.css for development and debugging. If this is the case, you can run the following command.</p>
+<pre><code>gulp dev-bundle
+</code></pre><p>This will also show you all the JSHint messages for debugging or improving the code.</p>
+<h1 id="license">License</h1>
+<p>Phenogrid is released under <a href="https://opensource.org/licenses/GPL-2.0">GPL-2.0 license</a>.</p>
 
 </article>
 <div/>
