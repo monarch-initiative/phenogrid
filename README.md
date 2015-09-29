@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/monarch-initiative/phenogrid.svg)](https://travis-ci.org/monarch-initiative/phenogrid)
-
 # About Phenogrid
 
 Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by [OWLSim](https://github.com/owlcollab/owltools), as provided through APIs from the [Monarch Initiative](http://monarchinitiative.org/).
