@@ -74,7 +74,7 @@ var Expander = require('./expander.js');
 var Utils = require('./utils.js');
 
 // html content to be used for popup dialogues
-var html = require('./html.json');
+var htmlnotes = require('./htmlnotes.json');
 
 (function(factory) {
 	// If there is a variable named module and it has an exports property,
@@ -989,7 +989,7 @@ var html = require('./html.json');
 			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
 			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
 			.on("click", function() {
-				self._populateDialog(html.scores);
+				self._populateDialog(htmlnotes.scores);
 			});
 	},
 		
@@ -1867,15 +1867,15 @@ var html = require('./html.json');
         
 		// FAQ popups
 		$("#pg_sorts_faq").click("click", function(){
-			self._populateDialog(html.sorts);
+			self._populateDialog(htmlnotes.sorts);
 		});
 
 		$("#pg_calcs_faq").click(function(){
-			self._populateDialog(html.calcs);
+			self._populateDialog(htmlnotes.calcs);
 		});
 		
 		$("#pg_about_phenogrid").click(function() {	
-			self._populateDialog(html.faq);
+			self._populateDialog(htmlnotes.faq);
 		});
 	},
 
