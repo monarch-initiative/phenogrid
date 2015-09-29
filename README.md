@@ -197,10 +197,6 @@ The `active` parameter can override other parameters, but activating or deactiva
 {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
 ```
 
-# Testing and further configuration
-
-Open the modified `index.html` or your target web page that has the phenogrid embeded in a web browser (Google chrome disallows the access to local files via ajax call, so you may find out that the FAQ popup dialog won't show the content if you open `index.html` in the `file:///` format). This page will display an instance of the phenogrid, as configured above. Additional instructions for further customization of parameters will also be available on this page.
-
 # Web Browser Support
 
 Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.
