@@ -12,10 +12,10 @@ before_install:
   
 install:
   - "npm install"
-  - "gulp bundle"
-  - "gulp test"
 
 script: 
+  - "gulp bundle"
+  - "gulp test"
   - "PGDIR=`pwd`"
   - "cd tests/behave"
   - "TARGET=file://$PGDIR BROWSER=phantomjs behave"
