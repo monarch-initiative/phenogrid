@@ -511,7 +511,7 @@ var images = require('./images.json');
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 
 				var p = $(this);			
-				self._crossHairsOn(d.id, i, focus, 'horizontal');
+				self._crossHairsOn(d.id, i, 'horizontal');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
 				self._mouseover(this, data, self, p);})
 			.on("mouseout", function(d) {
@@ -544,7 +544,7 @@ var images = require('./images.json');
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 
 		    	var p = $(this);					
-		    	self._crossHairsOn(d.id, i, focus, 'vertical');
+		    	self._crossHairsOn(d.id, i, 'vertical');
 		    	self._mouseover(this, d, self, p);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
@@ -571,7 +571,7 @@ var images = require('./images.json');
 			        })
 		        .on("mouseenter", function(d) { 
 		        	var p = $(this);					
-		        	self._crossHairsOn(d.target_id, d.ypos, focus, 'both');
+		        	self._crossHairsOn(d.target_id, d.ypos, 'both');
 		        	self._mouseover(this, d, self, p);})							
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
@@ -584,7 +584,7 @@ var images = require('./images.json');
 	},
 
 	// directions: 'vertical' or 'horizontal' or 'both'
-	_crossHairsOn: function(id, ypos, focus, direction) {
+	_crossHairsOn: function(id, ypos, direction) {
 		var xScale = this.state.xAxisRender.getScale();
 
     	var xs = xScale(id);
@@ -598,14 +598,15 @@ var images = require('./images.json');
         } else if (direction === 'horizontal') {
 			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
         } else {
-			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + this._gridHeight());
-			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
+			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + gridRegion.ypad*ypos); // vertical line above cell
+            this._createFocusLineVertical(x, gridRegion.y + gridRegion.ypad*ypos + gridRegion.cellht, x, gridRegion.y + this._gridHeight()); // vertical line under cell
+			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + gridRegion.xpad*xs, y); // horizontal line on the left of cell
+            this._createFocusLineHorizontal(gridRegion.x + gridRegion.xpad*xs + gridRegion.cellwd, y, gridRegion.x + this._gridWidth(), y); // horizontal line on the right of cell	         
         }
 	},
 	
 	_createFocusLineVertical: function(x1, y1, x2, y2) {     
         this.state.svg.append('line')
-            .attr('id', 'focusLineVertical')
             .attr('class', 'pg_focusLine')
             .attr('x1', x1)
 			.attr('y1', y1)
@@ -615,7 +616,6 @@ var images = require('./images.json');
 
 	_createFocusLineHorizontal: function(x1, y1, x2, y2) {   
 		this.state.svg.append('line')
-            .attr('id', 'focusLineHorizontal')
             .attr('class', 'pg_focusLine')
             .attr('x1', x1)
 			.attr('y1', y1)
@@ -644,8 +644,7 @@ var images = require('./images.json');
 			
 			// hightlight the cell
 	 		d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
-				  .classed("pg_rowcolmatch", true)	
-				  .classed("pg_cursor_pointer", true);					  
+				  .classed("pg_rowcolmatch", true);					  
 
 		} else {
 			parent._highlightMatching(self, d);
@@ -687,8 +686,7 @@ var images = require('./images.json');
 		d3.selectAll(".column text")
 			  .classed("pg_related_active", false);		
 		d3.selectAll(".cell")
-				.classed("pg_rowcolmatch", false)
-				.classed("pg_cursor_pointer", false);					  				  
+				.classed("pg_rowcolmatch", false);					  				  
 
 		// if (!stickytooltip.isdocked) {
 		// // 	// hide the tooltip
