@@ -583,7 +583,7 @@ var images = require('./images.json');
         this.state.svg.selectAll(".pg_focusLine").remove();			
 	},
 
-	// directions: 'vertical' or 'horizontal' or 'both'
+	// direction: 'vertical' or 'horizontal' or 'both'
 	_crossHairsOn: function(id, ypos, direction) {
 		var xScale = this.state.xAxisRender.getScale();
 
@@ -598,7 +598,8 @@ var images = require('./images.json');
         } else if (direction === 'horizontal') {
 			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
         } else {
-			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + gridRegion.ypad*ypos); // vertical line above cell
+			// creating 4 lines around the cell, this way there's no svg elements overlapped - Joe
+            this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + gridRegion.ypad*ypos); // vertical line above cell
             this._createFocusLineVertical(x, gridRegion.y + gridRegion.ypad*ypos + gridRegion.cellht, x, gridRegion.y + this._gridHeight()); // vertical line under cell
 			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + gridRegion.xpad*xs, y); // horizontal line on the left of cell
             this._createFocusLineHorizontal(gridRegion.x + gridRegion.xpad*xs + gridRegion.cellwd, y, gridRegion.x + this._gridWidth(), y); // horizontal line on the right of cell	         
