@@ -68,7 +68,7 @@ var filesaver = require('filesaver.js');
 var AxisGroup = require('./axisgroup.js');
 var DataLoader = require('./dataloader.js');
 var DataManager = require('./datamanager.js');
-var stickytooltip = require('./stickytooltip.js');
+//var stickytooltip = require('./stickytooltip.js'); // to delete
 var TooltipRender = require('./tooltiprender.js');
 var Expander = require('./expander.js');
 var Utils = require('./utils.js');
@@ -300,11 +300,18 @@ var images = require('./images.json');
 	_initDefaults: function() {
 		// must init the stickytooltip here initially, but then don't reinit later until in the redraw
 		// this is weird behavior, but need to figure out why later
-		if (typeof(this.state.stickyInitialized) === 'undefined') {
+		
+        /* to delete
+        if (typeof(this.state.stickyInitialized) === 'undefined') {
 			this._addStickyTooltipAreaStub();
 			this.state.stickyInitialized = true;
 			stickytooltip.init("*[data-tooltip]", "mystickytooltip");
 		}
+        */ 
+        
+        // Flag for tooltip
+        this.state.tooltipIsDocked = false;
+        
 		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
 		
 		// MKD: NEEDS REFACTORED init a single instance of Expander
@@ -429,7 +436,7 @@ var images = require('./images.json');
         
         // this must be initialized here after the _createModelLabels, or the mouse events don't get
         // initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
-        stickytooltip.init("*[data-tooltip]", "mystickytooltip");
+        //stickytooltip.init("*[data-tooltip]", "mystickytooltip"); /// to delete
     },
     
 	// Click the setting button to open/close the control options
@@ -632,9 +639,8 @@ var images = require('./images.json');
 	},
 
 	_mouseover: function (self, d, parent, p) {
-
 		var data;
-		if (d.type == 'cell') {  
+		if (d.type === 'cell') {  
        		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 
 			// hightlight row/col labels
@@ -671,8 +677,10 @@ var images = require('./images.json');
 		var position = {left: leftPos, top: topPos};
 
 		// show a stickytooltip
-		stickytooltip.show(position);
-
+		//stickytooltip.show(position); // to delete
+        
+        // show tooltip
+		this._showTooltip($('#stickyInner'), position);
 	},
 
 	_mouseout: function(d, p) {
@@ -1077,6 +1085,9 @@ var images = require('./images.json');
         this.element.empty();
         this._createPhenogridContainer();
         
+        // No need to recreate this tooltip on _updateDisplay() - Joe
+        this._addStickyTooltipAreaStub();
+        
         if (this.state.dataManager.isInitialized()) {
             this._createSvgComponents();
 
@@ -1229,35 +1240,34 @@ var images = require('./images.json');
 		var sticky = $("<div>")
 						.attr("id", "mystickytooltip")
 						.attr("style", "padding: 1px");
-						//.attr("class", "stickytooltip");
-					
-		// var inner1 = $("<div>")
-		// 				.attr("id", "sticky1")
-		// 				.attr("style", "padding:5px");
 
 		var stickyInner =  $("<div>")
 						.attr("id", "stickyInner");
 
-		// var wait = $("<div>")
-		// 	.attr("id", "wait")
-		// 	//.attr("class", "spinner")
-		// 	.attr("style", "display:none")
-		// 	.text("Searching for data...");
-
-		// var status = $("<div>")
-		// 	.attr("class", "stickystatus");
-
 		sticky.append(stickyInner);
 
-		//sticky.append(inner1);
-				//.append(wait);
-				//.append(status);
-
-		// always append to body
-		sticky.appendTo('body');
-		sticky.mouseleave("mouseout",function(e) {
-		 	stickytooltip.closetooltip();
+		// Append to #pg_container
+        $('#pg_container').append(sticky);
+        
+        var self = this;
+		sticky.mouseleave("mouseout", function() {
+            self._hideTooltip(sticky);
 		});
+	},
+    
+    // tooltip is a jquery element
+    _showTooltip: function(tooltip, position) {	
+		tooltip.css({left: position.left, top: position.top});
+        tooltip.show();
+        this.state.tooltipIsDocked = true;
+	},
+
+    // tooltip is a jquery element
+	_hideTooltip: function(tooltip) {
+        if ( ! this.state.tooltipIsDocked){
+			tooltip.stop(false, true).hide();
+			this.state.tooltipIsDocked = false;
+		}
 	},
 	
 	// Grid main top title
@@ -1553,7 +1563,7 @@ var images = require('./images.json');
 		 * this must be initialized here after the _createGrid, or the mouse events don't get
 		 * initialized properly and tooltips won't work with the mouseover 
 		 */
-		stickytooltip.init("*[data-tooltip]", "mystickytooltip");
+		//stickytooltip.init("*[data-tooltip]", "mystickytooltip"); // to delete
 	},
 
 	_clearGrid: function() {

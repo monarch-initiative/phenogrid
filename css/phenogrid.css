@@ -185,12 +185,8 @@ font-size:11px;
 cursor:pointer;
 }
 
-/* Don't add #pg_container since it's not in it */
-#mystickytooltip {
+#pg_container #stickyInner {
 position: absolute;
-}
-
-#stickyInner {
 box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
 -webkit-box-shadow: 5px 5px 8px #818181;
 -moz-box-shadow: 5px 5px 8px #818181;
