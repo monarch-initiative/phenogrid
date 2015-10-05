@@ -68,7 +68,6 @@ var filesaver = require('filesaver.js');
 var AxisGroup = require('./axisgroup.js');
 var DataLoader = require('./dataloader.js');
 var DataManager = require('./datamanager.js');
-//var stickytooltip = require('./stickytooltip.js'); // to delete
 var TooltipRender = require('./tooltiprender.js');
 var Expander = require('./expander.js');
 var Utils = require('./utils.js');
@@ -298,20 +297,11 @@ var images = require('./images.json');
 
 	//Originally part of _init
 	_initDefaults: function() {
-		// must init the stickytooltip here initially, but then don't reinit later until in the redraw
-		// this is weird behavior, but need to figure out why later
-		
-        /* to delete
-        if (typeof(this.state.stickyInitialized) === 'undefined') {
-			this._addStickyTooltipAreaStub();
-			this.state.stickyInitialized = true;
-			stickytooltip.init("*[data-tooltip]", "mystickytooltip");
+		// No need to recreate the tooltip stub if once it's created - Joe
+        if ($("#pg_tooltip").length === 0) {
+			this._createTooltipStub();
 		}
-        */ 
-        
-        // Flag for tooltip
-        this.state.tooltipIsDocked = false;
-        
+
 		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
 		
 		// MKD: NEEDS REFACTORED init a single instance of Expander
@@ -434,9 +424,8 @@ var images = require('./images.json');
         this._createTargetGroupDividerLines();
         this._createMonarchInitiativeText(); // For exported phenogrid SVG, hide by default
         
-        // this must be initialized here after the _createModelLabels, or the mouse events don't get
-        // initialized properly and tooltips won't work with the mouseover defined in _convertLableHTML
-        //stickytooltip.init("*[data-tooltip]", "mystickytooltip"); /// to delete
+        // this must be called here so the tooltip disappears when we mouseout the current element - Joe
+        this._relinkTooltip();
     },
     
 	// Click the setting button to open/close the control options
@@ -512,7 +501,7 @@ var images = require('./images.json');
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
             .style("font-size", "11px")
-			.attr("data-tooltip", "stickyInner")   				      
+			.attr("data-tooltip", "pg_tooltip")   				      
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
@@ -545,7 +534,7 @@ var images = require('./images.json');
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-		    .attr("data-tooltip", "stickyInner")   			
+		    .attr("data-tooltip", "pg_tooltip")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
@@ -571,7 +560,7 @@ var images = require('./images.json');
 		        		return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
-				.attr("data-tooltip", "stickyInner")   					        
+				.attr("data-tooltip", "tooltip")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
@@ -666,25 +655,24 @@ var images = require('./images.json');
 		// add the width of the client rect to the left position to place it at the end
 		var leftPos = pos.left, topPos = pos.top; 
 
-
-		// did we hover over a grid row, place the tooltip on the far right of the label
+		// When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
 		if (self.parentNode.id.indexOf('grid_row') > -1) {
-			leftPos += p[0].getBoundingClientRect().width-5;
-			topPos += 7;
-		} else { // columns add a little spacing from the current mouse position
-			leftPos += 20;
+			// Modify the left and top position of tooltip to create some overlaps
+            // otherwise the tooltip will be gone when we move the mouse - Joe
+            leftPos += p[0].getBoundingClientRect().width - 12;
+			topPos += -12;
+		} else { 
+            // create some overlaps for y label mouse over - Joe
+			leftPos += 10;
+            topPos += -10;
 		}
 		var position = {left: leftPos, top: topPos};
 
-		// show a stickytooltip
-		//stickytooltip.show(position); // to delete
-        
         // show tooltip
-		this._showTooltip($('#stickyInner'), position);
+		this._showTooltip($('#pg_tooltip'), position);
 	},
 
 	_mouseout: function(d, p) {
-		
 		// unhighlight row/col
 		d3.selectAll(".row text")
 			  .classed("pg_active", false);
@@ -1086,7 +1074,7 @@ var images = require('./images.json');
         this._createPhenogridContainer();
         
         // No need to recreate this tooltip on _updateDisplay() - Joe
-        this._addStickyTooltipAreaStub();
+        this._createTooltipStub();
         
         if (this.state.dataManager.isInitialized()) {
             this._createSvgComponents();
@@ -1235,23 +1223,50 @@ var images = require('./images.json');
 		this.element.append(container);
 	},
 
-	// add a sticky tooltip div stub, this is used to dynamically set a tooltip info 
-	_addStickyTooltipAreaStub: function() {
-		var sticky = $("<div>")
-						.attr("id", "mystickytooltip")
-						.attr("style", "padding: 1px");
-
-		var stickyInner =  $("<div>")
-						.attr("id", "stickyInner");
-
-		sticky.append(stickyInner);
+	// add a tooltip div stub, this is used to dynamically set a tooltip info 
+	_createTooltipStub: function() {
+		var pg_tooltip = $("<div>")
+						.attr("id", "pg_tooltip");
 
 		// Append to #pg_container
-        $('#pg_container').append(sticky);
+        $('#pg_container').append(pg_tooltip);
+
+        // Hide the tooltip div by default
+        this._hideTooltip(pg_tooltip);
         
         var self = this;
-		sticky.mouseleave("mouseout", function() {
-            self._hideTooltip(sticky);
+		pg_tooltip.mouseleave("mouseout", function() {
+            self._hideTooltip($('#pg_tooltip'));
+		});
+        
+        // mouseout doesn't work - Joe
+        pg_tooltip.mouseleave(function() {
+            $(this).hide();
+        });
+	},
+    
+    // Bind tooltip to SVG X and Y labels as well as grid cells for mouseout - Joe
+    _relinkTooltip: function() {
+		var self = this;
+
+        $(document).ready(function($){
+			var $targets = $("*[data-tooltip]");
+			var $tooltip = $('#pg_tooltip');
+			if ($targets.length === 0) {
+				return;
+			}
+
+			self._hideTooltip($tooltip);
+			
+			// this hides the tooltip when we move mouse out the current element
+			$targets.mouseout(function(e){  
+				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
+				if (typeof(elem) !== 'undefined' ) {
+					if (elem.id !== 'pg_tooltip' && elem.id !== "") {					    
+				 		self._hideTooltip($tooltip);
+					}
+				}
+			 });
 		});
 	},
     
@@ -1259,15 +1274,11 @@ var images = require('./images.json');
     _showTooltip: function(tooltip, position) {	
 		tooltip.css({left: position.left, top: position.top});
         tooltip.show();
-        this.state.tooltipIsDocked = true;
 	},
 
     // tooltip is a jquery element
 	_hideTooltip: function(tooltip) {
-        if ( ! this.state.tooltipIsDocked){
-			tooltip.stop(false, true).hide();
-			this.state.tooltipIsDocked = false;
-		}
+        tooltip.hide();
 	},
 	
 	// Grid main top title
@@ -1372,9 +1383,9 @@ var images = require('./images.json');
 		// format data for rendering in a tooltip
 		var retData = this.state.tooltipRender.html({parent: this, id:id, data: data});   
 
-		// update the stub stickytool div dynamically to display
-		$("#stickyInner").empty();
-		$("#stickyInner").html(retData);
+		// update the stub pg_tooltip div dynamically to display
+		$("#pg_tooltip").empty();
+		$("#pg_tooltip").html(retData);
 
 		// For phenotype ontology tree 
 		if (data.type === 'phenotype') {
@@ -1558,12 +1569,9 @@ var images = require('./images.json');
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
 		this._clearGrid();
 		this._createGrid();
-
-		/*
-		 * this must be initialized here after the _createGrid, or the mouse events don't get
-		 * initialized properly and tooltips won't work with the mouseover 
-		 */
-		//stickytooltip.init("*[data-tooltip]", "mystickytooltip"); // to delete
+        
+        // this must be called here so the tooltip disappears when we mouseout the current element - Joe
+		this._relinkTooltip();
 	},
 
 	_clearGrid: function() {
@@ -2358,17 +2366,12 @@ var images = require('./images.json');
 		return false;
 	},
 
-	_refreshSticky: function() {
-		var div=$('#mystickytooltip').html();
-		$('#mystickytooltip').html(div);
-	},
-
 	// Used for genotype expansion - Joe
     // expand the model with the associated targets
 	_expand: function(curModel) {
 		$('#wait').show();
-		var div=$('#mystickytooltip').html();
-		$('#mystickytooltip').html(div);
+		var div = $('#pg_tooltip').html();
+		$('#pg_stickytooltip').html(div);
 
 		var refresh = true;
 		var targets = [];   //new Hashtable();   MKD: NEEDS REFACTORED
