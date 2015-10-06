@@ -185,12 +185,8 @@ font-size:11px;
 cursor:pointer;
 }
 
-/* Don't add #pg_container since it's not in it */
-#mystickytooltip {
+#pg_container #pg_tooltip {
 position: absolute;
-}
-
-#stickyInner {
 box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
 -webkit-box-shadow: 5px 5px 8px #818181;
 -moz-box-shadow: 5px 5px 8px #818181;
@@ -199,24 +195,24 @@ background:#fff;
 padding: 3px;
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
+z-index:99;
 }
 
-/* Don't add #pg_container since it's not in it */
-.pgtb {
+#pg_container .pgtb {
 border-collapse: collapse;
 border-spacing: 0;
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 }
 
-.pgtb td {
+#pg_container .pgtb td {
 border-style: none;
 border-width:0px;
 overflow:hidden;
 word-break:normal;
 }
 
-.pgtb th{
+#pg_container .pgtb th{
 font-weight: bold;
 padding:5px;
 overflow:hidden;
