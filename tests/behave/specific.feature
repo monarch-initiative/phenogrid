@@ -1,11 +1,6 @@
 Feature: Specific features work when running Phenogrid as a standalone widget
 
 
-    Scenario: Loading the phenogrid widget
-        Given I go to slow page "/index.html" and wait for id "mystickytooltip"
-            Then the document should contain "Installation Instructions"
-
-
     Scenario Outline: Visible items once the widget is loaded
         Given I go to page "/index.html"
     	    Then the id "<id>" should contain "<text>"
