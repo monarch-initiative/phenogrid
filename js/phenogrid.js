@@ -683,13 +683,7 @@ var images = require('./images.json');
 		d3.selectAll(".column text")
 			  .classed("pg_related_active", false);		
 		d3.selectAll(".cell")
-				.classed("pg_rowcolmatch", false);					  				  
-
-		// if (!stickytooltip.isdocked) {
-		// // 	// hide the tooltip
-		//  	stickytooltip.closetooltip();
-		// }
-
+				.classed("pg_rowcolmatch", false);	
 	},
 
 	_highlightMatching: function(s, data) {
@@ -2171,11 +2165,7 @@ var images = require('./images.json');
 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 		}
 
-		$("#stickyInner").html(ontologyData);
-
-		// reshow the sticky with updated info
-		stickytooltip.show(null);
-
+		$("#pg_tooltip").html(ontologyData);
 	},
 
     // Used for genotype expansion - Joe
@@ -2203,7 +2193,6 @@ var images = require('./images.json');
 			var vals = this.state.expandedHash.get(modelInfo.id);
 			vals.expanded = false;
 			this.state.expandedHash.put(modelInfo.id, vals);
-			stickytooltip.closetooltip();
 		}
 	},
 
@@ -2371,7 +2360,7 @@ var images = require('./images.json');
 	_expand: function(curModel) {
 		$('#wait').show();
 		var div = $('#pg_tooltip').html();
-		$('#pg_stickytooltip').html(div);
+		$('#pg_tooltip').html(div);
 
 		var refresh = true;
 		var targets = [];   //new Hashtable();   MKD: NEEDS REFACTORED
@@ -2428,9 +2417,6 @@ var images = require('./images.json');
 		} else {
 			alert("No data found to expand targets");
 		}
-
-		$('#wait').hide();
-		stickytooltip.closetooltip();
 	},
 
 
