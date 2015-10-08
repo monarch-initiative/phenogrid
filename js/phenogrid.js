@@ -660,10 +660,10 @@ var images = require('./images.json');
 			// Modify the left and top position of tooltip to create some overlaps
             // otherwise the tooltip will be gone when we move the mouse - Joe
             leftPos += p[0].getBoundingClientRect().width - 12;
-			topPos += -12;
+			topPos += -16;
 		} else { 
             // create some overlaps for y label mouse over - Joe
-			leftPos += 10;
+			leftPos += 5;
             topPos += -10;
 		}
 		var position = {left: leftPos, top: topPos};
@@ -1222,17 +1222,16 @@ var images = require('./images.json');
 		var pg_tooltip = $("<div>")
 						.attr("id", "pg_tooltip");
 
+        var pg_tooltip_inner = $("<div>")
+						.attr("id", "pg_tooltip_inner");
+
+        pg_tooltip.append(pg_tooltip_inner);
 		// Append to #pg_container
         $('#pg_container').append(pg_tooltip);
 
         // Hide the tooltip div by default
         this._hideTooltip(pg_tooltip);
-        
-        var self = this;
-		pg_tooltip.mouseleave("mouseout", function() {
-            self._hideTooltip($('#pg_tooltip'));
-		});
-        
+
         // mouseout doesn't work - Joe
         pg_tooltip.mouseleave(function() {
             $(this).hide();
@@ -1378,8 +1377,8 @@ var images = require('./images.json');
 		var retData = this.state.tooltipRender.html({parent: this, id:id, data: data});   
 
 		// update the stub pg_tooltip div dynamically to display
-		$("#pg_tooltip").empty();
-		$("#pg_tooltip").html(retData);
+		$("#pg_tooltip_inner").empty();
+		$("#pg_tooltip_inner").html(retData);
 
 		// For phenotype ontology tree 
 		if (data.type === 'phenotype') {
@@ -2165,7 +2164,7 @@ var images = require('./images.json');
 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 		}
 
-		$("#pg_tooltip").html(ontologyData);
+		$("#pg_tooltip_inner").html(ontologyData);
 	},
 
     // Used for genotype expansion - Joe
