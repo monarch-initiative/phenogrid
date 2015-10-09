@@ -2086,7 +2086,7 @@ var images = require('./images.json');
 		return (y+(i*ypad));
 	},
 
-	_mouseover: function (self, d, parent, p) {
+	_mouseover: function (elem, d, parent, p) {
 		var data;
 
 		if (d.type === 'cell') {  
@@ -2103,7 +2103,7 @@ var images = require('./images.json');
 				  .classed("pg_rowcolmatch", true);					  
 
 		} else {
-			parent._highlightMatching(self, d);
+			parent._highlightMatching(elem, d);
 			data = d;    			
 		}
 		// show tooltip
@@ -2120,7 +2120,7 @@ var images = require('./images.json');
         var topPos = pos.top - pgContainerPos.top; 
 
 		// When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
-		if (self.parentNode.id.indexOf('grid_row') > -1) {
+		if (elem.parentNode.id.indexOf('grid_row') > -1) {
 			// Modify the left and top position of tooltip to create some overlaps
             // otherwise the tooltip will be gone when we move the mouse - Joe
             leftPos += p[0].getBoundingClientRect().width;
