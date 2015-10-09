@@ -156,7 +156,7 @@ var images = require('./images.json');
             gridRegion: {
                 x:254, 
                 y:200, // origin coordinates for grid region (matrix)
-                ypad:13, // x distance from the first cell to the next cell
+                ypad:15, // x distance from the first cell to the next cell
                 xpad:15, // y distance from the first cell to the next cell
                 cellwd:10, // grid cell width
                 cellht:10, // // grid cell height
