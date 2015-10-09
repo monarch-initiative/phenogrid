@@ -11,7 +11,7 @@
  *
  * window.onload = function() {
  *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
- *         serverURL : "http://beta.monarchinitiative.org",
+ *         serverURL : "http://monarchinitiative.org",
  *         phenotypeData: phenotypes,
  *     });
  * }
@@ -23,11 +23,6 @@
  *		[{"id": "HP:12345", "observed":"positive"}, {"id: "HP:23451", "observed": "negative"}, ...]
  *	2. A list of phenotype ids
  *		["HP:12345", "HP:23451"]
- *
- *	Configuration options useful for setting species displayed, similarity calculations, and
- *	related parameters can also be passed in this hash. As of September
- *	2014, these options are currently being refactored - further
- *	documentation hopefully coming soon.
  *
  *	Given an input list of phenotypes and parameters indicating
  *	desired source of matching models (humans, model organisms, etc.),
@@ -52,7 +47,7 @@
 
 // Will need to install jquery, jquery-ui, d3, jshashtable first via npm - Joe
 // Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
-// npm install jquery jquery-ui d3 jshashtable
+// npm install jquery jquery-ui d3 filesaver
 
 // NPM installed packages, you will find them in /node_modules - Joe
 
@@ -163,8 +158,8 @@ var images = require('./images.json');
                 y:200, // origin coordinates for grid region (matrix)
                 ypad:13, // x distance from the first cell to the next cell
                 xpad:15, // y distance from the first cell to the next cell
-                cellwd:10, 
-                cellht:10, // // cell width and height
+                cellwd:10, // grid cell width
+                cellht:10, // // grid cell height
                 rowLabelOffset:-25, // offset of the row label (left side)
                 colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
@@ -196,18 +191,15 @@ var images = require('./images.json');
         },
 
 
-	/*
-	 * phenotype_data - a list of phenotypes in the following format:
-	 * [ {"id": "HP:12345", "observed" :"positive"}, {"id: "HP:23451", "observed" : "negative"},]
-	 * or simply a list of IDs.
-	 * [ "HP:12345", "HP:23451", ...]
-	 */
+    // The _create() method is the jquery UI widget's constructor. 
+    // There are no parameters, but this.element and this.options are already set.
+    // The widget factory automatically fires the _create() and then _init() during initialization
 	_create: function() {
-		// must be available from js loaded in a separate file...
+        // Loaded from a separate file config/phenogrid_config.js
 		this.configoptions = configoptions;
-		// check these 
-		// important that config options (from the file) and this. options (from
-		// the initializer) come last
+        // Merge into one object
+        // this.options is the options object provided in phenogrid constructor
+        // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
 		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
 		// default simServerURL value..
 		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === "") {
@@ -215,6 +207,7 @@ var images = require('./images.json');
 		}
 		this.state.data = {};
 
+        // Create new arrays for later use
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
 
@@ -222,7 +215,10 @@ var images = require('./images.json');
 	},
 
 	
-	//init is now reduced down completely to loading
+    // _init() will be executed first and after the first time when phenogrid is created - Joe
+    // So, if you draw a chart with jquery-ui plugin, after it's drawn out, 
+    // then you want to use new data to update it, you need to do this in _init() to update your chart. 
+    // If you just display something and won't update them totally, _create() will meet your needs.
 	_init: function() {
 		this.element.empty();
 
