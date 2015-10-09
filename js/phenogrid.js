@@ -623,6 +623,7 @@ var images = require('./images.json');
 
 	_mouseover: function (self, d, parent, p) {
 		var data;
+
 		if (d.type === 'cell') {  
        		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 
@@ -644,21 +645,23 @@ var images = require('./images.json');
 		parent._createHoverBox(data);
 
 		// get the position of object where the mouse event happened		
-		var pos = p.offset();
+        var pos = p.offset();
+        // position of the pg_container
+        var pgContainerPos = $('#pg_container').offset();
 
-		// add the width of the client rect to the left position to place it at the end
-		var leftPos = pos.left, topPos = pos.top; 
+		var leftPos = pos.left - pgContainerPos.left;
+        var topPos = pos.top - pgContainerPos.top; 
 
 		// When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
 		if (self.parentNode.id.indexOf('grid_row') > -1) {
 			// Modify the left and top position of tooltip to create some overlaps
             // otherwise the tooltip will be gone when we move the mouse - Joe
-            leftPos += p[0].getBoundingClientRect().width - 12;
-			topPos += -16;
+            leftPos += p[0].getBoundingClientRect().width;
+			topPos += p[0].getBoundingClientRect().height/2;
 		} else { 
             // create some overlaps for y label mouse over - Joe
-			leftPos += 5;
-            topPos += -10;
+			leftPos += 10;
+            //topPos += -10;
 		}
 		var position = {left: leftPos, top: topPos};
 
@@ -1197,12 +1200,14 @@ var images = require('./images.json');
 	},
 
 	_createSvgContainer: function() {
-		this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
+		var self= this;
+        
+        this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
 	
         // Define a font-family for all SVG texts 
         // so we don't have to apply font-family separately for each SVG text - Joe
         this.state.svg = d3.select("#pg_svg_group")
-            .style("font-family", "Verdana, Geneva, sans-serif");
+            .style("font-family", "Verdana, Geneva, sans-serif");;
 	},
 
 	_createPhenogridContainer: function(msg) {
