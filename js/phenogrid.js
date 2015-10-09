@@ -234,7 +234,7 @@ var images = require('./images.json');
 		
 		// MKD: NEEDS REFACTORED init a single instance of Expander
 		this.state.expander = new Expander(); 
-		
+
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
@@ -470,8 +470,6 @@ var images = require('./images.json');
 		var gridRegion = self.state.gridRegion; 
 		var xScale = self.state.xAxisRender.getScale();
 		var yScale = self.state.yAxisRender.getScale();
-		var gridHeight = self._gridHeight();
-		var gridWidth = self._gridWidth();		
 
 		// use the x/y renders to generate the matrix
 	    var matrix = self.state.dataManager.buildMatrix(xvalues, yvalues, false);
@@ -1570,7 +1568,7 @@ var images = require('./images.json');
 	},
 
 	_createOverviewTargetGroupLabels: function () {
-		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser'){
+		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
             var self = this;
             // targetGroupList is an array that contains all the selected targetGroup names
 		var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
@@ -1596,9 +1594,7 @@ var images = require('./images.json');
                     .text(function (d, i){return targetGroupList[i];})
                     .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
             } else {
-                var self = this;
-                
-            var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
+            	var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
 
                 this.state.svg.selectAll(".pg_targetGroup_name")
                     .data(targetGroupList)
