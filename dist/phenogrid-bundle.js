@@ -1962,11 +1962,10 @@ var images = require('./images.json');
 		      .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
-			.on("mouseover", function(d, i) { 
-				var p = $(this);			
+			.on("mouseover", function(d, i) { 		
 				self._crossHairsOn(d.id, i, 'horizontal');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				self._mouseover(this, data, self, p);})
+				self._mouseover(this, data, self);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
 				self._mouseout(d);
@@ -1995,10 +1994,9 @@ var images = require('./images.json');
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
-		    .on("mouseover", function(d, i) { 
-		    	var p = $(this);					
+		    .on("mouseover", function(d, i) { 				
 		    	self._crossHairsOn(d.id, i, 'vertical');
-		    	self._mouseover(this, d, self, p);})
+		    	self._mouseover(this, d, self);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
 				self._mouseout(d);});
@@ -2022,12 +2020,11 @@ var images = require('./images.json');
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
-		        .on("mouseenter", function(d) { 
-		        	var p = $(this);					
+		        .on("mouseenter", function(d) { 					
 		        	self._crossHairsOn(d.target_id, d.ypos, 'both');
                     // self is the global widget this
                     // this passed to _mouseover refers to the current element - Joe
-		        	self._mouseover(this, d, self, p);})							
+		        	self._mouseover(this, d, self);})							
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
 		        	self._mouseout(d, $(this));});
@@ -2086,7 +2083,9 @@ var images = require('./images.json');
 		return (y+(i*ypad));
 	},
 
-	_mouseover: function (elem, d, parent, p) {
+    // mouseover x/y label and grid cell
+    // tooltip and crosshair highlighting show up at the same time and disappear together as well - Joe
+	_mouseover: function (elem, d, parent) {
 		var data;
 
 		if (d.type === 'cell') {  
@@ -2108,32 +2107,10 @@ var images = require('./images.json');
 		}
 		// show tooltip
 		parent._createHoverBox(data);
-
-        // The .offset() method allows us to retrieve the current position of an element relative to the document. 
-		// get the position of the x/y label or cell where the mouse event happened		
-        var pos = p.offset();
-        // position of the pg_container
-        var pgContainerPos = $('#pg_container').offset();
-        // Calculate the absolute x and y position of the tooltip,
-        // otherwise, the tooltip will be incorrectly position when run phenogrid inside monarch-app - Joe
-		var leftPos = pos.left - pgContainerPos.left;
-        var topPos = pos.top - pgContainerPos.top; 
-
-		// When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
-		if (elem.parentNode.id.indexOf('grid_row') > -1) {
-			// Modify the left and top position of tooltip to create some overlaps
-            // otherwise the tooltip will be gone when we move the mouse
-            // and we also want to show the crosshair highlighting - Joe
-            leftPos += p[0].getBoundingClientRect().width;
-			topPos += p[0].getBoundingClientRect().height/2;
-		} else { 
-            // shift overlap for y label mouseover - Joe
-			leftPos += 10;
-		}
-		var position = {left: leftPos, top: topPos};
-
-        // show tooltip
-		this._showTooltip($('#pg_tooltip'), position);
+        
+        // show tooltip when mouseover on elem
+        // elem is a native DOM element
+		this._showTooltip($('#pg_tooltip'), elem);
 	},
 
 	_mouseout: function(d, p) {
@@ -2730,8 +2707,34 @@ var images = require('./images.json');
 	},
     
     // tooltip is a jquery element
-    _showTooltip: function(tooltip, position) {	
-		tooltip.css({left: position.left, top: position.top});
+    // elem is the mouseover element, native DOM element - Joe
+    _showTooltip: function(tooltip, elem) {	
+		// The .offset() method allows us to retrieve the current position of an element relative to the document. 
+		// get the position of the x/y label or cell where the mouse event happened		
+        // .offset() is a jquery method, so we need to use $(elem) - Joe
+        var pos = $(elem).offset();
+        // position of the pg_container
+        var pgContainerPos = $('#pg_container').offset();
+        // Calculate the absolute x and y position of the tooltip,
+        // otherwise, the tooltip will be incorrectly position when run phenogrid inside monarch-app - Joe
+		var leftPos = pos.left - pgContainerPos.left;
+        var topPos = pos.top - pgContainerPos.top; 
+
+		// When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
+		if (elem.parentNode.id.indexOf('grid_row') > -1) {
+			// Modify the left and top position of tooltip to create some overlaps
+            // otherwise the tooltip will be gone when we move the mouse
+            // and we also want to show the crosshair highlighting - Joe
+            leftPos += elem.getBoundingClientRect().width; // Don't use elem[0] since elem is native DOM element - Joe
+			topPos += elem.getBoundingClientRect().height/2;
+		} else { 
+            // shift overlap for y label mouseover - Joe
+			leftPos += 10;
+		}
+		var position = {left: leftPos, top: topPos};
+
+        
+        tooltip.css({left: position.left, top: position.top});
         tooltip.show();
 	},
 
