@@ -210,6 +210,7 @@ var images = require('./images.json');
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
 
+        // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 		this._createTargetGroupList(this.options.targetSpecies);
 	},
 
@@ -2440,11 +2441,11 @@ var images = require('./images.json');
 		return "";
 	},
 
-	
+	// targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
 	_createTargetGroupList: function(targetSpecies) {
 	
-		if (typeof(targetSpecies) !== 'undefined' && targetSpecies != 'all') {   // for All option, see the Analyze page
+		if (typeof(targetSpecies) !== 'undefined' && targetSpecies !== 'all') {   // for All option, see the Analyze page
 			// load just the one selected target targetGroup 
 			for (var idx in this.state.targetGroupList) {
 				// for active targetGroup pre-load them
