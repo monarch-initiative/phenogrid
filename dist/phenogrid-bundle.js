@@ -2122,11 +2122,12 @@ var images = require('./images.json');
 		// When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
 		if (elem.parentNode.id.indexOf('grid_row') > -1) {
 			// Modify the left and top position of tooltip to create some overlaps
-            // otherwise the tooltip will be gone when we move the mouse - Joe
+            // otherwise the tooltip will be gone when we move the mouse
+            // and we also want to show the crosshair highlighting - Joe
             leftPos += p[0].getBoundingClientRect().width;
 			topPos += p[0].getBoundingClientRect().height/2;
 		} else { 
-            // create some overlaps for y label mouse over - Joe
+            // shift overlap for y label mouseover - Joe
 			leftPos += 10;
 		}
 		var position = {left: leftPos, top: topPos};
@@ -2149,10 +2150,10 @@ var images = require('./images.json');
 				.classed("pg_rowcolmatch", false);	
 	},
 
-	_highlightMatching: function(s, data) {
+	_highlightMatching: function(elem, data) {
 		var hightlightSources = true;
 		var currenPos = this._getAxisDataPosition(data.id);
-		var nameId = s.parentNode.id;  // using parentNode is compatible across browsers, not s.parentElement.id
+		var nameId = elem.parentNode.id;  // using parentNode is compatible across browsers, not elem.parentElement.id
 
 		// did we hover over a grid column
 		if (nameId.indexOf('grid_col') > -1) {
