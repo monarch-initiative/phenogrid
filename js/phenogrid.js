@@ -202,8 +202,8 @@ var images = require('./images.json');
         // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
 		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
 		// default simServerURL value..
-		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === "") {
-			this.state.simServerURL=this.state.serverURL;
+		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
+			this.state.simServerURL = this.state.serverURL;
 		}
 
         // Create new arrays for later use
@@ -225,6 +225,16 @@ var images = require('./images.json');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
+        // No need to recreate the tooltip stub once after it's created - Joe
+        if ($("#pg_tooltip").length === 0) {
+			this._createTooltipStub();
+		}
+
+		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
+		
+		// MKD: NEEDS REFACTORED init a single instance of Expander
+		this.state.expander = new Expander(); 
+		
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
@@ -291,18 +301,8 @@ var images = require('./images.json');
 		}
 	}, 
 
-	//Originally part of _init
+
 	_initDefaults: function() {
-		// No need to recreate the tooltip stub if once it's created - Joe
-        if ($("#pg_tooltip").length === 0) {
-			this._createTooltipStub();
-		}
-
-		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
-		
-		// MKD: NEEDS REFACTORED init a single instance of Expander
-		this.state.expander = new Expander(); 
-
 		if (this.state.owlSimFunction === 'exomiser') {
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
 		}
