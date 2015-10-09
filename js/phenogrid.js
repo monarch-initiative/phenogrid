@@ -505,7 +505,7 @@ var images = require('./images.json');
 				self._mouseover(this, data, self);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
-				self._mouseout(d);
+				self._removeHighlighting(d);
 			});
 
 	    // create columns using the xvalues (targets)
@@ -535,8 +535,8 @@ var images = require('./images.json');
 		    	self._crossHairsOn(d.id, i, 'vertical');
 		    	self._mouseover(this, d, self);})
 			.on("mouseout", function(d) {
-				self._crossHairsOff();		  		
-				self._mouseout(d);});
+				//self._crossHairsOff();		  		
+				self._removeHighlighting(d);});
 	      	
 	    // add the scores  
 	    self._createTextScores();
@@ -564,7 +564,7 @@ var images = require('./images.json');
 		        	self._mouseover(this, d, self);})							
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
-		        	self._mouseout(d, $(this));});
+		        	self._removeHighlighting(d, $(this));});
 		}
 	},
 
@@ -622,11 +622,11 @@ var images = require('./images.json');
 
     // mouseover x/y label and grid cell
     // tooltip and crosshair highlighting show up at the same time and disappear together as well - Joe
-	_mouseover: function (elem, d, parent) {
+	_mouseover: function (elem, d) {
 		var data;
 
 		if (d.type === 'cell') {  
-       		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+       		data = this.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
@@ -637,21 +637,20 @@ var images = require('./images.json');
 			// hightlight the cell
 	 		d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
 				  .classed("pg_rowcolmatch", true);					  
-
 		} else {
-			parent._highlightMatching(elem, d);
+			this._highlightMatching(elem, d);
 			data = d;    			
 		}
 		// show tooltip
-		parent._createHoverBox(data);
+		this._createHoverBox(data);
         
         // show tooltip when mouseover on elem
         // elem is a native DOM element
-		this._showTooltip($('#pg_tooltip'), elem);
+		this._showTooltip($('#pg_tooltip'), elem, d);
 	},
 
-	_mouseout: function(d, p) {
-		// unhighlight row/col
+	_removeHighlighting: function(d, p) {
+		// remove highlighting for row/col
 		d3.selectAll(".row text")
 			  .classed("pg_active", false);
 		d3.selectAll(".column text")
@@ -1245,7 +1244,7 @@ var images = require('./images.json');
     
     // tooltip is a jquery element
     // elem is the mouseover element, native DOM element - Joe
-    _showTooltip: function(tooltip, elem) {	
+    _showTooltip: function(tooltip, elem, d) {	
 		// The .offset() method allows us to retrieve the current position of an element relative to the document. 
 		// get the position of the x/y label or cell where the mouse event happened		
         // .offset() is a jquery method, so we need to use $(elem) - Joe
@@ -1273,6 +1272,31 @@ var images = require('./images.json');
         
         tooltip.css({left: position.left, top: position.top});
         tooltip.show();
+        
+        // Now highlight the labels or target grid cell
+        var self = this;
+        tooltip.mouseover(function() {
+            if (d.type === 'cell') {  
+                // hightlight row/col labels
+                d3.select("#pg_grid_row_" + d.ypos +" text")
+                      .classed("pg_active", true);
+                d3.select("#pg_grid_col_" + d.xpos +" text")
+                      .classed("pg_active", true);
+                
+                // hightlight the cell
+                d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
+                      .classed("pg_rowcolmatch", true);	
+                // show crosshairs
+                self._crossHairsOn(d.target_id, d.ypos, 'both');                      
+            } else {
+                self._highlightMatching(elem, d);   			
+            }
+        });
+        
+        tooltip.mouseout(function() {
+            self._removeHighlighting();
+            self._crossHairsOff();
+        });
 	},
 
     // tooltip is a jquery element
