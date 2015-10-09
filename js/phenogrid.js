@@ -205,7 +205,6 @@ var images = require('./images.json');
 		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === "") {
 			this.state.simServerURL=this.state.serverURL;
 		}
-		this.state.data = {};
 
         // Create new arrays for later use
 		this.state.selectedCompareTargetGroup = [];
