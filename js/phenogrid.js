@@ -562,6 +562,8 @@ var images = require('./images.json');
 		        .on("mouseenter", function(d) { 
 		        	var p = $(this);					
 		        	self._crossHairsOn(d.target_id, d.ypos, 'both');
+                    // self is the global widget this
+                    // this passed to _mouseover refers to the current element - Joe
 		        	self._mouseover(this, d, self, p);})							
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
@@ -644,11 +646,13 @@ var images = require('./images.json');
 		// show tooltip
 		parent._createHoverBox(data);
 
-		// get the position of object where the mouse event happened		
+        // The .offset() method allows us to retrieve the current position of an element relative to the document. 
+		// get the position of the x/y label or cell where the mouse event happened		
         var pos = p.offset();
         // position of the pg_container
         var pgContainerPos = $('#pg_container').offset();
-
+        // Calculate the absolute x and y position of the tooltip,
+        // otherwise, the tooltip will be incorrectly position when run phenogrid inside monarch-app - Joe
 		var leftPos = pos.left - pgContainerPos.left;
         var topPos = pos.top - pgContainerPos.top; 
 
@@ -661,7 +665,6 @@ var images = require('./images.json');
 		} else { 
             // create some overlaps for y label mouse over - Joe
 			leftPos += 10;
-            //topPos += -10;
 		}
 		var position = {left: leftPos, top: topPos};
 
