@@ -11,7 +11,7 @@
  *
  * window.onload = function() {
  *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
- *         serverURL : "http://beta.monarchinitiative.org",
+ *         serverURL : "http://monarchinitiative.org",
  *         phenotypeData: phenotypes,
  *     });
  * }
@@ -23,11 +23,6 @@
  *		[{"id": "HP:12345", "observed":"positive"}, {"id: "HP:23451", "observed": "negative"}, ...]
  *	2. A list of phenotype ids
  *		["HP:12345", "HP:23451"]
- *
- *	Configuration options useful for setting species displayed, similarity calculations, and
- *	related parameters can also be passed in this hash. As of September
- *	2014, these options are currently being refactored - further
- *	documentation hopefully coming soon.
  *
  *	Given an input list of phenotypes and parameters indicating
  *	desired source of matching models (humans, model organisms, etc.),
@@ -52,7 +47,7 @@
 
 // Will need to install jquery, jquery-ui, d3, jshashtable first via npm - Joe
 // Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
-// npm install jquery jquery-ui d3 jshashtable
+// npm install jquery jquery-ui d3 filesaver
 
 // NPM installed packages, you will find them in /node_modules - Joe
 
@@ -161,10 +156,10 @@ var images = require('./images.json');
             gridRegion: {
                 x:254, 
                 y:200, // origin coordinates for grid region (matrix)
-                ypad:13, // x distance from the first cell to the next cell
+                ypad:15, // x distance from the first cell to the next cell
                 xpad:15, // y distance from the first cell to the next cell
-                cellwd:10, 
-                cellht:10, // // cell width and height
+                cellwd:10, // grid cell width
+                cellht:10, // // grid cell height
                 rowLabelOffset:-25, // offset of the row label (left side)
                 colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
@@ -196,38 +191,49 @@ var images = require('./images.json');
         },
 
 
-	/*
-	 * phenotype_data - a list of phenotypes in the following format:
-	 * [ {"id": "HP:12345", "observed" :"positive"}, {"id: "HP:23451", "observed" : "negative"},]
-	 * or simply a list of IDs.
-	 * [ "HP:12345", "HP:23451", ...]
-	 */
+    // The _create() method is the jquery UI widget's constructor. 
+    // There are no parameters, but this.element and this.options are already set.
+    // The widget factory automatically fires the _create() and then _init() during initialization
 	_create: function() {
-		// must be available from js loaded in a separate file...
+        // Loaded from a separate file config/phenogrid_config.js
 		this.configoptions = configoptions;
-		// check these 
-		// important that config options (from the file) and this. options (from
-		// the initializer) come last
+        // Merge into one object
+        // this.options is the options object provided in phenogrid constructor
+        // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
 		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
 		// default simServerURL value..
-		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === "") {
-			this.state.simServerURL=this.state.serverURL;
+		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
+			this.state.simServerURL = this.state.serverURL;
 		}
-		this.state.data = {};
 
+        // Create new arrays for later use
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
 
+        // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 		this._createTargetGroupList(this.options.targetSpecies);
 	},
 
 	
-	//init is now reduced down completely to loading
+    // _init() will be executed first and after the first time when phenogrid is created - Joe
+    // So, if you draw a chart with jquery-ui plugin, after it's drawn out, 
+    // then you want to use new data to update it, you need to do this in _init() to update your chart. 
+    // If you just display something and won't update them totally, _create() will meet your needs.
 	_init: function() {
 		this.element.empty();
 
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
+
+        // No need to recreate the tooltip stub once after it's created - Joe
+        if ($("#pg_tooltip").length === 0) {
+			this._createTooltipStub();
+		}
+
+		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
+		
+		// MKD: NEEDS REFACTORED init a single instance of Expander
+		this.state.expander = new Expander(); 
 
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -295,18 +301,8 @@ var images = require('./images.json');
 		}
 	}, 
 
-	//Originally part of _init
+
 	_initDefaults: function() {
-		// No need to recreate the tooltip stub if once it's created - Joe
-        if ($("#pg_tooltip").length === 0) {
-			this._createTooltipStub();
-		}
-
-		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
-		
-		// MKD: NEEDS REFACTORED init a single instance of Expander
-		this.state.expander = new Expander(); 
-
 		if (this.state.owlSimFunction === 'exomiser') {
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
 		}
@@ -474,8 +470,6 @@ var images = require('./images.json');
 		var gridRegion = self.state.gridRegion; 
 		var xScale = self.state.xAxisRender.getScale();
 		var yScale = self.state.yAxisRender.getScale();
-		var gridHeight = self._gridHeight();
-		var gridWidth = self._gridWidth();		
 
 		// use the x/y renders to generate the matrix
 	    var matrix = self.state.dataManager.buildMatrix(xvalues, yvalues, false);
@@ -1574,7 +1568,7 @@ var images = require('./images.json');
 	},
 
 	_createOverviewTargetGroupLabels: function () {
-		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser'){
+		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
             var self = this;
             // targetGroupList is an array that contains all the selected targetGroup names
 		var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
@@ -1600,9 +1594,7 @@ var images = require('./images.json');
                     .text(function (d, i){return targetGroupList[i];})
                     .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
             } else {
-                var self = this;
-                
-            var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
+            	var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
 
                 this.state.svg.selectAll(".pg_targetGroup_name")
                     .data(targetGroupList)
@@ -2445,11 +2437,11 @@ var images = require('./images.json');
 		return "";
 	},
 
-	
+	// targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
 	_createTargetGroupList: function(targetSpecies) {
 	
-		if (typeof(targetSpecies) !== 'undefined' && targetSpecies != 'all') {   // for All option, see the Analyze page
+		if (typeof(targetSpecies) !== 'undefined' && targetSpecies !== 'all') {   // for All option, see the Analyze page
 			// load just the one selected target targetGroup 
 			for (var idx in this.state.targetGroupList) {
 				// for active targetGroup pre-load them
