@@ -496,7 +496,7 @@ var images = require('./images.json');
 	      	.attr("text-anchor", "end")
             .style("font-size", "11px")
 			.attr("data-tooltip", "pg_tooltip")   				      
-		      .text(function(d, i) { 
+		    .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 		
@@ -505,7 +505,7 @@ var images = require('./images.json');
 				self._mouseover(this, data, self);})
 			.on("mouseout", function(d) {
 				self._crossHairsOff();		  		
-				self._removeHighlighting(d);
+				self._removeHighlighting();
 			});
 
 	    // create columns using the xvalues (targets)
@@ -536,7 +536,7 @@ var images = require('./images.json');
 		    	self._mouseover(this, d, self);})
 			.on("mouseout", function(d) {
 				//self._crossHairsOff();		  		
-				self._removeHighlighting(d);});
+				self._removeHighlighting();});
 	      	
 	    // add the scores  
 	    self._createTextScores();
@@ -557,14 +557,15 @@ var images = require('./images.json');
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
-		        .on("mouseenter", function(d) { 					
+		        .on("mouseover", function(d) { 					
 		        	self._crossHairsOn(d.target_id, d.ypos, 'both');
                     // self is the global widget this
                     // this passed to _mouseover refers to the current element - Joe
 		        	self._mouseover(this, d, self);})							
 		        .on("mouseout", function(d) {
 		        	self._crossHairsOff();		  		
-		        	self._removeHighlighting(d, $(this));});
+		        	self._removeHighlighting();
+		        });
 		}
 	},
 
@@ -649,7 +650,7 @@ var images = require('./images.json');
 		this._showTooltip($('#pg_tooltip'), elem, d);
 	},
 
-	_removeHighlighting: function(d, p) {
+	_removeHighlighting: function() {
 		// remove highlighting for row/col
 		d3.selectAll(".row text")
 			  .classed("pg_active", false);
@@ -673,7 +674,7 @@ var images = require('./images.json');
 			hightlightSources = true;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
 
-			if (typeof(matches) != 'undefined') {
+			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
 					d3.select("#pg_grid_row_" + matches[k].ypos +" text")
 				  	.classed("pg_related_active", true);
@@ -685,7 +686,7 @@ var images = require('./images.json');
 			hightlightSources = false;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
 
-			if (typeof(matches) != 'undefined') {
+			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
 					d3.select("#pg_grid_col_" + matches[k].xpos +" text")
 				  	.classed("pg_related_active", true);
@@ -1198,6 +1199,8 @@ var images = require('./images.json');
 
 	// add a tooltip div stub, this is used to dynamically set a tooltip info 
 	_createTooltipStub: function() {
+		var self = this;
+
 		var pg_tooltip = $("<div>")
 						.attr("id", "pg_tooltip");
 
@@ -1210,11 +1213,6 @@ var images = require('./images.json');
 
         // Hide the tooltip div by default
         this._hideTooltip(pg_tooltip);
-
-        // mouseout doesn't work - Joe
-        pg_tooltip.mouseleave(function() {
-            $(this).hide();
-        });
 	},
     
     // Bind tooltip to SVG X and Y labels as well as grid cells for mouseout - Joe
@@ -1272,28 +1270,34 @@ var images = require('./images.json');
         
         tooltip.css({left: position.left, top: position.top});
         tooltip.show();
-        
-        // Now highlight the labels or target grid cell
+
         var self = this;
-        tooltip.mouseover(function() {
+        // Attach mouseover event to tooltip
+        tooltip.on('mouseover', function() {
+            // show labels highlighting and crosshairs
             if (d.type === 'cell') {  
                 // hightlight row/col labels
-                d3.select("#pg_grid_row_" + d.ypos +" text")
-                      .classed("pg_active", true);
-                d3.select("#pg_grid_col_" + d.xpos +" text")
-                      .classed("pg_active", true);
-                
-                // hightlight the cell
-                d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
-                      .classed("pg_rowcolmatch", true);	
-                // show crosshairs
-                self._crossHairsOn(d.target_id, d.ypos, 'both');                      
-            } else {
-                self._highlightMatching(elem, d);   			
-            }
+	            d3.select("#pg_grid_row_" + d.ypos +" text")
+	                  .classed("pg_active", true);
+	            d3.select("#pg_grid_col_" + d.xpos +" text")
+	                  .classed("pg_active", true);
+	            
+	            // hightlight the cell
+	            d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
+	                  .classed("pg_rowcolmatch", true);	
+	            
+	            // show crosshairs
+	            self._crossHairsOn(d.target_id, d.ypos, 'both');                      
+	        } else {
+	            self._highlightMatching(elem, d);   			
+	        }
         });
-        
+
+        // Attach mouseout event to tooltip
         tooltip.mouseout(function() {
+            // hide tooltip
+            self._hideTooltip(tooltip);
+            // remove labels highlighting and crosshairs
             self._removeHighlighting();
             self._crossHairsOff();
         });
@@ -1303,7 +1307,7 @@ var images = require('./images.json');
 	_hideTooltip: function(tooltip) {
         tooltip.hide();
 	},
-	
+
 	// Grid main top title
 	_addGridTitle: function() {
 		var targetGroup = '';
