@@ -2597,12 +2597,11 @@ var images = require('./images.json');
     
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
-	 
 	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
 	     if (this.state.yAxisRender.contains(key)){
-		     return this.state.yAxisRender.get(key);
+		    return this.state.yAxisRender.get(key);
 		 } else if (this.state.xAxisRender.contains(key)){
-		     return this.state.xAxisRender.get(key);
+		    return this.state.xAxisRender.get(key);
 		 }
 		 else { return null; }
 	},
@@ -2612,8 +2611,9 @@ var images = require('./images.json');
 		    return this.state.yAxisRender.position(key);
 		} else if (this.state.xAxisRender.contains(key)){
 		    return this.state.xAxisRender.position(key);
-		}
-		else { return -1; }
+		} else { 
+            return -1; 
+        }
 	},
 
 	_getIDTypeDetail: function(key) {
@@ -2636,15 +2636,15 @@ var images = require('./images.json');
 
 			switch(method){
 				case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
-				break;
+				    break;
 				case 1: maxScore = 100;
-				break;
+                    break;
 				case 0: maxScore = 100;
-				break;
+                    break;
 				case 3: maxScore = 100;
-				break;
+                    break;
 				default: maxScore = this.state.maxICScore;
-				break;
+                    break;
 			}
 			// 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
 			this.state.colorScale = {};
@@ -2671,8 +2671,6 @@ var images = require('./images.json');
 	},
 
 	_createSvgContainer: function() {
-		var self= this;
-        
         this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
 	
         // Define a font-family for all SVG texts 
@@ -2689,8 +2687,6 @@ var images = require('./images.json');
 
 	// add a tooltip div stub, this is used to dynamically set a tooltip info 
 	_createTooltipStub: function() {
-		var self = this;
-
 		var pg_tooltip = $("<div>")
 						.attr("id", "pg_tooltip");
 
@@ -2982,22 +2978,21 @@ var images = require('./images.json');
 	},
 
 	_createTargetGroupDividerLines: function() {
-		var self = this;
-		var gridRegion = self.state.gridRegion;
+		var gridRegion = this.state.gridRegion;
 		var x = gridRegion.x;     
 		var y = gridRegion.y;   
-		var height = self._gridHeight() + gridRegion.colLabelOffset;// adjust due to extending it to the col labels
-		var width = self._gridWidth();
+		var height = this._gridHeight() + gridRegion.colLabelOffset;// adjust due to extending it to the col labels
+		var width = this._gridWidth();
 
-		if (self._isCrossComparisonView() ) {
+		if (this._isCrossComparisonView() ) {
 			//var grps = self.state.selectedCompareTargetGroup.forEach(function(d) { if(d.crossComparisonView)return d; });
-			var numOfTargetGroup = self.state.selectedCompareTargetGroup.length; 
-			var xScale = self.state.xAxisRender.getScale();
+			var numOfTargetGroup = this.state.selectedCompareTargetGroup.length; 
+			var xScale = this.state.xAxisRender.getScale();
 
 			//var cellsDisplayedPer = (self.state.defaultSingleTargetDisplayLimit / numOfTargetGroup);
-			var cellsDisplayedPer = self.state.defaultCrossCompareTargetLimitPerTargetGroup;
+			var cellsDisplayedPer = this.state.defaultCrossCompareTargetLimitPerTargetGroup;
 			var x1 = 0;
-			if (self.state.invertAxis) {
+			if (this.state.invertAxis) {
 				x1 = ((gridRegion.ypad * (cellsDisplayedPer-1)) + gridRegion.cellht);  //-gridRegion.rowLabelOffset; 								
 			} else {
 				x1 = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd); 
@@ -3012,7 +3007,7 @@ var images = require('./images.json');
 				}
 				x1 = (x1 * i)+ fudgeFactor;  // add a few extra padding so it won't overlap cells
 
-				if (self.state.invertAxis) {
+				if (this.state.invertAxis) {
 
 					this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
