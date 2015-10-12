@@ -225,11 +225,6 @@ var images = require('./images.json');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
-        // No need to recreate the tooltip stub once after it's created - Joe
-        if ($("#pg_tooltip").length === 0) {
-			this._createTooltipStub();
-		}
-
 		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
 		
 		// MKD: NEEDS REFACTORED init a single instance of Expander
@@ -375,7 +370,6 @@ var images = require('./images.json');
 	   		// invert our x/y Renders
 	    	this.state.xAxisRender = this.state.sourceAxis;
 	       	this.state.yAxisRender = this.state.targetAxis;
-
 	   	} else {
 	       	this.state.xAxisRender = this.state.targetAxis;
 	       	this.state.yAxisRender = this.state.sourceAxis;
@@ -496,17 +490,14 @@ var images = require('./images.json');
 	      	.attr("text-anchor", "end")
             .style("font-size", "11px")
 			.attr("data-tooltip", "pg_tooltip")   				      
-		      .text(function(d, i) { 
+		    .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
-			.on("mouseover", function(d, i) { 
-				var p = $(this);			
-				self._crossHairsOn(d.id, i, 'horizontal');
+			.on("mouseover", function(d, i) { 		
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				self._mouseover(this, data, self, p);})
+				self._mouseover(this, data, self);})
 			.on("mouseout", function(d) {
-				self._crossHairsOff();		  		
-				self._mouseout(d);
+				self._mouseout();		  		
 			});
 
 	    // create columns using the xvalues (targets)
@@ -532,13 +523,11 @@ var images = require('./images.json');
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
-		    .on("mouseover", function(d, i) { 
-		    	var p = $(this);					
-		    	self._crossHairsOn(d.id, i, 'vertical');
-		    	self._mouseover(this, d, self, p);})
+		    .on("mouseover", function(d, i) { 				
+		    	self._mouseover(this, d, self);})
 			.on("mouseout", function(d) {
-				self._crossHairsOff();		  		
-				self._mouseout(d);});
+				self._mouseout();
+			});
 	      	
 	    // add the scores  
 	    self._createTextScores();
@@ -559,13 +548,13 @@ var images = require('./images.json');
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
-		        .on("mouseenter", function(d) { 
-		        	var p = $(this);					
-		        	self._crossHairsOn(d.target_id, d.ypos, 'both');
-		        	self._mouseover(this, d, self, p);})							
+		        .on("mouseover", function(d) { 					
+                    // self is the global widget this
+                    // this passed to _mouseover refers to the current element - Joe
+		        	self._mouseover(this, d, self);})							
 		        .on("mouseout", function(d) {
-		        	self._crossHairsOff();		  		
-		        	self._mouseout(d, $(this));});
+		        	self._mouseout();
+		        });
 		}
 	},
 
@@ -621,12 +610,37 @@ var images = require('./images.json');
 		return (y+(i*ypad));
 	},
 
-	_mouseover: function (self, d, parent, p) {
-		var data;
+    // mouseover x/y label and grid cell
+    // tooltip and crosshair highlighting show up at the same time and disappear together as well - Joe
+	_mouseover: function (elem, d) {
+        // show matching highlighting and crosshairs on mouseover lebel/cell
+        this._showEffectsOnMouseover(elem, d);
+        
+		// render tooltip data
+        var data;
+        
+        if (d.type === 'cell') {  
+       		data = this.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);			  
+		} else {
+            data = d;   
+		}
+        
+		this._createHoverBox(data);
+        
+        // show tooltip when mouseover on elem
+        // elem is a native DOM element
+		this._showTooltip($('#pg_tooltip'), elem, d);
+	},
 
+    _mouseout: function() {
+    	this._removeMatchingHighlight();
+    	this._crossHairsOff();
+    },
+
+    // show matching highlighting and crosshairs on mouseover lebel/cell and tooltip
+    _showEffectsOnMouseover: function(elem, d) {
+        // d.xpos and d.ypos only appear for cell - Joe
 		if (d.type === 'cell') {  
-       		data = parent.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
 				  .classed("pg_active", true);
@@ -635,42 +649,39 @@ var images = require('./images.json');
 			
 			// hightlight the cell
 	 		d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
-				  .classed("pg_rowcolmatch", true);					  
+				  .classed("pg_rowcolmatch", true);		
 
-		} else {
-			parent._highlightMatching(self, d);
-			data = d;    			
+		    // show crosshairs
+	        this._crossHairsOn(d.target_id, d.ypos, 'both');			  
+		} else if (d.type === 'phenotype') {
+			this._createMatchingHighlight(elem, d);
+			// show crosshair
+            if ( ! this.state.invertAxis) {
+                var yScale = this.state.yAxisRender.getScale();
+                var ypos = yScale(d.id);
+                this._crossHairsOn(d.id, ypos, 'horizontal');
+            } else {
+                var xScale = this.state.xAxisRender.getScale();
+                var xpos = xScale(d.id);
+                this._crossHairsOn(d.id, xpos, 'vertical');
+            }
+		} else {  
+			this._createMatchingHighlight(elem, d);
+			// show crosshair
+			if ( ! this.state.invertAxis) {
+                var xScale = this.state.xAxisRender.getScale();
+                var xpos = xScale(d.id);
+                this._crossHairsOn(d.id, xpos, 'vertical');
+            } else {
+                var yScale = this.state.yAxisRender.getScale();
+                var ypos = yScale(d.id);
+                this._crossHairsOn(d.id, ypos, 'horizontal');
+            }
 		}
-		// show tooltip
-		parent._createHoverBox(data);
-
-		// get the position of object where the mouse event happened		
-        var pos = p.offset();
-        // position of the pg_container
-        var pgContainerPos = $('#pg_container').offset();
-
-		var leftPos = pos.left - pgContainerPos.left;
-        var topPos = pos.top - pgContainerPos.top; 
-
-		// When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
-		if (self.parentNode.id.indexOf('grid_row') > -1) {
-			// Modify the left and top position of tooltip to create some overlaps
-            // otherwise the tooltip will be gone when we move the mouse - Joe
-            leftPos += p[0].getBoundingClientRect().width;
-			topPos += p[0].getBoundingClientRect().height/2;
-		} else { 
-            // create some overlaps for y label mouse over - Joe
-			leftPos += 10;
-            //topPos += -10;
-		}
-		var position = {left: leftPos, top: topPos};
-
-        // show tooltip
-		this._showTooltip($('#pg_tooltip'), position);
-	},
-
-	_mouseout: function(d, p) {
-		// unhighlight row/col
+    },
+    
+	_removeMatchingHighlight: function() {
+		// remove highlighting for row/col
 		d3.selectAll(".row text")
 			  .classed("pg_active", false);
 		d3.selectAll(".column text")
@@ -683,17 +694,17 @@ var images = require('./images.json');
 				.classed("pg_rowcolmatch", false);	
 	},
 
-	_highlightMatching: function(s, data) {
+	_createMatchingHighlight: function(elem, data) {
 		var hightlightSources = true;
 		var currenPos = this._getAxisDataPosition(data.id);
-		var nameId = s.parentNode.id;  // using parentNode is compatible across browsers, not s.parentElement.id
+		var nameId = elem.parentNode.id;  // using parentNode is compatible across browsers, not elem.parentElement.id
 
 		// did we hover over a grid column
 		if (nameId.indexOf('grid_col') > -1) {
 			hightlightSources = true;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
 
-			if (typeof(matches) != 'undefined') {
+			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
 					d3.select("#pg_grid_row_" + matches[k].ypos +" text")
 				  	.classed("pg_related_active", true);
@@ -705,7 +716,7 @@ var images = require('./images.json');
 			hightlightSources = false;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
 
-			if (typeof(matches) != 'undefined') {
+			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
 					d3.select("#pg_grid_col_" + matches[k].xpos +" text")
 				  	.classed("pg_related_active", true);
@@ -1218,6 +1229,8 @@ var images = require('./images.json');
 
 	// add a tooltip div stub, this is used to dynamically set a tooltip info 
 	_createTooltipStub: function() {
+		var self = this;
+
 		var pg_tooltip = $("<div>")
 						.attr("id", "pg_tooltip");
 
@@ -1230,11 +1243,6 @@ var images = require('./images.json');
 
         // Hide the tooltip div by default
         this._hideTooltip(pg_tooltip);
-
-        // mouseout doesn't work - Joe
-        pg_tooltip.mouseleave(function() {
-            $(this).hide();
-        });
 	},
     
     // Bind tooltip to SVG X and Y labels as well as grid cells for mouseout - Joe
@@ -1263,16 +1271,70 @@ var images = require('./images.json');
 	},
     
     // tooltip is a jquery element
-    _showTooltip: function(tooltip, position) {	
-		tooltip.css({left: position.left, top: position.top});
+    // elem is the mouseover element, native DOM element - Joe
+    _showTooltip: function(tooltip, elem, d) {	
+		// The .offset() method allows us to retrieve the current position of an element relative to the document. 
+		// get the position of the x/y label or cell where the mouse event happened		
+        // .offset() is a jquery method, so we need to use $(elem) - Joe
+        var pos = $(elem).offset();
+        // position of the pg_container
+        var pgContainerPos = $('#pg_container').offset();
+        // Calculate the absolute x and y position of the tooltip,
+        // otherwise, the tooltip will be incorrectly position when run phenogrid inside monarch-app - Joe
+		var leftPos = pos.left - pgContainerPos.left;
+        var topPos = pos.top - pgContainerPos.top; 
+
+		// When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
+		if (elem.parentNode.id.indexOf('grid_row') > -1) {
+			// Modify the left and top position of tooltip to create some overlaps
+            // otherwise the tooltip will be gone when we move the mouse
+            // and we also want to show the crosshair highlighting - Joe
+            leftPos += elem.getBoundingClientRect().width; // Don't use elem[0] since elem is native DOM element - Joe
+			topPos += elem.getBoundingClientRect().height/2;
+		} else { 
+            // shift overlap for y label mouseover - Joe
+			leftPos += 10;
+		}
+		var position = {left: leftPos, top: topPos};
+
+        tooltip.css({left: position.left, top: position.top});
         tooltip.show();
+
+        // Remove all event handlers from #pg_tooltip to prevent duplicated mouseover/mouseleave
+        // without using this, the previously added mouseover/mouseleave enent will stay there - Joe
+        // https://api.jqueryui.com/jquery.widget/#method-_off
+        this._off(tooltip, "mouseover");
+        this._off(tooltip, "mouseleave");
+
+        // jquery-ui widget factory api: _on()
+        // https://api.jqueryui.com/jquery.widget/#method-_on
+        // _on() maintains proper this context inside the handlers
+        this._on(tooltip, {
+            "mouseover": function() {
+                // show matching highlighting and crosshairs on mouseover tooltip
+                this._showEffectsOnMouseover(elem, d);
+            }
+        });
+        
+        // Attach mouseleave event to tooltip
+        // mouseout doesn't work - Joe
+        // The mouseout event triggers when the mouse pointer leaves any child elements as well the selected element.
+        // The mouseleave event is only triggered when the mouse pointer leaves the selected element.
+        this._on(tooltip, {
+            "mouseleave": function() {
+                // hide tooltip
+                this._hideTooltip(tooltip);
+                // remove matching highlighting and crosshairs
+                this._mouseout();
+            }
+        });
 	},
 
     // tooltip is a jquery element
 	_hideTooltip: function(tooltip) {
         tooltip.hide();
 	},
-	
+
 	// Grid main top title
 	_addGridTitle: function() {
 		var targetGroup = '';
