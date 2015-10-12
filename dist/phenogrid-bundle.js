@@ -1993,7 +1993,7 @@ var images = require('./images.json');
 		    	self._crossHairsOn(d.id, i, 'vertical');
 		    	self._mouseover(this, d, self);})
 			.on("mouseout", function(d) {
-				//self._crossHairsOff();		  		
+				self._crossHairsOff();		  		
 				self._removeHighlighting();});
 	      	
 	    // add the scores  
@@ -2084,6 +2084,7 @@ var images = require('./images.json');
 	_mouseover: function (elem, d) {
 		var data;
 
+        // d.xpos and d.ypos only appear for cell - Joe
 		if (d.type === 'cell') {  
        		data = this.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 
@@ -2730,7 +2731,10 @@ var images = require('./images.json');
         tooltip.show();
 
         var self = this;
-
+        
+        // Remove all event handlers from #pg_tooltip to prevent duplicated mouseover/mouseleave
+        // without using this, the previously added mouseover enent will stay there - Joe
+        tooltip.off();
 
         // Attach mouseover event to tooltip
         tooltip.on('mouseover', function() {
@@ -2748,39 +2752,26 @@ var images = require('./images.json');
 	            
 	            // show crosshairs
 	            self._crossHairsOn(d.target_id, d.ypos, 'both');                      
+	        } else if (d.type === 'phenotype') {
+	            self._highlightMatching(elem, d); 
+ 
+                var yScale = self.state.yAxisRender.getScale();
+    	        var ypos = yScale(d.id);
+	            self._crossHairsOn(d.id, ypos, 'horizontal');  			
 	        } else {
-	            self._highlightMatching(elem, d);   			
+	            self._highlightMatching(elem, d); 
+ 
+                var xScale = self.state.xAxisRender.getScale();
+    	        var xpos = xScale(d.id);
+	            self._crossHairsOn(d.id, xpos, 'vertical');  			
 	        }
         });
 
-
-/*
-        this._on(tooltip, {
-			"mouseover": function() {
-				// show labels highlighting and crosshairs
-	            if (d.type === 'cell') {  
-	                // hightlight row/col labels
-		            d3.select("#pg_grid_row_" + d.ypos +" text")
-		                  .classed("pg_active", true);
-		            d3.select("#pg_grid_col_" + d.xpos +" text")
-		                  .classed("pg_active", true);
-		            
-		            // hightlight the cell
-		            d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
-		                  .classed("pg_rowcolmatch", true);	
-		            
-		            // show crosshairs
-		            this._crossHairsOn(d.target_id, d.ypos, 'both');                      
-		        } else {
-		            this._highlightMatching(elem, d);   			
-		        }
-			}
-		});
-*/
-        // Attach mouseout event to tooltip
-        tooltip.mouseout(function() {
+        // Attach mouseleave event to tooltip
+        // mouseout doesn't work - Joe
+        tooltip.mouseleave(function() {
             // hide tooltip
-            //self._hideTooltip(tooltip);
+            self._hideTooltip(tooltip);
             // remove labels highlighting and crosshairs
             self._removeHighlighting();
             self._crossHairsOff();
