@@ -1688,11 +1688,6 @@ var images = require('./images.json');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
-        // No need to recreate the tooltip stub once after it's created - Joe
-        if ($("#pg_tooltip").length === 0) {
-			this._createTooltipStub();
-		}
-
 		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
 		
 		// MKD: NEEDS REFACTORED init a single instance of Expander
@@ -2735,6 +2730,8 @@ var images = require('./images.json');
         tooltip.show();
 
         var self = this;
+
+
         // Attach mouseover event to tooltip
         tooltip.on('mouseover', function() {
             // show labels highlighting and crosshairs
@@ -2756,10 +2753,34 @@ var images = require('./images.json');
 	        }
         });
 
+
+/*
+        this._on(tooltip, {
+			"mouseover": function() {
+				// show labels highlighting and crosshairs
+	            if (d.type === 'cell') {  
+	                // hightlight row/col labels
+		            d3.select("#pg_grid_row_" + d.ypos +" text")
+		                  .classed("pg_active", true);
+		            d3.select("#pg_grid_col_" + d.xpos +" text")
+		                  .classed("pg_active", true);
+		            
+		            // hightlight the cell
+		            d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
+		                  .classed("pg_rowcolmatch", true);	
+		            
+		            // show crosshairs
+		            this._crossHairsOn(d.target_id, d.ypos, 'both');                      
+		        } else {
+		            this._highlightMatching(elem, d);   			
+		        }
+			}
+		});
+*/
         // Attach mouseout event to tooltip
         tooltip.mouseout(function() {
             // hide tooltip
-            self._hideTooltip(tooltip);
+            //self._hideTooltip(tooltip);
             // remove labels highlighting and crosshairs
             self._removeHighlighting();
             self._crossHairsOff();
