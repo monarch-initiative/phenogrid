@@ -613,12 +613,34 @@ var images = require('./images.json');
     // mouseover x/y label and grid cell
     // tooltip and crosshair highlighting show up at the same time and disappear together as well - Joe
 	_mouseover: function (elem, d) {
+        // show matching highlighting and crosshairs on mouseover lebel/cell
+        this._showEffectsOnMouseover(elem, d);
+        
+		// render tooltip data
         var data;
+        
+        if (d.type === 'cell') {  
+       		data = this.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);			  
+		} else {
+            data = d;   
+		}
+        
+		this._createHoverBox(data);
+        
+        // show tooltip when mouseover on elem
+        // elem is a native DOM element
+		this._showTooltip($('#pg_tooltip'), elem, d);
+	},
 
+    _mouseout: function() {
+    	this._removeMatchingHighlight();
+    	this._crossHairsOff();
+    },
+
+    // show matching highlighting and crosshairs on mouseover lebel/cell and tooltip
+    _showEffectsOnMouseover: function(elem, d) {
         // d.xpos and d.ypos only appear for cell - Joe
 		if (d.type === 'cell') {  
-       		data = this.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-
 			// hightlight row/col labels
 		  	d3.select("#pg_grid_row_" + d.ypos +" text")
 				  .classed("pg_active", true);
@@ -632,7 +654,6 @@ var images = require('./images.json');
 		    // show crosshairs
 	        this._crossHairsOn(d.target_id, d.ypos, 'both');			  
 		} else if (d.type === 'phenotype') {
-			data = d;   
 			this._createMatchingHighlight(elem, d);
 			// show crosshair
             if ( ! this.state.invertAxis) {
@@ -644,8 +665,7 @@ var images = require('./images.json');
                 var xpos = xScale(d.id);
                 this._crossHairsOn(d.id, xpos, 'vertical');
             }
-		} else {
-            data = d;   
+		} else {  
 			this._createMatchingHighlight(elem, d);
 			// show crosshair
 			if ( ! this.state.invertAxis) {
@@ -658,20 +678,8 @@ var images = require('./images.json');
                 this._crossHairsOn(d.id, ypos, 'horizontal');
             }
 		}
-
-		// show tooltip
-		this._createHoverBox(data);
-        
-        // show tooltip when mouseover on elem
-        // elem is a native DOM element
-		this._showTooltip($('#pg_tooltip'), elem, d);
-	},
-
-    _mouseout: function() {
-    	this._removeMatchingHighlight();
-    	this._crossHairsOff();
     },
-
+    
 	_removeMatchingHighlight: function() {
 		// remove highlighting for row/col
 		d3.selectAll(".row text")
@@ -1296,61 +1304,32 @@ var images = require('./images.json');
         var self = this;
         
         // Remove all event handlers from #pg_tooltip to prevent duplicated mouseover/mouseleave
-        // without using this, the previously added mouseover enent will stay there - Joe
-        tooltip.off();
+        // without using this, the previously added mouseover/mouseleave enent will stay there - Joe
+        // https://api.jqueryui.com/jquery.widget/#method-_off
+        this._off(tooltip, "mouseover");
+        this._off(tooltip, "mouseleave");
 
-        // Attach mouseover event to tooltip
-        tooltip.on('mouseover', function() {
-            // show labels highlighting and crosshairs
-            if (d.type === 'cell') {  
-                // hightlight row/col labels
-	            d3.select("#pg_grid_row_" + d.ypos +" text")
-	                  .classed("pg_active", true);
-	            d3.select("#pg_grid_col_" + d.xpos +" text")
-	                  .classed("pg_active", true);
-	            
-	            // hightlight the cell
-	            d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
-	                  .classed("pg_rowcolmatch", true);	
-	            
-	            // show crosshairs
-	            self._crossHairsOn(d.target_id, d.ypos, 'both');                      
-	        } else if (d.type === 'phenotype') {
-                self._createMatchingHighlight(elem, d);
-                // show crosshair
-                if ( ! self.state.invertAxis) {
-                    var yScale = self.state.yAxisRender.getScale();
-                    var ypos = yScale(d.id);
-                    self._crossHairsOn(d.id, ypos, 'horizontal');
-                } else {
-                    var xScale = self.state.xAxisRender.getScale();
-                    var xpos = xScale(d.id);
-                    self._crossHairsOn(d.id, xpos, 'vertical');
-                }
-            } else { 
-                self._createMatchingHighlight(elem, d);
-                // show crosshair
-                if ( ! self.state.invertAxis) {
-                    var xScale = self.state.xAxisRender.getScale();
-                    var xpos = xScale(d.id);
-                    self._crossHairsOn(d.id, xpos, 'vertical');
-                } else {
-                    var yScale = self.state.yAxisRender.getScale();
-                    var ypos = yScale(d.id);
-                    self._crossHairsOn(d.id, ypos, 'horizontal');
-                }
+        // jquery-ui widget factory api: _on()
+        // https://api.jqueryui.com/jquery.widget/#method-_on
+        // _on() maintains proper this context inside the handlers
+        this._on(tooltip, {
+            "mouseover": function() {
+                // show matching highlighting and crosshairs on mouseover tooltip
+                this._showEffectsOnMouseover(elem, d);
             }
         });
-
+        
         // Attach mouseleave event to tooltip
         // mouseout doesn't work - Joe
         // The mouseout event triggers when the mouse pointer leaves any child elements as well the selected element.
         // The mouseleave event is only triggered when the mouse pointer leaves the selected element.
-        tooltip.mouseleave(function() {
-            // hide tooltip
-            self._hideTooltip(tooltip);
-            // remove matching highlighting and crosshairs
-            self._mouseout();
+        this._on(tooltip, {
+            "mouseleave": function() {
+                // hide tooltip
+                this._hideTooltip(tooltip);
+                // remove matching highlighting and crosshairs
+                this._mouseout();
+            }
         });
 	},
 
