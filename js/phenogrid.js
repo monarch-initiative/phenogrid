@@ -282,13 +282,15 @@ var images = require('./images.json');
 
 	_updateSelectedCompareTargetGroup: function() {
 		// loop through to make sure we have data to display
-		for ( var idx in this.state.selectedCompareTargetGroup) {
+		for (var idx in this.state.selectedCompareTargetGroup) {
 			var r = this.state.selectedCompareTargetGroup[idx];
 
 			var len = this.state.dataManager.length("target", r.name);
 			if (typeof(len) === 'undefined'  || len < 1) {
-
-				this.state.selectedCompareTargetGroup.slice(idx, 1);
+                // remove the target that has no data
+                // use splice() not slice() - Joe
+                // splice() modifies the array in place and returns a new array containing the elements that have been removed.
+                this.state.selectedCompareTargetGroup.splice(idx, 1);
 
 //				this.state.selectedCompareTargetGroup[idx].active = false;
 //				this.state.selectedCompareTargetGroup[idx].crossComparisonView = false;
@@ -1659,17 +1661,17 @@ var images = require('./images.json');
 		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
             var self = this;
             // targetGroupList is an array that contains all the selected targetGroup names
-		var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
+            var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
 
             // Inverted and multi targetGroup
-		if (self.state.invertAxis) { 
-			var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
+            if (self.state.invertAxis) { 
+                var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
 
                 this.state.svg.selectAll(".pg_targetGroup_name")
                     .data(targetGroupList)
                     .enter()
                     .append("text")
-				.attr("x", self.state.gridRegion.x + self._gridWidth() + 20) // 20 is margin - Joe
+                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 20) // 20 is margin - Joe
                     .attr("y", function(d, i) { 
                             return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
                         })
@@ -1691,7 +1693,7 @@ var images = require('./images.json');
                     .attr("x", function(d, i){ 
                             return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
                         })
-				.attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+                    .attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
                     .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
                     .text(function(d, i){return targetGroupList[i];})
                     .attr("text-anchor", function() {
