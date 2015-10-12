@@ -495,9 +495,14 @@ var images = require('./images.json');
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 		
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				self._mouseover(this, data, self);})
+				// self is the global widget this
+                // this passed to _mouseover refers to the current element
+                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                self._mouseover(this, data, self);})
 			.on("mouseout", function(d) {
-				self._mouseout();		  		
+				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+                self._mouseout();		  		
 			});
 
 	    // create columns using the xvalues (targets)
@@ -524,9 +529,14 @@ var images = require('./images.json');
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 				
-		    	self._mouseover(this, d, self);})
+		    	// self is the global widget this
+                // this passed to _mouseover refers to the current element
+                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                self._mouseover(this, d, self);})
 			.on("mouseout", function(d) {
-				self._mouseout();
+				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+                self._mouseout();
 			});
 	      	
 	    // add the scores  
@@ -550,10 +560,13 @@ var images = require('./images.json');
 			        })
 		        .on("mouseover", function(d) { 					
                     // self is the global widget this
-                    // this passed to _mouseover refers to the current element - Joe
+                    // this passed to _mouseover refers to the current element
+                    // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                    // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
 		        	self._mouseover(this, d, self);})							
 		        .on("mouseout", function(d) {
-		        	self._mouseout();
+		        	// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+                    self._mouseout();
 		        });
 		}
 	},
@@ -624,20 +637,21 @@ var images = require('./images.json');
 		} else {
             data = d;   
 		}
-        
 		this._createHoverBox(data);
         
-        // show tooltip when mouseover on elem
+        // show tooltip
         // elem is a native DOM element
 		this._showTooltip($('#pg_tooltip'), elem, d);
 	},
 
+    // _mouseout() removes the matching highlighting as well as the crosshairs - Joe
     _mouseout: function() {
     	this._removeMatchingHighlight();
     	this._crossHairsOff();
     },
 
-    // show matching highlighting and crosshairs on mouseover lebel/cell and tooltip
+    // show effects(matching highlighting and crosshairs) on mouseover lebel/cell and tooltip
+    // this is reused by x/y label mouseover as well as tooltip mouseover - Joe
     _showEffectsOnMouseover: function(elem, d) {
         // d.xpos and d.ypos only appear for cell - Joe
 		if (d.type === 'cell') {  
@@ -680,6 +694,7 @@ var images = require('./images.json');
 		}
     },
     
+    // removes the highlighted x/y labels as well as highlighted grid cell
 	_removeMatchingHighlight: function() {
 		// remove highlighting for row/col
 		d3.selectAll(".row text")
@@ -784,6 +799,7 @@ var images = require('./images.json');
 	      		.attr("y", scale.rangeBand()+2);
 	    }
 	}, 
+    
 	_getColorForModelValue: function(self, score) {
 		// This is for the new "Overview" target option
 		var selectedScale = this.state.colorScale[self.state.selectedCalculation];
@@ -1273,7 +1289,9 @@ var images = require('./images.json');
     // tooltip is a jquery element
     // elem is the mouseover element, native DOM element - Joe
     _showTooltip: function(tooltip, elem, d) {	
-		// The .offset() method allows us to retrieve the current position of an element relative to the document. 
+		// Firstly we need to position the tooltip
+        
+        // The .offset() method allows us to retrieve the current position of an element relative to the document. 
 		// get the position of the x/y label or cell where the mouse event happened		
         // .offset() is a jquery method, so we need to use $(elem) - Joe
         var pos = $(elem).offset();
@@ -1300,6 +1318,8 @@ var images = require('./images.json');
         tooltip.css({left: position.left, top: position.top});
         tooltip.show();
 
+        // Secondly we need to add add mouseover and mouseleave events to tooltip
+        
         // Remove all event handlers from #pg_tooltip to prevent duplicated mouseover/mouseleave
         // without using this, the previously added mouseover/mouseleave enent will stay there - Joe
         // https://api.jqueryui.com/jquery.widget/#method-_off
@@ -1308,7 +1328,8 @@ var images = require('./images.json');
 
         // jquery-ui widget factory api: _on()
         // https://api.jqueryui.com/jquery.widget/#method-_on
-        // _on() maintains proper this context inside the handlers
+        // _on() maintains proper this context inside the handlers 
+        // so we can reuse this._showEffectsOnMouseover() wihout using `var self = this;`
         this._on(tooltip, {
             "mouseover": function() {
                 // show matching highlighting and crosshairs on mouseover tooltip
