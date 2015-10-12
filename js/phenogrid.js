@@ -228,6 +228,7 @@ var images = require('./images.json');
 		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
 		
 		// MKD: NEEDS REFACTORED init a single instance of Expander
+        // Used for genotype expansion - Joe
 		this.state.expander = new Expander(); 
 
         // Remove duplicated source IDs - Joe
@@ -806,18 +807,6 @@ var images = require('./images.json');
 		// This is for the new "Overview" target option
 		var selectedScale = this.state.colorScale[self.state.selectedCalculation];
 		return selectedScale(score);
-	},
-
-	/* dummy option procedures as per 
-	 * http://learn.jquery.com/jquery-ui/widget-factory/how-to-use-the-widget-factory/
-	 * likely to have some content added as we proceed
-	 */
-	_setOption: function( key, value ) {
-		this._super( key, value );
-	},
-
-	_setOptions: function( options ) {
-		this._super( options );
 	},
 
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
@@ -2213,14 +2202,13 @@ var images = require('./images.json');
 		return newlist;
 	},
 
-	_expandOntology: function(id){
+	_expandOntology: function(id) {
 		var self = this;
 
 		// check to see if id has been cached
 		var cache = this.state.dataLoader.checkOntologyCache(id);
 
-		if (typeof(cache) == 'undefined') 
-		{
+		if (typeof(cache) === 'undefined') {
 			var cb = self._postExpandOntologyCB;
 			this.state.dataLoader.getOntology(id, this.state.ontologyDirection, this.state.ontologyDepth, cb, self);						
 		} else {
@@ -2230,7 +2218,6 @@ var images = require('./images.json');
 	},
 
 	_postExpandOntologyCB: function(d, id, parent) {
-
 		parent.state.ontologyTreesDone = 0;
 		parent.state.ontologyTreeHeight = 0;		
 		var info = parent._getAxisData(id);
@@ -2439,7 +2426,6 @@ var images = require('./images.json');
 	// Used for genotype expansion - Joe
     // expand the model with the associated targets
 	_expand: function(curModel) {
-		$('#wait').show();
 		var div = $('#pg_tooltip').html();
 		$('#pg_tooltip').html(div);
 
