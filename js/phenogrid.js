@@ -973,13 +973,6 @@ var images = require('./images.json');
 		// set this back to 0 so it doesn't affect other rendering
 	},
 
-	// We only have 3 color,s but that will do for now
-	_getColorForCellValue: function(self, score) {
-		// This is for the new "Overview" target option
-		var selectedScale = self.state.colorScale[self.state.selectedCalculation];
-		return selectedScale(score);
-	},
-
     // Tip info icon for more info on those text scores
 	_createScoresTipIcon: function() {
 		var self = this; // Used in the anonymous function 
