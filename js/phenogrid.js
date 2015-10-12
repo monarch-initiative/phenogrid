@@ -370,7 +370,6 @@ var images = require('./images.json');
 	   		// invert our x/y Renders
 	    	this.state.xAxisRender = this.state.sourceAxis;
 	       	this.state.yAxisRender = this.state.targetAxis;
-
 	   	} else {
 	       	this.state.xAxisRender = this.state.targetAxis;
 	       	this.state.yAxisRender = this.state.sourceAxis;
@@ -614,7 +613,7 @@ var images = require('./images.json');
     // mouseover x/y label and grid cell
     // tooltip and crosshair highlighting show up at the same time and disappear together as well - Joe
 	_mouseover: function (elem, d) {
-		var data;
+        var data;
 
         // d.xpos and d.ypos only appear for cell - Joe
 		if (d.type === 'cell') {  
@@ -636,16 +635,28 @@ var images = require('./images.json');
 			data = d;   
 			this._createMatchingHighlight(elem, d);
 			// show crosshair
-			var yScale = this.state.yAxisRender.getScale();
-    	    var ypos = yScale(d.id);
-	        this._crossHairsOn(d.id, ypos, 'horizontal');
+            if ( ! this.state.invertAxis) {
+                var yScale = this.state.yAxisRender.getScale();
+                var ypos = yScale(d.id);
+                this._crossHairsOn(d.id, ypos, 'horizontal');
+            } else {
+                var xScale = this.state.xAxisRender.getScale();
+                var xpos = xScale(d.id);
+                this._crossHairsOn(d.id, xpos, 'vertical');
+            }
 		} else {
             data = d;   
 			this._createMatchingHighlight(elem, d);
 			// show crosshair
-			var xScale = this.state.xAxisRender.getScale();
-    	    var xpos = xScale(d.id);
-	        this._crossHairsOn(d.id, xpos, 'vertical');
+			if ( ! this.state.invertAxis) {
+                var xScale = this.state.xAxisRender.getScale();
+                var xpos = xScale(d.id);
+                this._crossHairsOn(d.id, xpos, 'vertical');
+            } else {
+                var yScale = this.state.yAxisRender.getScale();
+                var ypos = yScale(d.id);
+                this._crossHairsOn(d.id, ypos, 'horizontal');
+            }
 		}
 
 		// show tooltip
@@ -1305,26 +1316,40 @@ var images = require('./images.json');
 	            // show crosshairs
 	            self._crossHairsOn(d.target_id, d.ypos, 'both');                      
 	        } else if (d.type === 'phenotype') {
-	            self._createMatchingHighlight(elem, d); 
- 
-                var yScale = self.state.yAxisRender.getScale();
-    	        var ypos = yScale(d.id);
-	            self._crossHairsOn(d.id, ypos, 'horizontal');  			
-	        } else {
-	            self._createMatchingHighlight(elem, d); 
- 
-                var xScale = self.state.xAxisRender.getScale();
-    	        var xpos = xScale(d.id);
-	            self._crossHairsOn(d.id, xpos, 'vertical');  			
-	        }
+                self._createMatchingHighlight(elem, d);
+                // show crosshair
+                if ( ! self.state.invertAxis) {
+                    var yScale = self.state.yAxisRender.getScale();
+                    var ypos = yScale(d.id);
+                    self._crossHairsOn(d.id, ypos, 'horizontal');
+                } else {
+                    var xScale = self.state.xAxisRender.getScale();
+                    var xpos = xScale(d.id);
+                    self._crossHairsOn(d.id, xpos, 'vertical');
+                }
+            } else { 
+                self._createMatchingHighlight(elem, d);
+                // show crosshair
+                if ( ! self.state.invertAxis) {
+                    var xScale = self.state.xAxisRender.getScale();
+                    var xpos = xScale(d.id);
+                    self._crossHairsOn(d.id, xpos, 'vertical');
+                } else {
+                    var yScale = self.state.yAxisRender.getScale();
+                    var ypos = yScale(d.id);
+                    self._crossHairsOn(d.id, ypos, 'horizontal');
+                }
+            }
         });
 
         // Attach mouseleave event to tooltip
         // mouseout doesn't work - Joe
+        // The mouseout event triggers when the mouse pointer leaves any child elements as well the selected element.
+        // The mouseleave event is only triggered when the mouse pointer leaves the selected element.
         tooltip.mouseleave(function() {
             // hide tooltip
             self._hideTooltip(tooltip);
-            // remove matchng highlighting and crosshairs
+            // remove matching highlighting and crosshairs
             self._mouseout();
         });
 	},
