@@ -2525,8 +2525,7 @@ var images = require('./images.json');
 	},
 
 	_setDefaultSelectedSort: function(type) {
-		var self = this;
-		self.state.selectedSort = type;
+		this.state.selectedSort = type;
 	},
 
 
