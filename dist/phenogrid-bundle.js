@@ -2347,9 +2347,7 @@ var images = require('./images.json');
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
 			});
-
-
-			
+	
 		var yRenderedSize = this.state.yAxisRender.displayLength();
 		var xRenderedSize = this.state.xAxisRender.displayLength();		
      	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
