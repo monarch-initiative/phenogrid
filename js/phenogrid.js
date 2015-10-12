@@ -495,12 +495,10 @@ var images = require('./images.json');
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); })
 			.on("mouseover", function(d, i) { 		
-				self._crossHairsOn(d.id, i, 'horizontal');
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
 				self._mouseover(this, data, self);})
 			.on("mouseout", function(d) {
-				self._crossHairsOff();		  		
-				self._removeHighlighting();
+				self._mouseout();		  		
 			});
 
 	    // create columns using the xvalues (targets)
@@ -527,11 +525,10 @@ var images = require('./images.json');
 	      		.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
 		    .on("mouseover", function(d, i) { 				
-		    	self._crossHairsOn(d.id, i, 'vertical');
 		    	self._mouseover(this, d, self);})
 			.on("mouseout", function(d) {
-				self._crossHairsOff();		  		
-				self._removeHighlighting();});
+				self._mouseout();
+			});
 	      	
 	    // add the scores  
 	    self._createTextScores();
@@ -553,13 +550,11 @@ var images = require('./images.json');
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			        })
 		        .on("mouseover", function(d) { 					
-		        	self._crossHairsOn(d.target_id, d.ypos, 'both');
                     // self is the global widget this
                     // this passed to _mouseover refers to the current element - Joe
 		        	self._mouseover(this, d, self);})							
 		        .on("mouseout", function(d) {
-		        	self._crossHairsOff();		  		
-		        	self._removeHighlighting();
+		        	self._mouseout();
 		        });
 		}
 	},
@@ -633,11 +628,26 @@ var images = require('./images.json');
 			
 			// hightlight the cell
 	 		d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
-				  .classed("pg_rowcolmatch", true);					  
+				  .classed("pg_rowcolmatch", true);		
+
+		    // show crosshairs
+	        this._crossHairsOn(d.target_id, d.ypos, 'both');			  
+		} else if (d.type === 'phenotype') {
+			data = d;   
+			this._createMatchingHighlight(elem, d);
+			// show crosshair
+			var yScale = this.state.yAxisRender.getScale();
+    	    var ypos = yScale(d.id);
+	        this._crossHairsOn(d.id, ypos, 'horizontal');
 		} else {
-			this._highlightMatching(elem, d);
-			data = d;    			
+            data = d;   
+			this._createMatchingHighlight(elem, d);
+			// show crosshair
+			var xScale = this.state.xAxisRender.getScale();
+    	    var xpos = xScale(d.id);
+	        this._crossHairsOn(d.id, xpos, 'vertical');
 		}
+
 		// show tooltip
 		this._createHoverBox(data);
         
@@ -646,7 +656,12 @@ var images = require('./images.json');
 		this._showTooltip($('#pg_tooltip'), elem, d);
 	},
 
-	_removeHighlighting: function() {
+    _mouseout: function() {
+    	this._removeMatchingHighlight();
+    	this._crossHairsOff();
+    },
+
+	_removeMatchingHighlight: function() {
 		// remove highlighting for row/col
 		d3.selectAll(".row text")
 			  .classed("pg_active", false);
@@ -660,7 +675,7 @@ var images = require('./images.json');
 				.classed("pg_rowcolmatch", false);	
 	},
 
-	_highlightMatching: function(elem, data) {
+	_createMatchingHighlight: function(elem, data) {
 		var hightlightSources = true;
 		var currenPos = this._getAxisDataPosition(data.id);
 		var nameId = elem.parentNode.id;  // using parentNode is compatible across browsers, not elem.parentElement.id
@@ -1290,13 +1305,13 @@ var images = require('./images.json');
 	            // show crosshairs
 	            self._crossHairsOn(d.target_id, d.ypos, 'both');                      
 	        } else if (d.type === 'phenotype') {
-	            self._highlightMatching(elem, d); 
+	            self._createMatchingHighlight(elem, d); 
  
                 var yScale = self.state.yAxisRender.getScale();
     	        var ypos = yScale(d.id);
 	            self._crossHairsOn(d.id, ypos, 'horizontal');  			
 	        } else {
-	            self._highlightMatching(elem, d); 
+	            self._createMatchingHighlight(elem, d); 
  
                 var xScale = self.state.xAxisRender.getScale();
     	        var xpos = xScale(d.id);
@@ -1309,9 +1324,8 @@ var images = require('./images.json');
         tooltip.mouseleave(function() {
             // hide tooltip
             self._hideTooltip(tooltip);
-            // remove labels highlighting and crosshairs
-            self._removeHighlighting();
-            self._crossHairsOff();
+            // remove matchng highlighting and crosshairs
+            self._mouseout();
         });
 	},
 
