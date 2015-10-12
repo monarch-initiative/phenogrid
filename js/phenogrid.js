@@ -1297,12 +1297,9 @@ var images = require('./images.json');
 		}
 		var position = {left: leftPos, top: topPos};
 
-        
         tooltip.css({left: position.left, top: position.top});
         tooltip.show();
 
-        var self = this;
-        
         // Remove all event handlers from #pg_tooltip to prevent duplicated mouseover/mouseleave
         // without using this, the previously added mouseover/mouseleave enent will stay there - Joe
         // https://api.jqueryui.com/jquery.widget/#method-_off
