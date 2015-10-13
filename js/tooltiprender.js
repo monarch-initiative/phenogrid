@@ -128,11 +128,9 @@ TooltipRender.prototype = {
 						"<br/>" + tooltip._rank() + tooltip._score() + tooltip._ic() + tooltip._sum() + 
 						tooltip._freq() + tooltip._targetGroup();
                         
-		// for gene and single species mode only, show genotype link
+		// for gene and single species mode only, add genotype expansion link
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
-			
-            returnHtml += "<br><div class=\"pg_insert_genotypes\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
-            
+            returnHtml += "<br><div class=\"pg_insert_genotypes\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
 		}
 		
 		return returnHtml;	

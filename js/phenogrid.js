@@ -1454,13 +1454,12 @@ var images = require('./images.json');
         
         // For genotype expansion
 		if (data.type === 'gene') {
-			// https://api.jqueryui.com/jquery.widget/#method-_on
-			// Binds click event to the ontology tree expand icon - Joe
 			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
 			var icon = $('#pg_insert_genotypes_' + id);
+            var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
 			this._on(icon, {
 				"click": function(event) {
-					this._fetchGenotypes(id);
+					this._fetchGenotypes(id, species_name);
 				}
 			});
 		}
@@ -2234,10 +2233,19 @@ var images = require('./images.json');
 	},
 
     // Genotypes expansion for gene (single species mode) - Joe
-    _fetchGenotypes: function(id) {
-		this.state.dataLoader.getGenotypes(id);
+    _fetchGenotypes: function(id, species_name) {
+        var cb = this._fetchGenotypesCb;
+        this.state.dataLoader.getGenotypes(id, cb, this);
+        
+        
+        // returns all the matches
+		//var data = this.state.dataLoader.getGenotypes(id);
+        //this.state.dataLoader.transform(species_name, data);
 	},
     
+    _fetchGenotypesCb: function(results, id, parent) {
+        console.log(results);
+	},
     
     // Used for genotype expansion - Joe
 	// collapse the expanded items for the current selected model targets

@@ -382,68 +382,42 @@ DataLoader.prototype = {
 	},
 
     // get genotypes of a specific gene 
-    getGenotypes: function(id) {
+    getGenotypes: function(id, finalCallback, parent) {
         var self = this;
         // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
         var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
-        
-        jQuery.ajax({
-            url: url,
-            method: 'GET', 
-            async : true,
-            dataType : 'json',
-            success : function(data) {
-                // get the first 5 genotypes
-                // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
-                // some genes may don't have associated genotypes
-                var genotype_list = data.genotype_list.slice(0, 5);
-                var phenotype_id_list = self.origSourceList.join("+");
-                var genotype_id_list = '';
-                for (var i in genotype_list) {
-                    genotype_id_list += genotype_list[i].id + ",";
-                }
-                // truncate the last ',' off
-                if (genotype_id_list.slice(-1) === ',') {
-                    genotype_id_list = genotype_id_list.slice(0, -1);
-                }
-                // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
-                var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
-                // Now we need to get all the matches
-                jQuery.ajax({
-                    url: compare_url, 
-                    method: 'GET', 
-                    async : true,
-                    dataType : 'json',
-                    success : function(data) {
-                        console.log(data);
-                    },
-                    error: function (xhr, errorType, exception) { 
-                        console.log("ajax error: " + xhr.status);
-                    } 
-                });
-            },
-            error: function (xhr, errorType, exception) { 
-            // Triggered if an error communicating with server
-
-            switch(xhr.status){
-                case 404:
-                case 500:
-                case 501:
-                case 502:
-                case 503:
-                case 504:
-                case 505:
-                default:
-                    console.log("exception: " + xhr.status + " " + exception);
-                    console.log("We're having some problems. Please check your network connection.");
-                    break;
-                }
-            } 
-        });
+        var cb = this.getGenotypesCb;
+        // ajax get all the genotypes of this gene id
+        this.getFetch(self, url, id, cb, finalCallback, parent);
     },
     
-
+    // send the compare request to get all the matches data
+    getGenotypesCb: function(self, id, results, finalCallback, parent) {
+		// get the first 5 genotypes
+        // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
+        // some genes may don't have associated genotypes
+        if (typeof(results.genotype_list) !== 'undefined') {
+            var genotype_list = results.genotype_list.slice(0, 5);
+            var phenotype_id_list = self.origSourceList.join("+");
+            var genotype_id_list = '';
+            for (var i in genotype_list) {
+                genotype_id_list += genotype_list[i].id + ",";
+            }
+            // truncate the last ',' off
+            if (genotype_id_list.slice(-1) === ',') {
+                genotype_id_list = genotype_id_list.slice(0, -1);
+            }
+            // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+            var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
+            // Now we need to get all the matches data
+            var cb = self.getGenotypesCbCb;
+            self.getFetch(self, compare_url, id, cb, finalCallback, parent);
+        }
+	},
     
+    getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
+        finalCallback(results, id, parent);
+    },
     
 	/*
 		Function: postOntologyCb

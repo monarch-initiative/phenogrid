@@ -688,68 +688,42 @@ DataLoader.prototype = {
 	},
 
     // get genotypes of a specific gene 
-    getGenotypes: function(id) {
+    getGenotypes: function(id, finalCallback, parent) {
         var self = this;
         // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
         var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
-        
-        jQuery.ajax({
-            url: url,
-            method: 'GET', 
-            async : true,
-            dataType : 'json',
-            success : function(data) {
-                // get the first 5 genotypes
-                // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
-                // some genes may don't have associated genotypes
-                var genotype_list = data.genotype_list.slice(0, 5);
-                var phenotype_id_list = self.origSourceList.join("+");
-                var genotype_id_list = '';
-                for (var i in genotype_list) {
-                    genotype_id_list += genotype_list[i].id + ",";
-                }
-                // truncate the last ',' off
-                if (genotype_id_list.slice(-1) === ',') {
-                    genotype_id_list = genotype_id_list.slice(0, -1);
-                }
-                // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
-                var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
-                // Now we need to get all the matches
-                jQuery.ajax({
-                    url: compare_url, 
-                    method: 'GET', 
-                    async : true,
-                    dataType : 'json',
-                    success : function(data) {
-                        console.log(data);
-                    },
-                    error: function (xhr, errorType, exception) { 
-                        console.log("ajax error: " + xhr.status);
-                    } 
-                });
-            },
-            error: function (xhr, errorType, exception) { 
-            // Triggered if an error communicating with server
-
-            switch(xhr.status){
-                case 404:
-                case 500:
-                case 501:
-                case 502:
-                case 503:
-                case 504:
-                case 505:
-                default:
-                    console.log("exception: " + xhr.status + " " + exception);
-                    console.log("We're having some problems. Please check your network connection.");
-                    break;
-                }
-            } 
-        });
+        var cb = this.getGenotypesCb;
+        // ajax get all the genotypes of this gene id
+        this.getFetch(self, url, id, cb, finalCallback, parent);
     },
     
-
+    // send the compare request to get all the matches data
+    getGenotypesCb: function(self, id, results, finalCallback, parent) {
+		// get the first 5 genotypes
+        // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
+        // some genes may don't have associated genotypes
+        if (typeof(results.genotype_list) !== 'undefined') {
+            var genotype_list = results.genotype_list.slice(0, 5);
+            var phenotype_id_list = self.origSourceList.join("+");
+            var genotype_id_list = '';
+            for (var i in genotype_list) {
+                genotype_id_list += genotype_list[i].id + ",";
+            }
+            // truncate the last ',' off
+            if (genotype_id_list.slice(-1) === ',') {
+                genotype_id_list = genotype_id_list.slice(0, -1);
+            }
+            // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+            var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
+            // Now we need to get all the matches data
+            var cb = self.getGenotypesCbCb;
+            self.getFetch(self, compare_url, id, cb, finalCallback, parent);
+        }
+	},
     
+    getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
+        finalCallback(results, id, parent);
+    },
     
 	/*
 		Function: postOntologyCb
@@ -2980,13 +2954,12 @@ var images = require('./images.json');
         
         // For genotype expansion
 		if (data.type === 'gene') {
-			// https://api.jqueryui.com/jquery.widget/#method-_on
-			// Binds click event to the ontology tree expand icon - Joe
 			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
 			var icon = $('#pg_insert_genotypes_' + id);
+            var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
 			this._on(icon, {
 				"click": function(event) {
-					this._fetchGenotypes(id);
+					this._fetchGenotypes(id, species_name);
 				}
 			});
 		}
@@ -3760,10 +3733,19 @@ var images = require('./images.json');
 	},
 
     // Genotypes expansion for gene (single species mode) - Joe
-    _fetchGenotypes: function(id) {
-		this.state.dataLoader.getGenotypes(id);
+    _fetchGenotypes: function(id, species_name) {
+        var cb = this._fetchGenotypesCb;
+        this.state.dataLoader.getGenotypes(id, cb, this);
+        
+        
+        // returns all the matches
+		//var data = this.state.dataLoader.getGenotypes(id);
+        //this.state.dataLoader.transform(species_name, data);
 	},
     
+    _fetchGenotypesCb: function(results, id, parent) {
+        console.log(results);
+	},
     
     // Used for genotype expansion - Joe
 	// collapse the expanded items for the current selected model targets
@@ -4217,11 +4199,9 @@ TooltipRender.prototype = {
 						"<br/>" + tooltip._rank() + tooltip._score() + tooltip._ic() + tooltip._sum() + 
 						tooltip._freq() + tooltip._targetGroup();
                         
-		// for gene and single species mode only, show genotype link
+		// for gene and single species mode only, add genotype expansion link
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
-			
-            returnHtml += "<br><div class=\"pg_insert_genotypes\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
-            
+            returnHtml += "<br><div class=\"pg_insert_genotypes\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
 		}
 		
 		return returnHtml;	
