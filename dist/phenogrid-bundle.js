@@ -685,9 +685,46 @@ DataLoader.prototype = {
 
 		// no postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
 		this.getFetch(self, url, id, cb, finalCallback, parent);
-
 	},
 
+    // get genotypes of a specific gene 
+    getGenotypes: function(id) {
+        var self = this;
+        // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
+        var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
+        
+        jQuery.ajax({
+            url: url,
+            method: 'GET', 
+            async : true,
+            dataType : 'json',
+            success : function(data) {
+                // get the first 5 genotypes
+                console.log(data.genotype_list.slice(0, 5));					
+            },
+            error: function (xhr, errorType, exception) { 
+            // Triggered if an error communicating with server
+
+            switch(xhr.status){
+                case 404:
+                case 500:
+                case 501:
+                case 502:
+                case 503:
+                case 504:
+                case 505:
+                default:
+                    console.log("exception: " + xhr.status + " " + exception);
+                    console.log("We're having some problems. Please check your network connection.");
+                    break;
+                }
+            } 
+        });
+    },
+    
+
+    
+    
 	/*
 		Function: postOntologyCb
 
@@ -2914,6 +2951,19 @@ var images = require('./images.json');
 				}
 			});
 		}
+        
+        // For genotype expansion
+		if (data.type === 'gene') {
+			// https://api.jqueryui.com/jquery.widget/#method-_on
+			// Binds click event to the ontology tree expand icon - Joe
+			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
+			var icon = $('#pg_insert_genotypes_' + id);
+			this._on(icon, {
+				"click": function(event) {
+					this._fetchGenotypes(id);
+				}
+			});
+		}
 	},
 
 	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
@@ -3683,6 +3733,12 @@ var images = require('./images.json');
 		$("#pg_tooltip_inner").html(ontologyData);
 	},
 
+    // Genotypes expansion for gene (single species mode) - Joe
+    _fetchGenotypes: function(id) {
+		this.state.dataLoader.getGenotypes(id);
+	},
+    
+    
     // Used for genotype expansion - Joe
 	// collapse the expanded items for the current selected model targets
 	_collapse: function(curModel) {
@@ -4052,9 +4108,11 @@ TooltipRender.prototype = {
 
 		// making an assumption here that we want to display cell info
 		//if ( typeof(this.data.type) == 'undefined') {
-		if ( this.data.type === 'cell') {
+		if (this.data.type === 'cell') {
 			retInfo = this.cell(this, this.data);
-		} else {
+		} else if (this.data.type === 'gene') {
+            retInfo = this.gene(this);
+        } else {
 			// this creates the standard information portion of the tooltip, 
 			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
 						this.entityHreflink(this.data.type, this.data.id, this.data.label ) +
@@ -4098,7 +4156,6 @@ TooltipRender.prototype = {
 	}, 
 
 	phenotype: function(tooltip) {
-		
 		var returnHtml = "";
 		var expand = false;
 		var ontologyData = "<br>";
@@ -4122,37 +4179,23 @@ TooltipRender.prototype = {
 		if (expand){
 			returnHtml += ontologyData;
 		} else {
-			//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
 			returnHtml = "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
 		}
-	return returnHtml;		
-
+        
+        return returnHtml;		
 	},
 
 	gene: function(tooltip) {
-		var returnHtml = "";	
-	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
-		
-		if (tooltip.parent.state.targetGroupName !== "Overview"){
-			var isExpanded = false;
-			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
-			if (gtCached !== null) { isExpanded = gtCached.expanded;}
-
-			//if found just return genotypes scores
-			if (isExpanded) {
-	//					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
-				returnHtml = "<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
-					 "<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
-					 "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapse('" + tooltip.id + "')\">" +
-					 "</button>";
-			} else {
-				if (gtCached !== null) {
-					returnHtml = "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
-				} else {
-					returnHtml = "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
-				}
-				returnHtml += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expand('" + tooltip.id + "')\"></button>";
-			}
+		var returnHtml =  "<strong>" + tooltip._capitalizeString(tooltip.data.type) + ": </strong> " + 
+						tooltip.entityHreflink(tooltip.data.type, tooltip.data.id, tooltip.data.label ) +
+						"<br/>" + tooltip._rank() + tooltip._score() + tooltip._ic() + tooltip._sum() + 
+						tooltip._freq() + tooltip._targetGroup();
+                        
+		// for gene and single species mode only, show genotype link
+		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
+			
+            returnHtml += "<br><div class=\"pg_insert_genotypes\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+            
 		}
 		
 		return returnHtml;	
@@ -4184,7 +4227,7 @@ TooltipRender.prototype = {
 		var selCalc = tooltip.parent.state.selectedCalculation;
 
 		var prefix, targetId, sourceId, targetInfo, sourceInfo;
-			//var taxon = d.taxon;
+		//var taxon = d.taxon;
 
         sourceId = d.source_id;
 		targetId = d.target_id;
@@ -4192,10 +4235,10 @@ TooltipRender.prototype = {
 		if (tooltip.parent.state.invertAxis) {
 			targetInfo = tooltip.parent.state.yAxisRender.get(d.target_id); 
 			sourceInfo = tooltip.parent.state.xAxisRender.get(d.source_id); 			
-		 } else {
+		} else {
 			targetInfo = tooltip.parent.state.xAxisRender.get(d.target_id); 
 			sourceInfo = tooltip.parent.state.yAxisRender.get(d.source_id); 						
-		 }
+		}
 
 		 
 			// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
@@ -4233,7 +4276,6 @@ TooltipRender.prototype = {
 			"</tbody>" + "</table>";
 		
 		return returnHtml;	
-
 	}
 
 

@@ -379,9 +379,46 @@ DataLoader.prototype = {
 
 		// no postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
 		this.getFetch(self, url, id, cb, finalCallback, parent);
-
 	},
 
+    // get genotypes of a specific gene 
+    getGenotypes: function(id) {
+        var self = this;
+        // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
+        var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
+        
+        jQuery.ajax({
+            url: url,
+            method: 'GET', 
+            async : true,
+            dataType : 'json',
+            success : function(data) {
+                // get the first 5 genotypes
+                console.log(data.genotype_list.slice(0, 5));					
+            },
+            error: function (xhr, errorType, exception) { 
+            // Triggered if an error communicating with server
+
+            switch(xhr.status){
+                case 404:
+                case 500:
+                case 501:
+                case 502:
+                case 503:
+                case 504:
+                case 505:
+                default:
+                    console.log("exception: " + xhr.status + " " + exception);
+                    console.log("We're having some problems. Please check your network connection.");
+                    break;
+                }
+            } 
+        });
+    },
+    
+
+    
+    
 	/*
 		Function: postOntologyCb
 

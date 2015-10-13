@@ -1451,6 +1451,19 @@ var images = require('./images.json');
 				}
 			});
 		}
+        
+        // For genotype expansion
+		if (data.type === 'gene') {
+			// https://api.jqueryui.com/jquery.widget/#method-_on
+			// Binds click event to the ontology tree expand icon - Joe
+			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
+			var icon = $('#pg_insert_genotypes_' + id);
+			this._on(icon, {
+				"click": function(event) {
+					this._fetchGenotypes(id);
+				}
+			});
+		}
 	},
 
 	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
@@ -2220,6 +2233,12 @@ var images = require('./images.json');
 		$("#pg_tooltip_inner").html(ontologyData);
 	},
 
+    // Genotypes expansion for gene (single species mode) - Joe
+    _fetchGenotypes: function(id) {
+		this.state.dataLoader.getGenotypes(id);
+	},
+    
+    
     // Used for genotype expansion - Joe
 	// collapse the expanded items for the current selected model targets
 	_collapse: function(curModel) {
