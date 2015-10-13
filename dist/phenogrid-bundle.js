@@ -700,7 +700,33 @@ DataLoader.prototype = {
             dataType : 'json',
             success : function(data) {
                 // get the first 5 genotypes
-                console.log(data.genotype_list.slice(0, 5));					
+                // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
+                // some genes may don't have associated genotypes
+                var genotype_list = data.genotype_list.slice(0, 5);
+                var phenotype_id_list = self.origSourceList.join("+");
+                var genotype_id_list = '';
+                for (var i in genotype_list) {
+                    genotype_id_list += genotype_list[i].id + ",";
+                }
+                // truncate the last ',' off
+                if (genotype_id_list.slice(-1) === ',') {
+                    genotype_id_list = genotype_id_list.slice(0, -1);
+                }
+                // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+                var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
+                // Now we need to get all the matches
+                jQuery.ajax({
+                    url: compare_url, 
+                    method: 'GET', 
+                    async : true,
+                    dataType : 'json',
+                    success : function(data) {
+                        console.log(data);
+                    },
+                    error: function (xhr, errorType, exception) { 
+                        console.log("ajax error: " + xhr.status);
+                    } 
+                });
             },
             error: function (xhr, errorType, exception) { 
             // Triggered if an error communicating with server
