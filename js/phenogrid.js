@@ -102,7 +102,7 @@ var images = require('./images.json');
 	$.widget("ui.phenogrid", {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
-            serverURL: "http://monarchinitiative.org",
+            serverURL: "http://beta.monarchinitiative.org",
             selectedCalculation: 0,
             invertAxis: false,
             selectedSort: "Frequency",
