@@ -3651,20 +3651,19 @@ var images = require('./images.json');
 	},
 
 	_expandOntology: function(id) {
-		var self = this;
-
 		// check to see if id has been cached
 		var cache = this.state.dataLoader.checkOntologyCache(id);
 
 		if (typeof(cache) === 'undefined') {
-			var cb = self._postExpandOntologyCB;
-			this.state.dataLoader.getOntology(id, this.state.ontologyDirection, this.state.ontologyDepth, cb, self);						
+			var cb = this._postExpandOntologyCB;
+			this.state.dataLoader.getOntology(id, this.state.ontologyDirection, this.state.ontologyDepth, cb, this);						
 		} else {
-			self._postExpandOntologyCB(cache, id, self);
+			this._postExpandOntologyCB(cache, id, this);
 		}
 
 	},
 
+    // Must use parent to pass this - Joe
 	_postExpandOntologyCB: function(d, id, parent) {
 		parent.state.ontologyTreesDone = 0;
 		parent.state.ontologyTreeHeight = 0;		
