@@ -183,11 +183,10 @@ DataLoader.prototype = {
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
-				var sourceID_a, currID_b, currID_lcs;  // Added currID_b - Joe
+				var sourceID_a, currID_b, currID_lcs;
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 
-					for (var matchIdx in matches) 
-					{
+					for (var matchIdx in matches) {
 						var sum = 0, count = 0;						
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
@@ -415,6 +414,7 @@ DataLoader.prototype = {
         }
 	},
     
+    // return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
     getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
         finalCallback(results, id, parent);
     },

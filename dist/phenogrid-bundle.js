@@ -489,11 +489,10 @@ DataLoader.prototype = {
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
-				var sourceID_a, currID_b, currID_lcs;  // Added currID_b - Joe
+				var sourceID_a, currID_b, currID_lcs;
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 
-					for (var matchIdx in matches) 
-					{
+					for (var matchIdx in matches) {
 						var sum = 0, count = 0;						
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
@@ -721,6 +720,7 @@ DataLoader.prototype = {
         }
 	},
     
+    // return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
     getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
         finalCallback(results, id, parent);
     },
@@ -2956,10 +2956,9 @@ var images = require('./images.json');
 		if (data.type === 'gene') {
 			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
 			var icon = $('#pg_insert_genotypes_' + id);
-            var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
 			this._on(icon, {
 				"click": function(event) {
-					this._fetchGenotypes(id, species_name);
+					this._fetchGenotypes(id);
 				}
 			});
 		}
@@ -3733,18 +3732,19 @@ var images = require('./images.json');
 	},
 
     // Genotypes expansion for gene (single species mode) - Joe
-    _fetchGenotypes: function(id, species_name) {
+    _fetchGenotypes: function(id) {
         var cb = this._fetchGenotypesCb;
         this.state.dataLoader.getGenotypes(id, cb, this);
-        
-        
-        // returns all the matches
-		//var data = this.state.dataLoader.getGenotypes(id);
-        //this.state.dataLoader.transform(species_name, data);
 	},
     
+    // this cb has all the matches info returned from the compare
+    // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
     _fetchGenotypesCb: function(results, id, parent) {
         console.log(results);
+        var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+        // transform raw owlsims into simplified format
+        parent.state.dataLoader.transform(species_name, results); // parent refers to the global `this`
+        console.log(parent.state.dataLoader.cellData);
 	},
     
     // Used for genotype expansion - Joe
