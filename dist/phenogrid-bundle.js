@@ -561,7 +561,7 @@ DataLoader.prototype = {
 
     // used to transform genotype/phenotype matches 
     // modified based on transform() - Joe
-    genotypeTransform: function(targetGroup, data, parentGene) {      		
+    genotypeTransform: function(targetGroup, data, parentGeneID) {      		
 
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
@@ -604,7 +604,7 @@ DataLoader.prototype = {
                         "targetGroup": item.taxon.label, 
                         "taxon": item.taxon.id, 
                         "type": 'genotype', 
-                        'parentGene': parentGene, // added this for each added genotype so it knows which gene to be associated with - Joe
+                        'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
                         "rank": parseInt(idx)+1,  // start with 1 not zero
                         "score": item.score.score
                     };  
@@ -1230,7 +1230,7 @@ DataManager.prototype = {
 	    var matrixFlatten = []; 
 
 	    // if it's not a flattened, reset matrix
-	    if (!flattened) { 
+	    if ( ! flattened) { 
 	    	this.matrix = []; 
 	    }
 
@@ -1257,7 +1257,7 @@ DataManager.prototype = {
 					}
 				}
 			}
-			if (!flattened) {  
+			if ( ! flattened) {  
 				this.matrix.push(list);
 			} 
 		}
@@ -3864,15 +3864,46 @@ var images = require('./images.json');
     
     // this cb has all the matches info returned from the compare
     // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
+    // parent refers to the global `this` and we have to pass it
     _fetchGenotypesCb: function(results, id, parent) {
         console.log(results);
         var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
         // transform raw owlsims into simplified format
         // this dataLoader.transform will append the genotype matches data to cellData
-        parent.state.dataLoader.genotypeTransform(species_name, results, id); // parent refers to the global `this`
-        
-        // update axisrenders
+        parent.state.dataLoader.genotypeTransform(species_name, results, id); 
+  
+        // re-create the axis rendering groups that have the added genotypes at bottom
         parent._createAxisRenderingGroups();
+        
+        // Position those genotypes right after their parent gene
+        var allTargetEntries = parent.state.targetAxis.groupEntries();
+        var gene_position = 0;
+        var header = [];
+        var body = [];
+        var footer = [];
+        for (var i in allTargetEntries) {
+            // loop through all the target entries and find the parent gene
+            if (allTargetEntries[i].id === id) {
+                gene_position = i; // remember the parent gene's position
+                header = allTargetEntries.slice(0, i+1); // the last element of header is the parent gene
+                break;
+            }
+        }
+        for (var k = header.length; k < allTargetEntries.length; k++) {
+            // loop through all the target entries and find the genotypes of that parent gene
+            // then place those genotypes right after that gene - Joe
+            if (allTargetEntries[k].id === results.b[0].id) {
+                first_genotype_position = k; // remember the first genotype's position
+                body = allTargetEntries.slice(header.length, k);
+                break;
+            }
+        }
+        // footer contains all newly added genotypes
+        footer = allTargetEntries.slice(header.length + body.length);
+        
+        
+        
+        
         parent._updateDisplay();
 	},
     
@@ -3919,6 +3950,8 @@ var images = require('./images.json');
 		return phenoTypes;
 	}, 
 
+    
+    // Not used? - Joe
 	// insert into the model list
 	_insertionModelList: function (insertPoint, insertions) {
 		var newModelList = []; //new Hashtable();  //MKD REFACTOR
@@ -4053,6 +4086,7 @@ var images = require('./images.json');
 		return false;
 	},
 
+    // Not used - Joe
 	_isGenoType: function(data) {
 		var concept = this._getConceptId(data);
 		var info = this._getIDTypeDetail(concept);

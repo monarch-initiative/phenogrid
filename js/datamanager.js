@@ -254,7 +254,7 @@ DataManager.prototype = {
 	    var matrixFlatten = []; 
 
 	    // if it's not a flattened, reset matrix
-	    if (!flattened) { 
+	    if ( ! flattened) { 
 	    	this.matrix = []; 
 	    }
 
@@ -281,7 +281,7 @@ DataManager.prototype = {
 					}
 				}
 			}
-			if (!flattened) {  
+			if ( ! flattened) {  
 				this.matrix.push(list);
 			} 
 		}

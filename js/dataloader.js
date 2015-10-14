@@ -255,7 +255,7 @@ DataLoader.prototype = {
 
     // used to transform genotype/phenotype matches 
     // modified based on transform() - Joe
-    genotypeTransform: function(targetGroup, data, parentGene) {      		
+    genotypeTransform: function(targetGroup, data, parentGeneID) {      		
 
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
@@ -298,7 +298,7 @@ DataLoader.prototype = {
                         "targetGroup": item.taxon.label, 
                         "taxon": item.taxon.id, 
                         "type": 'genotype', 
-                        'parentGene': parentGene, // added this for each added genotype so it knows which gene to be associated with - Joe
+                        'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
                         "rank": parseInt(idx)+1,  // start with 1 not zero
                         "score": item.score.score
                     };  
