@@ -543,7 +543,8 @@ DataLoader.prototype = {
 									"b_id": currID_b,
 									"b_label": curr_row.b.label, 
 									"b_IC": parseFloat(curr_row.b.IC),
-									"type": 'cell'};
+									"type": 'cell'
+                                    };
 							    
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
@@ -558,6 +559,121 @@ DataLoader.prototype = {
 		} // if
 	}, 
 
+    // used to transform genotype/phenotype matches 
+    // modified based on transform() - Joe
+    genotypeTransform: function(targetGroup, data, parentGene) {      		
+
+		if (typeof(data) !== 'undefined' &&
+		    typeof (data.b) !== 'undefined') {
+			console.log("transforming...");
+
+			// extract the maxIC score; ugh!
+			if (typeof (data.metadata) !== 'undefined') {
+				this.maxICScore = data.metadata.maxMaxIC;
+			}
+
+            // no need to initialize the specific targetGroup
+            // since they should've been set
+            
+			//var variantNum = 0;
+			for (var idx in data.b) {
+				var item = data.b[idx];
+				var targetID = Utils.getConceptId(item.id);
+
+				// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
+				// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
+				// if (this.contains("target", targetID)){
+				// 	targetID += "_" + variantNum;
+				// 	variantNum++;
+				// }
+
+				// TODO: THIS NEEDS CHANGED TO CATEGORY (I THINK MONARCH TEAM MENTIONED ADDING THIS)
+                /*
+				var type = '';
+				for (var j in this.apiEntityMap) {
+				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
+				 		type = this.apiEntityMap[j].apifragment; 
+				 	}
+				}
+                */
+				
+				// build the target list
+				var t = {
+                        "id":targetID, 
+                        "label": item.label, 
+                        "targetGroup": item.taxon.label, 
+                        "taxon": item.taxon.id, 
+                        "type": 'genotype', 
+                        'parentGene': parentGene, // added this for each added genotype so it knows which gene to be associated with - Joe
+                        "rank": parseInt(idx)+1,  // start with 1 not zero
+                        "score": item.score.score
+                    };  
+                    
+				this.targetData[targetGroup][targetID] = t;
+
+				var matches = data.b[idx].matches;
+				var curr_row, lcs, dataVals;
+				var sourceID_a, currID_b, currID_lcs;
+				if (typeof(matches) !== 'undefined' && matches.length > 0) {
+					for (var matchIdx in matches) {
+						var sum = 0, count = 0;						
+						curr_row = matches[matchIdx];
+						sourceID_a = Utils.getConceptId(curr_row.a.id);
+						currID_b = Utils.getConceptId(curr_row.b.id);
+						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
+
+						// get the normalized IC
+						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
+
+						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
+
+						// build a unique list of sources
+						if (typeof(srcElement) === 'undefined') {
+							count++;
+							sum += parseFloat(curr_row.lcs.IC);
+
+							// create a new source object
+							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
+											"count": count, "sum": sum, "type": "phenotype"};
+							this.sourceData[targetGroup][sourceID_a] = dataVals;
+							// if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
+							// 	this._getHPO(this.getConceptId(curr_row.a.id));
+							// }
+						} else {
+							this.sourceData[targetGroup][sourceID_a].count += 1;
+							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
+						}
+
+						// building cell data points
+						dataVals = {"source_id": sourceID_a, 
+									"target_id": targetID, 
+									"targetGroup": item.taxon.label,									
+									"value": lcs, 
+									"a_IC" : curr_row.a.IC,  
+									"a_label" : curr_row.a.label,
+									"subsumer_id": currID_lcs, 
+									"subsumer_label": curr_row.lcs.label, 
+									"subsumer_IC": parseFloat(curr_row.lcs.IC), 
+									"b_id": currID_b,
+									"b_label": curr_row.b.label, 
+									"b_IC": parseFloat(curr_row.b.IC),
+									"type": 'cell'
+                                    };
+							    
+					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a] = {};
+					    }
+					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a][targetID] = {};
+					    } 
+					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
+					}
+				}  //if
+			} // for
+		} // if
+	}, 
+
+    
 	/*
 		Function: refresh
 
@@ -716,14 +832,6 @@ DataLoader.prototype = {
             var genotype_id_list = '';
             for (var i in genotype_list) {
                 genotype_id_list += genotype_list[i].id + ",";
-                // Encode the genotype id, otherwise we'll get syntax errors - 'Unexpected token <' - Joe
-                genotype_list[i].label = genotype_list[i].label
-                    .replace(/»/g, "&#187;")
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
             }
             // truncate the last ',' off
             if (genotype_id_list.slice(-1) === ',') {
@@ -3760,8 +3868,12 @@ var images = require('./images.json');
         console.log(results);
         var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
         // transform raw owlsims into simplified format
-        parent.state.dataLoader.transform(species_name, results); // parent refers to the global `this`
-        console.log(Object.keys(parent.state.dataLoader.cellData['Mus musculus']));
+        // this dataLoader.transform will append the genotype matches data to cellData
+        parent.state.dataLoader.genotypeTransform(species_name, results, id); // parent refers to the global `this`
+        
+        // update axisrenders
+        parent._createAxisRenderingGroups();
+        parent._updateDisplay();
 	},
     
     // Used for genotype expansion - Joe
