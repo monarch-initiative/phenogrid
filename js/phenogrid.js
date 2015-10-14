@@ -2244,7 +2244,7 @@ var images = require('./images.json');
         var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
         // transform raw owlsims into simplified format
         parent.state.dataLoader.transform(species_name, results); // parent refers to the global `this`
-        console.log(parent.state.dataLoader.cellData);
+        console.log(Object.keys(parent.state.dataLoader.cellData['Mus musculus']));
 	},
     
     // Used for genotype expansion - Joe

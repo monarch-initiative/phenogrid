@@ -452,10 +452,20 @@ DataLoader.prototype = {
 			if (typeof (data.metadata) !== 'undefined') {
 				this.maxICScore = data.metadata.maxMaxIC;
 			}
-			// just initialize the specific targetGroup
-			this.cellData[targetGroup] = [];
-			this.targetData[targetGroup] = [];
-			this.sourceData[targetGroup] = [];
+			
+            // just initialize the specific targetGroup
+            
+            // Here we don't reset the cellData, targetData, and sourceData every time,
+            // because we want to append the genotype expansion data - Joe
+			if (typeof(this.cellData[targetGroup]) === 'undefined') {
+                this.cellData[targetGroup] = [];
+            }
+            if (typeof(this.targetData[targetGroup]) === 'undefined') {
+                this.targetData[targetGroup] = [];
+            }
+            if (typeof(this.sourceData[targetGroup]) === 'undefined') {
+                this.sourceData[targetGroup] = [];
+            }
 
 			//var variantNum = 0;
 			for (var idx in data.b) {
@@ -491,7 +501,6 @@ DataLoader.prototype = {
 				var curr_row, lcs, dataVals;
 				var sourceID_a, currID_b, currID_lcs;
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
-
 					for (var matchIdx in matches) {
 						var sum = 0, count = 0;						
 						curr_row = matches[matchIdx];
@@ -707,6 +716,14 @@ DataLoader.prototype = {
             var genotype_id_list = '';
             for (var i in genotype_list) {
                 genotype_id_list += genotype_list[i].id + ",";
+                // Encode the genotype id, otherwise we'll get syntax errors - 'Unexpected token <' - Joe
+                genotype_list[i].label = genotype_list[i].label
+                    .replace(/»/g, "&#187;")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
             }
             // truncate the last ',' off
             if (genotype_id_list.slice(-1) === ',') {
@@ -3744,7 +3761,7 @@ var images = require('./images.json');
         var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
         // transform raw owlsims into simplified format
         parent.state.dataLoader.transform(species_name, results); // parent refers to the global `this`
-        console.log(parent.state.dataLoader.cellData);
+        console.log(Object.keys(parent.state.dataLoader.cellData['Mus musculus']));
 	},
     
     // Used for genotype expansion - Joe
