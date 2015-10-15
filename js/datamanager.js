@@ -23,6 +23,9 @@ var DataManager = function(dataLoader) {
 
 	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
 	this.matrix = [];
+    
+    // genotype expansion
+    this.targetListWithGenotypes = [];
 };
 
 DataManager.prototype = {
@@ -59,11 +62,55 @@ DataManager.prototype = {
 			array of objects
 	*/	
 	getData: function(dataset, targetGroup) {
-		if (typeof(targetGroup) != 'undefined') {
-			return this[dataset][targetGroup];
-		}
-		return this[dataset];
+        return this[dataset][targetGroup];
 	},
+    
+    
+    // for genotype expansion - Joe
+    // genotypesData is defined in _fetchGenotypesCb() of phenogrid.js
+    updateTargetList: function(genotypesData) {
+		var targetEntries = genotypesData.targetEntries;
+        var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
+        var parentGeneID = genotypesData.parentGeneID;
+
+        var gene_position;
+        var first_genotype_position;
+        var header = [];
+        var body = [];
+        var footer = [];
+        for (var i = 0; i < targetEntries.length; i++) {
+            // loop through all the target entries and find the parent gene
+            if (targetEntries[i].id === parentGeneID) {
+                gene_position = i; // remember the parent gene's position
+                break;
+            }
+        }
+        
+        header = targetEntries.slice(0, gene_position+1); // the last element of header is the parent gene
+
+        body = targetEntries.slice(header.length, targetEntries.length - genotypes.length);
+        
+        // footer contains all newly added genotypes
+        footer = targetEntries.slice(header.length + body.length);
+
+        // header + footer + body
+        // Position those genotypes right after their parent gene
+        // no we have the new target entries in the desired order
+        var reorderedTargetEntries = header.concat(footer, body);
+        
+        // Format into named associative array
+        // same return format as getData()
+        var newTargetData = []; // named array
+        for (var k = 0; k < reorderedTargetEntries.length; k++) {
+            newTargetData[reorderedTargetEntries[k].id] = reorderedTargetEntries[k];
+        }
+        
+        this.targetListWithGenotypes = newTargetData;
+	},
+    
+    
+    
+    
 	/*
 		Function: length
 			provides the length of specified data structure

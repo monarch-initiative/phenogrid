@@ -999,6 +999,9 @@ var DataManager = function(dataLoader) {
 
 	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
 	this.matrix = [];
+    
+    // genotype expansion
+    this.targetListWithGenotypes = [];
 };
 
 DataManager.prototype = {
@@ -1035,11 +1038,55 @@ DataManager.prototype = {
 			array of objects
 	*/	
 	getData: function(dataset, targetGroup) {
-		if (typeof(targetGroup) != 'undefined') {
-			return this[dataset][targetGroup];
-		}
-		return this[dataset];
+        return this[dataset][targetGroup];
 	},
+    
+    
+    // for genotype expansion - Joe
+    // genotypesData is defined in _fetchGenotypesCb() of phenogrid.js
+    updateTargetList: function(genotypesData) {
+		var targetEntries = genotypesData.targetEntries;
+        var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
+        var parentGeneID = genotypesData.parentGeneID;
+
+        var gene_position;
+        var first_genotype_position;
+        var header = [];
+        var body = [];
+        var footer = [];
+        for (var i = 0; i < targetEntries.length; i++) {
+            // loop through all the target entries and find the parent gene
+            if (targetEntries[i].id === parentGeneID) {
+                gene_position = i; // remember the parent gene's position
+                break;
+            }
+        }
+        
+        header = targetEntries.slice(0, gene_position+1); // the last element of header is the parent gene
+
+        body = targetEntries.slice(header.length, targetEntries.length - genotypes.length);
+        
+        // footer contains all newly added genotypes
+        footer = targetEntries.slice(header.length + body.length);
+
+        // header + footer + body
+        // Position those genotypes right after their parent gene
+        // no we have the new target entries in the desired order
+        var reorderedTargetEntries = header.concat(footer, body);
+        
+        // Format into named associative array
+        // same return format as getData()
+        var newTargetData = []; // named array
+        for (var k = 0; k < reorderedTargetEntries.length; k++) {
+            newTargetData[reorderedTargetEntries[k].id] = reorderedTargetEntries[k];
+        }
+        
+        this.targetListWithGenotypes = newTargetData;
+	},
+    
+    
+    
+    
 	/*
 		Function: length
 			provides the length of specified data structure
@@ -1834,6 +1881,9 @@ var images = require('./images.json');
         // Create new arrays for later use
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
+        
+        // genotype flag
+        this.state.hasGenotypes = false;
 
         // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 		this._createTargetGroupList(this.options.targetSpecies);
@@ -1936,6 +1986,32 @@ var images = require('./images.json');
 		this._createColorScale();  
 	},
 	
+    
+    
+    
+    _updateTargetAxisRenderingGroup: function() {
+    	var targetList = [];
+
+        // just get the target group name 
+        var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
+
+        // no need to deal with the hasGenotypes flag here
+        targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+
+        this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
+
+		// check to make sure the display limits are not over the default display limits
+		if (this.state.targetDisplayLimit > this.state.defaultSingleTargetDisplayLimit) {
+			this.state.targetDisplayLimit = this.state.defaultSingleTargetDisplayLimit;
+		} 
+
+		//create target axis group
+    	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
+	},
+    
+    
+   
+    
     /* create the groups to contain the rendering 
        information for x and y axes. Use already loaded data
        in various hashes, etc. to create objects containing
@@ -1967,8 +2043,13 @@ var images = require('./images.json');
 			// set default display limits based on displaying defaultSourceDisplayLimit
     		this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
 	
-			// target list
-			targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+			// get targetList based on the hasGenotypes flag
+            if (this.state.hasGenotypes) {
+                targetList = this.state.dataManager.targetListWithGenotypes;
+            } else {
+                targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+            }
+			
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
 		}
 
@@ -2085,9 +2166,9 @@ var images = require('./images.json');
 	},
     
 	// create the grid
-	_createGrid: function() {
+	_createGrid: function(xEntries) {
 		var self = this;
-		var xvalues = self.state.xAxisRender.entries();   //keys();
+		var xvalues = (typeof(xEntries) === 'undefined') ? self.state.xAxisRender.entries() : xEntries;   //keys();
 		var yvalues = self.state.yAxisRender.entries();
 		var gridRegion = self.state.gridRegion; 
 		var xScale = self.state.xAxisRender.getScale();
@@ -3867,44 +3948,40 @@ var images = require('./images.json');
     // parent refers to the global `this` and we have to pass it
     _fetchGenotypesCb: function(results, id, parent) {
         console.log(results);
-        var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-        // transform raw owlsims into simplified format
-        // this dataLoader.transform will append the genotype matches data to cellData
-        parent.state.dataLoader.genotypeTransform(species_name, results, id); 
-  
-        // re-create the axis rendering groups that have the added genotypes at bottom
-        parent._createAxisRenderingGroups();
         
-        // Position those genotypes right after their parent gene
-        var allTargetEntries = parent.state.targetAxis.groupEntries();
-        var gene_position = 0;
-        var header = [];
-        var body = [];
-        var footer = [];
-        for (var i in allTargetEntries) {
-            // loop through all the target entries and find the parent gene
-            if (allTargetEntries[i].id === id) {
-                gene_position = i; // remember the parent gene's position
-                header = allTargetEntries.slice(0, i+1); // the last element of header is the parent gene
-                break;
-            }
+        // add genotypes to data, and update target axis
+        if (results.b.length > 0) {
+            // flag
+            parent.state.hasGenotypes = true;
+            
+            var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+            // transform raw owlsims into simplified format
+            // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
+            parent.state.dataLoader.genotypeTransform(species_name, results, id); 
+
+            // update so they have the added genotype data
+            parent._updateTargetAxisRenderingGroup();
+
+            // now we have the updated target entries
+            var allTargetEntries = parent.state.targetAxis.groupEntries();
+
+            // Now we update the target list in dataManager
+            // and place those genotypes right after their parent gene
+            var genotypesData = {
+                    targetEntries: parent.state.targetAxis.groupEntries(), 
+                    genotypes: results.b, 
+                    parentGeneID: id  
+                };
+
+            parent.state.dataManager.updateTargetList(genotypesData);
+            
+            // call this after the target list gets updated
+            parent._createAxisRenderingGroups();
+            
+            parent._updateDisplay();
+        } else {
+            // tell users there's no genotypes associated to this gene
         }
-        for (var k = header.length; k < allTargetEntries.length; k++) {
-            // loop through all the target entries and find the genotypes of that parent gene
-            // then place those genotypes right after that gene - Joe
-            if (allTargetEntries[k].id === results.b[0].id) {
-                first_genotype_position = k; // remember the first genotype's position
-                body = allTargetEntries.slice(header.length, k);
-                break;
-            }
-        }
-        // footer contains all newly added genotypes
-        footer = allTargetEntries.slice(header.length + body.length);
-        
-        
-        
-        
-        parent._updateDisplay();
 	},
     
     // Used for genotype expansion - Joe
