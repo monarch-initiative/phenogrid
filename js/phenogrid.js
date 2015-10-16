@@ -487,28 +487,42 @@ var images = require('./images.json');
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
   			.data(matrix)
-				.enter().append("g")			
+			.enter().append("g")			
 			.attr("class", "row")	 		
 			.attr("id", function(d, i) { 
-				return "pg_grid_row_"+i;})
-  			 .attr("transform", function(d, i) { 
-  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; })
+				return "pg_grid_row_"+i;
+            })
+  			.attr("transform", function(d, i) { 
+  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; 
+            })
   			.each(createrow);
 
    		// create row labels
 	  	row.append("text")
 			.attr("x", gridRegion.rowLabelOffset)	  		
 	      	.attr("y",  function(d, i) {
-	      			 var rb = yScale.rangeBand(i)/2;
-	      			 return rb;
-	      			 })  
+	      		var rb = yScale.rangeBand(i)/2;
+	      		return rb;
+	      	})  
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
             .style("font-size", "11px")
+            
+            // the d.type is cell instead of genotype because the d refers to cell data
+            // we'll need to get the genotype data from yAxisRender - Joe
+            .attr('class', function(d, i) { // add css to genotype labels
+                var el = self.state.yAxisRender.itemAt(i);
+                if (el.type === 'genotype') {
+                    return 'pg_genotype_label';
+                } else {
+                    return '';
+                }
+            })
 			.attr("data-tooltip", "pg_tooltip")   				      
 		    .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
-	      		return Utils.getShortLabel(el.label); })
+	      		return Utils.getShortLabel(el.label); 
+            })
 			.on("mouseover", function(d, i) { 		
 				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
 				// self is the global widget this
@@ -516,33 +530,41 @@ var images = require('./images.json');
                 // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
                 // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
                 self._mouseover(this, data, self);})
-			.on("mouseout", function(d) {
+			.on("mouseout", function() {
 				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                 self._mouseout();		  		
 			});
 
 	    // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
-	      .data(xvalues)
-	    .enter().append("g")
-	      	.attr("class", "column")
+	        .data(xvalues)
+	        .enter().append("g")
+            .attr("class", 'column')
             .style("font-size", '11px')            
 			.attr("id", function(d, i) { 
-				return "pg_grid_col_"+i;})	      	
-	      .attr("transform", function(d) { 
-	      	var offset = gridRegion.colLabelOffset;
-	      	var xs = xScale(d.id);
-			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
-	      				 "," + (gridRegion.y-offset) + ")rotate(-45)"; }); //-45
+				return "pg_grid_col_"+i;
+            })	      	
+	        .attr("transform", function(d) { 
+                var offset = gridRegion.colLabelOffset;
+                var xs = xScale(d.id);
+                return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
+            }); //-45
 
 	    // create column labels
 	  	column.append("text")
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
+            .attr('class', function(d) { // add css to genotype labels
+                if (d.type === 'genotype') {
+                    return 'pg_genotype_label';
+                } else {
+                    return '';
+                }
+            })
 		    .attr("data-tooltip", "pg_tooltip")   			
 	      	.attr("text-anchor", "start")
-	      		.text(function(d, i) { 		
+	      	.text(function(d, i) { 		
 	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
             })
 		    .on("mouseover", function(d, i) { 				
@@ -555,26 +577,26 @@ var images = require('./images.json');
 				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                 self._mouseout();
 			});
-	      	
+	
 	    // add the scores  
 	    self._createTextScores();
 
 		function createrow(row) {
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
-		      .enter().append("rect")
+		        .enter().append("rect")
 		      	.attr("id", function(d, i) { 
 		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; })
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
-		        		return d.xpos * gridRegion.xpad;})
+		        	return d.xpos * gridRegion.xpad;})
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
 				.attr("data-tooltip", "tooltip")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
-			        })
+			    })
 		        .on("mouseover", function(d) { 					
                     // self is the global widget this
                     // this passed to _mouseover refers to the current element
