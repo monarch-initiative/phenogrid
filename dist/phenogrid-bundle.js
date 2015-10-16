@@ -443,7 +443,6 @@ DataLoader.prototype = {
 	 		data - owlsims structured data
 	*/
 	transform: function(targetGroup, data) {      		
-
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
 			console.log("transforming...");
@@ -467,10 +466,7 @@ DataLoader.prototype = {
                 this.sourceData[targetGroup] = [];
             }
 
-            // we need to define this here, otherwise will get 'cannot set property of undefined' error 
-            // when we call genotypeTransform() - Joe
-			this.targetData[targetGroup] = [];
-            
+ 
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
@@ -501,6 +497,12 @@ DataLoader.prototype = {
                          "score": item.score.score
                     };  
 				
+                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
+                // when we call genotypeTransform() - Joe
+                if(typeof(this.targetData[targetGroup]) === 'undefined') {
+                    this.targetData[targetGroup] = {};
+                }
+        
                 this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
@@ -568,7 +570,6 @@ DataLoader.prototype = {
     // used to transform genotype/phenotype matches 
     // modified based on transform() - Joe
     genotypeTransform: function(targetGroup, data, parentGeneID) {      		
-
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
 			console.log("transforming genotype data...");
@@ -597,6 +598,11 @@ DataLoader.prototype = {
                         "score": item.score.score
                     };  
                 
+                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
+                // when we call genotypeTransform() - Joe
+                if(typeof(this.targetData[targetGroup]) === 'undefined') {
+                    this.targetData[targetGroup] = {};
+                }
                 
 				this.targetData[targetGroup][targetID] = t;
 
