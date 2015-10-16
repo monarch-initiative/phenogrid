@@ -1804,6 +1804,38 @@ var images = require('./images.json');
 		this._createColorScale();  
 	},
 
+    
+
+    
+    
+    // for genotype expansion - Joe
+    _updateTargetAxisRenderingGroup: function() {
+    	var targetList = [];
+
+		if (this.state.selectedCompareTargetGroup.length === 1) {
+			// just get the target group name 
+			var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
+
+            // get targetList based on the newGenotypes flag
+            if (this.state.newGenotypes) {
+                // get the reordered target list in the format of a named array, has all added genotype data
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
+            } else {
+                // unordered target list in the format of a named array, has all added genotype data
+                targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+            }	  
+		}
+
+		// update target axis group
+        var targetAxisRenderStartPos = this.state.targetAxis.getRenderStartPos();
+        var targetAxisRenderEndPos = this.state.targetAxis.getRenderEndPos();
+    	this.state.targetAxis =  new AxisGroup(targetAxisRenderStartPos, targetAxisRenderEndPos, targetList);
+
+    	this._setAxisRenderers();
+	},
+    
+    
+    
     /* create the groups to contain the rendering 
        information for x and y axes. Use already loaded data
        in various hashes, etc. to create objects containing
@@ -1835,19 +1867,13 @@ var images = require('./images.json');
 			// set default display limits based on displaying defaultSourceDisplayLimit
     		this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
 	
-            // get targetList based on the newGenotypes flag
-            if (this.state.newGenotypes) {
-                // get the reordered target list in the format of a named array, has all added genotype data
+            // display all the expanded genotypes when we switch back from multi-species mode to single-species mode
+            // at this point, this.state.expandedGenotypes is true, and this.state.newGenotypes is false - Joe
+            if (this.state.expandedGenotypes) {
                 targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
             } else {
                 // unordered target list in the format of a named array, has all added genotype data
                 targetList = this.state.dataManager.getData("target", singleTargetGroupName);
-            }
-			
-            // display all the expanded genotypes when we switch back from multi-species mode to single-species mode
-            // at this point, this.state.expandedGenotypes is true, and this.state.newGenotypes is false - Joe
-            if (this.state.expandedGenotypes && ! this.state.newGenotypes) {
-                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
             }
             
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
@@ -3742,7 +3768,7 @@ var images = require('./images.json');
             // call this before reordering the target list
             // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
             // when we call parent.state.targetAxis.groupEntries()
-            parent._createAxisRenderingGroups();
+            parent._updateTargetAxisRenderingGroup();
             
             // append the genotype data of following expansions to the already ordered target list
             if (parent.state.dataManager.reorderedTargetEntriesIndexArray.length === 0) {
@@ -3769,7 +3795,9 @@ var images = require('./images.json');
             
             // call this again after the target list gets updated
             // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
-            parent._createAxisRenderingGroups();
+            // as well as the new start position and end position
+            parent._updateTargetAxisRenderingGroup();
+            
             // then reset the flag to false so it can still grab the newly added genotypes of another gene
             // and add them to the unordered target list.
             // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
