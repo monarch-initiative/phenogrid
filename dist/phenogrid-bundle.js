@@ -1903,8 +1903,8 @@ var images = require('./images.json');
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
         
-        // genotype flag
-        this.state.hasGenotypes = false;
+        // genotype flag to mark every genotype expansion
+        this.state.newGenotypes = false;
 
         // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 		this._createTargetGroupList(this.options.targetSpecies);
@@ -2038,8 +2038,8 @@ var images = require('./images.json');
 			// set default display limits based on displaying defaultSourceDisplayLimit
     		this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
 	
-			// get targetList based on the hasGenotypes flag
-            if (this.state.hasGenotypes) {
+			// get targetList based on the newGenotypes flag
+            if (this.state.newGenotypes) {
                 // get the reordered target list in the format of a named array, has all added genotype data
                 targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
             } else {
@@ -3979,7 +3979,7 @@ var images = require('./images.json');
 
             // we set the genotype flag before calling _createAxisRenderingGroups() again
             // _createAxisRenderingGroups() uses this flag for creating this.state.targetAxis
-            parent.state.hasGenotypes = true;
+            parent.state.newGenotypes = true;
             
             // call this again after the target list gets updated
             // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
@@ -3988,7 +3988,7 @@ var images = require('./images.json');
             // and add them to the unordered target list.
             // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
             // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
-            parent.state.hasGenotypes = false;
+            parent.state.newGenotypes = false;
             
             parent._updateDisplay();
         } else {
