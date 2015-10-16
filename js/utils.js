@@ -58,7 +58,7 @@ var Utils = {
 		}
 	},
 
-		// encode any special chars 
+	// encode any special chars 
 	encodeHtmlEntity: function(str) {
 		if (str !== null) {
 			return str

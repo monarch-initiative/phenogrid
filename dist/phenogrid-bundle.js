@@ -580,9 +580,7 @@ DataLoader.prototype = {
 
             // no need to initialize the specific targetGroup
             // since they should've been set
-            
-            
-            
+
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
@@ -838,6 +836,12 @@ DataLoader.prototype = {
     
     // return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
     getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
+        // encode labels to html entities
+        // otherwise those characters in labels may mess up the tooltip display - Joe
+        for (var i = 0; i < results.b.length; i++) {
+            results.b[i].label = Utils.encodeHtmlEntity(results.b[i].label);
+        }
+        
         finalCallback(results, id, parent);
     },
     
@@ -4314,7 +4318,7 @@ var Utils = {
 		}
 	},
 
-		// encode any special chars 
+	// encode any special chars 
 	encodeHtmlEntity: function(str) {
 		if (str !== null) {
 			return str
