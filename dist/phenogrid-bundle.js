@@ -979,6 +979,8 @@ module.exports = DataLoader;
 
 var $ = require('jquery'); 
 
+var Utils = require('./utils.js');
+
 /*
  	Package: datamanager.js
 
@@ -1001,7 +1003,9 @@ var DataManager = function(dataLoader) {
 	this.matrix = [];
     
     // genotype expansion
-    this.targetListWithGenotypes = [];
+    this.reorderedTargetEntriesNamedArray = [];
+    
+    this.reorderedTargetEntriesIndexArray = [];
 };
 
 DataManager.prototype = {
@@ -1042,10 +1046,22 @@ DataManager.prototype = {
 	},
     
     
+    appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
+        // can't slice the object
+        var newlyAdded = [];
+        for (var i = 0; i < data.length; i++) {
+            var id = Utils.getConceptId(data[i].id);
+            newlyAdded[id] = this.target[targetGroup][id];
+        }
+
+        // can't use concat() on merge two named arrays
+        return $.extend({}, this.reorderedTargetEntriesNamedArray, newlyAdded);
+    },
+    
     // for genotype expansion - Joe
     // genotypesData is defined in _fetchGenotypesCb() of phenogrid.js
     updateTargetList: function(genotypesData) {
-		var targetEntries = genotypesData.targetEntries;
+		var targetEntries = genotypesData.targetEntries; // unordered
         var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
         var parentGeneID = genotypesData.parentGeneID;
 
@@ -1072,16 +1088,21 @@ DataManager.prototype = {
         // header + footer + body
         // Position those genotypes right after their parent gene
         // no we have the new target entries in the desired order
-        var reorderedTargetEntries = header.concat(footer, body);
+        var reorderedTargetEntriesIndexArray = header.concat(footer, body);
+        
+        // Format 1 - index number array
+        this.reorderedTargetEntriesIndexArray = reorderedTargetEntriesIndexArray;
+        
         
         // Format into named associative array
         // same return format as getData()
-        var newTargetData = []; // named array
-        for (var k = 0; k < reorderedTargetEntries.length; k++) {
-            newTargetData[reorderedTargetEntries[k].id] = reorderedTargetEntries[k];
+        var reorderedTargetEntriesNamedArray = []; // named array
+        for (var k = 0; k < reorderedTargetEntriesIndexArray.length; k++) {
+            reorderedTargetEntriesNamedArray[reorderedTargetEntriesIndexArray[k].id] = reorderedTargetEntriesIndexArray[k];
         }
         
-        this.targetListWithGenotypes = newTargetData;
+        // Format 2 - associative/named array
+        this.reorderedTargetEntriesNamedArray = reorderedTargetEntriesNamedArray;
 	},
     
     
@@ -1460,7 +1481,7 @@ DataManager.prototype = {
 module.exports=DataManager;
 
 }());
-},{"jquery":13}],4:[function(require,module,exports){
+},{"./utils.js":9,"jquery":13}],4:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -1985,33 +2006,7 @@ var images = require('./images.json');
 
 		this._createColorScale();  
 	},
-	
-    
-    
-    
-    _updateTargetAxisRenderingGroup: function() {
-    	var targetList = [];
 
-        // just get the target group name 
-        var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
-
-        // no need to deal with the hasGenotypes flag here
-        targetList = this.state.dataManager.getData("target", singleTargetGroupName);
-
-        this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
-
-		// check to make sure the display limits are not over the default display limits
-		if (this.state.targetDisplayLimit > this.state.defaultSingleTargetDisplayLimit) {
-			this.state.targetDisplayLimit = this.state.defaultSingleTargetDisplayLimit;
-		} 
-
-		//create target axis group
-    	this.state.targetAxis =  new AxisGroup(0, this.state.targetDisplayLimit, targetList);
-	},
-    
-    
-   
-    
     /* create the groups to contain the rendering 
        information for x and y axes. Use already loaded data
        in various hashes, etc. to create objects containing
@@ -2045,8 +2040,10 @@ var images = require('./images.json');
 	
 			// get targetList based on the hasGenotypes flag
             if (this.state.hasGenotypes) {
-                targetList = this.state.dataManager.targetListWithGenotypes;
+                // get the reordered target list in the format of a named array, has all added genotype data
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
             } else {
+                // unordered target list in the format of a named array, has all added genotype data
                 targetList = this.state.dataManager.getData("target", singleTargetGroupName);
             }
 			
@@ -3951,20 +3948,23 @@ var images = require('./images.json');
         
         // add genotypes to data, and update target axis
         if (results.b.length > 0) {
-            // flag
-            parent.state.hasGenotypes = true;
-            
             var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
             // transform raw owlsims into simplified format
             // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
             parent.state.dataLoader.genotypeTransform(species_name, results, id); 
 
-            // update so they have the added genotype data
-            parent._updateTargetAxisRenderingGroup();
-
-            // now we have the updated target entries
-            var allTargetEntries = parent.state.targetAxis.groupEntries();
-
+            // call this before reordering the target list
+            // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
+            // when we call parent.state.targetAxis.groupEntries()
+            parent._createAxisRenderingGroups();
+            
+            // append the genotype data of following expansions to the already ordered target list
+            if (parent.state.dataManager.reorderedTargetEntriesIndexArray.length === 0) {
+                var updatedTargetEntries = parent.state.targetAxis.groupEntries();
+            } else {
+                var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(species_name, results.b);
+            }
+            
             // Now we update the target list in dataManager
             // and place those genotypes right after their parent gene
             var genotypesData = {
@@ -3972,11 +3972,23 @@ var images = require('./images.json');
                     genotypes: results.b, 
                     parentGeneID: id  
                 };
-
+                
+            // this will give us a reordered target list in two formats.
+            // one is associative/named array(reorderedTargetEntriesNamedArray), the other is number indexed array(reorderedTargetEntriesIndexArray)
             parent.state.dataManager.updateTargetList(genotypesData);
+
+            // we set the genotype flag before calling _createAxisRenderingGroups() again
+            // _createAxisRenderingGroups() uses this flag for creating this.state.targetAxis
+            parent.state.hasGenotypes = true;
             
-            // call this after the target list gets updated
+            // call this again after the target list gets updated
+            // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
             parent._createAxisRenderingGroups();
+            // then reset the flag to false so it can still grab the newly added genotypes of another gene
+            // and add them to the unordered target list.
+            // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
+            // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
+            parent.state.hasGenotypes = false;
             
             parent._updateDisplay();
         } else {

@@ -3,6 +3,8 @@
 
 var $ = require('jquery'); 
 
+var Utils = require('./utils.js');
+
 /*
  	Package: datamanager.js
 
@@ -25,7 +27,9 @@ var DataManager = function(dataLoader) {
 	this.matrix = [];
     
     // genotype expansion
-    this.targetListWithGenotypes = [];
+    this.reorderedTargetEntriesNamedArray = [];
+    
+    this.reorderedTargetEntriesIndexArray = [];
 };
 
 DataManager.prototype = {
@@ -66,10 +70,22 @@ DataManager.prototype = {
 	},
     
     
+    appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
+        // can't slice the object
+        var newlyAdded = [];
+        for (var i = 0; i < data.length; i++) {
+            var id = Utils.getConceptId(data[i].id);
+            newlyAdded[id] = this.target[targetGroup][id];
+        }
+
+        // can't use concat() on merge two named arrays
+        return $.extend({}, this.reorderedTargetEntriesNamedArray, newlyAdded);
+    },
+    
     // for genotype expansion - Joe
     // genotypesData is defined in _fetchGenotypesCb() of phenogrid.js
     updateTargetList: function(genotypesData) {
-		var targetEntries = genotypesData.targetEntries;
+		var targetEntries = genotypesData.targetEntries; // unordered
         var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
         var parentGeneID = genotypesData.parentGeneID;
 
@@ -96,16 +112,21 @@ DataManager.prototype = {
         // header + footer + body
         // Position those genotypes right after their parent gene
         // no we have the new target entries in the desired order
-        var reorderedTargetEntries = header.concat(footer, body);
+        var reorderedTargetEntriesIndexArray = header.concat(footer, body);
+        
+        // Format 1 - index number array
+        this.reorderedTargetEntriesIndexArray = reorderedTargetEntriesIndexArray;
+        
         
         // Format into named associative array
         // same return format as getData()
-        var newTargetData = []; // named array
-        for (var k = 0; k < reorderedTargetEntries.length; k++) {
-            newTargetData[reorderedTargetEntries[k].id] = reorderedTargetEntries[k];
+        var reorderedTargetEntriesNamedArray = []; // named array
+        for (var k = 0; k < reorderedTargetEntriesIndexArray.length; k++) {
+            reorderedTargetEntriesNamedArray[reorderedTargetEntriesIndexArray[k].id] = reorderedTargetEntriesIndexArray[k];
         }
         
-        this.targetListWithGenotypes = newTargetData;
+        // Format 2 - associative/named array
+        this.reorderedTargetEntriesNamedArray = reorderedTargetEntriesNamedArray;
 	},
     
     
