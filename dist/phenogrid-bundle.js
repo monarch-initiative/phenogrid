@@ -1903,6 +1903,8 @@ var images = require('./images.json');
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
         
+        // flag
+        this.state.expandedGenotypes = false;
         // genotype flag to mark every genotype expansion
         this.state.newGenotypes = false;
 
@@ -2038,7 +2040,7 @@ var images = require('./images.json');
 			// set default display limits based on displaying defaultSourceDisplayLimit
     		this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
 	
-			// get targetList based on the newGenotypes flag
+            // get targetList based on the newGenotypes flag
             if (this.state.newGenotypes) {
                 // get the reordered target list in the format of a named array, has all added genotype data
                 targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
@@ -2047,6 +2049,12 @@ var images = require('./images.json');
                 targetList = this.state.dataManager.getData("target", singleTargetGroupName);
             }
 			
+            // display all the expanded genotypes when we switch back from multi-species mode to single-species mode
+            // at this point, this.state.expandedGenotypes is true, and this.state.newGenotypes is false - Joe
+            if (this.state.expandedGenotypes && ! this.state.newGenotypes) {
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
+            }
+            
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
 		}
 
@@ -3989,6 +3997,10 @@ var images = require('./images.json');
             // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
             // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
             parent.state.newGenotypes = false;
+            
+            // flag, indicates that we have expanded genotypes, 
+            // so they show up when we switch from multi-species mode to single species mode
+            parent.state.expandedGenotypes = true;
             
             parent._updateDisplay();
         } else {
