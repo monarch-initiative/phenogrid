@@ -161,7 +161,10 @@ DataLoader.prototype = {
                 this.sourceData[targetGroup] = [];
             }
 
-			//var variantNum = 0;
+            // we need to define this here, otherwise will get 'cannot set property of undefined' error 
+            // when we call genotypeTransform() - Joe
+			this.targetData[targetGroup] = [];
+            
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
@@ -182,14 +185,17 @@ DataLoader.prototype = {
 				}
 				
 				// build the target list
-				var t = {"id":targetID, 
-					 "label": item.label, 
-					 "targetGroup": item.taxon.label, 
-					 "taxon": item.taxon.id, 
-					 "type": type, 
-					 "rank": parseInt(idx)+1,  // start with 1 not zero
-					 "score": item.score.score};  
-				this.targetData[targetGroup][targetID] = t;
+				var t = {
+                        "id":targetID, 
+                         "label": item.label, 
+                         "targetGroup": item.taxon.label, 
+                         "taxon": item.taxon.id, 
+                         "type": type, 
+                         "rank": parseInt(idx)+1,  // start with 1 not zero
+                         "score": item.score.score
+                    };  
+				
+                this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -259,7 +265,7 @@ DataLoader.prototype = {
 
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
-			console.log("transforming...");
+			console.log("transforming genotype data...");
 
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
@@ -269,28 +275,12 @@ DataLoader.prototype = {
             // no need to initialize the specific targetGroup
             // since they should've been set
             
-			//var variantNum = 0;
+            
+            
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
-				// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
-				// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-				// if (this.contains("target", targetID)){
-				// 	targetID += "_" + variantNum;
-				// 	variantNum++;
-				// }
-
-				// TODO: THIS NEEDS CHANGED TO CATEGORY (I THINK MONARCH TEAM MENTIONED ADDING THIS)
-                /*
-				var type = '';
-				for (var j in this.apiEntityMap) {
-				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
-				 		type = this.apiEntityMap[j].apifragment; 
-				 	}
-				}
-                */
-				
 				// build the target list
 				var t = {
                         "id":targetID, 
@@ -302,7 +292,8 @@ DataLoader.prototype = {
                         "rank": parseInt(idx)+1,  // start with 1 not zero
                         "score": item.score.score
                     };  
-                    
+                
+                
 				this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
