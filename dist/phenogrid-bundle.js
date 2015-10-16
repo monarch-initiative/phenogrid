@@ -836,12 +836,9 @@ DataLoader.prototype = {
     
     // return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
     getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
-        // encode labels to html entities
-        // otherwise those characters in labels may mess up the tooltip display - Joe
-        for (var i = 0; i < results.b.length; i++) {
-            results.b[i].label = Utils.encodeHtmlEntity(results.b[i].label);
-        }
-        
+        // don't encode labels into html entities here, otherwise the tooltip content is good, 
+        // but genotype labels on x axis will have the encoded characters
+        // we just need to encode the labels for tooltip use - Joe
         finalCallback(results, id, parent);
     },
     
@@ -4061,10 +4058,10 @@ var TooltipRender = function(url) {  //parms
 
 TooltipRender.prototype = {
 	constructor:TooltipRender,
-
+    // also encode the labels into html entities, otherwise they will mess up the tooltip format
 	entityHreflink: function(ptype, pid, plabel) {
 		var s = "<a href=\"" + this.url +"/" +  ptype +"/"+ pid +
-				"\" target=\"_blank\">" + plabel + "</a>";
+				"\" target=\"_blank\">" + Utils.encodeHtmlEntity(plabel) + "</a>";
 		return s;
 	},
 
@@ -4088,7 +4085,7 @@ TooltipRender.prototype = {
         } else {
 			// this creates the standard information portion of the tooltip, 
 			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
-						this.entityHreflink(this.data.type, this.data.id, this.data.label ) +
+						this.entityHreflink(this.data.type, this.data.id, this.data.label) +
 						"<br/>" + this._rank() + this._score() + this._ic() + this._sum() + 
 						this._freq() + this._targetGroup();
 

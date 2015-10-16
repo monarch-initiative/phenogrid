@@ -530,12 +530,9 @@ DataLoader.prototype = {
     
     // return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
     getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
-        // encode labels to html entities
-        // otherwise those characters in labels may mess up the tooltip display - Joe
-        for (var i = 0; i < results.b.length; i++) {
-            results.b[i].label = Utils.encodeHtmlEntity(results.b[i].label);
-        }
-        
+        // don't encode labels into html entities here, otherwise the tooltip content is good, 
+        // but genotype labels on x axis will have the encoded characters
+        // we just need to encode the labels for tooltip use - Joe
         finalCallback(results, id, parent);
     },
     
