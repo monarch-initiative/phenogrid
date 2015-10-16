@@ -2275,7 +2275,7 @@ var images = require('./images.json');
             // Now we update the target list in dataManager
             // and place those genotypes right after their parent gene
             var genotypesData = {
-                    targetEntries: parent.state.targetAxis.groupEntries(), 
+                    targetEntries: updatedTargetEntries, 
                     genotypes: results.b, 
                     parentGeneID: id  
                 };

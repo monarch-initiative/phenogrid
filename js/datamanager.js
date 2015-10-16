@@ -71,15 +71,15 @@ DataManager.prototype = {
     
     
     appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
-        // can't slice the object
+        // can't slice the object this.target[targetGroup]
         var newlyAdded = [];
         for (var i = 0; i < data.length; i++) {
             var id = Utils.getConceptId(data[i].id);
-            newlyAdded[id] = this.target[targetGroup][id];
+            newlyAdded.push(this.target[targetGroup][id]);
         }
-
-        // can't use concat() on merge two named arrays
-        return $.extend({}, this.reorderedTargetEntriesNamedArray, newlyAdded);
+        
+        // append the newly added to the already sorted numeric array of target list (sorted from last expansion)
+        return this.reorderedTargetEntriesIndexArray.concat(newlyAdded);
     },
     
     // for genotype expansion - Joe
