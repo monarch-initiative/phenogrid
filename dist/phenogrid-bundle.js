@@ -303,7 +303,7 @@ AxisGroup.prototype = {
 module.exports = AxisGroup;
 
 }());
-},{"d3":10}],2:[function(require,module,exports){
+},{"d3":9}],2:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -965,7 +965,7 @@ DataLoader.prototype = {
 module.exports = DataLoader;
 
 }());
-},{"./utils.js":9,"jquery":13}],3:[function(require,module,exports){
+},{"./utils.js":8,"jquery":12}],3:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -1473,216 +1473,18 @@ DataManager.prototype = {
 module.exports=DataManager;
 
 }());
-},{"./utils.js":9,"jquery":13}],4:[function(require,module,exports){
-(function () {
-'use strict';
-
-var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
-
-/********************************************************** 
-	Expander: 
-	handles expansion form a single source into a 
-	set of targets
-***********************************************************/
-var Expander = function() {}; // constructor
-
-Expander.prototype = {
-	parentObject: null,
-	constructor:Expander,
-	
-	// general expansion starts here
-	getTargets: function(parms) {
-		var targets = null;
-		try {
-			// infers function based on type
-			var func = parms.modelData.type;					
-			var modelData = parms.modelData
-			this.parentObject = parms.parentRef.state;  // instance of phenoGrid
-			targets = this[func](modelData);   
-		} catch(err) { console.log(err.message);}
-		return targets;
-	},
-
-	gene: function(model) {
-					//this.parent = [id];
-			//print("Expanding Gene...for id="+id);
-			modelInfo = model;
-			var targets = new Hashtable();
-			var genotypeIds = "", phenotypeIds = "", genoTypeAssociations;
-			var genotypeLabelHashtable = new Hashtable();
-
-			// go get the assocated genotypes
-			//var url = this.parentObject.serverURL+"/gene/"+ modelInfo.id.replace('_', ':') + ".json";		
-			//var url = this.state.serverURL+"/genotypes/"+ modelInfo.id.replace('_', ':');
-			
-			// CALL THAT SHOULD WORK FROM ROSIE; NICOLE WILL WRAP THIS IN THE APP LAYER 4/9/15			
-			var url = this.parentObject.serverURL + "/scigraph/dynamic/genes/" + modelInfo.id.replace('_', ':') +
-			 			"/genotypes/targets.json";
-			//http://rosie.crbs.ucsd.edu:9000/scigraph/dynamic/genes/MGI:101926/genotypes/targets.json 
-			// THIS SHOULD WORK
-			//http://tartini.crbs.ucsd.edu/dynamic/genes/NCBIGene:14183/genotypes/nodes.json
-			console.log("Getting Gene " + url);
-			//console.profile("genotypes call");
-			var res = null; //this.parentObject._ajaxLoadData(modelInfo.d.species,url);
-
-			jQuery.ajax({
-				url: url, 
-				async : false,
-				dataType : 'json',
-				success : function(data) {
-					res = data;
-				},
-				error: function (xhr, errorType, exception) { 
-					console.log("ajax error: " + xhr.status);					
-				} 
-			});
-
-			// UNCOMMENT LATER WHEN SCIGRAPH GETS WORKING MORE CONSISTANT
-			//res = this.parentObject._filterGenotypeGraphList(res);  // this is for the /scigraph call
-			//console.profileEnd();
-
-			// can't go any further if we do get genotypes
-			if (typeof (res) == 'undefined' || res.length === 0) { 
-			 	return null;
-			}
-
-			//genoTypeAssociations = res.genotype_associations;  // this works with old /gene call above
-			genoTypeAssociations = res.nodes;  // this is for the /scigraph call
-
-			if (genoTypeAssociations !== null && genoTypeAssociations.length > 5) {
-				console.log("There are " + genoTypeAssociations.length + " associated genotypes");
-			}
-
-			//var assocPhenotypes = this.parentObject.getMatchingPhenotypes(modelInfo.id);
-			var modelKeys = this.parentObject.cellDataHash.keys();
-			var assocPhenotypes = [];
-			var key = modelInfo.id;
-			for (var i in modelKeys){
-				if (key == modelKeys[i].yID) {				
-					assocPhenotypes.push(modelKeys[i].xID);   // phenotype id is xID
-				} else if (key == modelKeys[i].xID){
-					assocPhenotypes.push(modelKeys[i].yID); // phenotype id is in the yID					
-				}
-			}
-			var ctr = 0;
-
-			// assemble the phenotype ids 
-			for (var p in assocPhenotypes) {
-				phenotypeIds += assocPhenotypes[p] + "+";
-				ctr++;
-
-				// limit number of genotypes do display based on internalOptions
-				if (ctr > this.parentObject.phenoCompareLimit && ctr < assocPhenotypes.length) break;  
-			}
-			// truncate the last + off, if there
-			if (phenotypeIds.slice(-1) == '+') {
-				phenotypeIds = phenotypeIds.slice(0, -1);
-			}
-
-			ctr = 0;
-			// assemble a list of genotypes
-			for (var g in genoTypeAssociations) {
-				//genotypeIds += genoTypeAssociations[g].genotype.id + "+";
-				genotypeIds += genoTypeAssociations[g].id + "+";
-				// fill a hashtable with the labels so we can quickly get back to them later
-				//var tmpLabel = this._encodeHtmlEntity(genoTypeAssociations[g].genotype.label); 				
-				//var tmpLabel = this.encodeHtmlEntity(genoTypeAssociations[g].genotype.label); // scigraph
-				var tmpLabel = this.encodeHtmlEntity(genoTypeAssociations[g].lbl);  				
-				tmpLabel = (tmpLabel === null ? "undefined" : tmpLabel);
-				genotypeLabelHashtable.put(genoTypeAssociations[g].id, tmpLabel);
-				ctr++;
-
-				// limit number of genotypes do display based on internalOptions 
-				if (ctr > this.parentObject.genotypeExpandLimit && ctr < genoTypeAssociations.length) break;  
-			}
-
-			// truncate the last + off, if there
-			if (genotypeIds.slice(-1) == '+') {
-				genotypeIds = genotypeIds.slice(0, -1);
-			}
-
-			// call compare
-			var compareScores = null;
-			url = this.parentObject.serverURL + "/compare/" + phenotypeIds + "/" + genotypeIds;
-			console.log("Comparing " + url);
-			//console.profile("compare call");
-			//compareScores = this.parentObject._ajaxLoadData(modelInfo.d.species,url);
-			jQuery.ajax({
-				url: url, 
-				async : false,
-				dataType : 'json',
-				success : function(data) {
-					compareScores = data;
-				},
-				error: function (xhr, errorType, exception) { 
-					console.log("ajax error: " + xhr.status);
-				} 
-			});
-
-			if (compareScores != null) {
-				var iPosition = 1;
-				// rebuild the model list with genotypes
-				for (var idx in compareScores.b) {
-					var newGtLabel = genotypeLabelHashtable.get(compareScores.b[idx].id); 
-					var gt = {
-					parent: modelInfo.id,
-					label: (newGtLabel !== null?newGtLabel:compareScores.b[idx].label), // if label was null, then use previous fixed label
-				// if label was null, then use previous fixed label
-					score: compareScores.b[idx].score.score, 
-					species: modelInfo.d.species,
-					rank: compareScores.b[idx].score.rank,
-					type: "genotype",
-					taxon: compareScores.b[idx].taxon.id,
-					pos: (modelInfo.d.pos + iPosition),
-					count: modelInfo.d.count,
-					sum: modelInfo.d.sum
-					};
-
-					targets.put( compareScores.b[idx].id.replace('_', ':'), gt);
-					//genoTypeList.put( this._getConceptId(compareScores.b[idx].id), gt);
-
-					// Hack: need to fix the label because genotypes have IDs as labels
-					compareScores.b[idx].label = genotypeLabelHashtable.get(compareScores.b[idx].id);
-
-					iPosition++;
-				}			
-			} else {
-				targets = null;
-			}
-			// return a complex object with targets and scores
-			returnObj = {targets: targets, scores: compareScores};
-		return returnObj;
-	},
-	encodeHtmlEntity: function(str) {
-		if (str !== null) {
-			return str
-			.replace(/»/g, "&#187;")
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;")
-			.replace(/'/g, "&#039;");
-		}
-		return str;
-	}
-};
-
-// CommonJS format
-module.exports = Expander;
-
-}());
-},{"jquery":13}],5:[function(require,module,exports){
+},{"./utils.js":8,"jquery":12}],4:[function(require,module,exports){
 module.exports={
   "scores": "<div><h5>What is the score shown at the top of the grid?<\/h5><div>The score indicated at the top of each column, below the target label, is the overall similarity score between the query and target. Briefly, for each of the targets (columns) listed, the set of Q(1..n) phenotypes of the query are pairwise compared against all of the T(1..m) phenotypes in the target.<br \/><br \/>Then, for each pairwise comparison of phenotypes (q x P1...n), the best comparison is retained for each q and summed for all p1..n. <\/div><br \/><div>The raw score is then normalized against the maximal possible score, which is the query matching to itself. Therefore, range of scores displayed is 0..100. For more details, please see (Smedley et al, 2012 <a href='http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/23660285' target='_blank'>http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/23660285<\/a> and <a href='http:\/\/www.owlsim.org' target='_blank'>http:\/\/www.owlsim.org<\/a>)<\/div>\r\n",
   "sorts": "<div><h5>What are the different ways that phenotypes can be sorted?<\/h5><div>The phenotypes that are shown on the left side of the grid may be sorted using one of three methods.  More options may be available in the future.<\/div><ul><li><b>Alphabetical<\/b> - A-Z<\/li><li><b>Frequency and Rarity<\/b> - Phenotypes are sorted by the sum of the phenotype values across all models\/genes<\/li><li><b>Frequency (Default)<\/b> - Phenotypes are sorted by the count of the number of model\/gene matches per phenotype <\/li><\/ul>",
   "faq": "<div><h4>Phenogrid Faq<\/h4><h5>How are the similar targets obtained?<\/h5><div>We query our owlsim server to obtain the top 100 most-phenotypically similar targets for the selected organism.  The grid defaults to showing mouse.<\/div><h5>What are the possible targets for comparison?<\/h5><div>Currently, the phenogrid is configured to permit comparisons between your query (typically a set of disease-phenotype associations) and one of:<ul><li>human diseases<\/li><li>mouse genes<\/li><li>zebrafish genes<\/li><\/ul>You can change the target organism by selecting a new organism.  The grid will temporarily disappear, and reappear with the new target rendered.<\/div><h5>Can I compare the phenotypes to human genes?<\/h5><div>No, not yet.  But that will be added soon.<\/div><h5>Where does the data come from?<\/h5><div>The phenotype annotations utilized to compute the phenotypic similarity are drawn from a number of sources:<ul><li>Human disease-phenotype annotations were obtained from  <a href='http:\/\/human-phenotype-ontology.org' target='_blank'>http:\/\/human-phenotype-ontology.org<\/a>, which contains annotations for approx. 7,500 diseases.<\/li><li>Mouse gene-phenotype annotations were obtained from MGI <a href='www.informatics.jax.org'>(www.informatics.jax.org).<\/a> The original annotations were made between genotypes and phenotypes.  We then inferred the relationship between gene and phenotype based on the genes that were variant in each genotype.  We only perform this inference for those genotypes that contain a single variant gene.<\/li><li>Zebrafish genotype-phenotype annotations were obtained from ZFIN  <a href='www.zfin.org' target='_blank'>(www.zfin.org).<\/a> The original annotations were made between genotypes and phenotypes, with some of those genotypes created experimentally with the application of morpholino reagents.  Like for mouse, we inferred the relationship between gene and phenotype based on the genes that were varied in each genotype.  We only perform this inference for those genotypes that contain a single variant gene.<\/li><li>All annotation data, preformatted for use in OWLSim, is available for download from  <a href='http:\/\/code.google.com\/p\/phenotype-ontologies\/' target='_blank'>http:\/\/code.google.com\/p\/phenotype-ontologies\/ <\/a> <\/li><\/ul><h5>What does the phenogrid show?<\/h5><div>The grid depicts the comparison of a set of phenotypes in a query (such as those annotated to a disease or a gene) with one or more phenotypically similar targets.  Each row is a phenotype that is annotated to the query (either directly or it is a less-specific phenotype that is inferred), and each column is an annotated target (such as a gene or disease).  When a phenotype is shared between the query and target, the intersection is colored based on the selected calculation method (see What do the different calculation methods mean).   You can hover over the intersection to get more information about what the original phenotype is of the target, and what is in-common between the two.<\/div><h5>Where can I make suggestions for improvements or additions?<\/h5><div>Please email your feedback to <a href='mailto:info@monarchinitiative.org'>info@monarchinitiative.org.<\/a><h5>What happens to the phenotypes that are not shared?<\/h5><div>Phenotypes that were part of your query but are not shared by any of the targets can be seen by clicking the View Unmatched Phenotype link.<\/div><h5>Why do I sometimes see two targets that share the same phenotypes have very different overall scores?<\/h5><div>This is usually because of some of the phenotypes that are not shared with the query.  For example, if the top hit to a query matches each phenotype exactly, and the next hit matches all of them exactly plus it has 10 additional phenotypes that don&#39;t match it at all, it is penalized for those phenotypes are not in common, and thus ranks lower on the similarity scale. <div><\/div>\r\n",
   "calcs": "<div><h5>What do the different calculation methods mean?<\/h5><div>For each pairwise comparison of phenotypes from the query (q) and target (t), we can assess their individual similarities in a number of ways.  First, we find the phenotype-in-common between each pair (called the lowest common subsumer or LCS). Then, we can leverage the Information Content (IC) of the phenotypes (q,t,lcs) in a variety of combinations to interpret the strength of the similarity.<\/div><br \/><div><b>**Uniqueness <\/b>reflects how often the phenotype-in-common is annotated to all diseases and genes in the Monarch Initiative knowledgebase.  This is simply a reflection of the IC normalized based on the maxIC. IC(PhenotypeInCommon)maxIC(AllPhenotypes)<\/div><br \/><div><b>**Distance<\/b> is the euclidian distance between the query, target, and phenotype-in-common, computed using IC scores.<br\/><center>d=(IC(q)-IC(lcs))2+(IC(t)-IC(lcs))2<\/center>  <\/div><br \/><div>This is normalized based on the maximal distance possible, which would be between two rarely annotated leaf nodes that only have the root node (phenotypic abnormality) in common.  So what is depicted in the grid is 1-dmax(d)<\/div><br \/><div><b>**Ratio(q)<\/b> is the proportion of shared information between a query phenotype and the phenotype-in-common with the target.<br \/><center>ratio(q)=IC(lcs)IC(q)*100<\/center><\/div><br \/><div><b>**Ratio(t)<\/b> is the proportion of shared information between the target phenotype and the phenotype-in-common with the query.<br \/><center>ratio(t)=IC(lcs)IC(t)*100<\/center><\/div><\/div>\r\n"
 }
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports={
 "logo": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjIwMC40NjNweCIgaGVpZ2h0PSIxMzMuMDY1cHgiIHZpZXdCb3g9IjAgMCAyMDAuNDYzIDEzMy4wNjUiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDIwMC40NjMgMTMzLjA2NSIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PGcgaWQ9ImFubm90YXRpb25zIiBkaXNwbGF5PSJub25lIj48ZyBkaXNwbGF5PSJpbmxpbmUiPjxkZWZzPjxsaW5lIGlkPSJTVkdJRF8xXyIgeDE9IjEwMy44MDMiIHkxPSI1OS41MzIiIHgyPSIxMDMuODEyIiB5Mj0iNTkuNTQxIi8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfMl8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzFfIiAgb3ZlcmZsb3c9InZpc2libGUiLz48L2NsaXBQYXRoPjxnIGNsaXAtcGF0aD0idXJsKCNTVkdJRF8yXykiPjxkZWZzPjxsaW5lIGlkPSJTVkdJRF8zXyIgeDE9IjEwMy4zMjMiIHkxPSI2MC4xNjkiIHgyPSIxMDMuMzIzIiB5Mj0iNDguMjY1Ii8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfNF8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzNfIiAgb3ZlcmZsb3c9InZpc2libGUiLz48L2NsaXBQYXRoPjwvZz48L2c+PGcgZGlzcGxheT0iaW5saW5lIj48ZGVmcz48cmVjdCBpZD0iU1ZHSURfNV8iIHg9Ii0wLjI0NSIgeT0iLTEyLjg3OSIgd2lkdGg9IjIwMS4zMjkiIGhlaWdodD0iMTYyLjE3NSIvPjwvZGVmcz48Y2xpcFBhdGggaWQ9IlNWR0lEXzZfIj48dXNlIHhsaW5rOmhyZWY9IiNTVkdJRF81XyIgIG92ZXJmbG93PSJ2aXNpYmxlIi8+PC9jbGlwUGF0aD48cGF0aCBjbGlwLXBhdGg9InVybCgjU1ZHSURfNl8pIiBmaWxsPSIjRTZFN0U4IiBkPSJNMTQ2Ljk1OSwxMzIuOTczdi0yLjM5NWgtMTkuNzg1Yy0zLjkyOCwwLTYuMzcxLTEuNDg1LTYuMzcxLTYuNzA3YzAtNS4yNywyLjc3OC02LjQxOSw4LTYuNDE5aDE4LjE1NnYtMi4zOTZoLTE4Ljg3NWMtNC4wMjIsMC03LjI4MS0xLjUzNC03LjI4MS02Ljc1NWMwLTUuMjcsMi4wNi02LjQxOSw4LTYuNDE5aDE4LjE1NnYtMi4zOTZoLTE4LjEwOGMtNi42MTEsMC0xMC4yNSwxLjcyNi0xMC4yNSw4LjU3NWMwLDMuMDY2LDAuNjIxLDUuNzQ5LDQuMTE4LDguMDQ5Yy0yLjM5NiwxLjAwNi00LjExOCwzLjQtNC4xMTgsNy41MjFjMCwzLjA2NiwwLjc2Niw1LjQxMywyLjc3Nyw2Ljg5OGwtMi4yNTIsMC4yMzh2Mi4yMDRIMTQ2Ljk1OXoiLz48cGF0aCBjbGlwLXBhdGg9InVybCgjU1ZHSURfNl8pIiBmaWxsPSIjRTZFN0U4IiBkPSJNMTQ2Ljk1OSwzMy44OHYtMi4zOTZoLTE5Ljc4NWMtMy45MjgsMC02LjM3MS0xLjQ4NC02LjM3MS02LjcwN2MwLTUuMjY5LDIuNzc4LTYuNDE5LDgtNi40MTloMTguMTU2di0yLjM5NWgtMTguODc1Yy00LjAyMiwwLTcuMjgxLTEuNTM0LTcuMjgxLTYuNzU1YzAtNS4yNzEsMi4wNi02LjQxOSw4LTYuNDE5aDE4LjE1NlYwLjM5NGgtMTguMTA4Yy02LjYxMSwwLTEwLjI1LDEuNzI2LTEwLjI1LDguNTc1YzAsMy4wNjYsMC42MjEsNS43NDksNC4xMTgsOC4wNDljLTIuMzk2LDEuMDA1LTQuMTE4LDMuNC00LjExOCw3LjUyMWMwLDMuMDY1LDAuNzY2LDUuNDEzLDIuNzc3LDYuODk3bC0yLjI1MiwwLjIzOXYyLjIwNEgxNDYuOTU5eiIvPjxwYXRoIGNsaXAtcGF0aD0idXJsKCNTVkdJRF82XykiIGZpbGw9IiNFNkU3RTgiIGQ9Ik0xNjcuNTk5LDgwLjU0NGgyLjM5NVY2MC43NmMwLTMuOTI5LDEuNDg1LTYuMzcxLDYuNzA3LTYuMzcxYzUuMjcsMCw2LjQxOSwyLjc3Nyw2LjQxOSw4djE4LjE1NWgyLjM5NlY2MS42NjljMC00LjAyMiwxLjUzMy03LjI4LDYuNzU0LTcuMjhjNS4yNzEsMCw2LjQyLDIuMDYsNi40Miw4djE4LjE1NWgyLjM5NlY2Mi40MzZjMC02LjYxMS0xLjcyNi0xMC4yNS04LjU3Ni0xMC4yNWMtMy4wNjUsMC01Ljc0OCwwLjYyMi04LjA0OSw0LjExOWMtMS4wMDUtMi4zOTYtMy40LTQuMTE5LTcuNTIxLTQuMTE5Yy0zLjA2NiwwLTUuNDEzLDAuNzY2LTYuODk3LDIuNzc3bC0wLjI0LTIuMjUyaC0yLjIwM1Y4MC41NDR6Ii8+PHBhdGggY2xpcC1wYXRoPSJ1cmwoI1NWR0lEXzZfKSIgZmlsbD0iI0U2RTdFOCIgZD0iTS0wLjI0NSw4MC41NDRIMi4xNVY2MC43NmMwLTMuOTI5LDEuNDg1LTYuMzcxLDYuNzA3LTYuMzcxYzUuMjY5LDAsNi40MTksMi43NzcsNi40MTksOHYxOC4xNTVoMi4zOTVWNjEuNjY5YzAtNC4wMjIsMS41MzQtNy4yOCw2Ljc1NS03LjI4YzUuMjcsMCw2LjQxOSwyLjA2LDYuNDE5LDh2MTguMTU1aDIuMzk2VjYyLjQzNmMwLTYuNjExLTEuNzI1LTEwLjI1LTguNTc1LTEwLjI1Yy0zLjA2NiwwLTUuNzQ5LDAuNjIyLTguMDQ5LDQuMTE5Yy0xLjAwNS0yLjM5Ni0zLjQtNC4xMTktNy41MjEtNC4xMTljLTMuMDY2LDAtNS40MTMsMC43NjYtNi44OTgsMi43NzdsLTAuMjM5LTIuMjUyaC0yLjIwNFY4MC41NDR6Ii8+PGxpbmUgY2xpcC1wYXRoPSJ1cmwoI1NWR0lEXzZfKSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTg1OTVCIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjIuOTI0LDUuOTI0IiB4MT0iMTAwLjA0IiB5MT0iMTQ5LjI5NiIgeDI9IjEwMC4wNCIgeTI9Ii0xMi44NzkiLz48L2c+PC9nPjxnIGlkPSJGdWxsX0NvbG9yIj48Zz48cGF0aCBmaWxsPSIjNDZBNTk3IiBkPSJNMTQxLjc5MiwzNC43ODVjLTIuMDg4LTAuNDI5LTQuMjUtMC42NTQtNi40NjMtMC42NTRjLTguNTE0LDAtMTYuMjU4LDMuMzMyLTIyLjAwOCw4Ljc2Yy0wLjQ1MSwwLjQyNy0wLjg5LDAuODY1LTEuMzE2LDEuMzE3bC0xMS43NzEsMTEuNzcxTDg4LjQ2Miw0NC4yMDhjLTAuNDI2LTAuNDUyLTAuODY0LTAuODkxLTEuMzE2LTEuMzE3Yy01Ljc1LTUuNDI4LTEzLjQ5Ni04Ljc2LTIyLjAwNy04Ljc2Yy0yLjIxNSwwLTQuMzc2LDAuMjI2LTYuNDY0LDAuNjU0Yy0xNC42MDQsMy0yNS42MjEsMTUuOTUyLTI1LjYyMSwzMS40M2gwLjAxN2MwLDE1LjQ1OCwxMC45ODksMjguMzk3LDI1LjU2NSwzMS40MThjMi4xMDYsMC40MzgsNC4yODUsMC42NjgsNi41MTcsMC42NjhjOC4wMDksMCwxNS4zMzctMi45NTEsMjAuOTY0LTcuODJsMi42Ny0yLjY3bDAuMTU3LTAuMTU2YzAuMzktMC40MjYsMC42MjktMC45OTQsMC42MjktMS42MTljMC0xLjMzLTEuMDc3LTIuNDA2LTIuNDA3LTIuNDA2Yy0wLjYwNywwLTEuMTYyLDAuMjI3LTEuNTg0LDAuNkw4NS4zNiw4NC40NWwtMi41MTEsMi41MWMtNC45MzYsNC4yMTktMTEuMjE0LDYuNTQxLTE3LjY5Niw2LjU0MWMtMS44NjQsMC0zLjcyOS0wLjE5MS01LjU0My0wLjU2OGMtMTIuNTk1LTIuNjA5LTIxLjczOS0xMy44NDYtMjEuNzM5LTI2LjcxN2gwLjA3M2MwLTEyLjg5NSw5LjE2My0yNC4xMzUsMjEuNzg2LTI2LjcyOGwtMC4wMDQtMC4wMTdjMS43NzEtMC4zNTcsMy41OTEtMC41MzksNS40MTMtMC41MzljNi45NzYsMCwxMy42MjMsMi42NDYsMTguNzExLDcuNDQ5YzAuMzgzLDAuMzYyLDIzLjA2MiwyMy4yNTUsMjMuMDYyLDIzLjI1NWwwLjAwNC0wLjAwNGwwLjAxMywwLjAxMmwxNi41MjgtMTYuNTI1YzMuMTQyLTIuODQ4LDcuMzA2LTQuNTg3LDExLjg2OS00LjU4N2M5Ljc1MiwwLDE3LjY4NSw3LjkzMywxNy42ODUsMTcuNjg0YzAsOS43NS03LjkzMywxNy42ODQtMTcuNjg1LDE3LjY4NGMtNC4zMjYsMC04LjI5My0xLjU2Ni0xMS4zNjktNC4xNTRsLTIuMDE3LTIuMDE2bC0wLjM5LTAuMzkzYy0wLjQxMS0wLjMyNC0wLjkzLTAuNTIxLTEuNDk0LTAuNTIxYy0xLjMyOSwwLTIuNDA3LDEuMDgtMi40MDcsMi40MDhjMCwwLjcxMSwwLjMxMiwxLjM0OCwwLjgwMiwxLjc4OWwtMC4wOC0wLjA3MmwyLjMzNiwyLjM0NGwwLjE1OCwwLjEzM2M0LjA0NywzLjQwNiw5LjE4NCw1LjI4MywxNC40NjEsNS4yODNjMTIuMzk5LDAsMjIuNDg1LTEwLjA4NiwyMi40ODUtMjIuNDg1YzAtMTIuMzk4LTEwLjA4Ni0yMi40ODQtMjIuNDg1LTIyLjQ4NGMtNS41ODYsMC0xMC45NDcsMi4wNzEtMTUuMDk0LDUuODMybC0wLjA4NiwwLjA3OEwxMDYuOTQsNjIuODQ2bC0zLjM5NS0zLjM5MWwxMS44NTMtMTEuODUzbDAuMDk3LTAuMWMwLjM1OS0wLjM4MiwwLjczNy0wLjc2LDEuMTIxLTEuMTIyYzUuMDktNC44MDQsMTEuNzM0LTcuNDQ5LDE4LjcxMy03LjQ0OWMxLjg1MSwwLDMuNywwLjE4Nyw1LjQ5OCwwLjU1NmMxMi42MjMsMi41OTMsMjEuNzg1LDEzLjgzMywyMS43ODUsMjYuNzI4YzAsMTIuODcyLTkuMTQ1LDI0LjEwOC0yMS43MzgsMjYuNzE3Yy0xLjgxNCwwLjM3Ny0zLjY4LDAuNTY4LTUuNTQ1LDAuNTY4Yy02LjQ4MSwwLTEyLjc1OS0yLjMyMi0xNy42OTUtNi41NDFsLTIuNTEtMi41MWwtMC4yMjItMC4yMjFjLTAuNDIzLTAuMzczLTAuOTc4LTAuNi0xLjU4NS0wLjZjLTEuMzMsMC0yLjQwNiwxLjA3Ni0yLjQwNiwyLjQwNmMwLDAuNjI1LDAuMjM5LDEuMTkzLDAuNjI5LDEuNjE5bDAuMTU3LDAuMTU2bDIuNjY5LDIuNjdjNS42MjcsNC44NjksMTIuOTU1LDcuODIsMjAuOTYzLDcuODJjMi4yMzMsMCw0LjQxMi0wLjIzLDYuNTE5LTAuNjY4YzE0LjU3NS0zLjAyMSwyNS41NjUtMTUuOTYxLDI1LjU2NS0zMS40MThDMTY3LjQxMyw1MC43MzcsMTU2LjM5NSwzNy43ODUsMTQxLjc5MiwzNC43ODUiLz48cGF0aCBmaWxsPSIjNDZBNTk3IiBkPSJNODAuMjMyLDQ5LjU2M2MtNC4xMjQtMy43NDEtOS40NDgtNS44MDgtMTUuMDA0LTUuODN2LTAuMDAybC0wLjA1OCwwLjAwMWwtMC4wMzItMC4wMDFjLTEyLjM5OCwwLTIyLjQ4NCwxMC4wODYtMjIuNDg0LDIyLjQ4NGgwLjAxN2MwLDEyLjM5OSwxMC4wODYsMjIuNDg1LDIyLjQ4NCwyMi40ODVjNS4yNzgsMCwxMC40MTUtMS44NzUsMTQuNDYzLTUuMjgzbDAuMTU2LTAuMTMzbDIuMzM3LTIuMzQybC0wLjA4LDAuMDdjMC40ODktMC40MzksMC44MDEtMS4wNzgsMC44MDEtMS43OTFjMC0xLjMyOC0xLjA3OC0yLjQwNi0yLjQwNy0yLjQwNmMtMC41NjQsMC0xLjA4MywwLjE5Ny0xLjQ5MywwLjUyM2wtMC4zOTEsMC4zOTFsLTIuMDE3LDIuMDE2Yy0zLjA3NiwyLjU5LTcuMDQyLDQuMTU0LTExLjM2OSw0LjE1NGMtOS43NTEsMC0xNy42ODMtNy45MzQtMTcuNjgzLTE3LjY4NGgwLjA3M2MwLTkuNzM2LDcuOTA5LTE3LjY2LDE3LjYzOS0xNy42ODJjNC41NDYsMC4wMTEsOC42OTQsMS43NDcsMTEuODIzLDQuNTg1bDIzLjIyMiwyMy4yMjVsMy40MS0zLjQxTDgwLjQwMSw0OS43MjRMODAuMjMyLDQ5LjU2M3oiLz48L2c+PGc+PGRlZnM+PHBhdGggaWQ9IlNWR0lEXzdfIiBkPSJNMTEwLjM5Miw2Ni4xODJsMC4wMDQsMC4wMDRsMC45NzktMC45ODhMMTEwLjM5Miw2Ni4xODJ6IE0xMDYuOTc5LDYyLjc2OGwwLjAyLDAuMDJsMTAuMzY3LTEwLjM2N2wtMC4wMDctMC4wMDlMMTA2Ljk3OSw2Mi43Njh6Ii8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfOF8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzdfIiAgb3ZlcmZsb3c9InZpc2libGUiLz48L2NsaXBQYXRoPjxnIGNsaXAtcGF0aD0idXJsKCNTVkdJRF84XykiPjxkZWZzPjxyZWN0IGlkPSJTVkdJRF85XyIgeD0iMTA2LjU5MiIgeT0iNTEuOTU2IiB3aWR0aD0iMTEuNTIxIiBoZWlnaHQ9IjE0Ljk3NiIvPjwvZGVmcz48Y2xpcFBhdGggaWQ9IlNWR0lEXzEwXyI+PHVzZSB4bGluazpocmVmPSIjU1ZHSURfOV8iICBvdmVyZmxvdz0idmlzaWJsZSIvPjwvY2xpcFBhdGg+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgMSA3LjYyOTM5NWUtMDYgMCkiIGNsaXAtcGF0aD0idXJsKCNTVkdJRF8xMF8pIj48aW1hZ2Ugb3ZlcmZsb3c9InZpc2libGUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzOSIgeGxpbms6aHJlZj0iZGF0YTppbWFnZS9qcGVnO2Jhc2U2NCwvOWovNEFBUVNrWkpSZ0FCQWdFQXV3QzdBQUQvN0FBUlJIVmphM2tBQVFBRUFBQUFIZ0FBLys0QUlVRmtiMkpsQUdUQUFBQUFBUU1BRUFNQ0F3WUFBQUdjQUFBQjNBQUFBaWYvMndDRUFCQUxDd3NNQ3hBTURCQVhEdzBQRnhzVUVCQVVHeDhYRnhjWEZ4OGVGeG9hR2hvWEhoNGpKU2NsSXg0dkx6TXpMeTlBUUVCQVFFQkFRRUJBUUVCQVFFQUJFUThQRVJNUkZSSVNGUlFSRkJFVUdoUVdGaFFhSmhvYUhCb2FKakFqSGg0ZUhpTXdLeTRuSnljdUt6VTFNREExTlVCQVAwQkFRRUJBUUVCQVFFQkFRUC9DQUJFSUFDb0FJZ01CSWdBQ0VRRURFUUgveEFCOUFBRUFBd0VCQVFBQUFBQUFBQUFBQUFBQUFnTUVBUVVHQVFFQkFBQUFBQUFBQUFBQUFBQUFBQUFBQVJBQUFRUUJCUUVBQUFBQUFBQUFBQUFBQXdBQkFnUUZFQ0F3RVJKQkVRQUJBZ1FIQVFFQUFBQUFBQUFBQUFBQkFBSWdZWUVERVNGQmNaR3gwY0V6RWdFQUFBQUFBQUFBQUFBQUFBQUFBQUF3LzlvQURBTUJBQUlSQXhFQUFBRDZMSk9tdGV1amRHeEllRjNUYU5pWUJtdTdJQUEvLzlvQUNBRUNBQUVGQU9ILzJnQUlBUU1BQVFVQTRmL2FBQWdCQVFBQkJRREs1QzRDNjJWeUx1Szlma2hXTGNsMjZ6TE8rUkNGQkNnaFhTeVkvVjhJVUVLaEJvc3JZL1ZzSVZDRFJiUWd2Um9RYUxhL2RuLy8yZ0FJQVFJQ0JqOEFILy9hQUFnQkF3SUdQd0FmLzlvQUNBRUJBUVkvQUgyN1YwdFlBM0FZRFVUQy9ZOE44V2Q0OER4WjNDYUR4VVZ6WnZRZ29ubVRlaEM0eUhVSk8wT24ySC8vMlE9PSIgdHJhbnNmb3JtPSJtYXRyaXgoMC4zODQgMCAwIC0wLjM4NCAxMDYuNTkyMyA2Ni45MzIxKSI+PC9pbWFnZT48L2c+PC9nPjwvZz48Zz48ZGVmcz48cmVjdCBpZD0iU1ZHSURfMTFfIiB4PSIxMDguOTA4IiB5PSI0Ni42MDciIHRyYW5zZm9ybT0ibWF0cml4KC0wLjY2OSAtMC43NDMzIDAuNzQzMyAtMC42NjkgMTQxLjU2NzggMTcxLjIzNjUpIiB3aWR0aD0iMC4wMTMiIGhlaWdodD0iMTQuOTc0Ii8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfMTJfIj48dXNlIHhsaW5rOmhyZWY9IiNTVkdJRF8xMV8iICBvdmVyZmxvdz0idmlzaWJsZSIvPjwvY2xpcFBhdGg+PGcgY2xpcC1wYXRoPSJ1cmwoI1NWR0lEXzEyXykiPjxkZWZzPjxyZWN0IGlkPSJTVkdJRF8xM18iIHg9IjEwMy4xMzYiIHk9IjQ4LjExNiIgd2lkdGg9IjExLjUyMSIgaGVpZ2h0PSIxMS45MDQiLz48L2RlZnM+PGNsaXBQYXRoIGlkPSJTVkdJRF8xNF8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzEzXyIgIG92ZXJmbG93PSJ2aXNpYmxlIi8+PC9jbGlwUGF0aD48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAxIDAgMy44MTQ2OTdlLTA2KSIgY2xpcC1wYXRoPSJ1cmwoI1NWR0lEXzE0XykiPjxpbWFnZSBvdmVyZmxvdz0idmlzaWJsZSIgd2lkdGg9IjMwIiBoZWlnaHQ9IjMxIiB4bGluazpocmVmPSJkYXRhOmltYWdlL2pwZWc7YmFzZTY0LC85ai80QUFRU2taSlJnQUJBZ0VBdXdDN0FBRC83QUFSUkhWamEza0FBUUFFQUFBQUhnQUEvKzRBSVVGa2IySmxBR1RBQUFBQUFRTUFFQU1DQXdZQUFBR1dBQUFCdndBQUFnei8yd0NFQUJBTEN3c01DeEFNREJBWER3MFBGeHNVRUJBVUd4OFhGeGNYRng4ZUZ4b2FHaG9YSGg0akpTY2xJeDR2THpNekx5OUFRRUJBUUVCQVFFQkFRRUJBUUVBQkVROFBFUk1SRlJJU0ZSUVJGQkVVR2hRV0ZoUWFKaG9hSEJvYUpqQWpIaDRlSGlNd0t5NG5KeWN1S3pVMU1EQTFOVUJBUDBCQVFFQkFRRUJBUUVCQVFQL0NBQkVJQUNJQUh3TUJJZ0FDRVFFREVRSC94QUIvQUFFQUF3RUJBQUFBQUFBQUFBQUFBQUFBQVFNRUJRSUJBUUVBQUFBQUFBQUFBQUFBQUFBQUFBQUJFQUFDQWdJQ0F3QUFBQUFBQUFBQUFBQUJBd0lFQUNBUkJSQVNFeEVBQVFJREJRa0FBQUFBQUFBQUFBQUFBUUFDRVNFREVEQlJZZEV4UVlHeEVpSkNncklTQVFBQUFBQUFBQUFBQUFBQUFBQUFBQ0QvMmdBTUF3RUFBaEVERVFBQUFPL2ZUc3EvVkZrYzdiUHNBQUEvLzlvQUNBRUNBQUVGQU52LzJnQUlBUU1BQVFVQTIvL2FBQWdCQVFBQkJRQi9aZGhHMHE3ZmxpVzJaWUJQMVlubTBoR0xXSURQank5YXhBZUl3QU8vLzlvQUNBRUNBZ1kvQUYvLzJnQUlBUU1DQmo4QVgvL2FBQWdCQVFFR1B3Q3RUWlZneGxSeldqcGJzQklIaXU2ckgxYm9wdmp3R2lNVE9FbFdPTlIzMFVKTE94NXhjZWF6dEoza3h1UC8yUT09IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjM4NCAwIDAgLTAuMzg0IDEwMy4xMzYyIDYwLjAyKSI+PC9pbWFnZT48L2c+PC9nPjwvZz48bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzE1XyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxMDguNjk1OCIgeTE9IjY0LjQ4NjMiIHgyPSIxMTguODg1OSIgeTI9IjU0LjI5NjIiPjxzdG9wICBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDAiLz48c3RvcCAgb2Zmc2V0PSIwLjA4OTYiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAuOTEwNCIvPjxzdG9wICBvZmZzZXQ9IjEiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAiLz48L2xpbmVhckdyYWRpZW50Pjxwb2x5Z29uIG9wYWNpdHk9IjAuNSIgZmlsbD0idXJsKCNTVkdJRF8xNV8pIiBwb2ludHM9IjEwNi45OTksNjIuNzg4IDExMC4zOTIsNjYuMTgyIDExMS4zNzUsNjUuMTk4IDEyMC40MzMsNTYuMDY2IDExNy4zNjYsNTIuNDIxICIvPjxsaW5lYXJHcmFkaWVudCBpZD0iU1ZHSURfMTZfIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjEwMS45MTk0IiB5MT0iNTcuNzE0NCIgeDI9IjExMi4xMDk5IiB5Mj0iNDcuNTIzOSI+PHN0b3AgIG9mZnNldD0iMCIgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMCIvPjxzdG9wICBvZmZzZXQ9IjAuMDg5NiIgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMDtzdG9wLW9wYWNpdHk6MC45MTA0Ii8+PHN0b3AgIG9mZnNldD0iMSIgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMDtzdG9wLW9wYWNpdHk6MCIvPjwvbGluZWFyR3JhZGllbnQ+PHBvbHlnb24gb3BhY2l0eT0iMC41IiBmaWxsPSJ1cmwoI1NWR0lEXzE2XykiIHBvaW50cz0iMTAwLjI1LDU2LjAxNyAxMDMuNjE3LDU5LjM4MyAxMTQuMjA2LDQ4Ljc5NSAxMTAuOTcxLDQ1LjI5NSAiLz48L2c+PGcgaWQ9IkJXIiBkaXNwbGF5PSJub25lIj48ZyBkaXNwbGF5PSJpbmxpbmUiPjxwYXRoIGZpbGw9IiM5Mzk1OTgiIGQ9Ik0xNDEuNjc3LDM0Ljg5Yy0yLjA4OC0wLjQyOS00LjI1LTAuNjU0LTYuNDYzLTAuNjU0Yy04LjUxNCwwLTE2LjI1OCwzLjMzMi0yMi4wMDgsOC43NmMtMC40NTEsMC40MjctMC44OSwwLjg2NS0xLjMxNiwxLjMxN2wtMTEuNzcxLDExLjc3MWwtMTEuNzctMTEuNzcxYy0wLjQyNi0wLjQ1Mi0wLjg2NS0wLjg5MS0xLjMxNy0xLjMxN2MtNS43NS01LjQyOC0xMy40OTYtOC43Ni0yMi4wMDctOC43NmMtMi4yMTUsMC00LjM3NiwwLjIyNi02LjQ2NCwwLjY1NGMtMTQuNjA0LDMtMjUuNjIxLDE1Ljk1Mi0yNS42MjEsMzEuNDMxaDAuMDE3YzAsMTUuNDU3LDEwLjk4OSwyOC4zOTYsMjUuNTY1LDMxLjQxOGMyLjEwNiwwLjQzOCw0LjI4NSwwLjY2OCw2LjUxNywwLjY2OGM4LjAwOSwwLDE1LjMzNy0yLjk1MywyMC45NjQtNy44MmwyLjY2OS0yLjY3bDAuMTU4LTAuMTU2YzAuMzg5LTAuNDI4LDAuNjI5LTAuOTk2LDAuNjI5LTEuNjIxYzAtMS4zMjgtMS4wNzctMi40MDQtMi40MDctMi40MDRjLTAuNjA4LDAtMS4xNjMsMC4yMjctMS41ODUsMC42bC0wLjIyMSwwLjIxOWwtMi41MTEsMi41MWMtNC45MzYsNC4yMjEtMTEuMjE0LDYuNTQxLTE3LjY5Niw2LjU0MWMtMS44NjQsMC0zLjcyOS0wLjE4OS01LjU0My0wLjU2NkM0Ni45MDEsOTAuNDI2LDM3Ljc1Nyw3OS4xODksMzcuNzU3LDY2LjMyaDAuMDczYzAtMTIuODk2LDkuMTYzLTI0LjEzNiwyMS43ODYtMjYuNzI5bC0wLjAwNC0wLjAxN2MxLjc3MS0wLjM1NywzLjU5MS0wLjUzOSw1LjQxMy0wLjUzOWM2Ljk3NiwwLDEzLjYyMywyLjY0NiwxOC43MTEsNy40NDljMC4zODMsMC4zNjIsMjMuMDYyLDIzLjI1NSwyMy4wNjIsMjMuMjU1bDAuMDA0LTAuMDA0bDAuMDEzLDAuMDEzbDE2LjUyOC0xNi41MjZjMy4xNDItMi44NDgsNy4zMDYtNC41ODcsMTEuODY5LTQuNTg3YzkuNzUyLDAsMTcuNjg1LDcuOTMzLDE3LjY4NSwxNy42ODVjMCw5Ljc1LTcuOTMzLDE3LjY4Mi0xNy42ODUsMTcuNjgyYy00LjMyNiwwLTguMjkzLTEuNTY0LTExLjM2OS00LjE1MmwtMi4wMTctMi4wMThsLTAuMzktMC4zOTFjLTAuNDExLTAuMzI0LTAuOTMtMC41MjEtMS40OTQtMC41MjFjLTEuMzI5LDAtMi40MDcsMS4wNzgtMi40MDcsMi40MDZjMCwwLjcxMywwLjMxMiwxLjM1LDAuODAyLDEuNzkxbC0wLjA4LTAuMDcybDIuMzM2LDIuMzQybDAuMTU4LDAuMTM1YzQuMDQ3LDMuNDA2LDkuMTg0LDUuMjgxLDE0LjQ2MSw1LjI4MWMxMi4zOTksMCwyMi40ODUtMTAuMDg2LDIyLjQ4NS0yMi40ODJjMC0xMi4zOTgtMTAuMDg2LTIyLjQ4NC0yMi40ODUtMjIuNDg0Yy01LjU4NiwwLTEwLjk0NywyLjA3MS0xNS4wOTQsNS44MzJsLTAuMDg2LDAuMDc4bC0xMy4yMDcsMTMuMjA1bC0zLjM5NS0zLjM5MmwxMS44NTMtMTEuODUzbDAuMDk3LTAuMWMwLjM1OS0wLjM4MiwwLjczNy0wLjc2LDEuMTIxLTEuMTIyYzUuMDktNC44MDQsMTEuNzM0LTcuNDQ5LDE4LjcxMy03LjQ0OWMxLjg1MSwwLDMuNywwLjE4Nyw1LjQ5OCwwLjU1NmMxMi42MjMsMi41OTMsMjEuNzg1LDEzLjgzMywyMS43ODUsMjYuNzI5YzAsMTIuODY5LTkuMTQ1LDI0LjEwNS0yMS43MzgsMjYuNzE3Yy0xLjgxNCwwLjM3Ny0zLjY4LDAuNTY2LTUuNTQ1LDAuNTY2Yy02LjQ4MSwwLTEyLjc1OS0yLjMyLTE3LjY5NS02LjU0MWwtMi41MS0yLjUxbC0wLjIyMi0wLjIxOWMtMC40MjMtMC4zNzMtMC45NzgtMC42LTEuNTg1LTAuNmMtMS4zMywwLTIuNDA2LDEuMDc2LTIuNDA2LDIuNDA0YzAsMC42MjUsMC4yMzksMS4xOTMsMC42MjksMS42MjFsMC4xNTcsMC4xNTZsMi42NjksMi42N2M1LjYyNyw0Ljg2NywxMi45NTUsNy44MiwyMC45NjMsNy44MmMyLjIzMywwLDQuNDEyLTAuMjMsNi41MTktMC42NjhjMTQuNTc1LTMuMDIxLDI1LjU2NS0xNS45NjEsMjUuNTY1LTMxLjQxOEMxNjcuMjk4LDUwLjg0MiwxNTYuMjgxLDM3Ljg5LDE0MS42NzcsMzQuODkiLz48cGF0aCBmaWxsPSIjOTM5NTk4IiBkPSJNODAuMTE4LDQ5LjY2OGMtNC4xMjQtMy43NDEtOS40NDgtNS44MDgtMTUuMDA0LTUuODN2LTAuMDAybC0wLjA1OCwwLjAwMWwtMC4wMzItMC4wMDFjLTEyLjM5OCwwLTIyLjQ4NCwxMC4wODYtMjIuNDg0LDIyLjQ4M2gwLjAxN2MwLDEyLjM5OSwxMC4wODYsMjIuNDg1LDIyLjQ4NCwyMi40ODVjNS4yNzgsMCwxMC40MTUtMS44NzcsMTQuNDYzLTUuMjgzbDAuMTU2LTAuMTMzbDIuMzM3LTIuMzQ0bC0wLjA4LDAuMDdjMC40OS0wLjQzOSwwLjgwMS0xLjA3OCwwLjgwMS0xLjc4OWMwLTEuMzI4LTEuMDc4LTIuNDA2LTIuNDA3LTIuNDA2Yy0wLjU2NCwwLTEuMDgzLDAuMTk1LTEuNDkzLDAuNTIxbC0wLjM5MSwwLjM5M0w3Ni40MSw3OS44NWMtMy4wNzYsMi41ODgtNy4wNDIsNC4xNTQtMTEuMzY5LDQuMTU0Yy05Ljc1MSwwLTE3LjY4My03LjkzNi0xNy42ODMtMTcuNjg1aDAuMDczYzAtOS43MzUsNy45MDktMTcuNjU5LDE3LjYzOS0xNy42ODJjNC41NDYsMC4wMTEsOC42OTQsMS43NDcsMTEuODIzLDQuNTg1bDIzLjIyMiwyMy4yMjVsMy40MS0zLjQxTDgwLjI4Nyw0OS44MjhMODAuMTE4LDQ5LjY2OHoiLz48L2c+PGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF8xN18iIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iMTA4LjU4MDYiIHkxPSI2NC4zODg3IiB4Mj0iMTE4Ljc3MDYiIHkyPSI1NC4xOTg2Ij48c3RvcCAgb2Zmc2V0PSIwIiBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwIi8+PHN0b3AgIG9mZnNldD0iMC4wODk2IiBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwO3N0b3Atb3BhY2l0eTowLjkxMDQiLz48c3RvcCAgb2Zmc2V0PSIxIiBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwO3N0b3Atb3BhY2l0eTowIi8+PC9saW5lYXJHcmFkaWVudD48cG9seWdvbiBkaXNwbGF5PSJpbmxpbmUiIG9wYWNpdHk9IjAuNSIgZmlsbD0idXJsKCNTVkdJRF8xN18pIiBwb2ludHM9IjEwNi44ODQsNjIuNjkgMTEwLjI3OCw2Ni4wODYgMTExLjI2MSw2NS4xMDIgMTIwLjMxOSw1NS45NyAxMTcuMjUxLDUyLjMyNCAiLz48bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzE4XyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxMDEuODA1MiIgeTE9IjU3LjYxODIiIHgyPSIxMTEuOTk1NiIgeTI9IjQ3LjQyNzciPjxzdG9wICBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDAiLz48c3RvcCAgb2Zmc2V0PSIwLjA4OTYiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAuOTEwNCIvPjxzdG9wICBvZmZzZXQ9IjEiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAiLz48L2xpbmVhckdyYWRpZW50Pjxwb2x5Z29uIGRpc3BsYXk9ImlubGluZSIgb3BhY2l0eT0iMC41IiBmaWxsPSJ1cmwoI1NWR0lEXzE4XykiIHBvaW50cz0iMTAwLjEzNiw1NS45MiAxMDMuNTAyLDU5LjI4NiAxMTQuMDkxLDQ4LjY5OCAxMTAuODU3LDQ1LjE5OCAiLz48L2c+PGcgaWQ9InJldmVyc2UiIGRpc3BsYXk9Im5vbmUiPjxwYXRoIGRpc3BsYXk9ImlubGluZSIgZmlsbD0iIzkzOTU5OCIgZD0iTTAsMHYxMzMuMDY1aDIwMC40NjNWMEgweiBNMTAwLjExNSw3Ni40NDdMNzYuODkzLDUzLjIyM2MtMy4xMjktMi44MzgtNy4yNzctNC41NzQtMTEuODIzLTQuNTg1Yy05LjczLDAuMDIyLTE3LjYzOSw3Ljk0Ni0xNy42MzksMTcuNjgyaC0wLjA3M2MwLDkuNzQ5LDcuOTMyLDE3LjY4NSwxNy42ODMsMTcuNjg1YzQuMzI3LDAsOC4yOTMtMS41NjYsMTEuMzY5LTQuMTU0bDIuMDE3LTIuMDE2bDAuMzkxLTAuMzkzYzAuNDEtMC4zMjYsMC45MjktMC41MjEsMS40OTMtMC41MjFjMS4zMjksMCwyLjQwNywxLjA3OCwyLjQwNywyLjQwNmMwLDAuNzExLTAuMzExLDEuMzUtMC44MDEsMS43ODlsMC4wOC0wLjA3bC0yLjMzNywyLjM0NGwtMC4xNTYsMC4xMzNjLTQuMDQ4LDMuNDA2LTkuMTg1LDUuMjgzLTE0LjQ2Myw1LjI4M2MtMTIuMzk4LDAtMjIuNDg0LTEwLjA4Ni0yMi40ODQtMjIuNDg1SDQyLjU0YzAtMTIuMzk3LDEwLjA4Ni0yMi40ODMsMjIuNDg0LTIyLjQ4M2wwLjAzMiwwLjAwMWwwLjA1OC0wLjAwMXYwLjAwMmM1LjU1NiwwLjAyMiwxMC44OCwyLjA4OSwxNS4wMDQsNS44M2wwLjE2OSwwLjE2bDIzLjIzOCwyMy4yMDlMMTAwLjExNSw3Ni40NDd6IE0xNDEuNzMzLDk3LjczOGMtMi4xMDYsMC40MzgtNC4yODUsMC42NjgtNi41MTksMC42NjhjLTguMDA4LDAtMTUuMzM2LTIuOTUzLTIwLjk2My03LjgybC0yLjY2OS0yLjY3bC0wLjE1Ny0wLjE1NmMtMC4zOS0wLjQyOC0wLjYyOS0wLjk5Ni0wLjYyOS0xLjYyMWMwLTEuMzI4LDEuMDc2LTIuNDA0LDIuNDA2LTIuNDA0YzAuNjA3LDAsMS4xNjIsMC4yMjcsMS41ODUsMC42bDAuMjIyLDAuMjE5bDIuNTEsMi41MWM0LjkzNyw0LjIyMSwxMS4yMTQsNi41NDEsMTcuNjk1LDYuNTQxYzEuODY1LDAsMy43My0wLjE4OSw1LjU0NS0wLjU2NmMxMi41OTQtMi42MTEsMjEuNzM4LTEzLjg0OCwyMS43MzgtMjYuNzE3YzAtMTIuODk2LTkuMTYyLTI0LjEzNi0yMS43ODUtMjYuNzI5Yy0xLjc5OC0wLjM2OS0zLjY0Ny0wLjU1Ni01LjQ5OC0wLjU1NmMtNi45NzksMC0xMy42MjMsMi42NDYtMTguNzEzLDcuNDQ5Yy0wLjM4NCwwLjM2Mi0wLjc2MiwwLjc0LTEuMTIxLDEuMTIybC0wLjA5NywwLjFMMTAzLjQzMSw1OS41NmwzLjM5NSwzLjM5MmwxMy4yMDctMTMuMjA1bDAuMDg2LTAuMDc4YzQuMTQ2LTMuNzYxLDkuNTA4LTUuODMyLDE1LjA5NC01LjgzMmMxMi4zOTksMCwyMi40ODUsMTAuMDg2LDIyLjQ4NSwyMi40ODRjMCwxMi4zOTYtMTAuMDg2LDIyLjQ4Mi0yMi40ODUsMjIuNDgyYy01LjI3NywwLTEwLjQxNC0xLjg3NS0xNC40NjEtNS4yODFsLTAuMTU4LTAuMTM1bC0yLjMzNi0yLjM0MmwwLjA4LDAuMDcyYy0wLjQ5LTAuNDQxLTAuODAyLTEuMDc4LTAuODAyLTEuNzkxYzAtMS4zMjgsMS4wNzgtMi40MDYsMi40MDctMi40MDZjMC41NjQsMCwxLjA4MywwLjE5NywxLjQ5NCwwLjUyMWwwLjM5LDAuMzkxbDIuMDE3LDIuMDE4YzMuMDc2LDIuNTg4LDcuMDQzLDQuMTUyLDExLjM2OSw0LjE1MmM5Ljc1MiwwLDE3LjY4NS03LjkzMiwxNy42ODUtMTcuNjgyYzAtOS43NTItNy45MzMtMTcuNjg1LTE3LjY4NS0xNy42ODVjLTQuNTYzLDAtOC43MjgsMS43MzktMTEuODY5LDQuNTg3bC0xNi41MjgsMTYuNTI2bC0wLjAxMy0wLjAxM2wtMC4wMDQsMC4wMDRjMCwwLTIyLjY4LTIyLjg5My0yMy4wNjItMjMuMjU1Yy01LjA4OC00LjgwNC0xMS43MzUtNy40NDktMTguNzExLTcuNDQ5Yy0xLjgyMiwwLTMuNjQyLDAuMTgyLTUuNDEzLDAuNTM5bDAuMDA0LDAuMDE3QzQ2Ljk5Myw0Mi4xODUsMzcuODMsNTMuNDI1LDM3LjgzLDY2LjMyaC0wLjA3M2MwLDEyLjg2OSw5LjE0NCwyNC4xMDUsMjEuNzM5LDI2LjcxN2MxLjgxNCwwLjM3NywzLjY3OSwwLjU2Niw1LjU0MywwLjU2NmM2LjQ4MiwwLDEyLjc2LTIuMzIsMTcuNjk2LTYuNTQxbDIuNTExLTIuNTFsMC4yMjEtMC4yMTljMC40MjItMC4zNzMsMC45NzctMC42LDEuNTg1LTAuNmMxLjMzLDAsMi40MDcsMS4wNzYsMi40MDcsMi40MDRjMCwwLjYyNS0wLjI0LDEuMTkzLTAuNjI5LDEuNjIxbC0wLjE1OCwwLjE1NmwtMi42NjksMi42N2MtNS42MjcsNC44NjctMTIuOTU1LDcuODItMjAuOTY0LDcuODJjLTIuMjMyLDAtNC40MTEtMC4yMy02LjUxNy0wLjY2OEM0My45NDYsOTQuNzE3LDMyLjk1Nyw4MS43NzcsMzIuOTU3LDY2LjMySDMyLjk0YzAtMTUuNDc5LDExLjAxNy0yOC40MzEsMjUuNjIxLTMxLjQzMWMyLjA4OC0wLjQyOSw0LjI0OS0wLjY1NCw2LjQ2NC0wLjY1NGM4LjUxMSwwLDE2LjI1NywzLjMzMiwyMi4wMDcsOC43NmMwLjQ1MiwwLjQyNywwLjg5MSwwLjg2NSwxLjMxNywxLjMxN2wxMS43NywxMS43NzFsMTEuNzcxLTExLjc3MWMwLjQyNy0wLjQ1MiwwLjg2NS0wLjg5MSwxLjMxNi0xLjMxN2M1Ljc1LTUuNDI4LDEzLjQ5NC04Ljc2LDIyLjAwOC04Ljc2YzIuMjEzLDAsNC4zNzUsMC4yMjYsNi40NjMsMC42NTRjMTQuNjA0LDMsMjUuNjIxLDE1Ljk1MiwyNS42MjEsMzEuNDMxQzE2Ny4yOTgsODEuNzc3LDE1Ni4zMDgsOTQuNzE3LDE0MS43MzMsOTcuNzM4eiIvPjwvZz48L3N2Zz4="
 }
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -1749,7 +1551,6 @@ var AxisGroup = require('./axisgroup.js');
 var DataLoader = require('./dataloader.js');
 var DataManager = require('./datamanager.js');
 var TooltipRender = require('./tooltiprender.js');
-var Expander = require('./expander.js');
 var Utils = require('./utils.js');
 
 // html content to be used for popup dialogues
@@ -1916,10 +1717,6 @@ var images = require('./images.json');
 		this._showLoadingSpinner();		
 
 		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
-		
-		// MKD: NEEDS REFACTORED init a single instance of Expander
-        // Used for genotype expansion - Joe
-		this.state.expander = new Expander(); 
 
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -2233,7 +2030,8 @@ var images = require('./images.json');
 		    .attr("data-tooltip", "pg_tooltip")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
-	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
+	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
+            })
 		    .on("mouseover", function(d, i) { 				
 		    	// self is the global widget this
                 // this passed to _mouseover refers to the current element
@@ -4030,7 +3828,7 @@ var images = require('./images.json');
 }());
 
 
-},{"./axisgroup.js":1,"./dataloader.js":2,"./datamanager.js":3,"./expander.js":4,"./htmlnotes.json":5,"./images.json":6,"./tooltiprender.js":8,"./utils.js":9,"d3":10,"filesaver.js":11,"jquery":13,"jquery-ui":12}],8:[function(require,module,exports){
+},{"./axisgroup.js":1,"./dataloader.js":2,"./datamanager.js":3,"./htmlnotes.json":4,"./images.json":5,"./tooltiprender.js":7,"./utils.js":8,"d3":9,"filesaver.js":10,"jquery":12,"jquery-ui":11}],7:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -4254,7 +4052,7 @@ TooltipRender.prototype = {
 module.exports = TooltipRender;
 
 }());
-},{"./utils.js":9}],9:[function(require,module,exports){
+},{"./utils.js":8}],8:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -4362,7 +4160,7 @@ var Utils = {
 module.exports = Utils;
 
 }());
-},{"jquery":13}],10:[function(require,module,exports){
+},{"jquery":12}],9:[function(require,module,exports){
 !function() {
   var d3 = {
     version: "3.5.6"
@@ -13867,7 +13665,7 @@ module.exports = Utils;
   if (typeof define === "function" && define.amd) define(d3); else if (typeof module === "object" && module.exports) module.exports = d3;
   this.d3 = d3;
 }();
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.1.20150716
@@ -14125,7 +13923,7 @@ if (typeof module !== "undefined" && module.exports) {
   });
 }
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var jQuery = require('jquery');
 
 /*! jQuery UI - v1.10.3 - 2013-05-03
@@ -29132,7 +28930,7 @@ $.widget( "ui.tooltip", {
 
 }( jQuery ) );
 
-},{"jquery":13}],13:[function(require,module,exports){
+},{"jquery":12}],12:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -38344,4 +38142,4 @@ return jQuery;
 
 }));
 
-},{}]},{},[7]);
+},{}]},{},[6]);

@@ -64,7 +64,6 @@ var AxisGroup = require('./axisgroup.js');
 var DataLoader = require('./dataloader.js');
 var DataManager = require('./datamanager.js');
 var TooltipRender = require('./tooltiprender.js');
-var Expander = require('./expander.js');
 var Utils = require('./utils.js');
 
 // html content to be used for popup dialogues
@@ -231,10 +230,6 @@ var images = require('./images.json');
 		this._showLoadingSpinner();		
 
 		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
-		
-		// MKD: NEEDS REFACTORED init a single instance of Expander
-        // Used for genotype expansion - Joe
-		this.state.expander = new Expander(); 
 
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -548,7 +543,8 @@ var images = require('./images.json');
 		    .attr("data-tooltip", "pg_tooltip")   			
 	      	.attr("text-anchor", "start")
 	      		.text(function(d, i) { 		
-	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
+	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
+            })
 		    .on("mouseover", function(d, i) { 				
 		    	// self is the global widget this
                 // this passed to _mouseover refers to the current element
