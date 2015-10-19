@@ -2052,10 +2052,10 @@ var images = require('./images.json');
             
             // the d.type is cell instead of genotype because the d refers to cell data
             // we'll need to get the genotype data from yAxisRender - Joe
-            .attr('class', function(d, i) { // add css to genotype labels
+            .style('fill', function(d, i) { // add css to genotype labels
                 var el = self.state.yAxisRender.itemAt(i);
                 if (el.type === 'genotype') {
-                    return 'pg_genotype_label';
+                    return '#EA763B';
                 } else {
                     return '';
                 }
@@ -2097,9 +2097,9 @@ var images = require('./images.json');
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-            .attr('class', function(d) { // add css to genotype labels
+            .style('fill', function(d) { // add css to genotype labels
                 if (d.type === 'genotype') {
-                    return 'pg_genotype_label';
+                    return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
                 } else {
                     return '';
                 }
