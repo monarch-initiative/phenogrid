@@ -314,6 +314,10 @@ DataLoader.prototype = {
 						// get the normalized IC
 						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
 
+                        if(typeof(this.sourceData[targetGroup]) === 'undefined') {
+                            this.sourceData[targetGroup] = {};
+                        }
+                        
 						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
@@ -348,7 +352,11 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'
                                     };
-							    
+					    
+                        if(typeof(this.cellData[targetGroup]) === 'undefined') {
+                            this.cellData[targetGroup] = {};
+                        }
+                        
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
