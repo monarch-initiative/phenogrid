@@ -43,15 +43,13 @@ TooltipRender.prototype = {
 		this.id = parms.data.id;
 		var retInfo = "";
 
-		// making an assumption here that we want to display cell info
-		//if ( typeof(this.data.type) == 'undefined') {
 		if (this.data.type === 'cell') {
 			retInfo = this.cell(this, this.data);
 		} else if (this.data.type === 'gene') {
             retInfo = this.gene(this);
         } else {
 			// this creates the standard information portion of the tooltip, 
-			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
+			retInfo =  "<strong>" + Utils.capitalizeString(this.data.type) + ": </strong> " + 
 						this.entityHreflink(this.data.type, this.data.id, this.data.label) +
 						"<br/>" + this._rank() + this._score() + this._ic() + this._sum() + 
 						this._freq() + this._targetGroup();
@@ -84,14 +82,6 @@ TooltipRender.prototype = {
 		return (typeof(this.data.count) !== 'undefined'?"<strong>Frequency:</strong> " + this.data.count +"<br/>":"");
 	},
 
-	_capitalizeString: function(word){
-		if (word === undefined) {
-			return "Undefined";
-		} else {
-			return word.charAt(0).toUpperCase() + word.slice(1);
-		}
-	}, 
-
 	phenotype: function(tooltip) {
 		var returnHtml = "";
 		var expand = false;
@@ -123,7 +113,7 @@ TooltipRender.prototype = {
 	},
 
 	gene: function(tooltip) {
-		var returnHtml =  "<strong>" + tooltip._capitalizeString(tooltip.data.type) + ": </strong> " + 
+		var returnHtml =  "<strong>" + Utils.capitalizeString(tooltip.data.type) + ": </strong> " + 
 						tooltip.entityHreflink(tooltip.data.type, tooltip.data.id, tooltip.data.label ) +
 						"<br/>" + tooltip._rank() + tooltip._score() + tooltip._ic() + tooltip._sum() + 
 						tooltip._freq() + tooltip._targetGroup();
