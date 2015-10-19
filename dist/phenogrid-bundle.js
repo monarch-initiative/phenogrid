@@ -856,7 +856,11 @@ DataLoader.prototype = {
         // we just need to encode the labels for tooltip use - Joe
         
         // save the expanded gene id in cache for later
-        self.genotypeExpansionCache[id] = {gene_id: id, genotypes: results.b};
+        var genotype_id_list = [];
+        for (var i = 0; i < results.b.length; i++) {
+            genotype_id_list.push(results.b[i].id.replace(':', '_'));
+        }
+        self.genotypeExpansionCache[id] = genotype_id_list;
         
         finalCallback(results, id, parent);
     },
@@ -3802,9 +3806,10 @@ var images = require('./images.json');
             // when we call parent.state.targetAxis.groupEntries()
             parent._updateTargetAxisRenderingGroup();
             
-            // append the genotype data of following expansions to the already ordered target list
+            // for the first time, just get the unordered groupEntries()
+            // starting from second time, append the genotype data of following expansions to the already ordered target list
             if (parent.state.dataManager.reorderedTargetEntriesIndexArray.length === 0) {
-                var updatedTargetEntries = parent.state.targetAxis.groupEntries();
+                var updatedTargetEntries = parent.state.targetAxis.groupEntries(); // numeric index array
             } else {
                 var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(species_name, results.b);
             }
@@ -3821,8 +3826,8 @@ var images = require('./images.json');
             // one is associative/named array(reorderedTargetEntriesNamedArray), the other is number indexed array(reorderedTargetEntriesIndexArray)
             parent.state.dataManager.updateTargetList(genotypesData);
 
-            // we set the genotype flag before calling _createAxisRenderingGroups() again
-            // _createAxisRenderingGroups() uses this flag for creating this.state.targetAxis
+            // we set the genotype flag before calling _updateTargetAxisRenderingGroup() again
+            // _updateTargetAxisRenderingGroup() uses this flag for creating this.state.targetAxis
             parent.state.newGenotypes = true;
             
             // call this again after the target list gets updated
@@ -3836,7 +3841,7 @@ var images = require('./images.json');
             // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
             parent.state.newGenotypes = false;
             
-            // flag, indicates that we have expanded genotypes, 
+            // flag, indicates that we have expanded genotypes for this species, 
             // so they show up when we switch from multi-species mode to single species mode
             parent.state.expandedGenotypes = true;
             
@@ -3849,7 +3854,37 @@ var images = require('./images.json');
     // Genotypes expansion for gene (single species mode)
     // hide expanded genotypes
     _removeGenotypes: function(id) {
-        var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+        var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
+        // array of genotype id list
+        var associated_genotype_ids = this.state.dataLoader.genotypeExpansionCache[id];
+        
+        
+        
+        // remove these genotype ids from underlying target dataset
+        // this way we still have other expanded genotypes in that sorted named array - Joe
+        // these ids in underscore format
+        for (var i = 0; i < associated_genotype_ids.length; i++) {
+            var genotype_id = associated_genotype_ids[i];
+            delete this.state.dataLoader.targetData[species_name][genotype_id]; 
+
+            // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
+            delete this.state.dataManager.reorderedTargetEntriesNamedArray[genotype_id];  
+            // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
+            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray; j++) {
+                if (this.state.dataManager.reorderedTargetEntriesIndexArray[j].id === genotype_id) {
+                    delete this.state.dataManager.reorderedTargetEntriesIndexArray[j];  
+                }
+            }         
+        }
+        
+        // also remove from dataLoader cache
+        delete this.state.dataLoader.genotypeExpansionCache[id]
+        
+        // update the target list for axis render
+        this._updateTargetAxisRenderingGroup();
+
+        // update display
+        this._updateDisplay();
 	},    
     
 	_isTargetGroupSelected: function(self, name) {

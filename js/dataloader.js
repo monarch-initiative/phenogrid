@@ -550,7 +550,11 @@ DataLoader.prototype = {
         // we just need to encode the labels for tooltip use - Joe
         
         // save the expanded gene id in cache for later
-        self.genotypeExpansionCache[id] = {gene_id: id, genotypes: results.b};
+        var genotype_id_list = [];
+        for (var i = 0; i < results.b.length; i++) {
+            genotype_id_list.push(results.b[i].id.replace(':', '_'));
+        }
+        self.genotypeExpansionCache[id] = genotype_id_list;
         
         finalCallback(results, id, parent);
     },
