@@ -33,6 +33,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
+    this.genotypeExpansionCache = [];
 	this.postDataLoadCallback = '';
 
 };
@@ -547,6 +548,10 @@ DataLoader.prototype = {
         // don't encode labels into html entities here, otherwise the tooltip content is good, 
         // but genotype labels on x axis will have the encoded characters
         // we just need to encode the labels for tooltip use - Joe
+        
+        // save the expanded gene id in cache for later
+        self.genotypeExpansionCache[id] = id;
+        
         finalCallback(results, id, parent);
     },
     
@@ -641,7 +646,7 @@ DataLoader.prototype = {
 	/*
 		Function: dataExists
 
-			convienent function to check the cell data for a given target group (i.e., species)
+			convenient function to check the cell data for a given target group (i.e., species)
 	
 	 	Parameters:
 	 		targetGroup - target Group label
@@ -657,16 +662,26 @@ DataLoader.prototype = {
 	/*
 		Function: checkOntologyCache
 
-			convienent function to check the ontology cache for a given id
+			convenient function to check the ontology cache for a given id
 	
 	 	Parameters:
 	 		id - id to check
 	*/
 	checkOntologyCache: function(id) {
 		return this.ontologyCache[id];
+	},
+
+    /*
+		Function: checkOntologyCache
+
+			convenient function to check the ontology cache for a given id
+	
+	 	Parameters:
+	 		id - gene id to check
+	*/
+	checkGenotypeExpansionCache: function(id) {
+		return this.genotypeExpansionCache[id];
 	}
-
-
 };
 
 // CommonJS format

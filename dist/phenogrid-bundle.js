@@ -339,6 +339,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
+    this.genotypeExpansionCache = [];
 	this.postDataLoadCallback = '';
 
 };
@@ -853,6 +854,10 @@ DataLoader.prototype = {
         // don't encode labels into html entities here, otherwise the tooltip content is good, 
         // but genotype labels on x axis will have the encoded characters
         // we just need to encode the labels for tooltip use - Joe
+        
+        // save the expanded gene id in cache for later
+        self.genotypeExpansionCache[id] = id;
+        
         finalCallback(results, id, parent);
     },
     
@@ -947,7 +952,7 @@ DataLoader.prototype = {
 	/*
 		Function: dataExists
 
-			convienent function to check the cell data for a given target group (i.e., species)
+			convenient function to check the cell data for a given target group (i.e., species)
 	
 	 	Parameters:
 	 		targetGroup - target Group label
@@ -963,16 +968,26 @@ DataLoader.prototype = {
 	/*
 		Function: checkOntologyCache
 
-			convienent function to check the ontology cache for a given id
+			convenient function to check the ontology cache for a given id
 	
 	 	Parameters:
 	 		id - id to check
 	*/
 	checkOntologyCache: function(id) {
 		return this.ontologyCache[id];
+	},
+
+    /*
+		Function: checkOntologyCache
+
+			convenient function to check the ontology cache for a given id
+	
+	 	Parameters:
+	 		id - gene id to check
+	*/
+	checkGenotypeExpansionCache: function(id) {
+		return this.genotypeExpansionCache[id];
 	}
-
-
 };
 
 // CommonJS format
@@ -3992,14 +4007,14 @@ TooltipRender.prototype = {
                          + tooltip._freq() 
                          + tooltip._targetGroup();
                         
-		var expand = false;
+		var expanded = false;
 		var ontologyData = "<br>";
 		var id = tooltip.id;
 
 		var cached = tooltip.parent.state.dataLoader.checkOntologyCache(id);
 
 		if (typeof(cached) !== 'undefined') {
-			expand = true;
+			expanded = true;
 
 			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 			tooltip.parent.state.ontologyTreesDone = 0;
@@ -4012,7 +4027,7 @@ TooltipRender.prototype = {
 			}
 		}
         
-		if (expand){
+		if (expanded){
 			returnHtml += ontologyData;
 		} else {
 			returnHtml += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
@@ -4026,11 +4041,25 @@ TooltipRender.prototype = {
                          + tooltip._rank() 
                          + tooltip._score() 
                          + tooltip._targetGroup();
-                        
+
 		// for gene and single species mode only, add genotype expansion link
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
-            returnHtml += "<br><div class=\"pg_insert_genotypes\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
-		}
+            var expanded = false;
+        
+            var id = tooltip.id;
+
+            var cached = tooltip.parent.state.dataLoader.checkGenotypeExpansionCache(id); // gene id
+
+            if (typeof(cached) !== 'undefined') {
+                expanded = true;
+            }
+        
+            if (expanded){
+                returnHtml += "<br><div class=\"pg_insert_genotypes\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Collapse associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+            } else {
+                returnHtml += "<br><div class=\"pg_insert_genotypes\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+            }
+        }
 		
 		return returnHtml;	
 	},

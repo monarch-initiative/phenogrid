@@ -95,14 +95,14 @@ TooltipRender.prototype = {
                          + tooltip._freq() 
                          + tooltip._targetGroup();
                         
-		var expand = false;
+		var expanded = false;
 		var ontologyData = "<br>";
 		var id = tooltip.id;
 
 		var cached = tooltip.parent.state.dataLoader.checkOntologyCache(id);
 
 		if (typeof(cached) !== 'undefined') {
-			expand = true;
+			expanded = true;
 
 			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 			tooltip.parent.state.ontologyTreesDone = 0;
@@ -115,7 +115,7 @@ TooltipRender.prototype = {
 			}
 		}
         
-		if (expand){
+		if (expanded){
 			returnHtml += ontologyData;
 		} else {
 			returnHtml += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
@@ -129,11 +129,25 @@ TooltipRender.prototype = {
                          + tooltip._rank() 
                          + tooltip._score() 
                          + tooltip._targetGroup();
-                        
+
 		// for gene and single species mode only, add genotype expansion link
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
-            returnHtml += "<br><div class=\"pg_insert_genotypes\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
-		}
+            var expanded = false;
+        
+            var id = tooltip.id;
+
+            var cached = tooltip.parent.state.dataLoader.checkGenotypeExpansionCache(id); // gene id
+
+            if (typeof(cached) !== 'undefined') {
+                expanded = true;
+            }
+        
+            if (expanded){
+                returnHtml += "<br><div class=\"pg_insert_genotypes\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Collapse associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+            } else {
+                returnHtml += "<br><div class=\"pg_insert_genotypes\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+            }
+        }
 		
 		return returnHtml;	
 	},
