@@ -525,7 +525,7 @@ DataLoader.prototype = {
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
         // some genes may don't have associated genotypes
         if (typeof(results.genotype_list) !== 'undefined') {
-            var genotype_list = results.genotype_list.slice(0, 5);
+            var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
             var phenotype_id_list = self.origSourceList.join("+");
             var genotype_id_list = '';
             for (var i in genotype_list) {
@@ -550,7 +550,7 @@ DataLoader.prototype = {
         // we just need to encode the labels for tooltip use - Joe
         
         // save the expanded gene id in cache for later
-        self.genotypeExpansionCache[id] = id;
+        self.genotypeExpansionCache[id] = {gene_id: id, genotypes: results.b};
         
         finalCallback(results, id, parent);
     },

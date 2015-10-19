@@ -1477,10 +1477,17 @@ var images = require('./images.json');
         // For genotype expansion
 		if (data.type === 'gene') {
 			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
-			var icon = $('#pg_insert_genotypes_' + id);
-			this._on(icon, {
+			var insert = $('#pg_insert_genotypes_' + id);
+			this._on(insert, {
 				"click": function(event) {
 					this._fetchGenotypes(id);
+				}
+			});
+            
+            var remove = $('#pg_remove_genotypes_' + id);
+			this._on(remove, {
+				"click": function(event) {
+					this._removeGenotypes(id);
 				}
 			});
 		}
@@ -2323,6 +2330,12 @@ var images = require('./images.json');
         }
 	},
 
+    // Genotypes expansion for gene (single species mode)
+    // hide expanded genotypes
+    _removeGenotypes: function(id) {
+        var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+	},    
+    
 	_isTargetGroupSelected: function(self, name) {
 		for (var i in self.state.selectedCompareTargetGroup) {
 			if (self.state.selectedCompareTargetGroup[i].name == name) {

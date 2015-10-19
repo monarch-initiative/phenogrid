@@ -831,7 +831,7 @@ DataLoader.prototype = {
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
         // some genes may don't have associated genotypes
         if (typeof(results.genotype_list) !== 'undefined') {
-            var genotype_list = results.genotype_list.slice(0, 5);
+            var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
             var phenotype_id_list = self.origSourceList.join("+");
             var genotype_id_list = '';
             for (var i in genotype_list) {
@@ -856,7 +856,7 @@ DataLoader.prototype = {
         // we just need to encode the labels for tooltip use - Joe
         
         // save the expanded gene id in cache for later
-        self.genotypeExpansionCache[id] = id;
+        self.genotypeExpansionCache[id] = {gene_id: id, genotypes: results.b};
         
         finalCallback(results, id, parent);
     },
@@ -2993,10 +2993,17 @@ var images = require('./images.json');
         // For genotype expansion
 		if (data.type === 'gene') {
 			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
-			var icon = $('#pg_insert_genotypes_' + id);
-			this._on(icon, {
+			var insert = $('#pg_insert_genotypes_' + id);
+			this._on(insert, {
 				"click": function(event) {
 					this._fetchGenotypes(id);
+				}
+			});
+            
+            var remove = $('#pg_remove_genotypes_' + id);
+			this._on(remove, {
+				"click": function(event) {
+					this._removeGenotypes(id);
 				}
 			});
 		}
@@ -3839,6 +3846,12 @@ var images = require('./images.json');
         }
 	},
 
+    // Genotypes expansion for gene (single species mode)
+    // hide expanded genotypes
+    _removeGenotypes: function(id) {
+        var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+	},    
+    
 	_isTargetGroupSelected: function(self, name) {
 		for (var i in self.state.selectedCompareTargetGroup) {
 			if (self.state.selectedCompareTargetGroup[i].name == name) {
