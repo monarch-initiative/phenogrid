@@ -19,7 +19,7 @@ var Utils = require('./utils.js');
  	Parameters:
  		url base
 */
-var TooltipRender = function(url) {  //parms
+var TooltipRender = function(url) {
 	 this.url = url;
 };
 
@@ -32,65 +32,76 @@ TooltipRender.prototype = {
 		return s;
 	},
 
-	test: function() {
-		console.log('test');
-	}, 
-
 	// main method for rendering tooltip content
 	html: function(parms) {
 		this.parent = parms.parent;
 		this.data = parms.data;
 		this.id = parms.data.id;
 		var retInfo = "";
+        
+        switch (this.data.type) {
+            case 'cell':
+                retInfo = this.cell(this, this.data);
+                break;
+            case 'gene':
+                retInfo = this.gene(this);
+                break;
+            case 'phenotype':
+                retInfo = this.phenotype(this);
+                break;
+            case 'genotype':
+                retInfo = this.genotype(this);
+                break;
+            case 'disease':
+                retInfo = this.disease(this);
+                break;
+        }
 
-		if (this.data.type === 'cell') {
-			retInfo = this.cell(this, this.data);
-		} else if (this.data.type === 'gene') {
-            retInfo = this.gene(this);
-        } else {
-			// this creates the standard information portion of the tooltip, 
-			retInfo =  "<strong>" + Utils.capitalizeString(this.data.type) + ": </strong> " + 
-						this.entityHreflink(this.data.type, this.data.id, this.data.label) +
-						"<br/>" + this._rank() + this._score() + this._ic() + this._sum() + 
-						this._freq() + this._targetGroup();
-
-			// this creates the extended information for specialized tooltip info and functionality
-			// try to dynamically invoke the function that matches the data.type
-			try {
-				var func = this.data.type;			
-				retInfo += this[func](this);
-			} catch(err) { console.log("searching for " + func);}
-		}
 		return retInfo;
 	},
+    
+    _type: function(type, id, label) {
+		return (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this.entityHreflink(type, id, label ) + "<br/>" : "");
+	},
+    
 	_rank: function() {
-		return (typeof(this.data.rank) !== 'undefined'?"<strong>Rank:</strong> " + this.data.rank+"<br/>":"");
+		return (typeof(this.data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + this.data.rank+"<br/>" : "");
 	},
+    
 	_score: function() {
-		return (typeof(this.data.score) !== 'undefined'?"<strong>Score:</strong> " + this.data.score+"<br/>":"");	
+		return (typeof(this.data.score) !== 'undefined' ? "<strong>Score:</strong> " + this.data.score+"<br/>" : "");	
 	},
+    
 	_ic: function() {
-		return (typeof(this.data.IC) !== 'undefined'?"<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br/>":"");
+		return (typeof(this.data.IC) !== 'undefined' ? "<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br/>" : "");
 	},
+    
 	_targetGroup: function() {
-		return (typeof(this.data.targetGroup) !== 'undefined'?"<strong>Species:</strong> " + this.data.targetGroup+"<br/>":"");
+		return (typeof(this.data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + this.data.targetGroup+"<br/>" : "");
 	},
+    
 	_sum: function() {
-		return (typeof(this.data.sum) !== 'undefined'?"<strong>Sum:</strong> " + this.data.sum.toFixed(2)+"<br/>":"");
+		return (typeof(this.data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + this.data.sum.toFixed(2)+"<br/>" : "");
 	},
+    
 	_freq: function() {
-		return (typeof(this.data.count) !== 'undefined'?"<strong>Frequency:</strong> " + this.data.count +"<br/>":"");
+		return (typeof(this.data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + this.data.count +"<br/>" : "");
 	},
 
 	phenotype: function(tooltip) {
-		var returnHtml = "";
+        var returnHtml = tooltip._type(tooltip.data.type, tooltip.data.id, tooltip.data.label)
+                         + tooltip._ic()
+                         + tooltip._sum() 
+                         + tooltip._freq() 
+                         + tooltip._targetGroup();
+                        
 		var expand = false;
 		var ontologyData = "<br>";
 		var id = tooltip.id;
 
 		var cached = tooltip.parent.state.dataLoader.checkOntologyCache(id);
 
-		if (cached !== undefined) { //&& hpoCached.active == 1){
+		if (typeof(cached) !== 'undefined') {
 			expand = true;
 
 			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
@@ -103,20 +114,21 @@ TooltipRender.prototype = {
 				ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
 			}
 		}
+        
 		if (expand){
 			returnHtml += ontologyData;
 		} else {
-			returnHtml = "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+			returnHtml += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
 		}
         
         return returnHtml;		
 	},
 
 	gene: function(tooltip) {
-		var returnHtml =  "<strong>" + Utils.capitalizeString(tooltip.data.type) + ": </strong> " + 
-						tooltip.entityHreflink(tooltip.data.type, tooltip.data.id, tooltip.data.label ) +
-						"<br/>" + tooltip._rank() + tooltip._score() + tooltip._ic() + tooltip._sum() + 
-						tooltip._freq() + tooltip._targetGroup();
+		var returnHtml = tooltip._type(tooltip.data.type, tooltip.data.id, tooltip.data.label)
+                         + tooltip._rank() 
+                         + tooltip._score() 
+                         + tooltip._targetGroup();
                         
 		// for gene and single species mode only, add genotype expansion link
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
@@ -127,24 +139,23 @@ TooltipRender.prototype = {
 	},
 
 	genotype: function(tooltip) {
-		var returnHtml = "";
-		if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
-			var parentInfo = tooltip.parent.state.modelListHash.get(info.parent);
-			if (parentInfo !== null) {
-				// var alink = this.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":");
-				// var hyperLink = $("<a>")
-				// 	.attr("href", alink)
-				// 	.attr("target", "_blank")
-				// 	.text(parentInfo.label);
-				// return "<br/><strong>Gene:</strong> " + hyperLink;				
+		var returnHtml = tooltip._type(tooltip.data.type, tooltip.data.id, tooltip.data.label)
+                         + tooltip._rank() 
+                         + tooltip._score() 
+                         + tooltip._targetGroup();
 
-				var genehrefLink = "<a href=\"" + tooltip.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
-				returnHtml = "<br/><strong>Gene:</strong> " + genehrefLink;
-			}
-		}
 		return returnHtml;	
 	},
 
+    disease: function(tooltip) {
+		var returnHtml = tooltip._type(tooltip.data.type, tooltip.data.id, tooltip.data.label)
+                         + tooltip._rank() 
+                         + tooltip._score() 
+                         + tooltip._targetGroup();
+
+		return returnHtml;	
+	},
+    
 	cell: function(tooltip, d) {
 		var returnHtml = "";
 

@@ -2240,7 +2240,9 @@ var images = require('./images.json');
 		var info = parent._getAxisData(id);
 		var hrefLink = "<a href=\"" + parent.state.serverURL+"/phenotype/"+ id + "\" target=\"_blank\">" + info.label + "</a>";
 		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
-		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
+		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/>";
+        ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br/>";
+        ontologyData += "<strong>Frequency:</strong> " + info.count + "<br/><br/>";
 
 		var classTree = parent.buildOntologyTree(id.replace("_", ":"), d.edges, 0);
 
