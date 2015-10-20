@@ -2254,15 +2254,15 @@ var images = require('./images.json');
 	},
 
     // Genotypes expansion for gene (single species mode) - Joe
-    _fetchGenotypes: function(id) {
-        var cb = this._fetchGenotypesCb;
+    _insertGenotypes: function(id) {
+        var cb = this._insertGenotypesCb;
         this.state.dataLoader.getGenotypes(id, cb, this);
 	},
     
     // this cb has all the matches info returned from the compare
     // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
     // parent refers to the global `this` and we have to pass it
-    _fetchGenotypesCb: function(results, id, parent) {
+    _insertGenotypesCb: function(results, id, parent) {
         console.log(results);
         
         // add genotypes to data, and update target axis
