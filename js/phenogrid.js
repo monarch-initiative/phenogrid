@@ -1220,20 +1220,6 @@ var images = require('./images.json');
         }
 	},
 
-	_getIDTypeDetail: function(key) {
-		//var info = this.state.modelListHash.get(key);
-		//var info = this.state.dataManager.getElement("target", key, this.state.currentTargetGroupName);
-		var info;
-	     if (this.state.yAxisRender.contains(key)){
-		     info = this.state.yAxisRender.get(key);
-		 } else if (this.state.xAxisRender.contains(key)){
-		     info = this.state.xAxisRender.get(key);
-		 }
-		if (typeof(info) !== 'undefined') return info.type;
-		return "unknown";
-	},
-
-
 	_createColorScale: function() {
 			var maxScore = 0,
 			method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
@@ -2342,9 +2328,7 @@ var images = require('./images.json');
         var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
         // array of genotype id list
         var associated_genotype_ids = this.state.dataLoader.genotypeExpansionCache[id];
-        
-        
-        
+         
         // remove these genotype ids from underlying target dataset
         // this way we still have other expanded genotypes in that sorted named array - Joe
         // these ids in underscore format
