@@ -26,10 +26,9 @@ var DataManager = function(dataLoader) {
 	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
 	this.matrix = [];
     
-    // genotype expansion
-    this.reorderedTargetEntriesNamedArray = [];
-    
-    this.reorderedTargetEntriesIndexArray = [];
+    // genotype expansion, named arrays
+    this.reorderedTargetEntriesNamedArray = {};
+    this.reorderedTargetEntriesIndexArray = {};
 };
 
 DataManager.prototype = {
@@ -78,8 +77,12 @@ DataManager.prototype = {
             newlyAdded.push(this.target[targetGroup][id]);
         }
         
+        if (typeof(this.reorderedTargetEntriesIndexArray[targetGroup]) === 'undefined') {
+            this.reorderedTargetEntriesIndexArray[targetGroup] = [];
+        }
+        
         // append the newly added to the already sorted numeric array of target list (sorted from last expansion)
-        return this.reorderedTargetEntriesIndexArray.concat(newlyAdded);
+        return this.reorderedTargetEntriesIndexArray[targetGroup].concat(newlyAdded);
     },
     
     // for genotype expansion - Joe
@@ -88,6 +91,7 @@ DataManager.prototype = {
 		var targetEntries = genotypesData.targetEntries; // unordered
         var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
         var parentGeneID = genotypesData.parentGeneID;
+        var species = genotypesData.species;
 
         var gene_position;
         var first_genotype_position;
@@ -119,12 +123,11 @@ DataManager.prototype = {
         var reorderedTargetEntriesIndexArray = header.concat(footer, body);
         
         // Format 1 - index number array
-        this.reorderedTargetEntriesIndexArray = reorderedTargetEntriesIndexArray;
-        
+        this.reorderedTargetEntriesIndexArray[species] = reorderedTargetEntriesIndexArray;
         
         // Format into named associative array
         // same return format as getData()
-        var reorderedTargetEntriesNamedArray = []; // named array
+        var reorderedTargetEntriesNamedArray = {}; // named array
         for (var k = 0; k < reorderedTargetEntriesIndexArray.length; k++) {
             if (typeof(reorderedTargetEntriesIndexArray[k]) === 'undefined') {
                 reorderedTargetEntriesIndexArray[k] = {};
@@ -134,7 +137,7 @@ DataManager.prototype = {
         }
         
         // Format 2 - associative/named array
-        this.reorderedTargetEntriesNamedArray = reorderedTargetEntriesNamedArray;
+        this.reorderedTargetEntriesNamedArray[species] = reorderedTargetEntriesNamedArray;
 	},
     
     

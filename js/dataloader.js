@@ -678,7 +678,7 @@ DataLoader.prototype = {
     /*
 		Function: checkOntologyCache
 
-			convenient function to check the ontology cache for a given id
+			convenient function to check the genotype expansion cache for a given gene id
 	
 	 	Parameters:
 	 		id - gene id to check

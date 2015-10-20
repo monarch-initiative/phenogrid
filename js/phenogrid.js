@@ -209,12 +209,23 @@ var images = require('./images.json');
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
         
-        // flag
-        this.state.expandedGenotypes = false;
-        // genotype flag to mark every genotype expansion
-        this.state.newGenotypes = false;
-
-        this.state.removedGenotypes = false;
+        // flag used for switching between single species and multi-species mode
+        // named/associative array
+        this.state.expandedGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
+        
+        // genotype flags to mark every genotype expansion on/off in each species
+        this.state.newGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
+        
+        this.state.removedGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
         
         // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 		this._createTargetGroupList(this.options.targetSpecies);
@@ -326,12 +337,12 @@ var images = require('./images.json');
 			var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
 
             // get targetList based on the newGenotypes flag
-            if (this.state.newGenotypes) {
+            if (this.state.newGenotypes[singleTargetGroupName]) {
                 // get the reordered target list in the format of a named array, has all added genotype data
-                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
-            } else if (this.state.removedGenotypes) {
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[singleTargetGroupName];
+            } else if (this.state.removedGenotypes[singleTargetGroupName]) {
                 // get the reordered target list in the format of a named array, has all added genotype data
-                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[singleTargetGroupName];
             } else {
                 // unordered target list in the format of a named array, has all added genotype data
                 targetList = this.state.dataManager.getData("target", singleTargetGroupName);
@@ -341,7 +352,7 @@ var images = require('./images.json');
 		// update target axis group
         var targetAxisRenderStartPos = this.state.targetAxis.getRenderStartPos();
         var targetAxisRenderEndPos = this.state.targetAxis.getRenderEndPos();
-    	this.state.targetAxis =  new AxisGroup(targetAxisRenderStartPos, targetAxisRenderEndPos, targetList);
+    	this.state.targetAxis = new AxisGroup(targetAxisRenderStartPos, targetAxisRenderEndPos, targetList);
 
     	this._setAxisRenderers();
 	},
@@ -381,8 +392,8 @@ var images = require('./images.json');
 	
             // display all the expanded genotypes when we switch back from multi-species mode to single-species mode
             // at this point, this.state.expandedGenotypes is true, and this.state.newGenotypes is false - Joe
-            if (this.state.expandedGenotypes) {
-                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
+            if (this.state.expandedGenotypes[singleTargetGroupName]) {
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[singleTargetGroupName];
             } else {
                 // unordered target list in the format of a named array, has all added genotype data
                 targetList = this.state.dataManager.getData("target", singleTargetGroupName);
@@ -2294,7 +2305,8 @@ var images = require('./images.json');
             var genotypesData = {
                     targetEntries: updatedTargetEntries, 
                     genotypes: results.b, 
-                    parentGeneID: id  
+                    parentGeneID: id,
+                    species: species_name
                 };
                 
             // this will give us a reordered target list in two formats.
@@ -2303,7 +2315,7 @@ var images = require('./images.json');
 
             // we set the genotype flag before calling _updateTargetAxisRenderingGroup() again
             // _updateTargetAxisRenderingGroup() uses this flag for creating this.state.targetAxis
-            parent.state.newGenotypes = true;
+            parent.state.newGenotypes[species_name] = true;
             
             // call this again after the target list gets updated
             // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
@@ -2314,11 +2326,11 @@ var images = require('./images.json');
             // and add them to the unordered target list.
             // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
             // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
-            parent.state.newGenotypes = false;
+            parent.state.newGenotypes[species_name] = false;
             
             // flag, indicates that we have expanded genotypes for this species, 
-            // so they show up when we switch from multi-species mode to single species mode
-            parent.state.expandedGenotypes = true;
+            // so they show up when we switch from multi-species mode back to single species mode
+            parent.state.expandedGenotypes[species_name] = true;
             
             parent._updateDisplay();
             
@@ -2364,13 +2376,13 @@ var images = require('./images.json');
         delete this.state.dataLoader.genotypeExpansionCache[id]
         
         // set the flag
-        this.state.removedGenotypes = true;
+        this.state.removedGenotypes[species_name] = true;
         
         // update the target list for axis render
         this._updateTargetAxisRenderingGroup();
 
         // reset flag
-        this.state.removedGenotypes = false;
+        this.state.removedGenotypes[species_name] = false;
         
         // update display
         this._updateDisplay();
