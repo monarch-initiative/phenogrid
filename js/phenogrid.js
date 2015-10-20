@@ -2319,6 +2319,7 @@ var images = require('./images.json');
             parent._updateDisplay();
         } else {
             // tell users there's no genotypes associated to this gene
+            parent._populateDialog('This gene has no associated genotypes.');
         }
 	},
 
