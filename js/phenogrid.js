@@ -1471,7 +1471,7 @@ var images = require('./images.json');
 			var insert = $('#pg_insert_genotypes_' + id);
 			this._on(insert, {
 				"click": function(event) {
-					this._fetchGenotypes(id);
+					this._insertGenotypes(id);
 				}
 			});
             

@@ -143,9 +143,9 @@ TooltipRender.prototype = {
             }
         
             if (expanded){
-                returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Collapse associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
+                returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
             } else {
-                returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Expand associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+                returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
             }
         }
 		
