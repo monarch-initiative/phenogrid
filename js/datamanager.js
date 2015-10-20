@@ -95,6 +95,10 @@ DataManager.prototype = {
         var body = [];
         var footer = [];
         for (var i = 0; i < targetEntries.length; i++) {
+            if (typeof(targetEntries[i]) === 'undefined') {
+                targetEntries[i] = {};
+            }
+            
             // loop through all the target entries and find the parent gene
             if (targetEntries[i].id === parentGeneID) {
                 gene_position = i; // remember the parent gene's position
@@ -122,6 +126,10 @@ DataManager.prototype = {
         // same return format as getData()
         var reorderedTargetEntriesNamedArray = []; // named array
         for (var k = 0; k < reorderedTargetEntriesIndexArray.length; k++) {
+            if (typeof(reorderedTargetEntriesIndexArray[k]) === 'undefined') {
+                reorderedTargetEntriesIndexArray[k] = {};
+            }
+            
             reorderedTargetEntriesNamedArray[reorderedTargetEntriesIndexArray[k].id] = reorderedTargetEntriesIndexArray[k];
         }
         

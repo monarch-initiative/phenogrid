@@ -214,6 +214,8 @@ var images = require('./images.json');
         // genotype flag to mark every genotype expansion
         this.state.newGenotypes = false;
 
+        this.state.removedGenotypes = false;
+        
         // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 		this._createTargetGroupList(this.options.targetSpecies);
 	},
@@ -325,6 +327,9 @@ var images = require('./images.json');
 
             // get targetList based on the newGenotypes flag
             if (this.state.newGenotypes) {
+                // get the reordered target list in the format of a named array, has all added genotype data
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
+            } else if (this.state.removedGenotypes) {
                 // get the reordered target list in the format of a named array, has all added genotype data
                 targetList = this.state.dataManager.reorderedTargetEntriesNamedArray;
             } else {
@@ -2350,19 +2355,30 @@ var images = require('./images.json');
             // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
             delete this.state.dataManager.reorderedTargetEntriesNamedArray[genotype_id];  
             // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
-            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray; j++) {
+            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray.length; j++) {
+                if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[j]) === 'undefined') {
+                    this.state.dataManager.reorderedTargetEntriesIndexArray[j] = {};
+                }
+                
                 if (this.state.dataManager.reorderedTargetEntriesIndexArray[j].id === genotype_id) {
                     delete this.state.dataManager.reorderedTargetEntriesIndexArray[j];  
+                    break;
                 }
             }         
         }
         
-        // also remove from dataLoader cache
+        // also remove the cached gene id record from dataLoader cache
         delete this.state.dataLoader.genotypeExpansionCache[id]
+        
+        // set the flag
+        this.state.removedGenotypes = true;
         
         // update the target list for axis render
         this._updateTargetAxisRenderingGroup();
 
+        // reset flag
+        this.state.removedGenotypes = false;
+        
         // update display
         this._updateDisplay();
 	},    
