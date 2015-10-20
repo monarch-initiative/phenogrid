@@ -2255,6 +2255,10 @@ var images = require('./images.json');
 
     // Genotypes expansion for gene (single species mode) - Joe
     _insertGenotypes: function(id) {
+        // change the plus icon to spinner to indicate the loading
+        $('.pg_expand_genotype_icon').removeClass('fa-plus-circle');
+        $('.pg_expand_genotype_icon').addClass('fa-spinner fa-pulse');
+        
         var cb = this._insertGenotypesCb;
         this.state.dataLoader.getGenotypes(id, cb, this);
 	},
@@ -2317,6 +2321,10 @@ var images = require('./images.json');
             parent.state.expandedGenotypes = true;
             
             parent._updateDisplay();
+            
+            // Remove the spinner icon
+            $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
+            $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
         } else {
             // tell users there's no genotypes associated to this gene
             parent._populateDialog('This gene has no associated genotypes.');
