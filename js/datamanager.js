@@ -26,7 +26,7 @@ var DataManager = function(dataLoader) {
 	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
 	this.matrix = [];
     
-    // genotype expansion, named arrays
+    // genotype expansion, named arrays of each single species
     this.reorderedTargetEntriesNamedArray = {};
     this.reorderedTargetEntriesIndexArray = {};
 };
@@ -68,13 +68,19 @@ DataManager.prototype = {
         return this[dataset][targetGroup];
 	},
     
-    
+    // each single species (fish/mouse) has its own ordered target list
     appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
         // can't slice the object this.target[targetGroup]
-        var newlyAdded = [];
+        var newlyAdded = {}; // named array, species name is the key
         for (var i = 0; i < data.length; i++) {
             var id = Utils.getConceptId(data[i].id);
-            newlyAdded.push(this.target[targetGroup][id]);
+            
+            if (typeof(newlyAdded[targetGroup]) === 'undefined') {
+                newlyAdded[targetGroup] = []; // index array
+            }
+            
+            // value of each species name is an index array
+            newlyAdded[targetGroup].push(this.target[targetGroup][id]);
         }
         
         if (typeof(this.reorderedTargetEntriesIndexArray[targetGroup]) === 'undefined') {
@@ -82,13 +88,13 @@ DataManager.prototype = {
         }
         
         // append the newly added to the already sorted numeric array of target list (sorted from last expansion)
-        return this.reorderedTargetEntriesIndexArray[targetGroup].concat(newlyAdded);
+        return this.reorderedTargetEntriesIndexArray[targetGroup].concat(newlyAdded[targetGroup]);
     },
     
     // for genotype expansion - Joe
     // genotypesData is defined in _fetchGenotypesCb() of phenogrid.js
     updateTargetList: function(genotypesData) {
-		var targetEntries = genotypesData.targetEntries; // unordered
+		var targetEntries = genotypesData.targetEntries; // unordered target entries of current active single species 
         var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
         var parentGeneID = genotypesData.parentGeneID;
         var species = genotypesData.species;
@@ -122,7 +128,7 @@ DataManager.prototype = {
         // no we have the new target entries in the desired order
         var reorderedTargetEntriesIndexArray = header.concat(footer, body);
         
-        // Format 1 - index number array
+        // Format 1 - sorted index numeric array for each target species 
         this.reorderedTargetEntriesIndexArray[species] = reorderedTargetEntriesIndexArray;
         
         // Format into named associative array
@@ -136,7 +142,7 @@ DataManager.prototype = {
             reorderedTargetEntriesNamedArray[reorderedTargetEntriesIndexArray[k].id] = reorderedTargetEntriesIndexArray[k];
         }
         
-        // Format 2 - associative/named array
+        // Format 2 - sorted associative/named array for each target species 
         this.reorderedTargetEntriesNamedArray[species] = reorderedTargetEntriesNamedArray;
 	},
     
