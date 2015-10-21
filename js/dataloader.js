@@ -33,7 +33,8 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
-    this.genotypeExpansionCache = [];
+    this.genotypeExpansionCache = []; // no need to specify species since each gene ID is unique
+    this.genotypeExpansionLoaded = []; // no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
 
 };
@@ -290,7 +291,8 @@ DataLoader.prototype = {
                         "type": 'genotype', 
                         'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
                         "rank": parseInt(idx)+1,  // start with 1 not zero
-                        "score": item.score.score
+                        "score": item.score.score,
+                        "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
                     };  
                 
                 // we need to define this here, otherwise will get 'cannot set property of undefined' error 
@@ -554,7 +556,10 @@ DataLoader.prototype = {
         for (var i = 0; i < results.b.length; i++) {
             genotype_id_list.push(results.b[i].id.replace(':', '_'));
         }
+        // cache for tooltiprender
         self.genotypeExpansionCache[id] = genotype_id_list;
+        // for reactivation
+        self.genotypeExpansionLoaded[id] = genotype_id_list;
         
         finalCallback(results, id, parent);
     },

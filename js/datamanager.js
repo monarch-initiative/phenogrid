@@ -146,7 +146,30 @@ DataManager.prototype = {
         this.reorderedTargetEntriesNamedArray[species] = reorderedTargetEntriesNamedArray;
 	},
     
-    
+    getReorderedTargetEntriesNamedArray: function(species) {
+        //this.reorderedTargetEntriesIndexArray[species] and this.reorderedTargetEntriesNamedArray[species] 
+        // have the same order and number of elements, just two different formats
+        var t = []
+        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
+            // only genotypes have that 'visible' property
+            if (typeof(this.reorderedTargetEntriesIndexArray[species][i].visible) === 'undefined') {
+                t.push(this.reorderedTargetEntriesIndexArray[species][i]);
+            } else {
+                if (this.reorderedTargetEntriesIndexArray[species][i].visible === true) {
+                    t.push(this.reorderedTargetEntriesIndexArray[species][i]);
+                }
+            }
+        }
+        
+        // now t only contians all the genes and their visible genotypes in an ordered array
+        
+        var reorderedVisibleTargetEntriesNamedArray = {}; // named array
+        for (var k = 0; k < t.length; k++) {
+            reorderedVisibleTargetEntriesNamedArray[t[k].id] = t[k];
+        }
+        
+        return reorderedVisibleTargetEntriesNamedArray;
+    },
     
     
 	/*
@@ -515,7 +538,25 @@ DataManager.prototype = {
 
 	getOntologyLabel: function(id) {
 		return this.dataLoader.getOntologyLabel(id);
+	},
+    
+    checkGenotypesLoaded: function(species, id) {
+		if (typeof(this.reorderedTargetEntriesIndexArray[species]) === 'undefined') {
+            this.reorderedTargetEntriesIndexArray[species] = []; // index array
+        }
+    
+        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
+            // only added genotypes have 'parentGeneID' property
+            if (typeof(this.reorderedTargetEntriesIndexArray[species][i].parentGeneID) !== 'undefined') {
+                if (this.reorderedTargetEntriesIndexArray[species][i].parentGeneID === id) {
+                    return true;
+                }
+            }  
+        }
+        // loop through the array and didn't find genotypes of the target gene id
+        return false;
 	}
+    
 };
 
 // CommonJS format
