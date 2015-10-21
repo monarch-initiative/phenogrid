@@ -339,7 +339,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
-    this.genotypeExpansionCache = []; // no need to specify species since each gene ID is unique
+    this.expandedGenotypeList = []; // no need to specify species since each gene ID is unique
     this.genotypeExpansionLoaded = []; // no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
 
@@ -863,7 +863,7 @@ DataLoader.prototype = {
             genotype_id_list.push(results.b[i].id.replace(':', '_'));
         }
         // cache for tooltiprender
-        self.genotypeExpansionCache[id] = genotype_id_list;
+        self.expandedGenotypeList[id] = genotype_id_list;
         // for reactivation
         self.genotypeExpansionLoaded[id] = genotype_id_list;
         
@@ -994,8 +994,12 @@ DataLoader.prototype = {
 	 	Parameters:
 	 		id - gene id to check
 	*/
-	checkGenotypeExpansionCache: function(id) {
-		return this.genotypeExpansionCache[id];
+	isExpanded: function(id) {
+        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
+            return false;
+        } else {
+            return true;
+        }
 	}
 };
 
@@ -3987,7 +3991,7 @@ var images = require('./images.json');
     _removeGenotypes: function(id) {
         var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
         // array of genotype id list
-        var associated_genotype_ids = this.state.dataLoader.genotypeExpansionCache[id];
+        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
         
         // change 'visible' to false 
         for (var i = 0; i < associated_genotype_ids.length; i++) {
@@ -4010,7 +4014,7 @@ var images = require('./images.json');
         }
         
         // also remove the cached gene id record from dataLoader cache
-        delete this.state.dataLoader.genotypeExpansionCache[id];
+        delete this.state.dataLoader.expandedGenotypeList[id];
         
         // set the flag
         this.state.removedGenotypes[species_name] = true;
@@ -4027,7 +4031,7 @@ var images = require('./images.json');
         /*
         var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
         // array of genotype id list
-        var associated_genotype_ids = this.state.dataLoader.genotypeExpansionCache[id];
+        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
          
         // remove these genotype ids from underlying target dataset
         // this way we still have other expanded genotypes in that sorted named array - Joe
@@ -4052,7 +4056,7 @@ var images = require('./images.json');
         }
         
         // also remove the cached gene id record from dataLoader cache
-        delete this.state.dataLoader.genotypeExpansionCache[id]
+        delete this.state.dataLoader.expandedGenotypeList[id]
         
         // set the flag
         this.state.removedGenotypes[species_name] = true;
@@ -4276,16 +4280,10 @@ TooltipRender.prototype = {
 
 		// for gene and single species mode only, add genotype expansion link
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
-            var expanded = false;
-        
             var id = tooltip.id;
 
-            var cached = tooltip.parent.state.dataLoader.checkGenotypeExpansionCache(id); // gene id
+            var expanded = tooltip.parent.state.dataLoader.isExpanded(id); // gene id
 
-            if (typeof(cached) !== 'undefined') {
-                expanded = true;
-            }
-        
             if (expanded){
                 returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
             } else {

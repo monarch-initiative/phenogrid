@@ -2404,7 +2404,7 @@ var images = require('./images.json');
     _removeGenotypes: function(id) {
         var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
         // array of genotype id list
-        var associated_genotype_ids = this.state.dataLoader.genotypeExpansionCache[id];
+        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
         
         // change 'visible' to false 
         for (var i = 0; i < associated_genotype_ids.length; i++) {
@@ -2427,7 +2427,7 @@ var images = require('./images.json');
         }
         
         // also remove the cached gene id record from dataLoader cache
-        delete this.state.dataLoader.genotypeExpansionCache[id];
+        delete this.state.dataLoader.expandedGenotypeList[id];
         
         // set the flag
         this.state.removedGenotypes[species_name] = true;
@@ -2444,7 +2444,7 @@ var images = require('./images.json');
         /*
         var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
         // array of genotype id list
-        var associated_genotype_ids = this.state.dataLoader.genotypeExpansionCache[id];
+        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
          
         // remove these genotype ids from underlying target dataset
         // this way we still have other expanded genotypes in that sorted named array - Joe
@@ -2469,7 +2469,7 @@ var images = require('./images.json');
         }
         
         // also remove the cached gene id record from dataLoader cache
-        delete this.state.dataLoader.genotypeExpansionCache[id]
+        delete this.state.dataLoader.expandedGenotypeList[id]
         
         // set the flag
         this.state.removedGenotypes[species_name] = true;

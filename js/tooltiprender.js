@@ -132,16 +132,10 @@ TooltipRender.prototype = {
 
 		// for gene and single species mode only, add genotype expansion link
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
-            var expanded = false;
-        
             var id = tooltip.id;
 
-            var cached = tooltip.parent.state.dataLoader.checkGenotypeExpansionCache(id); // gene id
+            var expanded = tooltip.parent.state.dataLoader.isExpanded(id); // gene id
 
-            if (typeof(cached) !== 'undefined') {
-                expanded = true;
-            }
-        
             if (expanded){
                 returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
             } else {

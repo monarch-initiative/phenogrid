@@ -33,7 +33,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
-    this.genotypeExpansionCache = []; // no need to specify species since each gene ID is unique
+    this.expandedGenotypeList = []; // no need to specify species since each gene ID is unique
     this.genotypeExpansionLoaded = []; // no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
 
@@ -557,7 +557,7 @@ DataLoader.prototype = {
             genotype_id_list.push(results.b[i].id.replace(':', '_'));
         }
         // cache for tooltiprender
-        self.genotypeExpansionCache[id] = genotype_id_list;
+        self.expandedGenotypeList[id] = genotype_id_list;
         // for reactivation
         self.genotypeExpansionLoaded[id] = genotype_id_list;
         
@@ -688,8 +688,12 @@ DataLoader.prototype = {
 	 	Parameters:
 	 		id - gene id to check
 	*/
-	checkGenotypeExpansionCache: function(id) {
-		return this.genotypeExpansionCache[id];
+	isExpanded: function(id) {
+        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
+            return false;
+        } else {
+            return true;
+        }
 	}
 };
 
