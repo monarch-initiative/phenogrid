@@ -339,8 +339,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
-    this.expandedGenotypeList = []; // no need to specify species since each gene ID is unique
-    this.genotypeExpansionLoaded = []; // no need to specify species since each gene ID is unique
+    this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
 
 };
@@ -857,15 +856,14 @@ DataLoader.prototype = {
         // but genotype labels on x axis will have the encoded characters
         // we just need to encode the labels for tooltip use - Joe
         
-        // save the expanded gene id in cache for later
+        // save the expanded gene id in for later
         var genotype_id_list = [];
         for (var i = 0; i < results.b.length; i++) {
             genotype_id_list.push(results.b[i].id.replace(':', '_'));
         }
-        // cache for tooltiprender
-        self.expandedGenotypeList[id] = genotype_id_list;
+
         // for reactivation
-        self.genotypeExpansionLoaded[id] = genotype_id_list;
+        self.loadedGenotypes[id] = genotype_id_list;
         
         finalCallback(results, id, parent);
     },
@@ -984,23 +982,9 @@ DataLoader.prototype = {
 	*/
 	checkOntologyCache: function(id) {
 		return this.ontologyCache[id];
-	},
-
-    /*
-		Function: checkOntologyCache
-
-			convenient function to check the genotype expansion cache for a given gene id
-	
-	 	Parameters:
-	 		id - gene id to check
-	*/
-	isExpanded: function(id) {
-        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
-            return false;
-        } else {
-            return true;
-        }
 	}
+
+
 };
 
 // CommonJS format
@@ -1039,6 +1023,8 @@ var DataManager = function(dataLoader) {
     // genotype expansion, named arrays of each single species
     this.reorderedTargetEntriesNamedArray = {};
     this.reorderedTargetEntriesIndexArray = {};
+    
+    this.expandedGenotypeList = {}; // named array, no need to specify species since each gene ID is unique
 };
 
 DataManager.prototype = {
@@ -1550,6 +1536,23 @@ DataManager.prototype = {
 		return this.dataLoader.getOntologyLabel(id);
 	},
     
+        /*
+		Function: isExpanded
+
+			convenient function to check the genotype expansion cache for a given gene id
+	
+	 	Parameters:
+	 		id - gene id to check
+	*/
+	isExpanded: function(id) {
+        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
+            return false;
+        } else {
+            return true;
+        }
+	},
+    
+    // check if the genotypes data of that specific gene id has been loaded
     checkGenotypesLoaded: function(species, id) {
 		if (typeof(this.reorderedTargetEntriesIndexArray[species]) === 'undefined') {
             this.reorderedTargetEntriesIndexArray[species] = []; // index array
@@ -3875,9 +3878,9 @@ var images = require('./images.json');
         if (loaded) {
             // change those associated genotypes to 'visible' and render them
             // array of genotype id list
-            var associated_genotype_ids = this.state.dataLoader.genotypeExpansionLoaded[id];
+            var associated_genotype_ids = this.state.dataLoader.loadedGenotypes[id];
             
-            // change 'visible' to false 
+            // reactivating by changing 'visible' to true
             for (var i = 0; i < associated_genotype_ids.length; i++) {
                 var genotype_id = associated_genotype_ids[i];
                 this.state.dataLoader.targetData[species_name][genotype_id].visible = true; 
@@ -3887,7 +3890,7 @@ var images = require('./images.json');
                 // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
                 for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
                     if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = [];
+                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
                     }
                     
                     if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
@@ -3906,6 +3909,10 @@ var images = require('./images.json');
             // Remove the spinner icon
             $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
             $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
+            
+            // Tell dataManager that the loaded genotypes of this gene have been expanded
+            // This updates the tooltiprender too
+            this.state.dataManager.expandedGenotypeList[id] = this.state.dataLoader.loadedGenotypes[id];
         } else {
             // Load the genotypes only once
             var cb = this._insertGenotypesCb;
@@ -3980,6 +3987,9 @@ var images = require('./images.json');
             // Remove the spinner icon
             $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
             $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
+            
+            // Tell dataManager that the loaded genotypes of this gene have been expanded
+            parent.state.dataManager.expandedGenotypeList[id] = parent.state.dataLoader.loadedGenotypes[id];
         } else {
             // tell users there's no genotypes associated to this gene
             parent._populateDialog('This gene has no associated genotypes.');
@@ -3991,19 +4001,19 @@ var images = require('./images.json');
     _removeGenotypes: function(id) {
         var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
         // array of genotype id list
-        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
+        var associated_genotype_ids = this.state.dataLoader.loadedGenotypes[id];
         
         // change 'visible' to false 
         for (var i = 0; i < associated_genotype_ids.length; i++) {
             var genotype_id = associated_genotype_ids[i];
             this.state.dataLoader.targetData[species_name][genotype_id].visible = false; 
 
-            // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
+            // Now we update the reorderedTargetEntriesNamedArray in dataManager
             this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = false;   
-            // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
+            // Also hide the corresponding genotypes in reorderedTargetEntriesIndexArray
             for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
                 if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = [];
+                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
                 }
                 
                 if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
@@ -4013,8 +4023,8 @@ var images = require('./images.json');
             }         
         }
         
-        // also remove the cached gene id record from dataLoader cache
-        delete this.state.dataLoader.expandedGenotypeList[id];
+        // Tell dataManager that the loaded genotypes of this gene have been collapsed from display 
+        delete this.state.dataManager.expandedGenotypeList[id];
         
         // set the flag
         this.state.removedGenotypes[species_name] = true;
@@ -4282,7 +4292,7 @@ TooltipRender.prototype = {
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
             var id = tooltip.id;
 
-            var expanded = tooltip.parent.state.dataLoader.isExpanded(id); // gene id
+            var expanded = tooltip.parent.state.dataManager.isExpanded(id); // gene id
 
             if (expanded){
                 returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 

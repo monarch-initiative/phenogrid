@@ -29,6 +29,8 @@ var DataManager = function(dataLoader) {
     // genotype expansion, named arrays of each single species
     this.reorderedTargetEntriesNamedArray = {};
     this.reorderedTargetEntriesIndexArray = {};
+    
+    this.expandedGenotypeList = {}; // named array, no need to specify species since each gene ID is unique
 };
 
 DataManager.prototype = {
@@ -540,6 +542,23 @@ DataManager.prototype = {
 		return this.dataLoader.getOntologyLabel(id);
 	},
     
+        /*
+		Function: isExpanded
+
+			convenient function to check the genotype expansion cache for a given gene id
+	
+	 	Parameters:
+	 		id - gene id to check
+	*/
+	isExpanded: function(id) {
+        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
+            return false;
+        } else {
+            return true;
+        }
+	},
+    
+    // check if the genotypes data of that specific gene id has been loaded
     checkGenotypesLoaded: function(species, id) {
 		if (typeof(this.reorderedTargetEntriesIndexArray[species]) === 'undefined') {
             this.reorderedTargetEntriesIndexArray[species] = []; // index array

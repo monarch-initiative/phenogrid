@@ -33,8 +33,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
-    this.expandedGenotypeList = []; // no need to specify species since each gene ID is unique
-    this.genotypeExpansionLoaded = []; // no need to specify species since each gene ID is unique
+    this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
 
 };
@@ -551,15 +550,14 @@ DataLoader.prototype = {
         // but genotype labels on x axis will have the encoded characters
         // we just need to encode the labels for tooltip use - Joe
         
-        // save the expanded gene id in cache for later
+        // save the expanded gene id in for later
         var genotype_id_list = [];
         for (var i = 0; i < results.b.length; i++) {
             genotype_id_list.push(results.b[i].id.replace(':', '_'));
         }
-        // cache for tooltiprender
-        self.expandedGenotypeList[id] = genotype_id_list;
+
         // for reactivation
-        self.genotypeExpansionLoaded[id] = genotype_id_list;
+        self.loadedGenotypes[id] = genotype_id_list;
         
         finalCallback(results, id, parent);
     },
@@ -678,23 +676,9 @@ DataLoader.prototype = {
 	*/
 	checkOntologyCache: function(id) {
 		return this.ontologyCache[id];
-	},
-
-    /*
-		Function: checkOntologyCache
-
-			convenient function to check the genotype expansion cache for a given gene id
-	
-	 	Parameters:
-	 		id - gene id to check
-	*/
-	isExpanded: function(id) {
-        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
-            return false;
-        } else {
-            return true;
-        }
 	}
+
+
 };
 
 // CommonJS format

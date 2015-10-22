@@ -134,7 +134,7 @@ TooltipRender.prototype = {
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
             var id = tooltip.id;
 
-            var expanded = tooltip.parent.state.dataLoader.isExpanded(id); // gene id
+            var expanded = tooltip.parent.state.dataManager.isExpanded(id); // gene id
 
             if (expanded){
                 returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 

@@ -2288,9 +2288,9 @@ var images = require('./images.json');
         if (loaded) {
             // change those associated genotypes to 'visible' and render them
             // array of genotype id list
-            var associated_genotype_ids = this.state.dataLoader.genotypeExpansionLoaded[id];
+            var associated_genotype_ids = this.state.dataLoader.loadedGenotypes[id];
             
-            // change 'visible' to false 
+            // reactivating by changing 'visible' to true
             for (var i = 0; i < associated_genotype_ids.length; i++) {
                 var genotype_id = associated_genotype_ids[i];
                 this.state.dataLoader.targetData[species_name][genotype_id].visible = true; 
@@ -2300,7 +2300,7 @@ var images = require('./images.json');
                 // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
                 for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
                     if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = [];
+                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
                     }
                     
                     if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
@@ -2319,6 +2319,10 @@ var images = require('./images.json');
             // Remove the spinner icon
             $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
             $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
+            
+            // Tell dataManager that the loaded genotypes of this gene have been expanded
+            // This updates the tooltiprender too
+            this.state.dataManager.expandedGenotypeList[id] = this.state.dataLoader.loadedGenotypes[id];
         } else {
             // Load the genotypes only once
             var cb = this._insertGenotypesCb;
@@ -2393,6 +2397,9 @@ var images = require('./images.json');
             // Remove the spinner icon
             $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
             $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
+            
+            // Tell dataManager that the loaded genotypes of this gene have been expanded
+            parent.state.dataManager.expandedGenotypeList[id] = parent.state.dataLoader.loadedGenotypes[id];
         } else {
             // tell users there's no genotypes associated to this gene
             parent._populateDialog('This gene has no associated genotypes.');
@@ -2404,19 +2411,19 @@ var images = require('./images.json');
     _removeGenotypes: function(id) {
         var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
         // array of genotype id list
-        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
+        var associated_genotype_ids = this.state.dataLoader.loadedGenotypes[id];
         
         // change 'visible' to false 
         for (var i = 0; i < associated_genotype_ids.length; i++) {
             var genotype_id = associated_genotype_ids[i];
             this.state.dataLoader.targetData[species_name][genotype_id].visible = false; 
 
-            // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
+            // Now we update the reorderedTargetEntriesNamedArray in dataManager
             this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = false;   
-            // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
+            // Also hide the corresponding genotypes in reorderedTargetEntriesIndexArray
             for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
                 if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = [];
+                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
                 }
                 
                 if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
@@ -2426,8 +2433,8 @@ var images = require('./images.json');
             }         
         }
         
-        // also remove the cached gene id record from dataLoader cache
-        delete this.state.dataLoader.expandedGenotypeList[id];
+        // Tell dataManager that the loaded genotypes of this gene have been collapsed from display 
+        delete this.state.dataManager.expandedGenotypeList[id];
         
         // set the flag
         this.state.removedGenotypes[species_name] = true;
