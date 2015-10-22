@@ -20,7 +20,14 @@ var d3 = require('d3');
 var AxisGroup = function(renderStartPos, renderEndPos, items)  {
 	this.renderStartPos = renderStartPos;
     this.renderEndPos = renderEndPos;
-    this.items = items;
+    
+    // remove all invisible genotypes
+    for (var index in items) {
+        if (items[index].type === 'genotype' && items[index].visible === false) {
+            delete items[index];
+        }
+    }
+    this.items = items
 };
 
 /*
@@ -96,7 +103,7 @@ AxisGroup.prototype = {
 
 	/*
 		Function: entries
-			provides the array of rendered entries
+			provides the array of rendered entries, can be phenotypes/genes/genotypes/diseases
 
 		Return:
 			array of objects of items
@@ -108,7 +115,7 @@ AxisGroup.prototype = {
 		for (var i = this.renderStartPos; i < this.renderEndPos;i++) {
 			var key = keys[i];
 			var el = this.items[key];
-			a.push(el);
+            a.push(el);
 		}
 		return a;
 	},
@@ -3883,10 +3890,18 @@ var images = require('./images.json');
             // reactivating by changing 'visible' to true
             for (var i = 0; i < associated_genotype_ids.length; i++) {
                 var genotype_id = associated_genotype_ids[i];
+                
+                if (typeof(this.state.dataLoader.targetData[species_name][genotype_id]) === 'undefined') {
+                    this.state.dataLoader.targetData[species_name][genotype_id] = {}; // object
+                }
                 this.state.dataLoader.targetData[species_name][genotype_id].visible = true; 
 
                 // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
+                if (typeof(this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id]) === 'undefined') {
+                    this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id] = {}; // object
+                }
                 this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = true;  
+                
                 // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
                 for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
                     if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
@@ -3981,7 +3996,7 @@ var images = require('./images.json');
             // flag, indicates that we have expanded genotypes for this species, 
             // so they show up when we switch from multi-species mode back to single species mode
             parent.state.expandedGenotypes[species_name] = true;
-            
+
             parent._updateDisplay();
             
             // Remove the spinner icon
