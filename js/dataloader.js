@@ -166,14 +166,7 @@ DataLoader.prototype = {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
-				// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
-				// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-				// if (this.contains("target", targetID)){
-				// 	targetID += "_" + variantNum;
-				// 	variantNum++;
-				// }
-
-				// TODO: THIS NEEDS CHANGED TO CATEGORY (I THINK MONARCH TEAM MENTIONED ADDING THIS)
+				// Need to have a better way to find the type of each element - Joe
 				var type = '';
 				for (var j in this.apiEntityMap) {
 				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
@@ -225,9 +218,6 @@ DataLoader.prototype = {
 							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
 											"count": count, "sum": sum, "type": "phenotype"};
 							this.sourceData[targetGroup][sourceID_a] = dataVals;
-							// if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
-							// 	this._getHPO(this.getConceptId(curr_row.a.id));
-							// }
 						} else {
 							this.sourceData[targetGroup][sourceID_a].count += 1;
 							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
@@ -331,9 +321,6 @@ DataLoader.prototype = {
 							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
 											"count": count, "sum": sum, "type": "phenotype"};
 							this.sourceData[targetGroup][sourceID_a] = dataVals;
-							// if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
-							// 	this._getHPO(this.getConceptId(curr_row.a.id));
-							// }
 						} else {
 							this.sourceData[targetGroup][sourceID_a].count += 1;
 							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
