@@ -526,6 +526,8 @@ var images = require('./images.json');
 	_createGrid: function() {
 		var self = this;
         // xvalues and yvalues are index arrays that contain the current x and y items, not all of them
+        // if any items are added genotypes, they only contain visible genotypes
+        // Axisgroup's constructor does the data filtering - Joe
 		var xvalues = self.state.xAxisRender.entries(); 
 		var yvalues = self.state.yAxisRender.entries();
 		var gridRegion = self.state.gridRegion; 
@@ -561,10 +563,10 @@ var images = require('./images.json');
             
             // the d.type is cell instead of genotype because the d refers to cell data
             // we'll need to get the genotype data from yAxisRender - Joe
-            .style('fill', function(d, i) { // add css to genotype labels
+            .style('fill', function(d, i) { // add different color to genotype labels
                 var el = self.state.yAxisRender.itemAt(i);
                 if (el.type === 'genotype') {
-                    return '#EA763B';
+                    return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
                 } else {
                     return '';
                 }
@@ -606,7 +608,7 @@ var images = require('./images.json');
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
-            .style('fill', function(d) { // add css to genotype labels
+            .style('fill', function(d) { // add different color to genotype labels
                 if (d.type === 'genotype') {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
                 } else {
@@ -637,10 +639,12 @@ var images = require('./images.json');
 		        .data(row)
 		        .enter().append("rect")
 		      	.attr("id", function(d, i) { 
-		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; })
+		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; 
+                })
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
-		        	return d.xpos * gridRegion.xpad;})
+		        	return d.xpos * gridRegion.xpad;
+                })
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
 				.attr("data-tooltip", "tooltip")   					        
