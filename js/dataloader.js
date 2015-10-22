@@ -510,7 +510,15 @@ DataLoader.prototype = {
 		this.getFetch(self, url, id, cb, finalCallback, parent);
 	},
 
-    // get genotypes of a specific gene 
+    /*
+		Function: getGenotypes
+            get genotypes of a specific gene 
+	
+	 	Parameters:
+			id - id
+	 		finalCallback - final callback name
+	 		parent - phenogrid.js global this
+	*/
     getGenotypes: function(id, finalCallback, parent) {
         var self = this;
         // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
@@ -520,7 +528,17 @@ DataLoader.prototype = {
         this.getFetch(self, url, id, cb, finalCallback, parent);
     },
     
-    // send the compare request to get all the matches data
+    /*
+		Function: getGenotypesCb
+            send the compare request to get all the matches data
+	
+	 	Parameters:
+			self - immediate parent
+	 		id - id which was searched
+            results - returned genotypes data
+	 		finalCallback - final callback function
+	 		parent - top level parent
+	*/
     getGenotypesCb: function(self, id, results, finalCallback, parent) {
 		// get the first 5 genotypes
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
@@ -544,7 +562,17 @@ DataLoader.prototype = {
         }
 	},
     
-    // return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
+    /*
+		Function: getGenotypesCb
+            return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
+	
+	 	Parameters:
+			self - immediate parent
+	 		id - id which was searched
+            results - returned genotypes data
+	 		finalCallback - final callback function
+	 		parent - top level parent
+	*/
     getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
         // don't encode labels into html entities here, otherwise the tooltip content is good, 
         // but genotype labels on x axis will have the encoded characters

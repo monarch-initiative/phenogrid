@@ -823,7 +823,15 @@ DataLoader.prototype = {
 		this.getFetch(self, url, id, cb, finalCallback, parent);
 	},
 
-    // get genotypes of a specific gene 
+    /*
+		Function: getGenotypes
+            get genotypes of a specific gene 
+	
+	 	Parameters:
+			id - id
+	 		finalCallback - final callback name
+	 		parent - phenogrid.js global this
+	*/
     getGenotypes: function(id, finalCallback, parent) {
         var self = this;
         // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
@@ -833,7 +841,17 @@ DataLoader.prototype = {
         this.getFetch(self, url, id, cb, finalCallback, parent);
     },
     
-    // send the compare request to get all the matches data
+    /*
+		Function: getGenotypesCb
+            send the compare request to get all the matches data
+	
+	 	Parameters:
+			self - immediate parent
+	 		id - id which was searched
+            results - returned genotypes data
+	 		finalCallback - final callback function
+	 		parent - top level parent
+	*/
     getGenotypesCb: function(self, id, results, finalCallback, parent) {
 		// get the first 5 genotypes
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
@@ -857,7 +875,17 @@ DataLoader.prototype = {
         }
 	},
     
-    // return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
+    /*
+		Function: getGenotypesCb
+            return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
+	
+	 	Parameters:
+			self - immediate parent
+	 		id - id which was searched
+            results - returned genotypes data
+	 		finalCallback - final callback function
+	 		parent - top level parent
+	*/
     getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
         // don't encode labels into html entities here, otherwise the tooltip content is good, 
         // but genotype labels on x axis will have the encoded characters
@@ -1071,7 +1099,17 @@ DataManager.prototype = {
         return this[dataset][targetGroup];
 	},
     
-    // each single species (fish/mouse) has its own ordered target list
+    /*
+		Function: appendNewGenotypesToOrderedTargetList
+			each single species (fish/mouse) has its own ordered target list
+
+		Parameters:
+			targetGroup - species name
+            data - newly added genotypes data
+
+		Returns:
+			reordered index array
+	*/
     appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
         // can't slice the object this.target[targetGroup]
         var newlyAdded = {}; // named array, species name is the key
@@ -1094,8 +1132,13 @@ DataManager.prototype = {
         return this.reorderedTargetEntriesIndexArray[targetGroup].concat(newlyAdded[targetGroup]);
     },
     
-    // for genotype expansion - Joe
-    // genotypesData is defined in _fetchGenotypesCb() of phenogrid.js
+    /*
+		Function: updateTargetList
+			each single species (fish/mouse) has its own ordered target list
+
+		Parameters:
+			genotypesData - defined in _fetchGenotypesCb() of phenogrid.js
+	*/
     updateTargetList: function(genotypesData) {
 		var targetEntries = genotypesData.targetEntries; // unordered target entries of current active single species 
         var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
@@ -1543,7 +1586,7 @@ DataManager.prototype = {
 		return this.dataLoader.getOntologyLabel(id);
 	},
     
-        /*
+    /*
 		Function: isExpanded
 
 			convenient function to check the genotype expansion cache for a given gene id
@@ -1559,7 +1602,15 @@ DataManager.prototype = {
         }
 	},
     
-    // check if the genotypes data of that specific gene id has been loaded
+    /*
+		Function: checkGenotypesLoaded
+
+			check if the genotypes data of that specific gene id has been loaded
+	
+	 	Parameters:
+	 		species - species name
+            id - gene id to check
+	*/
     checkGenotypesLoaded: function(species, id) {
 		if (typeof(this.reorderedTargetEntriesIndexArray[species]) === 'undefined') {
             this.reorderedTargetEntriesIndexArray[species] = []; // index array
