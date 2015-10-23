@@ -336,6 +336,7 @@ DataLoader.prototype = {
 						// building cell data points
 						dataVals = {"source_id": sourceID_a, 
 									"target_id": targetID, 
+                                    "target_type": 'genotype', // to mark this cell is generated for genotype expansion - Joe
 									//"targetGroup": item.taxon.label,									
 									"targetGroup": targetGroup,
                                     "value": lcs, 

@@ -647,6 +647,16 @@ var images = require('./images.json');
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			    })
+                .style('stroke', function(d){
+                    var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+                    // Only cells created for genotype expansion has this 'target_type' property - Joe
+                    if (typeof(el.target_type) !== 'undefined' && el.target_type === 'genotype') {
+                        return 'red';
+                    } else {
+                        return '';
+                    }
+                })
+                .style('stroke-width', 1) // add red border to added cells - Joe
 		        .on("mouseover", function(d) { 					
                     // self is the global widget this
                     // this passed to _mouseover refers to the current element
@@ -860,9 +870,9 @@ var images = require('./images.json');
 			axRender = self.state.xAxisRender;
 		}
 	    var scores = this.state.svg.selectAll(".scores")
-	      .data(list)
-	    .enter().append("g")
-	    	    .attr("class", "pg_score_text");
+	        .data(list)
+	        .enter().append("g")
+	    	.attr("class", "pg_score_text");
 
 	    scores.append("text")	 
 	      	.attr("text-anchor", "start")
@@ -876,16 +886,20 @@ var images = require('./images.json');
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
 				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; })
+  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; 
+                })
 	      		.attr("x", gridRegion.rowLabelOffset)
-	      		.attr("y",  function(d, i) {return scale.rangeBand(i)/2;});  
+	      		.attr("y",  function(d, i) {
+                    return scale.rangeBand(i)/2;
+                });  
 	    } else {
 	    	scores	      		
 	    	.attr("transform", function(d, i) { 
-	      			return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
-	      				 "," + (gridRegion.y-gridRegion.scoreOffset ) +")";})
-	      		.attr("x", 0)
-	      		.attr("y", scale.rangeBand()+2);
+                return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
+                     "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
+                })
+            .attr("x", 0)
+            .attr("y", scale.rangeBand()+2);
 	    }
 	}, 
     
