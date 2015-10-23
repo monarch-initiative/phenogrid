@@ -329,15 +329,13 @@ var Utils = require('./utils.js');
  	 	parent - reference to parent calling object
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
- 		apiEntityMap - entity map identifies the prefix maps (this is probably temporary)
  */
-var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap, limit) {
+var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, limit) {
 	this.simServerURL = simServerUrl;
 	this.serverURL = serverUrl;	
 	this.simSearchURL = serverUrl + simSearchQuery;
 	this.qryString = '';
 	this.limit = limit;
-	this.apiEntityMap = apiEntityMap;
 	this.owlsimsData = [];
 	this.origSourceList = [];
 	this.maxICScore = 0;
@@ -481,12 +479,20 @@ DataLoader.prototype = {
 
 				// Need to have a better way to find the type of each element - Joe
 				var type = '';
-				for (var j in this.apiEntityMap) {
-				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
-				 		type = this.apiEntityMap[j].apifragment; 
-				 	}
-				}
-				
+				// When we load the targets for the first time (no genotype expansion yet)
+                // The type may be added in monarch api level, will update later - Joe
+                switch (item.taxon.label) {
+                    case 'Homo sapiens': 
+                        type = 'disease';
+                        break;
+                    case 'Mus musculus': 
+                        type = 'gene';
+                        break;
+                    case 'Danio rerio': 
+                        type = 'gene';
+                        break;
+                }
+                
 				// build the target list
 				var t = {
                         "id":targetID, 
@@ -1815,13 +1821,7 @@ var images = require('./images.json');
             comparisonTypes: [ 
                 {organism: "Homo sapiens", comparison: "diseases"}
             ],
-            defaultComparisonType: {comparison: "genes"},
-            apiEntityMap: [ 
-                {prefix: "HP", apifragment: "disease"},
-                {prefix: "OMIM", apifragment: "disease"}, 
-                {prefix: "ZFIN", apifragment: "gene"}, 			
-                {prefix: "MGI", apifragment: "gene"}
-            ]
+            defaultComparisonType: {comparison: "genes"}
         },
 
 
@@ -1907,7 +1907,7 @@ var images = require('./images.json');
         };
 
 		// initialize data processing class, 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, this.state.apiEntityMap);
+		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
 
 		// starting loading the data
 		this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
@@ -2217,7 +2217,8 @@ var images = require('./images.json');
                 // this passed to _mouseover refers to the current element
                 // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
                 // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                self._mouseover(this, data, self);})
+                self._mouseover(this, data, self);
+            })
 			.on("mouseout", function() {
 				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                 self._mouseout();		  		

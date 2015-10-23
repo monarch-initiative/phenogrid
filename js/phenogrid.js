@@ -180,13 +180,7 @@ var images = require('./images.json');
             comparisonTypes: [ 
                 {organism: "Homo sapiens", comparison: "diseases"}
             ],
-            defaultComparisonType: {comparison: "genes"},
-            apiEntityMap: [ 
-                {prefix: "HP", apifragment: "disease"},
-                {prefix: "OMIM", apifragment: "disease"}, 
-                {prefix: "ZFIN", apifragment: "gene"}, 			
-                {prefix: "MGI", apifragment: "gene"}
-            ]
+            defaultComparisonType: {comparison: "genes"}
         },
 
 
@@ -272,7 +266,7 @@ var images = require('./images.json');
         };
 
 		// initialize data processing class, 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, this.state.apiEntityMap);
+		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
 
 		// starting loading the data
 		this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
@@ -582,7 +576,8 @@ var images = require('./images.json');
                 // this passed to _mouseover refers to the current element
                 // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
                 // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                self._mouseover(this, data, self);})
+                self._mouseover(this, data, self);
+            })
 			.on("mouseout", function() {
 				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                 self._mouseout();		  		
