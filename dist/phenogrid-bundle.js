@@ -477,7 +477,7 @@ DataLoader.prototype = {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
-				// Need to have a better way to find the type of each element - Joe
+                // Need to have a better way to find the type of each element - Joe
 				var type = '';
 				// When we load the targets for the first time (no genotype expansion yet)
                 // The type may be added in monarch api level, will update later - Joe
@@ -502,8 +502,8 @@ DataLoader.prototype = {
                          "type": type, 
                          "rank": parseInt(idx)+1,  // start with 1 not zero
                          "score": item.score.score
-                    };  
-				
+                    }; 
+
                 // we need to define this here, otherwise will get 'cannot set property of undefined' error 
                 // when we call genotypeTransform() - Joe
                 if(typeof(this.targetData[targetGroup]) === 'undefined') {
@@ -597,7 +597,7 @@ DataLoader.prototype = {
                         //"targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
                         "targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
                         //"taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
-                        "type": 'genotype', 
+                        "type": item.type, 
                         'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
                         "rank": parseInt(idx)+1,  // start with 1 not zero
                         "score": item.score.score,
