@@ -522,68 +522,18 @@ var images = require('./images.json');
         // xvalues and yvalues are index arrays that contain the current x and y items, not all of them
         // if any items are added genotypes, they only contain visible genotypes
         // Axisgroup's constructor does the data filtering - Joe
-		var xvalues = self.state.xAxisRender.entries(); 
-		var yvalues = self.state.yAxisRender.entries();
-		var gridRegion = self.state.gridRegion; 
-		var xScale = self.state.xAxisRender.getScale();
-		var yScale = self.state.yAxisRender.getScale();
+		var xvalues = this.state.xAxisRender.entries(); 
+		var yvalues = this.state.yAxisRender.entries();
+		var gridRegion = this.state.gridRegion; 
+		var xScale = this.state.xAxisRender.getScale();
+		var yScale = this.state.yAxisRender.getScale();
 
 		// use the x/y renders to generate the matrix
-	    var matrix = self.state.dataManager.buildMatrix(xvalues, yvalues, false);
+	    var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
 
-		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
-		var row = this.state.svg.selectAll(".row")
-  			.data(matrix)
-			.enter().append("g")			
-			.attr("class", "row")	 		
-			.attr("id", function(d, i) { 
-				return "pg_grid_row_"+i;
-            })
-  			.attr("transform", function(d, i) { 
-  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; 
-            })
-  			.each(createrow);
 
-   		// create row labels
-	  	row.append("text")
-			.attr("x", gridRegion.rowLabelOffset)	  		
-	      	.attr("y",  function(d, i) {
-	      		var rb = yScale.rangeBand(i)/2;
-	      		return rb;
-	      	})  
-	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
-	      	.attr("text-anchor", "end")
-            .style("font-size", "11px")
-            
-            // the d.type is cell instead of genotype because the d refers to cell data
-            // we'll need to get the genotype data from yAxisRender - Joe
-            .style('fill', function(d, i) { // add different color to genotype labels
-                var el = self.state.yAxisRender.itemAt(i);
-                if (el.type === 'genotype') {
-                    return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
-                } else {
-                    return '';
-                }
-            })
-			.attr("data-tooltip", "pg_tooltip")   				      
-		    .text(function(d, i) { 
-	      		var el = self.state.yAxisRender.itemAt(i);
-	      		return Utils.getShortLabel(el.label); 
-            })
-			.on("mouseover", function(d, i) { 		
-				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				// self is the global widget this
-                // this passed to _mouseover refers to the current element
-                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
-                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                self._mouseover(this, data, self);
-            })
-			.on("mouseout", function() {
-				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
-                self._mouseout();		  		
-			});
-
-	    // create columns using the xvalues (targets)
+        // create column lables first, so the added genotype cells will overwrite the background color - Joe
+        // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
 	        .data(xvalues)
 	        .enter().append("g")
@@ -626,9 +576,94 @@ var images = require('./images.json');
                 self._mouseout();
 			});
 	
-	    // add the scores  
+        // grey background for added genotype columns - Joe
+        column.append("rect")
+            .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
+            .attr('width', gridRegion.cellwd)
+            .attr('height', self._gridHeight())
+            .style('fill', function(d){
+                if (d.type === 'genotype') {
+                    return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                } else {
+                    return 'none'; // transparent 
+                }
+            })
+            .style('opacity', 0.8)
+            .attr("transform", function(d) { 
+                return "rotate(45)"; 
+            }); //45
+        
+        // add the scores for labels
 	    self._createTextScores();
+        
+		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
+		var row = this.state.svg.selectAll(".row")
+  			.data(matrix)
+			.enter().append("g")			
+			.attr("class", "row")	 		
+			.attr("id", function(d, i) { 
+				return "pg_grid_row_"+i;
+            })
+  			.attr("transform", function(d, i) { 
+  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; 
+            });
 
+   		// create row labels
+	  	row.append("text")
+			.attr("x", gridRegion.rowLabelOffset)	  		
+	      	.attr("y",  function(d, i) {
+	      		var rb = yScale.rangeBand(i)/2;
+	      		return rb;
+	      	})  
+	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
+	      	.attr("text-anchor", "end")
+            .style("font-size", "11px")
+            
+            // the d.type is cell instead of genotype because the d refers to cell data
+            // we'll need to get the genotype data from yAxisRender - Joe
+            .style('fill', function(d, i) { // add different color to genotype labels
+                var el = self.state.yAxisRender.itemAt(i);
+                if (el.type === 'genotype') {
+                    return '#EA763B'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                } else {
+                    return '';
+                }
+            })
+			.attr("data-tooltip", "pg_tooltip")   				      
+		    .text(function(d, i) { 
+	      		var el = self.state.yAxisRender.itemAt(i);
+	      		return Utils.getShortLabel(el.label); 
+            })
+			.on("mouseover", function(d, i) { 		
+				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
+				// self is the global widget this
+                // this passed to _mouseover refers to the current element
+                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                self._mouseover(this, data, self);
+            })
+			.on("mouseout", function() {
+				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+                self._mouseout();		  		
+			});
+
+        row.append("rect")
+            .attr('width', self._gridWidth())
+            .attr('height', gridRegion.cellht)
+            .style('fill', function(d, i) { // add different color to genotype labels
+                var el = self.state.yAxisRender.itemAt(i);
+                if (el.type === 'genotype') {
+                    return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                } else {
+                    return 'none'; // transparent 
+                }
+            })
+            .style('opacity', 0.8);
+        
+        // create the grid cells after appending all the background rects
+        // so they can overwrite the row background for those added genotype rows - Joe 
+        row.each(createrow);
+    
 		function createrow(row) {
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
@@ -647,16 +682,6 @@ var images = require('./images.json');
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
 			    })
-                .style('stroke', function(d){
-                    var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-                    // Only cells created for genotype expansion has this 'target_type' property - Joe
-                    if (typeof(el.target_type) !== 'undefined' && el.target_type === 'genotype') {
-                        return 'red';
-                    } else {
-                        return '';
-                    }
-                })
-                .style('stroke-width', 1) // add red border to added cells - Joe
 		        .on("mouseover", function(d) { 					
                     // self is the global widget this
                     // this passed to _mouseover refers to the current element
