@@ -164,29 +164,13 @@ DataLoader.prototype = {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
-                // Need to have a better way to find the type of each element - Joe
-				var type = '';
-				// When we load the targets for the first time (no genotype expansion yet)
-                // The type may be added in monarch api level, will update later - Joe
-                switch (item.taxon.label) {
-                    case 'Homo sapiens': 
-                        type = 'disease';
-                        break;
-                    case 'Mus musculus': 
-                        type = 'gene';
-                        break;
-                    case 'Danio rerio': 
-                        type = 'gene';
-                        break;
-                }
-                
 				// build the target list
 				var t = {
                         "id":targetID, 
                          "label": item.label, 
                          "targetGroup": item.taxon.label, 
                          "taxon": item.taxon.id, 
-                         "type": type, 
+                         "type": item.type, 
                          "rank": parseInt(idx)+1,  // start with 1 not zero
                          "score": item.score.score
                     }; 
