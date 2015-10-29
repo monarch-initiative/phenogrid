@@ -130,7 +130,9 @@ TooltipRender.prototype = {
                          + tooltip._score() 
                          + tooltip._targetGroup();
 
-		// for gene and single species mode only, add genotype expansion link
+		
+        /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
+        // for gene and single species mode only, add genotype expansion link
 		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
             var id = tooltip.id;
 
@@ -142,7 +144,7 @@ TooltipRender.prototype = {
                 returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
             }
         }
-		
+		*/
 		return returnHtml;	
 	},
 
