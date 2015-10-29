@@ -277,17 +277,19 @@ font-size: 11px;
 fill: blue;
 }
 
-.pg_expand_ontology{
+#pg_container  .pg_expand_ontology,
+#pg_container  .pg_expand_genotype{
 text-decoration: underline;
 color:#DC4945;
 cursor:pointer;
 }
 
-.pg_expand_ontology_icon{
+#pg_container  .pg_expand_ontology_icon,
+#pg_container  .pg_expand_genotype_icon{
 margin-left:2px;
 }
 
-em.pg_ontology_tree_indent{
+#pg_container  em.pg_ontology_tree_indent{
 width:12px;
 float:left;
 display:inline-block;
@@ -322,8 +324,6 @@ display:none;
 cursor:pointer;
 color:#EA763B;
 }
-
-
 
 
 

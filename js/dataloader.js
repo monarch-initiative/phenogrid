@@ -16,15 +16,13 @@ var Utils = require('./utils.js');
  	 	parent - reference to parent calling object
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
- 		apiEntityMap - entity map identifies the prefix maps (this is probably temporary)
  */
-var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap, limit) {
+var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, limit) {
 	this.simServerURL = simServerUrl;
 	this.serverURL = serverUrl;	
 	this.simSearchURL = serverUrl + simSearchQuery;
 	this.qryString = '';
 	this.limit = limit;
-	this.apiEntityMap = apiEntityMap;
 	this.owlsimsData = [];
 	this.origSourceList = [];
 	this.maxICScore = 0;
@@ -33,6 +31,7 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, apiEntityMap,
 	this.cellData = [];
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
+    this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
 
 };
@@ -137,7 +136,6 @@ DataLoader.prototype = {
 	 		data - owlsims structured data
 	*/
 	transform: function(targetGroup, data) {      		
-
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
 			console.log("transforming...");
@@ -146,48 +144,50 @@ DataLoader.prototype = {
 			if (typeof (data.metadata) !== 'undefined') {
 				this.maxICScore = data.metadata.maxMaxIC;
 			}
-			// just initialize the specific targetGroup
-			this.cellData[targetGroup] = [];
-			this.targetData[targetGroup] = [];
-			this.sourceData[targetGroup] = [];
+			
+            // just initialize the specific targetGroup
+            
+            // Here we don't reset the cellData, targetData, and sourceData every time,
+            // because we want to append the genotype expansion data - Joe
+			if (typeof(this.cellData[targetGroup]) === 'undefined') {
+                this.cellData[targetGroup] = [];
+            }
+            if (typeof(this.targetData[targetGroup]) === 'undefined') {
+                this.targetData[targetGroup] = [];
+            }
+            if (typeof(this.sourceData[targetGroup]) === 'undefined') {
+                this.sourceData[targetGroup] = [];
+            }
 
-			//var variantNum = 0;
+ 
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
-				// [vaa12] HACK.  NEEDED FOR ALLOWING MODELS OF THE SAME ID AKA VARIANTS TO BE DISPLAYED W/O OVERLAP
-				// SEEN MOST WITH COMPARE AND/OR EXOMISER DATA
-				// if (this.contains("target", targetID)){
-				// 	targetID += "_" + variantNum;
-				// 	variantNum++;
-				// }
-
-				// TODO: THIS NEEDS CHANGED TO CATEGORY (I THINK MONARCH TEAM MENTIONED ADDING THIS)
-				var type = '';
-				for (var j in this.apiEntityMap) {
-				 	if (targetID.indexOf(this.apiEntityMap[j].prefix) === 0) {
-				 		type = this.apiEntityMap[j].apifragment; 
-				 	}
-				}
-				
 				// build the target list
-				var t = {"id":targetID, 
-					 "label": item.label, 
-					 "targetGroup": item.taxon.label, 
-					 "taxon": item.taxon.id, 
-					 "type": type, 
-					 "rank": parseInt(idx)+1,  // start with 1 not zero
-					 "score": item.score.score};  
-				this.targetData[targetGroup][targetID] = t;
+				var t = {
+                        "id":targetID, 
+                         "label": item.label, 
+                         "targetGroup": item.taxon.label, 
+                         "taxon": item.taxon.id, 
+                         "type": item.type, 
+                         "rank": parseInt(idx)+1,  // start with 1 not zero
+                         "score": item.score.score
+                    }; 
+
+                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
+                // when we call genotypeTransform() - Joe
+                if(typeof(this.targetData[targetGroup]) === 'undefined') {
+                    this.targetData[targetGroup] = {};
+                }
+        
+                this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
-				var sourceID_a, currID_b, currID_lcs;  // Added currID_b - Joe
+				var sourceID_a, currID_b, currID_lcs;
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
-
-					for (var matchIdx in matches) 
-					{
+					for (var matchIdx in matches) {
 						var sum = 0, count = 0;						
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
@@ -208,9 +208,6 @@ DataLoader.prototype = {
 							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
 											"count": count, "sum": sum, "type": "phenotype"};
 							this.sourceData[targetGroup][sourceID_a] = dataVals;
-							// if (!this.state.hpoCacheBuilt && this.state.preloadHPO){
-							// 	this._getHPO(this.getConceptId(curr_row.a.id));
-							// }
 						} else {
 							this.sourceData[targetGroup][sourceID_a].count += 1;
 							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
@@ -229,7 +226,8 @@ DataLoader.prototype = {
 									"b_id": currID_b,
 									"b_label": curr_row.b.label, 
 									"b_IC": parseFloat(curr_row.b.IC),
-									"type": 'cell'};
+									"type": 'cell'
+                                    };
 							    
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
@@ -244,6 +242,117 @@ DataLoader.prototype = {
 		} // if
 	}, 
 
+    // used to transform genotype/phenotype matches 
+    // modified based on transform() - Joe
+    genotypeTransform: function(targetGroup, data, parentGeneID) {      		
+		if (typeof(data) !== 'undefined' &&
+		    typeof (data.b) !== 'undefined') {
+			console.log("transforming genotype data...");
+
+			// extract the maxIC score; ugh!
+			if (typeof (data.metadata) !== 'undefined') {
+				this.maxICScore = data.metadata.maxMaxIC;
+			}
+
+            // no need to initialize the specific targetGroup
+            // since they should've been set
+
+			for (var idx in data.b) {
+				var item = data.b[idx];
+				var targetID = Utils.getConceptId(item.id);
+
+				// build the target list
+				var t = {
+                        "id":targetID, 
+                        "label": item.label, 
+                        //"targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
+                        "targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
+                        //"taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
+                        "type": item.type, 
+                        'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
+                        "rank": parseInt(idx)+1,  // start with 1 not zero
+                        "score": item.score.score,
+                        "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
+                    };  
+                
+                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
+                // when we call genotypeTransform() - Joe
+                if(typeof(this.targetData[targetGroup]) === 'undefined') {
+                    this.targetData[targetGroup] = {};
+                }
+                
+				this.targetData[targetGroup][targetID] = t;
+
+				var matches = data.b[idx].matches;
+				var curr_row, lcs, dataVals;
+				var sourceID_a, currID_b, currID_lcs;
+				if (typeof(matches) !== 'undefined' && matches.length > 0) {
+					for (var matchIdx in matches) {
+						var sum = 0, count = 0;						
+						curr_row = matches[matchIdx];
+						sourceID_a = Utils.getConceptId(curr_row.a.id);
+						currID_b = Utils.getConceptId(curr_row.b.id);
+						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
+
+						// get the normalized IC
+						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
+
+                        if(typeof(this.sourceData[targetGroup]) === 'undefined') {
+                            this.sourceData[targetGroup] = {};
+                        }
+                        
+						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
+
+						// build a unique list of sources
+						if (typeof(srcElement) === 'undefined') {
+							count++;
+							sum += parseFloat(curr_row.lcs.IC);
+
+							// create a new source object
+							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
+											"count": count, "sum": sum, "type": "phenotype"};
+							this.sourceData[targetGroup][sourceID_a] = dataVals;
+						} else {
+							this.sourceData[targetGroup][sourceID_a].count += 1;
+							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
+						}
+
+						// building cell data points
+						dataVals = {"source_id": sourceID_a, 
+									"target_id": targetID, 
+                                    "target_type": 'genotype', // to mark this cell is generated for genotype expansion - Joe
+									//"targetGroup": item.taxon.label,									
+									"targetGroup": targetGroup,
+                                    "value": lcs, 
+									"a_IC" : curr_row.a.IC,  
+									"a_label" : curr_row.a.label,
+									"subsumer_id": currID_lcs, 
+									"subsumer_label": curr_row.lcs.label, 
+									"subsumer_IC": parseFloat(curr_row.lcs.IC), 
+									"b_id": currID_b,
+									"b_label": curr_row.b.label, 
+									"b_IC": parseFloat(curr_row.b.IC),
+									"type": 'cell'
+                                    };
+					    
+                        if(typeof(this.cellData[targetGroup]) === 'undefined') {
+                            this.cellData[targetGroup] = {};
+                        }
+                        
+					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a] = {};
+					    }
+					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a][targetID] = {};
+					    } 
+					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
+					}
+				}  //if
+			} // for
+		} // if
+	}, 
+
+    
 	/*
 		Function: refresh
 
@@ -379,9 +488,88 @@ DataLoader.prototype = {
 
 		// no postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
 		this.getFetch(self, url, id, cb, finalCallback, parent);
-
 	},
 
+    /*
+		Function: getGenotypes
+            get genotypes of a specific gene 
+	
+	 	Parameters:
+			id - id
+	 		finalCallback - final callback name
+	 		parent - phenogrid.js global this
+	*/
+    getGenotypes: function(id, finalCallback, parent) {
+        var self = this;
+        // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
+        var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
+        var cb = this.getGenotypesCb;
+        // ajax get all the genotypes of this gene id
+        this.getFetch(self, url, id, cb, finalCallback, parent);
+    },
+    
+    /*
+		Function: getGenotypesCb
+            send the compare request to get all the matches data
+	
+	 	Parameters:
+			self - immediate parent
+	 		id - id which was searched
+            results - returned genotypes data
+	 		finalCallback - final callback function
+	 		parent - top level parent
+	*/
+    getGenotypesCb: function(self, id, results, finalCallback, parent) {
+		// get the first 5 genotypes
+        // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
+        // some genes may don't have associated genotypes
+        if (typeof(results.genotype_list) !== 'undefined') {
+            var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
+            var phenotype_id_list = self.origSourceList.join("+");
+            var genotype_id_list = '';
+            for (var i in genotype_list) {
+                genotype_id_list += genotype_list[i].id + ",";
+            }
+            // truncate the last ',' off
+            if (genotype_id_list.slice(-1) === ',') {
+                genotype_id_list = genotype_id_list.slice(0, -1);
+            }
+            // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+            var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
+            // Now we need to get all the matches data
+            var cb = self.getGenotypesCbCb;
+            self.getFetch(self, compare_url, id, cb, finalCallback, parent);
+        }
+	},
+    
+    /*
+		Function: getGenotypesCb
+            return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
+	
+	 	Parameters:
+			self - immediate parent
+	 		id - id which was searched
+            results - returned genotypes data
+	 		finalCallback - final callback function
+	 		parent - top level parent
+	*/
+    getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
+        // don't encode labels into html entities here, otherwise the tooltip content is good, 
+        // but genotype labels on x axis will have the encoded characters
+        // we just need to encode the labels for tooltip use - Joe
+        
+        // save the expanded gene id in for later
+        var genotype_id_list = [];
+        for (var i = 0; i < results.b.length; i++) {
+            genotype_id_list.push(results.b[i].id.replace(':', '_'));
+        }
+
+        // for reactivation
+        self.loadedGenotypes[id] = genotype_id_list;
+        
+        finalCallback(results, id, parent);
+    },
+    
 	/*
 		Function: postOntologyCb
 
@@ -473,7 +661,7 @@ DataLoader.prototype = {
 	/*
 		Function: dataExists
 
-			convienent function to check the cell data for a given target group (i.e., species)
+			convenient function to check the cell data for a given target group (i.e., species)
 	
 	 	Parameters:
 	 		targetGroup - target Group label
@@ -489,7 +677,7 @@ DataLoader.prototype = {
 	/*
 		Function: checkOntologyCache
 
-			convienent function to check the ontology cache for a given id
+			convenient function to check the ontology cache for a given id
 	
 	 	Parameters:
 	 		id - id to check

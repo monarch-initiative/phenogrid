@@ -19,22 +19,18 @@ var Utils = require('./utils.js');
  	Parameters:
  		url base
 */
-var TooltipRender = function(url) {  //parms
+var TooltipRender = function(url) {
 	 this.url = url;
 };
 
 TooltipRender.prototype = {
 	constructor:TooltipRender,
-
+    // also encode the labels into html entities, otherwise they will mess up the tooltip format
 	entityHreflink: function(ptype, pid, plabel) {
 		var s = "<a href=\"" + this.url +"/" +  ptype +"/"+ pid +
-				"\" target=\"_blank\">" + plabel + "</a>";
+				"\" target=\"_blank\">" + Utils.encodeHtmlEntity(plabel) + "</a>";
 		return s;
 	},
-
-	test: function() {
-		console.log('test');
-	}, 
 
 	// main method for rendering tooltip content
 	html: function(parms) {
@@ -42,65 +38,71 @@ TooltipRender.prototype = {
 		this.data = parms.data;
 		this.id = parms.data.id;
 		var retInfo = "";
+        
+        switch (this.data.type) {
+            case 'cell':
+                retInfo = this.cell(this, this.data);
+                break;
+            case 'gene':
+                retInfo = this.gene(this);
+                break;
+            case 'phenotype':
+                retInfo = this.phenotype(this);
+                break;
+            case 'genotype':
+                retInfo = this.genotype(this);
+                break;
+            case 'disease':
+                retInfo = this.disease(this);
+                break;
+        }
 
-		// making an assumption here that we want to display cell info
-		//if ( typeof(this.data.type) == 'undefined') {
-		if ( this.data.type === 'cell') {
-			retInfo = this.cell(this, this.data);
-		} else {
-			// this creates the standard information portion of the tooltip, 
-			retInfo =  "<strong>" + this._capitalizeString(this.data.type) + ": </strong> " + 
-						this.entityHreflink(this.data.type, this.data.id, this.data.label ) +
-						"<br/>" + this._rank() + this._score() + this._ic() + this._sum() + 
-						this._freq() + this._targetGroup();
-
-			// this creates the extended information for specialized tooltip info and functionality
-			// try to dynamically invoke the function that matches the data.type
-			try {
-				var func = this.data.type;			
-				retInfo += this[func](this);
-			} catch(err) { console.log("searching for " + func);}
-		}
 		return retInfo;
 	},
+    
+    _type: function(type, id, label) {
+		return (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this.entityHreflink(type, id, label ) + "<br/>" : "");
+	},
+    
 	_rank: function() {
-		return (typeof(this.data.rank) !== 'undefined'?"<strong>Rank:</strong> " + this.data.rank+"<br/>":"");
+		return (typeof(this.data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + this.data.rank+"<br/>" : "");
 	},
+    
 	_score: function() {
-		return (typeof(this.data.score) !== 'undefined'?"<strong>Score:</strong> " + this.data.score+"<br/>":"");	
+		return (typeof(this.data.score) !== 'undefined' ? "<strong>Score:</strong> " + this.data.score+"<br/>" : "");	
 	},
+    
 	_ic: function() {
-		return (typeof(this.data.IC) !== 'undefined'?"<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br/>":"");
+		return (typeof(this.data.IC) !== 'undefined' ? "<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br/>" : "");
 	},
+    
 	_targetGroup: function() {
-		return (typeof(this.data.targetGroup) !== 'undefined'?"<strong>Species:</strong> " + this.data.targetGroup+"<br/>":"");
+		return (typeof(this.data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + this.data.targetGroup+"<br/>" : "");
 	},
+    
 	_sum: function() {
-		return (typeof(this.data.sum) !== 'undefined'?"<strong>Sum:</strong> " + this.data.sum.toFixed(2)+"<br/>":"");
+		return (typeof(this.data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + this.data.sum.toFixed(2)+"<br/>" : "");
 	},
+    
 	_freq: function() {
-		return (typeof(this.data.count) !== 'undefined'?"<strong>Frequency:</strong> " + this.data.count +"<br/>":"");
+		return (typeof(this.data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + this.data.count +"<br/>" : "");
 	},
-
-	_capitalizeString: function(word){
-		if (word === undefined) {
-			return "Undefined";
-		} else {
-			return word.charAt(0).toUpperCase() + word.slice(1);
-		}
-	}, 
 
 	phenotype: function(tooltip) {
-		
-		var returnHtml = "";
-		var expand = false;
+        var returnHtml = tooltip._type(tooltip.data.type, tooltip.data.id, tooltip.data.label)
+                         + tooltip._ic()
+                         + tooltip._sum() 
+                         + tooltip._freq() 
+                         + tooltip._targetGroup();
+                        
+		var expanded = false;
 		var ontologyData = "<br>";
 		var id = tooltip.id;
 
 		var cached = tooltip.parent.state.dataLoader.checkOntologyCache(id);
 
-		if (cached !== undefined) { //&& hpoCached.active == 1){
-			expand = true;
+		if (typeof(cached) !== 'undefined') {
+			expanded = true;
 
 			//HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
 			tooltip.parent.state.ontologyTreesDone = 0;
@@ -112,64 +114,58 @@ TooltipRender.prototype = {
 				ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
 			}
 		}
-		if (expand){
+        
+		if (expanded){
 			returnHtml += ontologyData;
 		} else {
-			//returnHtml = "<br>Click icon to <b>expand</b> classification hierarchy info";
-			returnHtml = "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+			returnHtml += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
 		}
-	return returnHtml;		
-
+        
+        return returnHtml;		
 	},
 
 	gene: function(tooltip) {
-		var returnHtml = "";	
-	/* DISABLE THIS FOR NOW UNTIL SCIGRAPH CALL IS WORKING */
-		
-		if (tooltip.parent.state.targetGroupName !== "Overview"){
-			var isExpanded = false;
-			var gtCached = tooltip.parent.state.expandedHash.get(tooltip.id);
-			if (gtCached !== null) { isExpanded = gtCached.expanded;}
+		var returnHtml = tooltip._type(tooltip.data.type, tooltip.data.id, tooltip.data.label)
+                         + tooltip._rank() 
+                         + tooltip._score() 
+                         + tooltip._targetGroup();
 
-			//if found just return genotypes scores
-			if (isExpanded) {
-	//					appearanceOverrides.offset = (gtCached.genoTypes.size() + (gtCached.genoTypes.size() * 0.40));   // magic numbers for extending the highlight
-				returnHtml = "<br>Number of expanded genotypes: " + gtCached.genoTypes.size() +
-					 "<br/><br/>Click button to <b>collapse</b> associated genotypes &nbsp;&nbsp;" +
-					 "<button class=\"collapsebtn\" type=\"button\" onClick=\"self._collapse('" + tooltip.id + "')\">" +
-					 "</button>";
-			} else {
-				if (gtCached !== null) {
-					returnHtml = "<br/><br/>Click button to <b>expand</b> <u>" + gtCached.genoTypes.size() + "</u> associated genotypes &nbsp;&nbsp;";
-				} else {
-					returnHtml = "<br/><br/>Click button to <b>expand</b> associated genotypes &nbsp;&nbsp;";
-				}
-				returnHtml += "<button class=\"expandbtn\" type=\"button\" onClick=\"self._expand('" + tooltip.id + "')\"></button>";
-			}
-		}
 		
+        /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
+        // for gene and single species mode only, add genotype expansion link
+		if (tooltip.parent.state.selectedCompareTargetGroup.length === 1) {
+            var id = tooltip.id;
+
+            var expanded = tooltip.parent.state.dataManager.isExpanded(id); // gene id
+
+            if (expanded){
+                returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_remove_genotypes_" + tooltip.id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
+            } else {
+                returnHtml += "<br><div class=\"pg_expand_genotype\" data-species=\"" + tooltip.data.targetGroup + "\" id=\"pg_insert_genotypes_" + tooltip.id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+            }
+        }
+		*/
 		return returnHtml;	
 	},
 
 	genotype: function(tooltip) {
-		var returnHtml = "";
-		if (typeof(info.parent) !== 'undefined' && info.parent !== null) {
-			var parentInfo = tooltip.parent.state.modelListHash.get(info.parent);
-			if (parentInfo !== null) {
-				// var alink = this.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":");
-				// var hyperLink = $("<a>")
-				// 	.attr("href", alink)
-				// 	.attr("target", "_blank")
-				// 	.text(parentInfo.label);
-				// return "<br/><strong>Gene:</strong> " + hyperLink;				
+		var returnHtml = tooltip._type(tooltip.data.type, tooltip.data.id, tooltip.data.label)
+                         + tooltip._rank() 
+                         + tooltip._score() 
+                         + tooltip._targetGroup();
 
-				var genehrefLink = "<a href=\"" + tooltip.url + "/" + parentInfo.type + "/" + info.parent.replace("_", ":") + "\" target=\"_blank\">" + parentInfo.label + "</a>";
-				returnHtml = "<br/><strong>Gene:</strong> " + genehrefLink;
-			}
-		}
 		return returnHtml;	
 	},
 
+    disease: function(tooltip) {
+		var returnHtml = tooltip._type(tooltip.data.type, tooltip.data.id, tooltip.data.label)
+                         + tooltip._rank() 
+                         + tooltip._score() 
+                         + tooltip._targetGroup();
+
+		return returnHtml;	
+	},
+    
 	cell: function(tooltip, d) {
 		var returnHtml = "";
 
@@ -177,7 +173,7 @@ TooltipRender.prototype = {
 		var selCalc = tooltip.parent.state.selectedCalculation;
 
 		var prefix, targetId, sourceId, targetInfo, sourceInfo;
-			//var taxon = d.taxon;
+		//var taxon = d.taxon;
 
         sourceId = d.source_id;
 		targetId = d.target_id;
@@ -185,10 +181,10 @@ TooltipRender.prototype = {
 		if (tooltip.parent.state.invertAxis) {
 			targetInfo = tooltip.parent.state.yAxisRender.get(d.target_id); 
 			sourceInfo = tooltip.parent.state.xAxisRender.get(d.source_id); 			
-		 } else {
+		} else {
 			targetInfo = tooltip.parent.state.xAxisRender.get(d.target_id); 
 			sourceInfo = tooltip.parent.state.yAxisRender.get(d.source_id); 						
-		 }
+		}
 
 		 
 			// if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
@@ -226,7 +222,6 @@ TooltipRender.prototype = {
 			"</tbody>" + "</table>";
 		
 		return returnHtml;	
-
 	}
 
 

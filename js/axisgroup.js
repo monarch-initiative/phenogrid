@@ -19,7 +19,14 @@ var d3 = require('d3');
 var AxisGroup = function(renderStartPos, renderEndPos, items)  {
 	this.renderStartPos = renderStartPos;
     this.renderEndPos = renderEndPos;
-    this.items = items;
+    
+    // remove all invisible genotypes
+    for (var index in items) {
+        if (items[index].type === 'genotype' && items[index].visible === false) {
+            delete items[index];
+        }
+    }
+    this.items = items
 };
 
 /*
@@ -95,7 +102,7 @@ AxisGroup.prototype = {
 
 	/*
 		Function: entries
-			provides the array of rendered entries
+			provides the array of rendered entries, can be phenotypes/genes/genotypes/diseases
 
 		Return:
 			array of objects of items
@@ -107,7 +114,7 @@ AxisGroup.prototype = {
 		for (var i = this.renderStartPos; i < this.renderEndPos;i++) {
 			var key = keys[i];
 			var el = this.items[key];
-			a.push(el);
+            a.push(el);
 		}
 		return a;
 	},

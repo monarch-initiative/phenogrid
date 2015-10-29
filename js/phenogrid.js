@@ -64,7 +64,6 @@ var AxisGroup = require('./axisgroup.js');
 var DataLoader = require('./dataloader.js');
 var DataManager = require('./datamanager.js');
 var TooltipRender = require('./tooltiprender.js');
-var Expander = require('./expander.js');
 var Utils = require('./utils.js');
 
 // html content to be used for popup dialogues
@@ -102,7 +101,7 @@ var images = require('./images.json');
 	$.widget("ui.phenogrid", {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
-            serverURL: "http://monarchinitiative.org",
+            serverURL: "http://beta.monarchinitiative.org",
             selectedCalculation: 0,
             invertAxis: false,
             selectedSort: "Frequency",
@@ -181,13 +180,7 @@ var images = require('./images.json');
             comparisonTypes: [ 
                 {organism: "Homo sapiens", comparison: "diseases"}
             ],
-            defaultComparisonType: {comparison: "genes"},
-            apiEntityMap: [ 
-                {prefix: "HP", apifragment: "disease"},
-                {prefix: "OMIM", apifragment: "disease"}, 
-                {prefix: "ZFIN", apifragment: "gene"}, 			
-                {prefix: "MGI", apifragment: "gene"}
-            ]
+            defaultComparisonType: {comparison: "genes"}
         },
 
 
@@ -209,7 +202,30 @@ var images = require('./images.json');
         // Create new arrays for later use
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
-
+        
+        // flag used for switching between single species and multi-species mode
+        // named/associative array
+        this.state.expandedGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
+        
+        // genotype flags to mark every genotype expansion on/off in each species
+        this.state.newGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
+        
+        this.state.removedGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
+        
+        this.state.reactivateGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
+        
         // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 		this._createTargetGroupList(this.options.targetSpecies);
 	},
@@ -226,9 +242,6 @@ var images = require('./images.json');
 		this._showLoadingSpinner();		
 
 		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
-		
-		// MKD: NEEDS REFACTORED init a single instance of Expander
-		this.state.expander = new Expander(); 
 
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -253,7 +266,7 @@ var images = require('./images.json');
         };
 
 		// initialize data processing class, 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery, this.state.apiEntityMap);
+		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
 
 		// starting loading the data
 		this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
@@ -309,7 +322,44 @@ var images = require('./images.json');
 
 		this._createColorScale();  
 	},
-	
+
+    
+
+    
+    
+    // for genotype expansion, we need to update the target list 
+    // for each species if they have added genotypes - Joe
+    _updateTargetAxisRenderingGroup: function(species_name) {
+    	var targetList = [];
+
+		if (this.state.selectedCompareTargetGroup.length === 1) {
+            // get targetList based on the newGenotypes flag
+            if (this.state.newGenotypes[species_name]) {
+                // get the reordered target list in the format of a named array, has all added genotype data
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[species_name];
+            } else if (this.state.removedGenotypes[species_name]) {
+                // get the reordered target list in the format of a named array, has all added genotype data
+                //targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[species_name];
+                
+                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
+            } else if (this.state.reactivateGenotypes[species_name]) {
+                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
+            } else {
+                // unordered target list in the format of a named array, has all added genotype data
+                targetList = this.state.dataManager.getData("target", species_name);
+            }	  
+		}
+
+		// update target axis group
+        var targetAxisRenderStartPos = this.state.targetAxis.getRenderStartPos();
+        var targetAxisRenderEndPos = this.state.targetAxis.getRenderEndPos();
+    	this.state.targetAxis = new AxisGroup(targetAxisRenderStartPos, targetAxisRenderEndPos, targetList);
+
+    	this._setAxisRenderers();
+	},
+    
+    
+    
     /* create the groups to contain the rendering 
        information for x and y axes. Use already loaded data
        in various hashes, etc. to create objects containing
@@ -341,8 +391,16 @@ var images = require('./images.json');
 			// set default display limits based on displaying defaultSourceDisplayLimit
     		this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
 	
-			// target list
-			targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+            // display all the expanded genotypes when we switch back from multi-species mode to single-species mode
+            // at this point, this.state.expandedGenotypes is true, and this.state.newGenotypes is false - Joe
+            if (this.state.expandedGenotypes[singleTargetGroupName]) {
+                //targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[singleTargetGroupName];
+                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(singleTargetGroupName); 
+            } else {
+                // unordered target list in the format of a named array, has all added genotype data
+                targetList = this.state.dataManager.getData("target", singleTargetGroupName);
+            }
+            
 			this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
 		}
 
@@ -461,75 +519,52 @@ var images = require('./images.json');
 	// create the grid
 	_createGrid: function() {
 		var self = this;
-		var xvalues = self.state.xAxisRender.entries();   //keys();
-		var yvalues = self.state.yAxisRender.entries();
-		var gridRegion = self.state.gridRegion; 
-		var xScale = self.state.xAxisRender.getScale();
-		var yScale = self.state.yAxisRender.getScale();
+        // xvalues and yvalues are index arrays that contain the current x and y items, not all of them
+        // if any items are added genotypes, they only contain visible genotypes
+        // Axisgroup's constructor does the data filtering - Joe
+		var xvalues = this.state.xAxisRender.entries(); 
+		var yvalues = this.state.yAxisRender.entries();
+		var gridRegion = this.state.gridRegion; 
+		var xScale = this.state.xAxisRender.getScale();
+		var yScale = this.state.yAxisRender.getScale();
 
 		// use the x/y renders to generate the matrix
-	    var matrix = self.state.dataManager.buildMatrix(xvalues, yvalues, false);
+	    var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
 
-		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
-		var row = this.state.svg.selectAll(".row")
-  			.data(matrix)
-				.enter().append("g")			
-			.attr("class", "row")	 		
-			.attr("id", function(d, i) { 
-				return "pg_grid_row_"+i;})
-  			 .attr("transform", function(d, i) { 
-  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; })
-  			.each(createrow);
 
-   		// create row labels
-	  	row.append("text")
-			.attr("x", gridRegion.rowLabelOffset)	  		
-	      	.attr("y",  function(d, i) {
-	      			 var rb = yScale.rangeBand(i)/2;
-	      			 return rb;
-	      			 })  
-	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
-	      	.attr("text-anchor", "end")
-            .style("font-size", "11px")
-			.attr("data-tooltip", "pg_tooltip")   				      
-		    .text(function(d, i) { 
-	      		var el = self.state.yAxisRender.itemAt(i);
-	      		return Utils.getShortLabel(el.label); })
-			.on("mouseover", function(d, i) { 		
-				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				// self is the global widget this
-                // this passed to _mouseover refers to the current element
-                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
-                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                self._mouseover(this, data, self);})
-			.on("mouseout", function(d) {
-				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
-                self._mouseout();		  		
-			});
-
-	    // create columns using the xvalues (targets)
+        // create column lables first, so the added genotype cells will overwrite the background color - Joe
+        // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
-	      .data(xvalues)
-	    .enter().append("g")
-	      	.attr("class", "column")
+	        .data(xvalues)
+	        .enter().append("g")
+            .attr("class", 'column')
             .style("font-size", '11px')            
 			.attr("id", function(d, i) { 
-				return "pg_grid_col_"+i;})	      	
-	      .attr("transform", function(d) { 
-	      	var offset = gridRegion.colLabelOffset;
-	      	var xs = xScale(d.id);
-			return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) +	      		
-	      				 "," + (gridRegion.y-offset) + ")rotate(-45)"; }); //-45
+				return "pg_grid_col_"+i;
+            })	      	
+	        .attr("transform", function(d) { 
+                var offset = gridRegion.colLabelOffset;
+                var xs = xScale(d.id);
+                return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
+            }); //-45
 
 	    // create column labels
 	  	column.append("text")
 	      	.attr("x", 0)
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
+            .style('fill', function(d) { // add different color to genotype labels
+                if (d.type === 'genotype') {
+                    return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
+                } else {
+                    return '';
+                }
+            })
 		    .attr("data-tooltip", "pg_tooltip")   			
 	      	.attr("text-anchor", "start")
-	      		.text(function(d, i) { 		
-	      		return Utils.getShortLabel(d.label,self.state.labelCharDisplayCount); })
+	      	.text(function(d, i) { 		
+	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
+            })
 		    .on("mouseover", function(d, i) { 				
 		    	// self is the global widget this
                 // this passed to _mouseover refers to the current element
@@ -540,26 +575,113 @@ var images = require('./images.json');
 				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                 self._mouseout();
 			});
-	      	
-	    // add the scores  
+	
+        // grey background for added genotype columns - Joe
+        column.append("rect")
+            .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
+            .attr('width', gridRegion.cellwd)
+            .attr('height', self._gridHeight())
+            .style('fill', function(d){
+                if (d.type === 'genotype') {
+                    return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                } else {
+                    return 'none'; // transparent 
+                }
+            })
+            .style('opacity', 0.8)
+            .attr("transform", function(d) { 
+                return "rotate(45)"; 
+            }); //45
+        
+        // add the scores for labels
 	    self._createTextScores();
+        
+		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
+		var row = this.state.svg.selectAll(".row")
+  			.data(matrix)
+			.enter().append("g")			
+			.attr("class", "row")	 		
+			.attr("id", function(d, i) { 
+				return "pg_grid_row_"+i;
+            })
+  			.attr("transform", function(d, i) { 
+  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; 
+            });
 
+   		// create row labels
+	  	row.append("text")
+			.attr("x", gridRegion.rowLabelOffset)	  		
+	      	.attr("y",  function(d, i) {
+	      		var rb = yScale.rangeBand(i)/2;
+	      		return rb;
+	      	})  
+	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
+	      	.attr("text-anchor", "end")
+            .style("font-size", "11px")
+            
+            // the d.type is cell instead of genotype because the d refers to cell data
+            // we'll need to get the genotype data from yAxisRender - Joe
+            .style('fill', function(d, i) { // add different color to genotype labels
+                var el = self.state.yAxisRender.itemAt(i);
+                if (el.type === 'genotype') {
+                    return '#EA763B'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                } else {
+                    return '';
+                }
+            })
+			.attr("data-tooltip", "pg_tooltip")   				      
+		    .text(function(d, i) { 
+	      		var el = self.state.yAxisRender.itemAt(i);
+	      		return Utils.getShortLabel(el.label); 
+            })
+			.on("mouseover", function(d, i) { 		
+				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
+				// self is the global widget this
+                // this passed to _mouseover refers to the current element
+                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                self._mouseover(this, data, self);
+            })
+			.on("mouseout", function() {
+				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+                self._mouseout();		  		
+			});
+
+        row.append("rect")
+            .attr('width', self._gridWidth())
+            .attr('height', gridRegion.cellht)
+            .style('fill', function(d, i) { // add different color to genotype labels
+                var el = self.state.yAxisRender.itemAt(i);
+                if (el.type === 'genotype') {
+                    return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                } else {
+                    return 'none'; // transparent 
+                }
+            })
+            .style('opacity', 0.8);
+        
+        // create the grid cells after appending all the background rects
+        // so they can overwrite the row background for those added genotype rows - Joe 
+        row.each(createrow);
+    
 		function createrow(row) {
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
-		      .enter().append("rect")
+		        .enter().append("rect")
 		      	.attr("id", function(d, i) { 
-		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; })
+		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; 
+                })
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
-		        		return d.xpos * gridRegion.xpad;})
+		        	return d.xpos * gridRegion.xpad;
+                })
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
 				.attr("data-tooltip", "tooltip")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
-			        })
+			    })
 		        .on("mouseover", function(d) { 					
                     // self is the global widget this
                     // this passed to _mouseover refers to the current element
@@ -773,9 +895,9 @@ var images = require('./images.json');
 			axRender = self.state.xAxisRender;
 		}
 	    var scores = this.state.svg.selectAll(".scores")
-	      .data(list)
-	    .enter().append("g")
-	    	    .attr("class", "pg_score_text");
+	        .data(list)
+	        .enter().append("g")
+	    	.attr("class", "pg_score_text");
 
 	    scores.append("text")	 
 	      	.attr("text-anchor", "start")
@@ -789,16 +911,20 @@ var images = require('./images.json');
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
 				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; })
+  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; 
+                })
 	      		.attr("x", gridRegion.rowLabelOffset)
-	      		.attr("y",  function(d, i) {return scale.rangeBand(i)/2;});  
+	      		.attr("y",  function(d, i) {
+                    return scale.rangeBand(i)/2;
+                });  
 	    } else {
 	    	scores	      		
 	    	.attr("transform", function(d, i) { 
-	      			return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
-	      				 "," + (gridRegion.y-gridRegion.scoreOffset ) +")";})
-	      		.attr("x", 0)
-	      		.attr("y", scale.rangeBand()+2);
+                return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
+                     "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
+                })
+            .attr("x", 0)
+            .attr("y", scale.rangeBand()+2);
 	    }
 	}, 
     
@@ -806,18 +932,6 @@ var images = require('./images.json');
 		// This is for the new "Overview" target option
 		var selectedScale = this.state.colorScale[self.state.selectedCalculation];
 		return selectedScale(score);
-	},
-
-	/* dummy option procedures as per 
-	 * http://learn.jquery.com/jquery-ui/widget-factory/how-to-use-the-widget-factory/
-	 * likely to have some content added as we proceed
-	 */
-	_setOption: function( key, value ) {
-		this._super( key, value );
-	},
-
-	_setOptions: function( options ) {
-		this._super( options );
 	},
 
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
@@ -895,9 +1009,7 @@ var images = require('./images.json');
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
 			});
-
-
-			
+	
 		var yRenderedSize = this.state.yAxisRender.displayLength();
 		var xRenderedSize = this.state.xAxisRender.displayLength();		
      	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
@@ -984,13 +1096,6 @@ var images = require('./images.json');
 					self._updateGrid(newXPos, newYPos);
 		}));
 		// set this back to 0 so it doesn't affect other rendering
-	},
-
-	// We only have 3 color,s but that will do for now
-	_getColorForCellValue: function(self, score) {
-		// This is for the new "Overview" target option
-		var selectedScale = self.state.colorScale[self.state.selectedCalculation];
-		return selectedScale(score);
 	},
 
     // Tip info icon for more info on those text scores
@@ -1082,8 +1187,7 @@ var images = require('./images.json');
 	},
 
 	_setDefaultSelectedSort: function(type) {
-		var self = this;
-		self.state.selectedSort = type;
+		this.state.selectedSort = type;
 	},
 
 
@@ -1155,12 +1259,11 @@ var images = require('./images.json');
     
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
-	 
 	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
 	     if (this.state.yAxisRender.contains(key)){
-		     return this.state.yAxisRender.get(key);
+		    return this.state.yAxisRender.get(key);
 		 } else if (this.state.xAxisRender.contains(key)){
-		     return this.state.xAxisRender.get(key);
+		    return this.state.xAxisRender.get(key);
 		 }
 		 else { return null; }
 	},
@@ -1170,23 +1273,10 @@ var images = require('./images.json');
 		    return this.state.yAxisRender.position(key);
 		} else if (this.state.xAxisRender.contains(key)){
 		    return this.state.xAxisRender.position(key);
-		}
-		else { return -1; }
+		} else { 
+            return -1; 
+        }
 	},
-
-	_getIDTypeDetail: function(key) {
-		//var info = this.state.modelListHash.get(key);
-		//var info = this.state.dataManager.getElement("target", key, this.state.currentTargetGroupName);
-		var info;
-	     if (this.state.yAxisRender.contains(key)){
-		     info = this.state.yAxisRender.get(key);
-		 } else if (this.state.xAxisRender.contains(key)){
-		     info = this.state.xAxisRender.get(key);
-		 }
-		if (typeof(info) !== 'undefined') return info.type;
-		return "unknown";
-	},
-
 
 	_createColorScale: function() {
 			var maxScore = 0,
@@ -1194,15 +1284,15 @@ var images = require('./images.json');
 
 			switch(method){
 				case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
-				break;
+				    break;
 				case 1: maxScore = 100;
-				break;
+                    break;
 				case 0: maxScore = 100;
-				break;
+                    break;
 				case 3: maxScore = 100;
-				break;
+                    break;
 				default: maxScore = this.state.maxICScore;
-				break;
+                    break;
 			}
 			// 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
 			this.state.colorScale = {};
@@ -1229,8 +1319,6 @@ var images = require('./images.json');
 	},
 
 	_createSvgContainer: function() {
-		var self= this;
-        
         this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
 	
         // Define a font-family for all SVG texts 
@@ -1247,8 +1335,6 @@ var images = require('./images.json');
 
 	// add a tooltip div stub, this is used to dynamically set a tooltip info 
 	_createTooltipStub: function() {
-		var self = this;
-
 		var pg_tooltip = $("<div>")
 						.attr("id", "pg_tooltip");
 
@@ -1403,46 +1489,6 @@ var images = require('./images.json');
 			});
 	},
 
-	_resetLinks: function() {
-		// don't put these styles in css file - these styles change depending on state
-		this.state.svg.selectAll("#pg_detail_content").remove();
-
-		var link_lines = d3.selectAll(".data_text");
-		for (var i in link_lines[0]){
-			if ( ! link_lines[0].hasOwnProperty(i)) {
-					break;
-				}
-			link_lines[0][i].style.fill = this._getExpandStyling(link_lines[0][i].id);
-		}
-		link_lines.style("font-weight", "normal");
-		link_lines.style("text-decoration", "none");
-		link_lines.style("text-anchor", "end");
-
-		var link_labels = d3.selectAll(".model_label");
-		for (var j in link_labels[0]){
-			if ( ! link_lines[0].hasOwnProperty(j)) {
-				break;
-			}			
-			link_labels[0][j].style.fill = this._getExpandStyling(link_labels[0][j].id);
-		}
-		link_labels.style("font-weight", "normal");
-		link_labels.style("text-decoration", "none");
-	},
-
-	// Will return all partial matches in the cellDataHash structure.  Good for finding rows/columns of data
-	_getMatchingModels: function (key) {
-		//var cellKeys = this.state.cellDataHash.keys();
-		var cellKeys = this.state.dataManager.keys("cellData");  // MKD: this still needs work, esp for overview mode
-		var matchingKeys = [];
-		for (var i in cellKeys){
-//			if (key == cellKeys[i].yID || key == cellKeys[i].xID){
-			if (key === cellKeys[i].source_id || key === cellKeys[i].target_id){
-				matchingKeys.push(cellKeys[i]);
-			}
-		}
-		return matchingKeys;
-	},
-
 	_createHoverBox: function(data){
 		var id;
 
@@ -1473,6 +1519,24 @@ var images = require('./images.json');
 			this._on(expandOntol_icon, {
 				"click": function(event) {
 					this._expandOntology(id);
+				}
+			});
+		}
+        
+        // For genotype expansion
+		if (data.type === 'gene') {
+			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
+			var insert = $('#pg_insert_genotypes_' + id);
+            this._on(insert, {
+				"click": function(event) {
+					this._insertGenotypes(id);
+				}
+			});
+            
+            var remove = $('#pg_remove_genotypes_' + id);
+			this._on(remove, {
+				"click": function(event) {
+					this._removeGenotypes(id);
 				}
 			});
 		}
@@ -1540,22 +1604,21 @@ var images = require('./images.json');
 	},
 
 	_createTargetGroupDividerLines: function() {
-		var self = this;
-		var gridRegion = self.state.gridRegion;
+		var gridRegion = this.state.gridRegion;
 		var x = gridRegion.x;     
 		var y = gridRegion.y;   
-		var height = self._gridHeight() + gridRegion.colLabelOffset;// adjust due to extending it to the col labels
-		var width = self._gridWidth();
+		var height = this._gridHeight() + gridRegion.colLabelOffset;// adjust due to extending it to the col labels
+		var width = this._gridWidth();
 
-		if (self._isCrossComparisonView() ) {
+		if (this._isCrossComparisonView() ) {
 			//var grps = self.state.selectedCompareTargetGroup.forEach(function(d) { if(d.crossComparisonView)return d; });
-			var numOfTargetGroup = self.state.selectedCompareTargetGroup.length; 
-			var xScale = self.state.xAxisRender.getScale();
+			var numOfTargetGroup = this.state.selectedCompareTargetGroup.length; 
+			var xScale = this.state.xAxisRender.getScale();
 
 			//var cellsDisplayedPer = (self.state.defaultSingleTargetDisplayLimit / numOfTargetGroup);
-			var cellsDisplayedPer = self.state.defaultCrossCompareTargetLimitPerTargetGroup;
+			var cellsDisplayedPer = this.state.defaultCrossCompareTargetLimitPerTargetGroup;
 			var x1 = 0;
-			if (self.state.invertAxis) {
+			if (this.state.invertAxis) {
 				x1 = ((gridRegion.ypad * (cellsDisplayedPer-1)) + gridRegion.cellht);  //-gridRegion.rowLabelOffset; 								
 			} else {
 				x1 = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd); 
@@ -1570,7 +1633,7 @@ var images = require('./images.json');
 				}
 				x1 = (x1 * i)+ fudgeFactor;  // add a few extra padding so it won't overlap cells
 
-				if (self.state.invertAxis) {
+				if (this.state.invertAxis) {
 
 					this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
@@ -2213,30 +2276,29 @@ var images = require('./images.json');
 		return newlist;
 	},
 
-	_expandOntology: function(id){
-		var self = this;
-
+	_expandOntology: function(id) {
 		// check to see if id has been cached
 		var cache = this.state.dataLoader.checkOntologyCache(id);
 
-		if (typeof(cache) == 'undefined') 
-		{
-			var cb = self._postExpandOntologyCB;
-			this.state.dataLoader.getOntology(id, this.state.ontologyDirection, this.state.ontologyDepth, cb, self);						
+		if (typeof(cache) === 'undefined') {
+			var cb = this._postExpandOntologyCB;
+			this.state.dataLoader.getOntology(id, this.state.ontologyDirection, this.state.ontologyDepth, cb, this);						
 		} else {
-			self._postExpandOntologyCB(cache, id, self);
+			this._postExpandOntologyCB(cache, id, this);
 		}
 
 	},
 
+    // Must use parent to pass this - Joe
 	_postExpandOntologyCB: function(d, id, parent) {
-
 		parent.state.ontologyTreesDone = 0;
 		parent.state.ontologyTreeHeight = 0;		
 		var info = parent._getAxisData(id);
 		var hrefLink = "<a href=\"" + parent.state.serverURL+"/phenotype/"+ id + "\" target=\"_blank\">" + info.label + "</a>";
 		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
-		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/><br/>";
+		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/>";
+        ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br/>";
+        ontologyData += "<strong>Frequency:</strong> " + info.count + "<br/><br/>";
 
 		var classTree = parent.buildOntologyTree(id.replace("_", ":"), d.edges, 0);
 
@@ -2249,258 +2311,236 @@ var images = require('./images.json');
 		$("#pg_tooltip_inner").html(ontologyData);
 	},
 
-    // Used for genotype expansion - Joe
-	// collapse the expanded items for the current selected model targets
-	_collapse: function(curModel) {
-		var curData = this.state.dataManager.getElement("target", curModel);
-		var modelInfo = {id: curModel, d: curData};
+    // Genotypes expansion for gene (single species mode) - Joe
+    _insertGenotypes: function(id) {
+        // change the plus icon to spinner to indicate the loading
+        $('.pg_expand_genotype_icon').removeClass('fa-plus-circle');
+        $('.pg_expand_genotype_icon').addClass('fa-spinner fa-pulse');
+        
+        var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+        
+        var loaded = this.state.dataManager.checkGenotypesLoaded(species_name, id);
+        
+        // when we can see the insert genotypes link in tooltip, 
+        // the genotypes are either haven't been loaded or have already been loaded but then removed(invisible)
+        if (loaded) {
+            // change those associated genotypes to 'visible' and render them
+            // array of genotype id list
+            var associated_genotype_ids = this.state.dataLoader.loadedGenotypes[id];
+            
+            // reactivating by changing 'visible' to true
+            for (var i = 0; i < associated_genotype_ids.length; i++) {
+                var genotype_id = associated_genotype_ids[i];
+                
+                if (typeof(this.state.dataLoader.targetData[species_name][genotype_id]) === 'undefined') {
+                    this.state.dataLoader.targetData[species_name][genotype_id] = {}; // object
+                }
+                this.state.dataLoader.targetData[species_name][genotype_id].visible = true; 
 
-		// check cached hashtable first 
-		var cachedScores = this.state.expandedHash.get(modelInfo.id);
+                // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
+                if (typeof(this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id]) === 'undefined') {
+                    this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id] = {}; // object
+                }
+                this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = true;  
+                
+                // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
+                for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
+                    if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
+                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
+                    }
+                    
+                    if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
+                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].visible = true; 
+                        break;
+                    }
+                }         
+            }
+            
+            this.state.reactivateGenotypes[species_name] = true;
+            this._updateTargetAxisRenderingGroup(species_name);
+            this.state.reactivateGenotypes[species_name] = false;
+            
+            this._updateDisplay();
+            
+            // Remove the spinner icon
+            $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
+            $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
+            
+            // Tell dataManager that the loaded genotypes of this gene have been expanded
+            // This updates the tooltiprender too
+            this.state.dataManager.expandedGenotypeList[id] = this.state.dataLoader.loadedGenotypes[id];
+        } else {
+            // Load the genotypes only once
+            var cb = this._insertGenotypesCb;
+            this.state.dataLoader.getGenotypes(id, cb, this);
+        }
+	},
+    
+    // this cb has all the matches info returned from the compare
+    // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
+    // parent refers to the global `this` and we have to pass it
+    _insertGenotypesCb: function(results, id, parent) {
+        console.log(results);
+        
+        // add genotypes to data, and update target axis
+        if (results.b.length > 0) {
+            var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+            // transform raw owlsims into simplified format
+            // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
+            parent.state.dataLoader.genotypeTransform(species_name, results, id); 
 
-		// if found just return genotypes scores
-		if (cachedScores !== null && cachedScores.expanded) {
-// MKD:  this needs to use DM
-			this.state.modelListHash = this._removalFromModelList(cachedScores);
+            // call this before reordering the target list
+            // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
+            // when we call parent.state.targetAxis.groupEntries()
+            parent._updateTargetAxisRenderingGroup(species_name);
+            
+            if (typeof(parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name]) === 'undefined') {
+                parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name] = [];
+            }
+            
+            // for the first time, just get the unordered groupEntries()
+            // starting from second time, append the genotype data of following expansions to the already ordered target list
+            if (parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length === 0) {
+                var updatedTargetEntries = parent.state.targetAxis.groupEntries(); // numeric index array
+            } else {
+                var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(species_name, results.b);
+            }
+            
+            // Now we update the target list in dataManager
+            // and place those genotypes right after their parent gene
+            var genotypesData = {
+                    targetEntries: updatedTargetEntries, 
+                    genotypes: results.b, 
+                    parentGeneID: id,
+                    species: species_name
+                };
+                
+            // this will give us a reordered target list in two formats.
+            // one is associative/named array(reorderedTargetEntriesNamedArray), the other is number indexed array(reorderedTargetEntriesIndexArray)
+            parent.state.dataManager.updateTargetList(genotypesData);
 
-// MKD: do this through DM
-//			this._rebuildCellHash();
-			this.state.modelLength = this.state.modelListHash.size();
+            // we set the genotype flag before calling _updateTargetAxisRenderingGroup() again
+            // _updateTargetAxisRenderingGroup() uses this flag for creating this.state.targetAxis
+            parent.state.newGenotypes[species_name] = true;
+            
+            // call this again after the target list gets updated
+            // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
+            // as well as the new start position and end position
+            parent._updateTargetAxisRenderingGroup(species_name);
+            
+            // then reset the flag to false so it can still grab the newly added genotypes of another gene
+            // and add them to the unordered target list.
+            // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
+            // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
+            parent.state.newGenotypes[species_name] = false;
+            
+            // flag, indicates that we have expanded genotypes for this species, 
+            // so they show up when we switch from multi-species mode back to single species mode
+            parent.state.expandedGenotypes[species_name] = true;
 
-//			this._setAxisValues();
-			this._updateDisplay();
-
-			// update the expanded flag
-			var vals = this.state.expandedHash.get(modelInfo.id);
-			vals.expanded = false;
-			this.state.expandedHash.put(modelInfo.id, vals);
-		}
+            parent._updateDisplay();
+            
+            // Remove the spinner icon
+            $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
+            $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
+            
+            // Tell dataManager that the loaded genotypes of this gene have been expanded
+            parent.state.dataManager.expandedGenotypeList[id] = parent.state.dataLoader.loadedGenotypes[id];
+        } else {
+            // tell users there's no genotypes associated to this gene
+            parent._populateDialog('This gene has no associated genotypes.');
+        }
 	},
 
-	// get all matching phenotypes for a model
-// MKD: get this from DM
-	_getMatchingPhenotypes: function(curModelId) {
-		var self = this;
-		var models = self.state.modelData;
-		var phenoTypes = [];
-		for (var i in models){
-			// models[i] is the matching model that contains all phenotypes
-			if (models[i].model_id === curModelId){
-				phenoTypes.push({id: models[i].id_a, label: models[i].label_a});
-			}
-		}
-		return phenoTypes;
-	}, 
+    // Genotypes expansion for gene (single species mode)
+    // hide expanded genotypes
+    _removeGenotypes: function(id) {
+        var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
+        // array of genotype id list
+        var associated_genotype_ids = this.state.dataLoader.loadedGenotypes[id];
+        
+        // change 'visible' to false 
+        for (var i = 0; i < associated_genotype_ids.length; i++) {
+            var genotype_id = associated_genotype_ids[i];
+            this.state.dataLoader.targetData[species_name][genotype_id].visible = false; 
 
-	// insert into the model list
-	_insertionModelList: function (insertPoint, insertions) {
-		var newModelList = []; //new Hashtable();  //MKD REFACTOR
-		//var sortedModelList= self._getSortedIDList( this.state.dataManager.getData("target")); 
-		var sortedModelList = this.state.xAxisRender.keys();
-		var reorderPointOffset = insertions.size();
-		var insertionOccurred = false;
+            // Now we update the reorderedTargetEntriesNamedArray in dataManager
+            this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = false;   
+            // Also hide the corresponding genotypes in reorderedTargetEntriesIndexArray
+            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
+                if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
+                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
+                }
+                
+                if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
+                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].visible = false;
+                    break;
+                }
+            }         
+        }
+        
+        // Tell dataManager that the loaded genotypes of this gene have been collapsed from display 
+        delete this.state.dataManager.expandedGenotypeList[id];
+        
+        // set the flag
+        this.state.removedGenotypes[species_name] = true;
+        
+        // update the target list for axis render
+        this._updateTargetAxisRenderingGroup(species_name);
 
-		for (var i in sortedModelList){
-			var entry = this.state.dataManager.getElement("target", sortedModelList[i]);
-			if (entry.pos === insertPoint) {
-				// add the entry, or gene in this case	
-				newModelList.push(entry);   //put(sortedModelList[i], entry);
-				var insertsKeys = insertions.keys();
-				// begin insertions, they already have correct positions applied
-				for(var j in insertsKeys) {
-					var id = insertsKeys[j];
-					newModelList.push(insertions.get(id));  //put(id, insertions.get(id));
-				}
-				insertionOccurred = true;
-			} else if (insertionOccurred) {
-				entry.pos = entry.pos + reorderPointOffset;
-				newModelList.push(entry);   //put(sortedModelList[i], entry);
-			} else {
-				newModelList.push(entry);  //put(sortedModelList[i], entry);
-			}
-		}
-		//var tmp = newModelList.entries();
-		return newModelList;
-	},
+        // reset flag
+        this.state.removedGenotypes[species_name] = false;
+        
+        // update display
+        this._updateDisplay();
+        
+        /*
+        var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
+        // array of genotype id list
+        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
+         
+        // remove these genotype ids from underlying target dataset
+        // this way we still have other expanded genotypes in that sorted named array - Joe
+        // these ids in underscore format
+        for (var i = 0; i < associated_genotype_ids.length; i++) {
+            var genotype_id = associated_genotype_ids[i];
+            delete this.state.dataLoader.targetData[species_name][genotype_id]; 
 
-	// remove a models children from the model list
-	_removalFromModelList: function (removalList) {
-		var newModelList = [];  //new Hashtable();    // MKD: NEEDS REFACTORED
-		var newModelData = [];  
-		var removalKeys = removalList.genoTypes.keys();   // MKD: needs refactored
-		//var sortedModelList= self._getSortedIDList(this.state.dataManager.getData("target"));
-		var sortedModelList = this.state.xAxisRender.keys();
-		var removeEntries = removalList.genoTypes.entries();
+            // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
+            delete this.state.dataManager.reorderedTargetEntriesNamedArray[genotype_id];  
+            // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
+            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
+                if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
+                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = [];
+                }
+                
+                if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
+                    delete this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j];  
+                    break;
+                }
+            }         
+        }
+        
+        // also remove the cached gene id record from dataLoader cache
+        delete this.state.dataLoader.expandedGenotypeList[id]
+        
+        // set the flag
+        this.state.removedGenotypes[species_name] = true;
+        
+        // update the target list for axis render
+        this._updateTargetAxisRenderingGroup();
 
-		// get the max position that was inserted
-		var maxInsertedPosition = 0;
-		for (var x in removeEntries){
-			var obj = removeEntries[x][1];
-			if (obj.pos > maxInsertedPosition) {
-				maxInsertedPosition = obj.pos;
-			}
-		}
-
-		for (var i in sortedModelList){
-			var entry = this.state.dataManager.getElement("target",sortedModelList[i]);
-			var found = false, cnt = 0;
-
-			// check list to make sure it needs removed
-			while (cnt < removalKeys.length && !found) {
-				if (removalKeys[cnt] === sortedModelList[i]) {
-					found = true;
-				}
-				cnt++;
-			}
-			if (found === false) {
-				// need to reorder it back to original position
-				if (entry.pos > maxInsertedPosition) {
-					entry.pos =  entry.pos - removalKeys.length;
-					//pos++;  
-					//entry.pos - maxInsertedPosition;
-				}
-				newModelList.push(entry); //put(sortedModelList[i], entry);
-			}
-		}
-
-		// loop through to rebuild model data and remove any removals
-//MKD: needs refactored		
-		for (var y = 0; y < this.state.modelData.length; y++) {
-			var id = this.state.modelData[y].model_id;
-			var ret = removalKeys.indexOf(id);
-			if (ret <  0) {
-				newModelData.push(this.state.modelData[y]);
-			}
-		}
-// MKD: REFACTOR TO USE DM
-		this.state.modelData = newModelData;
-		return newModelList;
-	},
-
-	// get the css styling for expanded gene/genotype
-	_getExpandStyling: function(data) {
-		var concept = this._getConceptId(data);
-
-		if(typeof(concept) === 'undefined' ) return "#000000";
-		var info = this._getIDTypeDetail(concept);
-
-		if (info === 'gene') {
-			var g = this.state.expandedHash.get(concept);
-			if (g !== null && g.expanded) {
-				return "#08594B";
-			}
-		}
-		else if (info === 'genotype') {
-			return "#488B80"; //"#0F473E";
-		}
-		return "#000000";
-	},
-
-	// check to see object is expanded
-	_isExpanded: function(data) {
-		var concept = this._getConceptId(data);
-		var info = this._getIDTypeDetail(concept);
-
-		if (info === 'gene') {
-			var g = this.state.expandedHash.get(concept);
-			// if it was ever expanded
-			if (g !== null){
-				return g.expanded;  
-			}
-		}
-		return null;
-	}, 
-
-	// check to see object has children
-	_hasChildrenForExpansion: function(data) {
-		var concept = this._getConceptId(data);
-		var info = this._getIDTypeDetail(concept);
-
-		if (info == 'gene') {
-			var g = this.state.expandedHash.get(concept);
-			// if it was ever expanded it will have children
-			if (g !== null) {
-				return true;  
-			}
-		}
-		return false;
-	},
-
-	_isGenoType: function(data) {
-		var concept = this._getConceptId(data);
-		var info = this._getIDTypeDetail(concept);
-
-		if (info == 'genotype') {
-			return true;
-		}
-		return false;
-	},
-
-	// Used for genotype expansion - Joe
-    // expand the model with the associated targets
-	_expand: function(curModel) {
-		$('#wait').show();
-		var div = $('#pg_tooltip').html();
-		$('#pg_tooltip').html(div);
-
-		var refresh = true;
-		var targets = [];   //new Hashtable();   MKD: NEEDS REFACTORED
-		var type = this._getIDTypeDetail(curModel);
-		var curData = this.state.dataManager.getElement("target", curModel);
-		var modelData = {id: curModel, type: type, d: curData};
-		var returnObj;
-
-		// check cached hashtable first 
-		var cachedTargets = this.state.expandedHash.get(modelData.id);
-		var savedData = null;
-
-		// if cached info not found, try get targets
-		if (cachedTargets == null) {
-	
-			// get targets
-			returnObj = this.state.expander.getTargets({modelData: modelData, parentRef: this});
-
-			if (returnObj != null) {
-				// save the results to the expandedHash for later
-				if (returnObj.targets == null && returnObj.compareScores == null) {
-					savedData = {expanded: false, data: returnObj}; 	
-				} else {
-					savedData = {expanded: true, data: returnObj};  // in expanded state by default
-				}
-				this.state.expandedHash.put(modelData.id, savedData);
-			}
-		} else {
-			returnObj = cachedTargets.data;  // just reuse what we cached
-		}
-
-		if (returnObj != null && returnObj.targets != null && returnObj.compareScores != null) { 
-
-			// update the model data 
-			for (var idx in returnObj.compareScores.b) {
-				var b = returnObj.compareScores.b;
-// MKD: need this refactored
-//				this._loadDataForModel(b);
-			}
-
-			console.log("Starting Insertion...");
-// MKD: do this using DM
-			this.state.modelListHash = this._insertIntoModelList(modelData.d.pos, returnObj.targets);
-
-// MKD: do this using DM
-			console.log("Rebuilding hashtables...");
-			this._rebuildModelHash();
-
-			this.state.modelLength = this.state.modelListHash.size();
-//			this._setAxisValues();
-
-			console.log("updating display...");
-			this._updateDisplay();
-		} else {
-			alert("No data found to expand targets");
-		}
-	},
-
-
+        // reset flag
+        this.state.removedGenotypes[species_name] = false;
+        
+        // update display
+        this._updateDisplay();
+        
+        */
+        
+        
+	},    
+    
 	_isTargetGroupSelected: function(self, name) {
 		for (var i in self.state.selectedCompareTargetGroup) {
 			if (self.state.selectedCompareTargetGroup[i].name == name) {

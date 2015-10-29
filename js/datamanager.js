@@ -3,6 +3,8 @@
 
 var $ = require('jquery'); 
 
+var Utils = require('./utils.js');
+
 /*
  	Package: datamanager.js
 
@@ -23,6 +25,12 @@ var DataManager = function(dataLoader) {
 
 	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
 	this.matrix = [];
+    
+    // genotype expansion, named arrays of each single species
+    this.reorderedTargetEntriesNamedArray = {};
+    this.reorderedTargetEntriesIndexArray = {};
+    
+    this.expandedGenotypeList = {}; // named array, no need to specify species since each gene ID is unique
 };
 
 DataManager.prototype = {
@@ -59,11 +67,128 @@ DataManager.prototype = {
 			array of objects
 	*/	
 	getData: function(dataset, targetGroup) {
-		if (typeof(targetGroup) != 'undefined') {
-			return this[dataset][targetGroup];
-		}
-		return this[dataset];
+        return this[dataset][targetGroup];
 	},
+    
+    /*
+		Function: appendNewGenotypesToOrderedTargetList
+			each single species (fish/mouse) has its own ordered target list
+
+		Parameters:
+			targetGroup - species name
+            data - newly added genotypes data
+
+		Returns:
+			reordered index array
+	*/
+    appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
+        // can't slice the object this.target[targetGroup]
+        var newlyAdded = {}; // named array, species name is the key
+        for (var i = 0; i < data.length; i++) {
+            var id = Utils.getConceptId(data[i].id);
+            
+            if (typeof(newlyAdded[targetGroup]) === 'undefined') {
+                newlyAdded[targetGroup] = []; // index array
+            }
+            
+            // value of each species name is an index array
+            newlyAdded[targetGroup].push(this.target[targetGroup][id]);
+        }
+        
+        if (typeof(this.reorderedTargetEntriesIndexArray[targetGroup]) === 'undefined') {
+            this.reorderedTargetEntriesIndexArray[targetGroup] = [];
+        }
+        
+        // append the newly added to the already sorted numeric array of target list (sorted from last expansion)
+        return this.reorderedTargetEntriesIndexArray[targetGroup].concat(newlyAdded[targetGroup]);
+    },
+    
+    /*
+		Function: updateTargetList
+			each single species (fish/mouse) has its own ordered target list
+
+		Parameters:
+			genotypesData - defined in _fetchGenotypesCb() of phenogrid.js
+	*/
+    updateTargetList: function(genotypesData) {
+		var targetEntries = genotypesData.targetEntries; // unordered target entries of current active single species 
+        var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
+        var parentGeneID = genotypesData.parentGeneID;
+        var species = genotypesData.species;
+
+        var gene_position;
+        var first_genotype_position;
+        var header = [];
+        var body = [];
+        var footer = [];
+        for (var i = 0; i < targetEntries.length; i++) {
+            if (typeof(targetEntries[i]) === 'undefined') {
+                targetEntries[i] = {};
+            }
+            
+            // loop through all the target entries and find the parent gene
+            if (targetEntries[i].id === parentGeneID) {
+                gene_position = i; // remember the parent gene's position
+                break;
+            }
+        }
+        
+        header = targetEntries.slice(0, gene_position+1); // the last element of header is the parent gene
+
+        body = targetEntries.slice(header.length, targetEntries.length - genotypes.length);
+        
+        // footer contains all newly added genotypes
+        footer = targetEntries.slice(header.length + body.length);
+
+        // header + footer + body
+        // Position those genotypes right after their parent gene
+        // no we have the new target entries in the desired order
+        var reorderedTargetEntriesIndexArray = header.concat(footer, body);
+        
+        // Format 1 - sorted index numeric array for each target species 
+        this.reorderedTargetEntriesIndexArray[species] = reorderedTargetEntriesIndexArray;
+        
+        // Format into named associative array
+        // same return format as getData()
+        var reorderedTargetEntriesNamedArray = {}; // named array
+        for (var k = 0; k < reorderedTargetEntriesIndexArray.length; k++) {
+            if (typeof(reorderedTargetEntriesIndexArray[k]) === 'undefined') {
+                reorderedTargetEntriesIndexArray[k] = {};
+            }
+            
+            reorderedTargetEntriesNamedArray[reorderedTargetEntriesIndexArray[k].id] = reorderedTargetEntriesIndexArray[k];
+        }
+        
+        // Format 2 - sorted associative/named array for each target species 
+        this.reorderedTargetEntriesNamedArray[species] = reorderedTargetEntriesNamedArray;
+	},
+    
+    getReorderedTargetEntriesNamedArray: function(species) {
+        //this.reorderedTargetEntriesIndexArray[species] and this.reorderedTargetEntriesNamedArray[species] 
+        // have the same order and number of elements, just two different formats
+        var t = []
+        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
+            // only genotypes have that 'visible' property
+            if (typeof(this.reorderedTargetEntriesIndexArray[species][i].visible) === 'undefined') {
+                t.push(this.reorderedTargetEntriesIndexArray[species][i]);
+            } else {
+                if (this.reorderedTargetEntriesIndexArray[species][i].visible === true) {
+                    t.push(this.reorderedTargetEntriesIndexArray[species][i]);
+                }
+            }
+        }
+        
+        // now t only contians all the genes and their visible genotypes in an ordered array
+        
+        var reorderedVisibleTargetEntriesNamedArray = {}; // named array
+        for (var k = 0; k < t.length; k++) {
+            reorderedVisibleTargetEntriesNamedArray[t[k].id] = t[k];
+        }
+        
+        return reorderedVisibleTargetEntriesNamedArray;
+    },
+    
+    
 	/*
 		Function: length
 			provides the length of specified data structure
@@ -254,7 +379,7 @@ DataManager.prototype = {
 	    var matrixFlatten = []; 
 
 	    // if it's not a flattened, reset matrix
-	    if (!flattened) { 
+	    if ( ! flattened) { 
 	    	this.matrix = []; 
 	    }
 
@@ -281,7 +406,7 @@ DataManager.prototype = {
 					}
 				}
 			}
-			if (!flattened) {  
+			if ( ! flattened) {  
 				this.matrix.push(list);
 			} 
 		}
@@ -430,7 +555,50 @@ DataManager.prototype = {
 
 	getOntologyLabel: function(id) {
 		return this.dataLoader.getOntologyLabel(id);
+	},
+    
+    /*
+		Function: isExpanded
+
+			convenient function to check the genotype expansion cache for a given gene id
+	
+	 	Parameters:
+	 		id - gene id to check
+	*/
+	isExpanded: function(id) {
+        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
+            return false;
+        } else {
+            return true;
+        }
+	},
+    
+    /*
+		Function: checkGenotypesLoaded
+
+			check if the genotypes data of that specific gene id has been loaded
+	
+	 	Parameters:
+	 		species - species name
+            id - gene id to check
+	*/
+    checkGenotypesLoaded: function(species, id) {
+		if (typeof(this.reorderedTargetEntriesIndexArray[species]) === 'undefined') {
+            this.reorderedTargetEntriesIndexArray[species] = []; // index array
+        }
+    
+        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
+            // only added genotypes have 'parentGeneID' property
+            if (typeof(this.reorderedTargetEntriesIndexArray[species][i].parentGeneID) !== 'undefined') {
+                if (this.reorderedTargetEntriesIndexArray[species][i].parentGeneID === id) {
+                    return true;
+                }
+            }  
+        }
+        // loop through the array and didn't find genotypes of the target gene id
+        return false;
 	}
+    
 };
 
 // CommonJS format
