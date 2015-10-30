@@ -478,8 +478,8 @@ var images = require('./images.json');
         this._relinkTooltip();
     },
     
-	// Click the setting button to open/close the control options
-	// Click anywhere inside #pg_svg to close the options when it's open
+	// Click the setting button to open the control options
+	// Click the cross mark to close when it's open
 	_togglePhenogridControls: function() {
 		// Toggle the options panel by clicking the button
 		$("#pg_slide_btn").click(function() {
@@ -489,30 +489,31 @@ var images = require('./images.json');
 				$("#pg_controls_options").fadeIn();
 				// Remove the top border of the button by adding .pg_slide_open CSS class
 				$(this).addClass("pg_slide_open");
-			} else {
-				$("#pg_controls_options").fadeOut();
-				// Add top border back
-				$(this).removeClass("pg_slide_open");
 			}
+		});
+        
+        $("#pg_controls_close").click(function() {
+			$("#pg_controls_options").fadeOut();
+            $("#pg_slide_btn").removeClass("pg_slide_open");
 		});
 	},
 	
-    // Click the setting button to open/close the control options
-	// Click anywhere inside #pg_container to close the options when it's open
+    // Click the setting button to open unmatched sources
+	// Click the cross mark to close when it's open
 	_toggleUnmatchedSources: function() {
-		// Toggle the options panel by clicking the button
-		$("#pg_unmatched_btn").click(function() {
-			// $(this) refers to $("#pg_slide_btn")
+        $("#pg_unmatched_btn").click(function() {
+			// $(this) refers to $("#pg_unmatched_btn")
 			if ( ! $(this).hasClass("pg_unmatched_open")) {
 				// Show the phenogrid controls
 				$("#pg_unmatched_list").fadeIn();
 				// Remove the top border of the button by adding .pg_unmatched_open CSS class
 				$(this).addClass("pg_unmatched_open");
-			} else {
-				$("#pg_unmatched_list").fadeOut();
-				// Add top border back
-				$(this).removeClass("pg_unmatched_open");
 			}
+		});
+        
+        $("#pg_unmatched_close").click(function() {
+			$("#pg_unmatched_list").fadeOut();
+            $("#pg_unmatched_btn").removeClass("pg_unmatched_open");
 		});
 	},
     
@@ -1900,7 +1901,7 @@ var images = require('./images.json');
 		$('#pg_container').append(pg_unmatched);
         
         // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
-		var pg_unmatched_list = '<div id="pg_unmatched_list"><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span><div id="pg_unmatched_list_data"></div></div>';
+		var pg_unmatched_list = '<div id="pg_unmatched_list"><i id="pg_unmatched_close" class="fa fa-times"></i><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span><div id="pg_unmatched_list_data"></div></div>';
 		
 		// Hide/show unmatched - button - Joe
 		var pg_unmatched_btn ='<div id="pg_unmatched_btn"><i class="fa fa-exclamation-triangle"></i> ' + this.state.unmatchedButtonLabel + ' </div>';
@@ -1921,7 +1922,7 @@ var images = require('./images.json');
 		$('#pg_container').append(phenogridControls);
 		
 		// Need to put .pg_controls_options_arrow_border span before .pg_controls_options_arrow span - Joe
-		var optionhtml = '<div id="pg_controls_options"><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
+		var optionhtml = '<div id="pg_controls_options"><i id="pg_controls_close"class="fa fa-times"></i><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
 		var slideBtn = '<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
