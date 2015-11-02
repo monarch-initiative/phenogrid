@@ -1490,6 +1490,7 @@ var images = require('./images.json');
 			});
 	},
 
+    // data is either cell data or label data details - Joe
 	_createHoverBox: function(data){
 		var id;
 
