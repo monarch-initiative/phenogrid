@@ -1549,7 +1549,7 @@ var images = require('./images.json');
 
         if (type === 'phenotype') {
             // phenotype tooltip shows type, id, sum, frequency, and ontology expansion
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br>" : "");
+            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._encodeTooltipHref(type, id, data.label) + "<br>" : "");
             var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br>" : "");
             var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br>" : "");
             var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br>" : "");
@@ -1610,15 +1610,15 @@ var images = require('./images.json');
             }
 
             htmlContent = "<strong>" + Utils.capitalizeString(sourceInfo.type) + "</strong><br>" 
-                          + this._entityHreflink(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
+                          + this._encodeTooltipHref(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
                           + "<strong>In-common</strong><br>" 
-                          + this._entityHreflink(sourceInfo.type, data.subsumer_id, data.subsumer_label ) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
+                          + this._encodeTooltipHref(sourceInfo.type, data.subsumer_id, data.subsumer_label) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
                           + "<strong>Match</strong><br>" 
-                          + this._entityHreflink(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
+                          + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
                           + "<strong>" + Utils.capitalizeString(targetInfo.type) + " - " + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</strong><br>" 
-                          + this._entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label);
+                          + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
         } else {
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br>" : "");
+            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._encodeTooltipHref(type, id, data.label) + "<br>" : "");
             var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br>" : "");
             var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br>" : "");	
             var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
@@ -1630,7 +1630,7 @@ var images = require('./images.json');
                 /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
                 // for gene and single species mode only, add genotype expansion link
                 if (this.state.selectedCompareTargetGroup.length === 1) {
-                    var expanded = this.parent.state.dataManager.isExpanded(id); // gene id
+                    var expanded = this.state.dataManager.isExpanded(id); // gene id
 
                     if (expanded){
                         htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_remove_genotypes_" + id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
@@ -1647,7 +1647,7 @@ var images = require('./images.json');
     },
     
     // also encode the labels into html entities, otherwise they will mess up the tooltip content format
-	_entityHreflink: function(type, id, label) {
+	_encodeTooltipHref: function(type, id, label) {
 		return "<a href=\"" + this.state.serverURL +"/" +  type +"/" + id + "\" target=\"_blank\">" + Utils.encodeHtmlEntity(label) + "</a>";
 	},
     
