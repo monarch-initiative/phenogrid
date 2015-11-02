@@ -63,7 +63,6 @@ var filesaver = require('filesaver.js');
 var AxisGroup = require('./axisgroup.js');
 var DataLoader = require('./dataloader.js');
 var DataManager = require('./datamanager.js');
-var TooltipRender = require('./tooltiprender.js');
 var Utils = require('./utils.js');
 
 // html content to be used for popup dialogues
@@ -240,8 +239,6 @@ var images = require('./images.json');
 
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
-
-		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
 
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -1490,11 +1487,12 @@ var images = require('./images.json');
 			});
 	},
 
+    // data is either cell data or label data details - Joe
 	_createHoverBox: function(data){
 		var id;
 
 		// for cells we need to check the invertAxis to adjust for correct id
-		if (data.type == 'cell') {
+		if (data.type === 'cell') {
 			 if (this.state.invertAxis) {
 				id = data.target_id;
 			 } else {
@@ -1505,7 +1503,7 @@ var images = require('./images.json');
 		}
 
 		// format data for rendering in a tooltip
-		var retData = this.state.tooltipRender.html({parent: this, id:id, data: data});   
+		var retData = this._renderTooltip(id, data);   
 
 		// update the stub pg_tooltip div dynamically to display
 		$("#pg_tooltip_inner").empty();
@@ -1515,7 +1513,7 @@ var images = require('./images.json');
 		if (data.type === 'phenotype') {
 			// https://api.jqueryui.com/jquery.widget/#method-_on
 			// Binds click event to the ontology tree expand icon - Joe
-			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_expandOntology_HP_0001300" - Joe
+			// _renderTooltip(), the font awesome icon <i> element follows the form of id="pg_expandOntology_HP_0001300" - Joe
 			var expandOntol_icon = $('#pg_expandOntology_' + id);
 			this._on(expandOntol_icon, {
 				"click": function(event) {
@@ -1526,7 +1524,7 @@ var images = require('./images.json');
         
         // For genotype expansion
 		if (data.type === 'gene') {
-			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
+			// In renderTooltip(), the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
 			var insert = $('#pg_insert_genotypes_' + id);
             this._on(insert, {
 				"click": function(event) {
@@ -1543,8 +1541,117 @@ var images = require('./images.json');
 		}
 	},
 
+    // main method for rendering tooltip content
+    _renderTooltip: function(id, data) {
+        var htmlContent = '';
+
+        if (data.type === 'phenotype') {
+            // phenotype tooltip shows type, id, sum, frequency, and ontology expansion
+            var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
+            var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br>" : "");
+            var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br>" : "");
+            var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br>" : "");
+
+            htmlContent = tooltipType + ic + sum + frequency;
+                            
+            var expanded = false;
+            var ontologyData = "<br>";
+
+            var cached = this.state.dataLoader.checkOntologyCache(id);
+
+            if (typeof(cached) !== 'undefined') {
+                expanded = true;
+
+                //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
+                this.state.ontologyTreesDone = 0;
+                this.state.ontologyTreeHeight = 0;
+                var tree = "<div id='hpoDiv'>" + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + "</div>";
+                if (tree === "<br>"){
+                    ontologyData += "<em>No Classification hierarchy Found</em>";
+                } else {
+                    ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
+                }
+            }
+            
+            if (expanded){
+                htmlContent += ontologyData;
+            } else {
+                htmlContent += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+            }	
+        } else if (data.type === 'cell') {
+            var suffix = "";
+            var selCalc = this.state.selectedCalculation;
+
+            var prefix, targetId, sourceId, targetInfo, sourceInfo;
+
+            sourceId = data.source_id;
+            targetId = data.target_id;
+                
+            if (this.state.invertAxis) {
+                targetInfo = this.state.yAxisRender.get(data.target_id); 
+                sourceInfo = this.state.xAxisRender.get(data.source_id); 			
+            } else {
+                targetInfo = this.state.xAxisRender.get(data.target_id); 
+                sourceInfo = this.state.yAxisRender.get(data.source_id); 						
+            }
+
+            for (var idx in this.state.similarityCalculation) {	
+                if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
+                    prefix = this.state.similarityCalculation[idx].label;
+                    break;
+                }
+            }
+
+            // If the selected calculation isn't percentage based (aka similarity) make it a percentage
+            if (selCalc !== 2) {
+                suffix = '%';
+            }
+
+            htmlContent = "<strong>" + Utils.capitalizeString(sourceInfo.type) + "</strong><br>" 
+                          + this._encodeTooltipHref(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
+                          + "<strong>In-common</strong><br>" 
+                          + this._encodeTooltipHref(sourceInfo.type, data.subsumer_id, data.subsumer_label) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
+                          + "<strong>Match</strong><br>" 
+                          + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
+                          + "<strong>" + Utils.capitalizeString(targetInfo.type) + " - " + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</strong><br>" 
+                          + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
+        } else {
+            // disease and gene/genotype share common items
+            var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
+            var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br>" : "");
+            var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br>" : "");	
+            var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
+
+            htmlContent = tooltipType + rank + score + species;
+            
+            // Add genotype expansion link to genes
+            if (data.type === 'gene') {
+                /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
+                // for gene and single species mode only, add genotype expansion link
+                if (this.state.selectedCompareTargetGroup.length === 1) {
+                    var expanded = this.state.dataManager.isExpanded(id); // gene id
+
+                    if (expanded){
+                        htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_remove_genotypes_" + id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
+                    } else {
+                        htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_insert_genotypes_" + id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+                    }
+                }
+                */
+            }
+        }
+        
+         // Finally return the rendered HTML result
+		return htmlContent;
+    },
+    
+    // also encode the labels into html entities, otherwise they will mess up the tooltip content format
+	_encodeTooltipHref: function(type, id, label) {
+		return "<a href=\"" + this.state.serverURL +"/" +  type +"/" + id + "\" target=\"_blank\">" + Utils.encodeHtmlEntity(label) + "</a>";
+	},
+    
 	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
-	buildOntologyTree: function(id, edges, level) {
+	_buildOntologyTree: function(id, edges, level) {
 		var results = "";
 		var nextResult;
 		var nextLevel = level + 1;
@@ -1559,7 +1666,7 @@ var images = require('./images.json');
 					if (this.state.ontologyTreeHeight < nextLevel){
 						this.state.ontologyTreeHeight++;
 					}
-					nextResult = this.buildOntologyTree(edges[j].obj, edges, nextLevel);
+					nextResult = this._buildOntologyTree(edges[j].obj, edges, nextLevel);
 					if (nextResult === ""){
 						// Bolds the 'top of the line' to see what is the root or closet to the root.  It will hit this point either when it reaches the ontologyDepth or there are no parents
 						results += "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight - nextLevel) + "<strong>" + this._buildOntologyHyperLink(edges[j].obj) + "</strong>";
@@ -2301,7 +2408,7 @@ var images = require('./images.json');
         ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br/>";
         ontologyData += "<strong>Frequency:</strong> " + info.count + "<br/><br/>";
 
-		var classTree = parent.buildOntologyTree(id.replace("_", ":"), d.edges, 0);
+		var classTree = parent._buildOntologyTree(id.replace("_", ":"), d.edges, 0);
 
 		if (classTree === "<br>"){
 			ontologyData += "<em>No classification hierarchy data found</em>";
@@ -2368,7 +2475,6 @@ var images = require('./images.json');
             $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
             
             // Tell dataManager that the loaded genotypes of this gene have been expanded
-            // This updates the tooltiprender too
             this.state.dataManager.expandedGenotypeList[id] = this.state.dataLoader.loadedGenotypes[id];
         } else {
             // Load the genotypes only once
@@ -2559,6 +2665,7 @@ var images = require('./images.json');
 		}
 	},
 
+    // used by renderTooltip() - Joe
 	_getTargetGroupTaxon: function(name) {
 		for (var i in this.state.targetGroupList) {
 			if (this.state.targetGroupList[i].name == name) {

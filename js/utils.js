@@ -80,7 +80,7 @@ var Utils = {
 		if(score === 0) {
 			return "";
 		} else {
-			return " (IC: " + score + ")";
+			return "(IC: " + score + ")";
 		}
 	},
 
