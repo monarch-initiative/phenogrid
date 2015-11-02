@@ -310,7 +310,7 @@ AxisGroup.prototype = {
 module.exports = AxisGroup;
 
 }());
-},{"d3":9}],2:[function(require,module,exports){
+},{"d3":8}],2:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -1006,7 +1006,7 @@ DataLoader.prototype = {
 module.exports = DataLoader;
 
 }());
-},{"./utils.js":8,"jquery":12}],3:[function(require,module,exports){
+},{"./utils.js":7,"jquery":11}],3:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -1614,7 +1614,7 @@ DataManager.prototype = {
 module.exports=DataManager;
 
 }());
-},{"./utils.js":8,"jquery":12}],4:[function(require,module,exports){
+},{"./utils.js":7,"jquery":11}],4:[function(require,module,exports){
 module.exports={
   "scores": "<div><h5>What is the score shown at the top of the grid?<\/h5><div>The score indicated at the top of each column, below the target label, is the overall similarity score between the query and target. Briefly, for each of the targets (columns) listed, the set of Q(1..n) phenotypes of the query are pairwise compared against all of the T(1..m) phenotypes in the target.<br \/><br \/>Then, for each pairwise comparison of phenotypes (q x P1...n), the best comparison is retained for each q and summed for all p1..n. <\/div><br \/><div>The raw score is then normalized against the maximal possible score, which is the query matching to itself. Therefore, range of scores displayed is 0..100. For more details, please see (Smedley et al, 2012 <a href='http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/23660285' target='_blank'>http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/23660285<\/a> and <a href='http:\/\/www.owlsim.org' target='_blank'>http:\/\/www.owlsim.org<\/a>)<\/div>\r\n",
   "sorts": "<div><h5>What are the different ways that phenotypes can be sorted?<\/h5><div>The phenotypes that are shown on the left side of the grid may be sorted using one of three methods.  More options may be available in the future.<\/div><ul><li><b>Alphabetical<\/b> - A-Z<\/li><li><b>Frequency and Rarity<\/b> - Phenotypes are sorted by the sum of the phenotype values across all models\/genes<\/li><li><b>Frequency (Default)<\/b> - Phenotypes are sorted by the count of the number of model\/gene matches per phenotype <\/li><\/ul>",
@@ -1691,7 +1691,6 @@ var filesaver = require('filesaver.js');
 var AxisGroup = require('./axisgroup.js');
 var DataLoader = require('./dataloader.js');
 var DataManager = require('./datamanager.js');
-var TooltipRender = require('./tooltiprender.js');
 var Utils = require('./utils.js');
 
 // html content to be used for popup dialogues
@@ -1868,8 +1867,6 @@ var images = require('./images.json');
 
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
-
-		this.state.tooltipRender = new TooltipRender();   
 
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -3144,7 +3141,7 @@ var images = require('./images.json');
 		if (data.type === 'phenotype') {
 			// https://api.jqueryui.com/jquery.widget/#method-_on
 			// Binds click event to the ontology tree expand icon - Joe
-			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_expandOntology_HP_0001300" - Joe
+			// _renderTooltip(), the font awesome icon <i> element follows the form of id="pg_expandOntology_HP_0001300" - Joe
 			var expandOntol_icon = $('#pg_expandOntology_' + id);
 			this._on(expandOntol_icon, {
 				"click": function(event) {
@@ -3155,7 +3152,7 @@ var images = require('./images.json');
         
         // For genotype expansion
 		if (data.type === 'gene') {
-			// In tooltiprender.js, the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
+			// In renderTooltip(), the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
 			var insert = $('#pg_insert_genotypes_' + id);
             this._on(insert, {
 				"click": function(event) {
@@ -3179,10 +3176,11 @@ var images = require('./images.json');
         var htmlContent = '';
 
         if (type === 'phenotype') {
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br/>" : "");
-            var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br/>" : "");
-            var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br/>" : "");
-            var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br/>" : "");
+            // phenotype tooltip shows type, id, sum, frequency, and ontology expansion
+            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br>" : "");
+            var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br>" : "");
+            var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br>" : "");
+            var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br>" : "");
 
             htmlContent = tooltipType + ic + sum + frequency;
                             
@@ -3211,12 +3209,10 @@ var images = require('./images.json');
                 htmlContent += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
             }	
         } else if (type === 'cell') {
-
             var suffix = "";
             var selCalc = this.state.selectedCalculation;
 
             var prefix, targetId, sourceId, targetInfo, sourceInfo;
-            //var taxon = this.data.taxon;
 
             sourceId = data.source_id;
             targetId = data.target_id;
@@ -3229,17 +3225,10 @@ var images = require('./images.json');
                 sourceInfo = this.state.yAxisRender.get(data.source_id); 						
             }
 
-             
-                // if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-                // 	if (taxon.indexOf("NCBITaxon:") != -1) {
-                // 		taxon = taxon.slice(10);
-                // 	}
-                // }
-
             for (var idx in this.state.similarityCalculation) {	
                 if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
                     prefix = this.state.similarityCalculation[idx].label;
-                break;
+                    break;
                 }
             }
 
@@ -3248,28 +3237,19 @@ var images = require('./images.json');
                 suffix = '%';
             }
 
-            htmlContent = "<table class=\"pgtb\">" +
-                "<tbody><tr><td>" +     
-                    "<b><u>" + Utils.capitalizeString(sourceInfo.type) + "</u></b><br>" + this._entityHreflink(sourceInfo.type, sourceId, data.a_label ) +  
-                    " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br>" + 
-                "</td><tr><td><u><b><br>In-common</b></u><br>" + 
-                    this._entityHreflink(sourceInfo.type, data.subsumer_id, data.subsumer_label ) + " (" +
-                    Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " +
-                    prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br>" +		
-                "</td></tr>" +
-                "<tr><td><br><u><b>Match</b></u><br>" + 
-                    this._entityHreflink(sourceInfo.type, data.b_id, data.b_label ) +
-                        Utils.formatScore(data.b_IC.toFixed(2))+ "</td></tr>" +
-                "<tr><td><br><u><b>" + Utils.capitalizeString(targetInfo.type) + "</b></u><br>" + 
-                    this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) + 
-                    "<br>" + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</td>" + 			
-                "</td></tr>" +
-                "</tbody>" + "</table>";
+            htmlContent = "<strong>" + Utils.capitalizeString(sourceInfo.type) + "</strong><br>" 
+                          + this._entityHreflink(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
+                          + "<strong>In-common</strong><br>" 
+                          + this._entityHreflink(sourceInfo.type, data.subsumer_id, data.subsumer_label ) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
+                          + "<strong>Match</strong><br>" 
+                          + this._entityHreflink(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
+                          + "<strong>" + Utils.capitalizeString(targetInfo.type) + " - " + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</strong><br>" 
+                          + this._entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label);
         } else {
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br/>" : "");
-            var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br/>" : "");
-            var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br/>" : "");	
-            var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br/>" : "");
+            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br>" : "");
+            var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br>" : "");
+            var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br>" : "");	
+            var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
 
             htmlContent = tooltipType + rank + score + species;
             
@@ -3292,7 +3272,6 @@ var images = require('./images.json');
         
          // Finally return the rendered HTML result
 		return htmlContent;
-
     },
     
     // also encode the labels into html entities, otherwise they will mess up the tooltip content format
@@ -4125,7 +4104,6 @@ var images = require('./images.json');
             $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
             
             // Tell dataManager that the loaded genotypes of this gene have been expanded
-            // This updates the tooltiprender too
             this.state.dataManager.expandedGenotypeList[id] = this.state.dataLoader.loadedGenotypes[id];
         } else {
             // Load the genotypes only once
@@ -4316,7 +4294,7 @@ var images = require('./images.json');
 		}
 	},
 
-    // used by tooltiprender - Joe
+    // used by renderTooltip() - Joe
 	_getTargetGroupTaxon: function(name) {
 		for (var i in this.state.targetGroupList) {
 			if (this.state.targetGroupList[i].name == name) {
@@ -4370,171 +4348,7 @@ var images = require('./images.json');
 }());
 
 
-},{"./axisgroup.js":1,"./dataloader.js":2,"./datamanager.js":3,"./htmlnotes.json":4,"./images.json":5,"./tooltiprender.js":7,"./utils.js":8,"d3":9,"filesaver.js":10,"jquery":12,"jquery-ui":11}],7:[function(require,module,exports){
-(function () {
-'use strict';
-
-var Utils = require('./utils.js');
-
-/* 
-	Package: tooltiprender.js
-
- 	Constructor: TooltipRender 
-		Render the content of a tooltip
-		The tooltip consist of two 'areas', 1.) basic info area, which provides general info
-		such as id, label, rank, score, etc. Most object will have these attribute. it accounts 
-		for absent attributes. 2.) the action or extended info area, which render content specific to 
-		performing actions such as displaying expand buttons and other specialized info. For new types,
-		just add a specialized method, making sure the the name matches the data.type.
-*/
-
-// Define the TooltipRender constructor, empty constructor
-var TooltipRender = function() {};
-
-// Add some methods to TooltipRender.prototype
-TooltipRender.prototype = {
-	constructor:TooltipRender,
-
-	// main method for rendering tooltip content
-    // params is an object {parent, id, data}
-	html: function(parms) {
-		this.parent = parms.parent;  // refers to the global this in phenogrid.js
-        this.id = parms.id;
-		this.data = parms.data; // data is either cell data or label data details - Joe
-
-        var type = this.data.type;
-        
-        var htmlContent = '';
-
-        if (type === 'phenotype') {
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this.entityHreflink(type, this.id, this.data.label) + "<br/>" : "");
-            var ic = (typeof(this.data.IC) !== 'undefined' ? "<strong>IC:</strong> " + this.data.IC.toFixed(2)+"<br/>" : "");
-            var sum = (typeof(this.data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + this.data.sum.toFixed(2)+"<br/>" : "");
-            var frequency = (typeof(this.data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + this.data.count +"<br/>" : "");
-
-            htmlContent = tooltipType + ic + sum + frequency;
-                            
-            var expanded = false;
-            var ontologyData = "<br>";
-
-            var cached = this.parent.state.dataLoader.checkOntologyCache(this.id);
-
-            if (typeof(cached) !== 'undefined') {
-                expanded = true;
-
-                //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
-                this.parent.state.ontologyTreesDone = 0;
-                this.parent.state.ontologyTreeHeight = 0;
-                var tree = "<div id='hpoDiv'>" + this.parent.buildOntologyTree(this.id.replace("_", ":"), cached.edges, 0) + "</div>";
-                if (tree === "<br>"){
-                    ontologyData += "<em>No Classification hierarchy Found</em>";
-                } else {
-                    ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
-                }
-            }
-            
-            if (expanded){
-                htmlContent += ontologyData;
-            } else {
-                htmlContent += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + this.id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
-            }	
-        } else if (this.data.type === 'cell') {
-
-            var suffix = "";
-            var selCalc = this.parent.state.selectedCalculation;
-
-            var prefix, targetId, sourceId, targetInfo, sourceInfo;
-            //var taxon = this.data.taxon;
-
-            sourceId = this.data.source_id;
-            targetId = this.data.target_id;
-                
-            if (this.parent.state.invertAxis) {
-                targetInfo = this.parent.state.yAxisRender.get(this.data.target_id); 
-                sourceInfo = this.parent.state.xAxisRender.get(this.data.source_id); 			
-            } else {
-                targetInfo = this.parent.state.xAxisRender.get(this.data.target_id); 
-                sourceInfo = this.parent.state.yAxisRender.get(this.data.source_id); 						
-            }
-
-             
-                // if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-                // 	if (taxon.indexOf("NCBITaxon:") != -1) {
-                // 		taxon = taxon.slice(10);
-                // 	}
-                // }
-
-            for (var idx in this.parent.state.similarityCalculation) {	
-                if (this.parent.state.similarityCalculation[idx].calc === this.parent.state.selectedCalculation) {
-                    prefix = this.parent.state.similarityCalculation[idx].label;
-                break;
-                }
-            }
-
-            // If the selected calculation isn't percentage based (aka similarity) make it a percentage
-            if (selCalc !== 2) {
-                suffix = '%';
-            }
-
-            htmlContent = "<table class=\"pgtb\">" +
-                "<tbody><tr><td>" +     
-                    "<b><u>" + Utils.capitalizeString(sourceInfo.type) + "</u></b><br>" + this.entityHreflink(sourceInfo.type, sourceId, this.data.a_label ) +  
-                    " " + Utils.formatScore(this.data.a_IC.toFixed(2)) + "<br>" + 
-                "</td><tr><td><u><b><br>In-common</b></u><br>" + 
-                    this.entityHreflink(sourceInfo.type, this.data.subsumer_id, this.data.subsumer_label ) + " (" +
-                    Utils.formatScore(this.data.subsumer_IC.toFixed(2)) + ", " +
-                    prefix + " " + this.data.value[this.parent.state.selectedCalculation].toFixed(2) + '%' + ")<br>" +		
-                "</td></tr>" +
-                "<tr><td><br><u><b>Match</b></u><br>" + 
-                    this.entityHreflink(sourceInfo.type, this.data.b_id, this.data.b_label ) +
-                        Utils.formatScore(this.data.b_IC.toFixed(2))+ "</td></tr>" +
-                "<tr><td><br><u><b>" + Utils.capitalizeString(targetInfo.type) + "</b></u><br>" + 
-                    this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) + 
-                    "<br>" + this.data.targetGroup + " (" + this.parent._getTargetGroupTaxon(this.data.targetGroup) + ")</td>" + 			
-                "</td></tr>" +
-                "</tbody>" + "</table>";
-        } else {
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this.entityHreflink(type, this.id, this.data.label) + "<br/>" : "");
-            var rank = (typeof(this.data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + this.data.rank+"<br/>" : "");
-            var score = (typeof(this.data.score) !== 'undefined' ? "<strong>Score:</strong> " + this.data.score+"<br/>" : "");	
-            var species = (typeof(this.data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + this.data.targetGroup+"<br/>" : "");
-
-            htmlContent = tooltipType + rank + score + species;
-            
-            // Add genotype expansion link to genes
-            if (type === 'gene') {
-                /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
-                // for gene and single species mode only, add genotype expansion link
-                if (this.parent.state.selectedCompareTargetGroup.length === 1) {
-                    var expanded = this.parent.state.dataManager.isExpanded(this.id); // gene id
-
-                    if (expanded){
-                        htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + this.data.targetGroup + "\" id=\"pg_remove_genotypes_" + this.id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
-                    } else {
-                        htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + this.data.targetGroup + "\" id=\"pg_insert_genotypes_" + this.id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
-                    }
-                }
-                */
-            }
-        }
-        
-         // Finally return the rendered HTML result
-		return htmlContent;
-	},
-    
-    // also encode the labels into html entities, otherwise they will mess up the tooltip content format
-	entityHreflink: function(type, id, label) {
-		return "<a href=\"" + this.parent.state.serverURL +"/" +  type +"/"+ id + "\" target=\"_blank\">" + Utils.encodeHtmlEntity(label) + "</a>";
-	}
-    
-};
-
-
-// CommonJS format
-module.exports = TooltipRender;
-
-}());
-},{"./utils.js":8}],8:[function(require,module,exports){
+},{"./axisgroup.js":1,"./dataloader.js":2,"./datamanager.js":3,"./htmlnotes.json":4,"./images.json":5,"./utils.js":7,"d3":8,"filesaver.js":9,"jquery":11,"jquery-ui":10}],7:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -4642,7 +4456,7 @@ var Utils = {
 module.exports = Utils;
 
 }());
-},{"jquery":12}],9:[function(require,module,exports){
+},{"jquery":11}],8:[function(require,module,exports){
 !function() {
   var d3 = {
     version: "3.5.6"
@@ -14147,7 +13961,7 @@ module.exports = Utils;
   if (typeof define === "function" && define.amd) define(d3); else if (typeof module === "object" && module.exports) module.exports = d3;
   this.d3 = d3;
 }();
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.1.20150716
@@ -14405,7 +14219,7 @@ if (typeof module !== "undefined" && module.exports) {
   });
 }
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var jQuery = require('jquery');
 
 /*! jQuery UI - v1.10.3 - 2013-05-03
@@ -29412,7 +29226,7 @@ $.widget( "ui.tooltip", {
 
 }( jQuery ) );
 
-},{"jquery":12}],12:[function(require,module,exports){
+},{"jquery":11}],11:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/

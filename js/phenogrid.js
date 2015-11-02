@@ -1548,10 +1548,11 @@ var images = require('./images.json');
         var htmlContent = '';
 
         if (type === 'phenotype') {
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br/>" : "");
-            var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br/>" : "");
-            var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br/>" : "");
-            var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br/>" : "");
+            // phenotype tooltip shows type, id, sum, frequency, and ontology expansion
+            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br>" : "");
+            var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br>" : "");
+            var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br>" : "");
+            var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br>" : "");
 
             htmlContent = tooltipType + ic + sum + frequency;
                             
@@ -1580,12 +1581,10 @@ var images = require('./images.json');
                 htmlContent += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
             }	
         } else if (type === 'cell') {
-
             var suffix = "";
             var selCalc = this.state.selectedCalculation;
 
             var prefix, targetId, sourceId, targetInfo, sourceInfo;
-            //var taxon = this.data.taxon;
 
             sourceId = data.source_id;
             targetId = data.target_id;
@@ -1598,17 +1597,10 @@ var images = require('./images.json');
                 sourceInfo = this.state.yAxisRender.get(data.source_id); 						
             }
 
-             
-                // if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
-                // 	if (taxon.indexOf("NCBITaxon:") != -1) {
-                // 		taxon = taxon.slice(10);
-                // 	}
-                // }
-
             for (var idx in this.state.similarityCalculation) {	
                 if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
                     prefix = this.state.similarityCalculation[idx].label;
-                break;
+                    break;
                 }
             }
 
@@ -1617,28 +1609,19 @@ var images = require('./images.json');
                 suffix = '%';
             }
 
-            htmlContent = "<table class=\"pgtb\">" +
-                "<tbody><tr><td>" +     
-                    "<b><u>" + Utils.capitalizeString(sourceInfo.type) + "</u></b><br>" + this._entityHreflink(sourceInfo.type, sourceId, data.a_label ) +  
-                    " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br>" + 
-                "</td><tr><td><u><b><br>In-common</b></u><br>" + 
-                    this._entityHreflink(sourceInfo.type, data.subsumer_id, data.subsumer_label ) + " (" +
-                    Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " +
-                    prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br>" +		
-                "</td></tr>" +
-                "<tr><td><br><u><b>Match</b></u><br>" + 
-                    this._entityHreflink(sourceInfo.type, data.b_id, data.b_label ) +
-                        Utils.formatScore(data.b_IC.toFixed(2))+ "</td></tr>" +
-                "<tr><td><br><u><b>" + Utils.capitalizeString(targetInfo.type) + "</b></u><br>" + 
-                    this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) + 
-                    "<br>" + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</td>" + 			
-                "</td></tr>" +
-                "</tbody>" + "</table>";
+            htmlContent = "<strong>" + Utils.capitalizeString(sourceInfo.type) + "</strong><br>" 
+                          + this._entityHreflink(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
+                          + "<strong>In-common</strong><br>" 
+                          + this._entityHreflink(sourceInfo.type, data.subsumer_id, data.subsumer_label ) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
+                          + "<strong>Match</strong><br>" 
+                          + this._entityHreflink(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
+                          + "<strong>" + Utils.capitalizeString(targetInfo.type) + " - " + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</strong><br>" 
+                          + this._entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label);
         } else {
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br/>" : "");
-            var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br/>" : "");
-            var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br/>" : "");	
-            var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br/>" : "");
+            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br>" : "");
+            var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br>" : "");
+            var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br>" : "");	
+            var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
 
             htmlContent = tooltipType + rank + score + species;
             
@@ -1661,7 +1644,6 @@ var images = require('./images.json');
         
          // Finally return the rendered HTML result
 		return htmlContent;
-
     },
     
     // also encode the labels into html entities, otherwise they will mess up the tooltip content format

@@ -229,27 +229,6 @@ font-family: Verdana, Geneva, sans-serif;
 font-size: 11px;
 }
 
-#pg_container .pgtb {
-border-collapse: collapse;
-border-spacing: 0;
-font-family: Verdana, Geneva, sans-serif;              
-font-size: 11px;
-}
-
-#pg_container .pgtb td {
-border-style: none;
-border-width:0px;
-overflow:hidden;
-word-break:normal;
-}
-
-#pg_container .pgtb th{
-font-weight: bold;
-padding:5px;
-overflow:hidden;
-word-break:normal;
-}
-
 /** Overwrite jquery-ui default style */
 .ui-dialog-content {
 font-size:11px;
