@@ -1567,7 +1567,7 @@ var images = require('./images.json');
                 //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
                 this.state.ontologyTreesDone = 0;
                 this.state.ontologyTreeHeight = 0;
-                var tree = "<div id='hpoDiv'>" + this.buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + "</div>";
+                var tree = "<div id='hpoDiv'>" + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + "</div>";
                 if (tree === "<br>"){
                     ontologyData += "<em>No Classification hierarchy Found</em>";
                 } else {
@@ -1652,7 +1652,7 @@ var images = require('./images.json');
 	},
     
 	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
-	buildOntologyTree: function(id, edges, level) {
+	_buildOntologyTree: function(id, edges, level) {
 		var results = "";
 		var nextResult;
 		var nextLevel = level + 1;
@@ -1667,7 +1667,7 @@ var images = require('./images.json');
 					if (this.state.ontologyTreeHeight < nextLevel){
 						this.state.ontologyTreeHeight++;
 					}
-					nextResult = this.buildOntologyTree(edges[j].obj, edges, nextLevel);
+					nextResult = this._buildOntologyTree(edges[j].obj, edges, nextLevel);
 					if (nextResult === ""){
 						// Bolds the 'top of the line' to see what is the root or closet to the root.  It will hit this point either when it reaches the ontologyDepth or there are no parents
 						results += "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight - nextLevel) + "<strong>" + this._buildOntologyHyperLink(edges[j].obj) + "</strong>";
@@ -2409,7 +2409,7 @@ var images = require('./images.json');
         ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br/>";
         ontologyData += "<strong>Frequency:</strong> " + info.count + "<br/><br/>";
 
-		var classTree = parent.buildOntologyTree(id.replace("_", ":"), d.edges, 0);
+		var classTree = parent._buildOntologyTree(id.replace("_", ":"), d.edges, 0);
 
 		if (classTree === "<br>"){
 			ontologyData += "<em>No classification hierarchy data found</em>";
