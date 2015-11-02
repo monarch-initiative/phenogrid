@@ -19,15 +19,17 @@ var Utils = require('./utils.js');
  	Parameters:
  		url base
 */
-var TooltipRender = function(url) {
-	 this.url = url;
-};
 
+// Define the TooltipRender constructor, empty constructor
+var TooltipRender = function() {};
+
+// Add some methods to TooltipRender.prototype
 TooltipRender.prototype = {
 	constructor:TooltipRender,
+    
     // also encode the labels into html entities, otherwise they will mess up the tooltip format
 	entityHreflink: function(ptype, pid, plabel) {
-		var s = "<a href=\"" + this.url +"/" +  ptype +"/"+ pid +
+		var s = "<a href=\"" + this.parent.state.serverURL +"/" +  ptype +"/"+ pid +
 				"\" target=\"_blank\">" + Utils.encodeHtmlEntity(plabel) + "</a>";
 		return s;
 	},

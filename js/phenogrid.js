@@ -241,7 +241,7 @@ var images = require('./images.json');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
-		this.state.tooltipRender = new TooltipRender(this.state.serverURL);   
+		this.state.tooltipRender = new TooltipRender();   
 
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -1494,7 +1494,7 @@ var images = require('./images.json');
 		var id;
 
 		// for cells we need to check the invertAxis to adjust for correct id
-		if (data.type == 'cell') {
+		if (data.type === 'cell') {
 			 if (this.state.invertAxis) {
 				id = data.target_id;
 			 } else {
