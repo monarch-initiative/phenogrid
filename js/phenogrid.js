@@ -1543,13 +1543,11 @@ var images = require('./images.json');
 
     // main method for rendering tooltip content
     _renderTooltip: function(id, data) {
-        var type = data.type;
-        
         var htmlContent = '';
 
-        if (type === 'phenotype') {
+        if (data.type === 'phenotype') {
             // phenotype tooltip shows type, id, sum, frequency, and ontology expansion
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._encodeTooltipHref(type, id, data.label) + "<br>" : "");
+            var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
             var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br>" : "");
             var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br>" : "");
             var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br>" : "");
@@ -1580,7 +1578,7 @@ var images = require('./images.json');
             } else {
                 htmlContent += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
             }	
-        } else if (type === 'cell') {
+        } else if (data.type === 'cell') {
             var suffix = "";
             var selCalc = this.state.selectedCalculation;
 
@@ -1618,7 +1616,8 @@ var images = require('./images.json');
                           + "<strong>" + Utils.capitalizeString(targetInfo.type) + " - " + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</strong><br>" 
                           + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
         } else {
-            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._encodeTooltipHref(type, id, data.label) + "<br>" : "");
+            // disease and gene/genotype share common items
+            var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
             var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br>" : "");
             var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br>" : "");	
             var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
@@ -1626,7 +1625,7 @@ var images = require('./images.json');
             htmlContent = tooltipType + rank + score + species;
             
             // Add genotype expansion link to genes
-            if (type === 'gene') {
+            if (data.type === 'gene') {
                 /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
                 // for gene and single species mode only, add genotype expansion link
                 if (this.state.selectedCompareTargetGroup.length === 1) {
