@@ -3134,7 +3134,7 @@ var images = require('./images.json');
 		}
 
 		// format data for rendering in a tooltip
-		var retData = this.state.tooltipRender.html({parent: this, id:id, data: data});   
+		var retData = this._renderTooltip(id, data);   
 
 		// update the stub pg_tooltip div dynamically to display
 		$("#pg_tooltip_inner").empty();
@@ -3172,6 +3172,134 @@ var images = require('./images.json');
 		}
 	},
 
+    // main method for rendering tooltip content
+    _renderTooltip: function(id, data) {
+        var type = data.type;
+        
+        var htmlContent = '';
+
+        if (type === 'phenotype') {
+            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br/>" : "");
+            var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br/>" : "");
+            var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br/>" : "");
+            var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br/>" : "");
+
+            htmlContent = tooltipType + ic + sum + frequency;
+                            
+            var expanded = false;
+            var ontologyData = "<br>";
+
+            var cached = this.state.dataLoader.checkOntologyCache(id);
+
+            if (typeof(cached) !== 'undefined') {
+                expanded = true;
+
+                //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
+                this.state.ontologyTreesDone = 0;
+                this.state.ontologyTreeHeight = 0;
+                var tree = "<div id='hpoDiv'>" + this.buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + "</div>";
+                if (tree === "<br>"){
+                    ontologyData += "<em>No Classification hierarchy Found</em>";
+                } else {
+                    ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
+                }
+            }
+            
+            if (expanded){
+                htmlContent += ontologyData;
+            } else {
+                htmlContent += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+            }	
+        } else if (type === 'cell') {
+
+            var suffix = "";
+            var selCalc = this.state.selectedCalculation;
+
+            var prefix, targetId, sourceId, targetInfo, sourceInfo;
+            //var taxon = this.data.taxon;
+
+            sourceId = data.source_id;
+            targetId = data.target_id;
+                
+            if (this.state.invertAxis) {
+                targetInfo = this.state.yAxisRender.get(data.target_id); 
+                sourceInfo = this.state.xAxisRender.get(data.source_id); 			
+            } else {
+                targetInfo = this.state.xAxisRender.get(data.target_id); 
+                sourceInfo = this.state.yAxisRender.get(data.source_id); 						
+            }
+
+             
+                // if (taxon !== undefined || taxon !== null || taxon !== '' || isNaN(taxon)) {
+                // 	if (taxon.indexOf("NCBITaxon:") != -1) {
+                // 		taxon = taxon.slice(10);
+                // 	}
+                // }
+
+            for (var idx in this.state.similarityCalculation) {	
+                if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
+                    prefix = this.state.similarityCalculation[idx].label;
+                break;
+                }
+            }
+
+            // If the selected calculation isn't percentage based (aka similarity) make it a percentage
+            if (selCalc !== 2) {
+                suffix = '%';
+            }
+
+            htmlContent = "<table class=\"pgtb\">" +
+                "<tbody><tr><td>" +     
+                    "<b><u>" + Utils.capitalizeString(sourceInfo.type) + "</u></b><br>" + this._entityHreflink(sourceInfo.type, sourceId, data.a_label ) +  
+                    " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br>" + 
+                "</td><tr><td><u><b><br>In-common</b></u><br>" + 
+                    this._entityHreflink(sourceInfo.type, data.subsumer_id, data.subsumer_label ) + " (" +
+                    Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " +
+                    prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br>" +		
+                "</td></tr>" +
+                "<tr><td><br><u><b>Match</b></u><br>" + 
+                    this._entityHreflink(sourceInfo.type, data.b_id, data.b_label ) +
+                        Utils.formatScore(data.b_IC.toFixed(2))+ "</td></tr>" +
+                "<tr><td><br><u><b>" + Utils.capitalizeString(targetInfo.type) + "</b></u><br>" + 
+                    this.entityHreflink(targetInfo.type, targetInfo.id, targetInfo.label) + 
+                    "<br>" + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</td>" + 			
+                "</td></tr>" +
+                "</tbody>" + "</table>";
+        } else {
+            var tooltipType = (typeof(type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(type) + ": </strong> " + this._entityHreflink(type, id, data.label) + "<br/>" : "");
+            var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br/>" : "");
+            var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br/>" : "");	
+            var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br/>" : "");
+
+            htmlContent = tooltipType + rank + score + species;
+            
+            // Add genotype expansion link to genes
+            if (type === 'gene') {
+                /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
+                // for gene and single species mode only, add genotype expansion link
+                if (this.state.selectedCompareTargetGroup.length === 1) {
+                    var expanded = this.parent.state.dataManager.isExpanded(id); // gene id
+
+                    if (expanded){
+                        htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_remove_genotypes_" + id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
+                    } else {
+                        htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_insert_genotypes_" + id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+                    }
+                }
+                */
+            }
+        }
+        
+         // Finally return the rendered HTML result
+		return htmlContent;
+
+    },
+    
+    // also encode the labels into html entities, otherwise they will mess up the tooltip content format
+	_entityHreflink: function(type, id, label) {
+		return "<a href=\"" + this.state.serverURL +"/" +  type +"/" + id + "\" target=\"_blank\">" + Utils.encodeHtmlEntity(label) + "</a>";
+	},
+    
 	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
 	buildOntologyTree: function(id, edges, level) {
 		var results = "";
@@ -4188,6 +4316,7 @@ var images = require('./images.json');
 		}
 	},
 
+    // used by tooltiprender - Joe
 	_getTargetGroupTaxon: function(name) {
 		for (var i in this.state.targetGroupList) {
 			if (this.state.targetGroupList[i].name == name) {
@@ -4247,7 +4376,6 @@ var images = require('./images.json');
 
 var Utils = require('./utils.js');
 
-
 /* 
 	Package: tooltiprender.js
 
@@ -4257,11 +4385,7 @@ var Utils = require('./utils.js');
 		such as id, label, rank, score, etc. Most object will have these attribute. it accounts 
 		for absent attributes. 2.) the action or extended info area, which render content specific to 
 		performing actions such as displaying expand buttons and other specialized info. For new types,
-		just add a specialized method, making sure the the name matches the data.type 
-		(e.g, function phenotype => data.type='phenotype').
-
- 	Parameters:
- 		url base
+		just add a specialized method, making sure the the name matches the data.type.
 */
 
 // Define the TooltipRender constructor, empty constructor
