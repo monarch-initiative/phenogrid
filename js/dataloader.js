@@ -15,12 +15,12 @@ var Utils = require('./utils.js');
  	Parameters:
  	 	parent - reference to parent calling object
  		serverUrl - sim server url
- 		query - sim search query specific url string
+ 		simSearchQuery - sim search query specific url string
  */
-var DataLoader = function(simServerUrl, serverUrl, query, limit) {
+var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, limit) {
 	this.simServerURL = simServerUrl;
 	this.serverURL = serverUrl;	
-	this.simSearchURL = serverUrl + query;
+	this.simSearchURL = serverUrl + simSearchQuery;
 	this.qryString = '';
 	this.limit = limit;
 	this.owlsimsData = [];
@@ -34,8 +34,6 @@ var DataLoader = function(simServerUrl, serverUrl, query, limit) {
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
 
-    
-    
 };
 
 DataLoader.prototype = {
@@ -51,7 +49,7 @@ DataLoader.prototype = {
 			targetGroup - list of targetGroup
 			limit - value to limit targets returned
 	*/
-	load: function(apiType, qrySourceList, geneList, targetGroup, postDataLoadCB, limit) {
+	load: function(qrySourceList, targetGroup, postDataLoadCB, limit) {
         var targetGroupList = [];
 
 		// save the original source listing
@@ -60,29 +58,66 @@ DataLoader.prototype = {
 
 		if (typeof(targetGroup) === 'object') {
 			targetGroupList = targetGroup;
-		} else if (typeof(targetGroup) === 'string') { // for just string passed place it into an array
+		}
+		else if (typeof(targetGroup) === 'string') { // for just string passed place it into an array
 			targetGroupList = [targetGroup];
 		}
 
-        // compare api vs regular simsearch api
-        if (apiType === 'compare') {
-            // this uses the compare api (the POST version)
-            this.qryString = 'phenotypes=' + qrySourceList.join("+") + '&genes=' + geneList.join("+");
-        } else if (apiType === 'simsearch') {
-            this.qryString = 'input_items=' + qrySourceList.join("+");
-            
-            // Not sure if limit works for compare api - Joe
-            if (typeof(limit) !== 'undefined') {
-                this.qryString += "&limit=" + limit;
-            }
-        }
+	    this.qryString = 'input_items=' + qrySourceList.join("+");
+
+		if (typeof(limit) !== 'undefined') {
+	    	this.qryString += "&limit=" + limit;
+		}
 
 		this.postDataLoadCallback = postDataLoadCB;
 
 		// begin processing
-		this.process(apiType, targetGroupList, this.qryString);
+		this.process(targetGroupList, this.qryString);
+
 	},
 
+    loadCompareData: function(qrySourceList, geneList, postDataLoadCB) {
+		this.postDataLoadCallback = postDataLoadCB;
+        
+        // save the original source listing
+        // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
+		this.origSourceList = qrySourceList;
+
+        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
+	    this.qryString = 'http://beta.monarchinitiative.org/compare/' + qrySourceList.join("+") + '/' + geneList.join(",");
+
+        var self = this;
+        
+		// ajax get to load the compare data
+        jQuery.ajax({
+            url: this.qryString,
+            method: 'GET', 
+            async : true,
+            dataType : 'json',
+            success : function(data) {
+                console.log(data);
+                self.transform("Homo sapiens", data);  
+                self.postDataLoadCallback();                
+            },
+            error: function (xhr, errorType, exception) { 
+            // Triggered if an error communicating with server
+
+            switch(xhr.status){
+                case 404:
+                case 500:
+                case 501:
+                case 502:
+                case 503:
+                case 504:
+                case 505:
+                default:
+                    console.log("exception: " + xhr.status + " " + exception);
+                    console.log("We're having some problems. Please check your network connection.");
+                    break;
+                }
+            } 
+        });
+	},
     
 	/*
 		Function: process
@@ -93,81 +128,31 @@ DataLoader.prototype = {
 			targetGrpList - list of target Group items (i.e., species)
 			qryString - query list url parameters, which includes list of sources
 	*/
-	process: function(apiType, targetGrpList, qryString) {
+	process: function(targetGrpList, qryString) {
 		var postData = '';
-        
-        if (apiType === 'compare') {
-            // Since we're narrowing the search space by comparing to specific genes, 
-            // this wouldn't require specifying species since gene ids are species specific.
-            postData = qryString;
 
-            // make a call back to _postDataInitCB() in phenogrid.js 
-            this.postDataLoadCallback();  
-            
-            var self = this;
-            
-            // ajax post to get the compare JSON
-            console.log('geneList POST:' + url);
-            jQuery.ajax({
-                url: url,
-                method: 'POST', 
-                data: postData,
-                async : true,
-                timeout: 60000,
-                dataType : 'json',
-                success : function(data) {
-                    // now transform data to the basic data structures
-				    self.transform('compare', data); // This may affect many UI changes - Joe
-                },
-                error: function (xhr, errorType, exception) { 
-                // Triggered if an error communicating with server
+		if (targetGrpList.length > 0) {
+			var target = targetGrpList[0];  // pull off the first to start processing
+			targetGrpList = targetGrpList.slice(1);
+	    	
+	    	// need to add on target targetGroup id
+	    	postData = qryString + "&target_species=" + target.taxon;
 
-                switch(xhr.status) {
-                    case 0:
-                        if (exception == 'timeout') {
-                            callback(self, target, targets, null);
-                        }
-                    case 404:
-                    case 500:
-                    case 501:
-                    case 502:
-                    case 503:
-                    case 504:
-                    case 505:
-                    default:
-                        console.log("exception: " + xhr.status + " " + exception);
-                        console.log("We're having some problems. Please check your network connection.");
-                        break;
-                    }
-                } 
-            });
-        } else if (apiType === 'simsearch') {
-            // for multi species
-            if (targetGrpList.length > 0) {
-                var target = targetGrpList[0];  // pull off the first to start processing
-                targetGrpList = targetGrpList.slice(1);
-                
-                // need to add on target targetGroup id
-                postData = qryString + "&target_species=" + target.taxon;
+	    	var postFetchCallback = this.postSimsFetchCb;
 
-                var postFetchCallback = this.postSimsFetchCb;
-
-                this.postFetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
-            } else {
-                // make a call back to _postDataInitCB() in phenogrid.js 
-                this.postDataLoadCallback();
-            }
-        }
+			this.postFetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
+		} else {
+			this.postDataLoadCallback();  // make a call back to post data init function
+		}
 	},
 
-    
 	/*
 		Function: postSimsFetchCb
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
 
-		if (data !== null || typeof(data) !== 'undefined') {
+		if (data != null || typeof(data) != 'undefined') {
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
 

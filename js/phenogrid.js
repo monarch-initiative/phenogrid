@@ -111,8 +111,9 @@ var images = require('./images.json');
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
                 {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
             ],
-            owlSimFunction: '',
-            geneList: [] // an array of gene IDs
+            // hard coded here for testing - Joe
+            owlSimFunction: 'compare',
+            geneList: ['NCBIGene:388552', 'NCBIGene:12166'] // an array of gene IDs
         },
 
         // Supposed to be used by developers for deeper customization
@@ -276,7 +277,7 @@ var images = require('./images.json');
 
             // starting loading the data from compare api
             // geneList is an array of gene IDs - Joe
-		    this.state.dataLoader.load('compare', querySourceList, this.state.geneList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
+		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, postAsyncCallback);
         } else {
             var postAsyncCallback = function() {
                 self._postDataInitCB(self); 
@@ -1647,7 +1648,7 @@ var images = require('./images.json');
             
             // Add genotype expansion link to genes
             if (data.type === 'gene') {
-                /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
+                // DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
                 // for gene and single species mode only, add genotype expansion link
                 if (this.state.selectedCompareTargetGroup.length === 1) {
                     var expanded = this.state.dataManager.isExpanded(id); // gene id
@@ -1658,7 +1659,7 @@ var images = require('./images.json');
                         htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_insert_genotypes_" + id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
                     }
                 }
-                */
+                //
             }
         }
         
