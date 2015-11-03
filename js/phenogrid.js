@@ -110,14 +110,20 @@ var images = require('./images.json');
                 {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
                 {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
-            ]
+            ],
+            owlSimFunction: '',
+            geneList: ''
         },
 
         // Supposed to be used by developers for deeper customization
         // can not be overwritten from constructor
         internalOptions: {
             simServerURL: "",  // URL of the server for similarity searches
-            simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",    
+            simSearchQuery: "/simsearch/phenotype",
+            
+            
+            compareQuery: "/compare",
+            
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
@@ -258,15 +264,30 @@ var images = require('./images.json');
 		// 	}			
 		// }
 		var self = this;
-		var postAsyncCallback = function() {
-            self._postDataInitCB(self); 
-        };
+		
 
-		// initialize data processing class, 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
+        // Load data from compare API for geneList - Joe
+        if (this.state.owlSimFunction === 'compare' && this.state.geneList !== '') {
+            var postAsyncCallback = function() {
+                self._postDataInitCB(self); 
+            };
+            
+            this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.compareQuery);
 
-		// starting loading the data
-		this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
+            // starting loading the data from compare api
+            // geneList is a comma separated string - Joe
+		    this.state.dataLoader.load('compare', querySourceList, this.state.geneList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
+        } else {
+            var postAsyncCallback = function() {
+                self._postDataInitCB(self); 
+            };
+            
+            // initialize data processing class, 
+		    this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
+            
+            // starting loading the data from simsearch
+		    this.state.dataLoader.load('simsearch', querySourceList, '', this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
+        }
 	},
 
 	_postDataInitCB: function(self) {

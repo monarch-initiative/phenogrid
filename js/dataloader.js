@@ -15,12 +15,12 @@ var Utils = require('./utils.js');
  	Parameters:
  	 	parent - reference to parent calling object
  		serverUrl - sim server url
- 		simSearchQuery - sim search query specific url string
+ 		query - sim search query specific url string
  */
-var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, limit) {
+var DataLoader = function(simServerUrl, serverUrl, query, limit) {
 	this.simServerURL = simServerUrl;
 	this.serverURL = serverUrl;	
-	this.simSearchURL = serverUrl + simSearchQuery;
+	this.simSearchURL = serverUrl + query;
 	this.qryString = '';
 	this.limit = limit;
 	this.owlsimsData = [];
@@ -34,6 +34,8 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, limit) {
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
 
+    
+    
 };
 
 DataLoader.prototype = {
@@ -49,7 +51,7 @@ DataLoader.prototype = {
 			targetGroup - list of targetGroup
 			limit - value to limit targets returned
 	*/
-	load: function(qrySourceList, targetGroup, postDataLoadCB, limit) {
+	load: function(apiType, qrySourceList, geneList, targetGroup, postDataLoadCB, limit) {
         var targetGroupList = [];
 
 		// save the original source listing
@@ -58,24 +60,29 @@ DataLoader.prototype = {
 
 		if (typeof(targetGroup) === 'object') {
 			targetGroupList = targetGroup;
-		}
-		else if (typeof(targetGroup) === 'string') { // for just string passed place it into an array
+		} else if (typeof(targetGroup) === 'string') { // for just string passed place it into an array
 			targetGroupList = [targetGroup];
 		}
 
-	    this.qryString = 'input_items=' + qrySourceList.join("+");
-
-		if (typeof(limit) !== 'undefined') {
-	    	this.qryString += "&limit=" + limit;
-		}
+        // compare api vs regular simsearch api
+        if (apiType === 'compare') {
+            this.qryString = qrySourceList.join("+") + '/' + geneList; // geneList is a comma separated string - Joe
+        } else if (apiType === 'simsearch') {
+            this.qryString = 'input_items=' + qrySourceList.join("+");
+            
+            // Not sure if limit works for compare api - Joe
+            if (typeof(limit) !== 'undefined') {
+                this.qryString += "&limit=" + limit;
+            }
+        }
 
 		this.postDataLoadCallback = postDataLoadCB;
 
 		// begin processing
-		this.process(targetGroupList, this.qryString);
-
+		this.process(apiType, targetGroupList, this.qryString);
 	},
 
+    
 	/*
 		Function: process
 
@@ -85,15 +92,20 @@ DataLoader.prototype = {
 			targetGrpList - list of target Group items (i.e., species)
 			qryString - query list url parameters, which includes list of sources
 	*/
-	process: function(targetGrpList, qryString) {
+	process: function(apiType, targetGrpList, qryString) {
 		var postData = '';
 
 		if (targetGrpList.length > 0) {
 			var target = targetGrpList[0];  // pull off the first to start processing
 			targetGrpList = targetGrpList.slice(1);
 	    	
-	    	// need to add on target targetGroup id
-	    	postData = qryString + "&target_species=" + target.taxon;
+            // no need to append "&target_species=" for compare api, for now - Joe
+            if (apiType === 'compare') {
+	    	    postData = qryString;
+            } else if (apiType === 'simsearch') {
+                // need to add on target targetGroup id
+	    	    postData = qryString + "&target_species=" + target.taxon;
+            }
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
@@ -103,6 +115,7 @@ DataLoader.prototype = {
 		}
 	},
 
+    
 	/*
 		Function: postSimsFetchCb
 		Callback function for the post async ajax call
