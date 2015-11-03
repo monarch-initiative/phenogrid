@@ -112,7 +112,7 @@ var images = require('./images.json');
                 {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
             ],
             owlSimFunction: '',
-            geneList: ''
+            geneList: [] // an array of gene IDs
         },
 
         // Supposed to be used by developers for deeper customization
@@ -275,7 +275,7 @@ var images = require('./images.json');
             this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            // geneList is a comma separated string - Joe
+            // geneList is an array of gene IDs - Joe
 		    this.state.dataLoader.load('compare', querySourceList, this.state.geneList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
         } else {
             var postAsyncCallback = function() {

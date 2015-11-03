@@ -66,7 +66,8 @@ DataLoader.prototype = {
 
         // compare api vs regular simsearch api
         if (apiType === 'compare') {
-            this.qryString = qrySourceList.join("+") + '/' + geneList; // geneList is a comma separated string - Joe
+            // this uses the compare api (the POST version)
+            this.qryString = 'phenotypes=' + qrySourceList.join("+") + '&genes=' + geneList.join("+");
         } else if (apiType === 'simsearch') {
             this.qryString = 'input_items=' + qrySourceList.join("+");
             
@@ -94,25 +95,69 @@ DataLoader.prototype = {
 	*/
 	process: function(apiType, targetGrpList, qryString) {
 		var postData = '';
+        
+        if (apiType === 'compare') {
+            // Since we're narrowing the search space by comparing to specific genes, 
+            // this wouldn't require specifying species since gene ids are species specific.
+            postData = qryString;
 
-		if (targetGrpList.length > 0) {
-			var target = targetGrpList[0];  // pull off the first to start processing
-			targetGrpList = targetGrpList.slice(1);
-	    	
-            // no need to append "&target_species=" for compare api, for now - Joe
-            if (apiType === 'compare') {
-	    	    postData = qryString;
-            } else if (apiType === 'simsearch') {
+            // make a call back to _postDataInitCB() in phenogrid.js 
+            this.postDataLoadCallback();  
+            
+            var self = this;
+            
+            // ajax post to get the compare JSON
+            console.log('geneList POST:' + url);
+            jQuery.ajax({
+                url: url,
+                method: 'POST', 
+                data: postData,
+                async : true,
+                timeout: 60000,
+                dataType : 'json',
+                success : function(data) {
+                    // now transform data to the basic data structures
+				    self.transform('compare', data); // This may affect many UI changes - Joe
+                },
+                error: function (xhr, errorType, exception) { 
+                // Triggered if an error communicating with server
+
+                switch(xhr.status) {
+                    case 0:
+                        if (exception == 'timeout') {
+                            callback(self, target, targets, null);
+                        }
+                    case 404:
+                    case 500:
+                    case 501:
+                    case 502:
+                    case 503:
+                    case 504:
+                    case 505:
+                    default:
+                        console.log("exception: " + xhr.status + " " + exception);
+                        console.log("We're having some problems. Please check your network connection.");
+                        break;
+                    }
+                } 
+            });
+        } else if (apiType === 'simsearch') {
+            // for multi species
+            if (targetGrpList.length > 0) {
+                var target = targetGrpList[0];  // pull off the first to start processing
+                targetGrpList = targetGrpList.slice(1);
+                
                 // need to add on target targetGroup id
-	    	    postData = qryString + "&target_species=" + target.taxon;
+                postData = qryString + "&target_species=" + target.taxon;
+
+                var postFetchCallback = this.postSimsFetchCb;
+
+                this.postFetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
+            } else {
+                // make a call back to _postDataInitCB() in phenogrid.js 
+                this.postDataLoadCallback();
             }
-
-	    	var postFetchCallback = this.postSimsFetchCb;
-
-			this.postFetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
-		} else {
-			this.postDataLoadCallback();  // make a call back to post data init function
-		}
+        }
 	},
 
     
@@ -122,7 +167,7 @@ DataLoader.prototype = {
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
 
-		if (data != null || typeof(data) != 'undefined') {
+		if (data !== null || typeof(data) !== 'undefined') {
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
 
