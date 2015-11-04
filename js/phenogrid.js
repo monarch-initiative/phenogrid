@@ -2080,8 +2080,13 @@ var images = require('./images.json');
 		var slideBtn = '<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
 		
 		var options = $(optionhtml);
-		var orgSel = this._createOrganismSelection();
-		options.append(orgSel);
+        
+        // only show the Organism(s) option when not in compare mode - Joe
+        if (this.state.owlSimFunction !== 'compare') {
+            var orgSel = this._createOrganismSelection();
+		    options.append(orgSel);
+        }
+
 		var sortSel = this._createSortPhenotypeSelection();
 		options.append(sortSel);
 		var calcSel = this._createCalculationSelection();
@@ -2240,14 +2245,14 @@ var images = require('./images.json');
 				"\" " + checked + disabled + ">" + this.state.targetGroupList[idx].name + '</div>';
 			}
 		}
-		optionhtml += "</div>";
+		optionhtml += "</div><div class='pg_hr'></div>";
 
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
-		var optionhtml = "<div class='pg_hr'></div><div class='pg_ctrl_label'>Calculation Method"+
+		var optionhtml = "<div class='pg_ctrl_label'>Calculation Method"+
 				" <i class='fa fa-info-circle cursor_pointer' id='pg_calcs_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_calculation'>";
 
@@ -2262,13 +2267,13 @@ var images = require('./images.json');
 			// We need the name attr for radio inputs so only one is checked - Joe
 			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
 		}
-		optionhtml += "</div>";
+		optionhtml += "</div><div class='pg_hr'></div>";
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
-		var optionhtml ="<div class='pg_hr'></div><div class='pg_ctrl_label'>Sort Phenotypes" + 
+		var optionhtml ="<div class='pg_ctrl_label'>Sort Phenotypes" + 
 				" <i class='fa fa-info-circle cursor_pointer' id='pg_sorts_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_sortphenotypes'>";
 
@@ -2284,7 +2289,7 @@ var images = require('./images.json');
 			// We need the name attr for radio inputs so only one is checked - Joe
 			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + this.state.phenotypeSort[idx] + "' " + checked + ">" + this.state.phenotypeSort[idx] + '</div>';
 		}
-		optionhtml += "</div>";
+		optionhtml += "</div><div class='pg_hr'></div>";
 		return $(optionhtml);
 	},
 
@@ -2294,20 +2299,20 @@ var images = require('./images.json');
 		if (this.state.invertAxis) {
 			checked = "checked";
 		}
-		var optionhtml = '<div class="pg_hr"></div><div class="pg_select_item"><input type="checkbox" id="pg_axisflip"' + checked + '>Invert Axis</div>'; 
+		var optionhtml = '<div class="pg_select_item"><input type="checkbox" id="pg_axisflip"' + checked + '>Invert Axis</div><div class="pg_hr"></div>'; 
 		return $(optionhtml);
 	},
 
 	// create about phenogrid FAQ inside the controls/options - Joe
 	_createAboutPhenogrid: function () {
-		var html = '<div class="pg_hr"></div><div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
+		var html = '<div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
 		
 		return $(html);
 	},
 	
     // Export current state of phenogrid as SVG file to be used in publications
     _createExportPhenogridButton: function() {
-        var btn = '<div class="pg_hr"></div><div id="pg_export">Save as SVG...</div>';
+        var btn = '<div id="pg_export">Save as SVG...</div><div class="pg_hr"></div>';
         
         return $(btn);
     },
