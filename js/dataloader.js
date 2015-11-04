@@ -49,7 +49,7 @@ DataLoader.prototype = {
 			targetGroup - list of targetGroup
 			limit - value to limit targets returned
 	*/
-	load: function(qrySourceList, targetGroup, postDataLoadCB, limit) {
+	load: function(qrySourceList, targetGroup, asyncDataLoadingCallback, limit) {
         var targetGroupList = [];
 
 		// save the original source listing
@@ -69,15 +69,15 @@ DataLoader.prototype = {
 	    	this.qryString += "&limit=" + limit;
 		}
 
-		this.postDataLoadCallback = postDataLoadCB;
+		this.postDataLoadCallback = asyncDataLoadingCallback;
 
 		// begin processing
 		this.process(targetGroupList, this.qryString);
 
 	},
 
-    loadCompareData: function(qrySourceList, geneList, postDataLoadCB) {
-		this.postDataLoadCallback = postDataLoadCB;
+    loadCompareData: function(qrySourceList, geneList, asyncDataLoadingCallback) {
+		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
@@ -95,7 +95,9 @@ DataLoader.prototype = {
             async : true,
             dataType : 'json',
             success : function(data) {
+                console.log('compare data loaded:');
                 console.log(data);
+                // use 'compare' as the key of the named array - Joe
                 self.transform("compare", data);  
                 self.postDataLoadCallback();                
             },

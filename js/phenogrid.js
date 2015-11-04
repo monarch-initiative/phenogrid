@@ -105,14 +105,16 @@ var images = require('./images.json');
             invertAxis: false,
             selectedSort: "Frequency",
             targetGroupList: [
-                {name: "Homo sapiens", crossComparisonView: true, active: true},
-                {name: "Mus musculus", crossComparisonView: true, active: true},
-                {name: "Danio rerio", crossComparisonView: true, active: true},
-                {name: "Drosophila melanogaster", crossComparisonView: false, active: false},
-                {name: "UDPICS", crossComparisonView: false, active: false}
+                {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
             ],
-            // hard coded here for testing - Joe
-            owlSimFunction: '', // 'compare' or 'exomiser'
+            // hooks to the monarch app's Analyze/phenotypes page - Joe
+            owlSimFunction: '', // 'compare', 'search' or 'exomiser'
+            targetSpecies: '', // taxon number or 'all'
+            searchResultLimit: 100, // the limit field under analyze/phenotypes search section
             geneList: [] // an array of gene IDs
         },
 
@@ -205,23 +207,7 @@ var images = require('./images.json');
         // Create new arrays for later use
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
-        
-        // Load data from compare API for geneList - Joe
-        if (this.state.owlSimFunction === 'compare' && this.state.geneList !== '') {
-            // overwrite the this.state.targetGroupList with only 'compare'
-            this.state.targetGroupList = [
-                {name: "Homo sapiens", crossComparisonView: false, active: false},
-                
-                // add compare
-                {name: "compare", crossComparisonView: true, active: true},
-                
-                {name: "Mus musculus", crossComparisonView: false, active: false},
-                {name: "Danio rerio", crossComparisonView: false, active: false},
-                {name: "Drosophila melanogaster", crossComparisonView: false, active: false},
-                {name: "UDPICS", crossComparisonView: false, active: false}
-            ];
-        }
-        
+
         // flag used for switching between single species and multi-species mode
         // named/associative array
         this.state.expandedGenotypes = {
@@ -244,9 +230,6 @@ var images = require('./images.json');
             "Mus musculus": false,
             "Danio rerio": false
         };
-        
-        // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
-        this._createTargetGroupList(this.options.targetSpecies);
 	},
 
 	
@@ -263,44 +246,94 @@ var images = require('./images.json');
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
-		// this.state.selectedCompareTargetGroup = [];
-		// var targetGroupLoadList = [];
-
-		// // load the default selected target targetGroup list based on the active flag
-		// for (var idx in this.state.targetGroupList) {
-		// 	// for active targetGroup pre-load them
-		// 	if (this.state.targetGroupList[idx].active) {
-		// 		targetGroupLoadList.push(this.state.targetGroupList[idx]);	
-		// 	}	
-		// 	// should they be shown in the comparison view
-		// 	if (this.state.targetGroupList[idx].crossComparisonView) {
-		// 		this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-		// 	}			
-		// }
 		var self = this;
-		
         // no change to the callback - Joe
-        var postAsyncCallback = function() {
-            self._postDataInitCB(self); 
+        var asyncDataLoadingCallback = function() {
+            self._asyncDataLoadingCB(self); 
         };
 
         // Load data from compare API for geneList - Joe
         if (this.state.owlSimFunction === 'compare' && this.state.geneList !== '') {
+            // overwrite the this.state.targetGroupList with only 'compare'
+            this.state.targetGroupList = [
+                // deactivate other species
+                {name: "Homo sapiens", taxon: "9606", crossComparisonView: false, active: false},
+                {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: false},
+                {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: false},
+                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false},
+                // add compare
+                {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
+            ];
+            
             this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
             // geneList is an array of gene IDs - Joe
-		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, postAsyncCallback);
-        } else {
+		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
+        } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
+            // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
+            if (this.state.targetSpecies === 'all') {
+                // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
+                this.state.targetGroupList = [
+                    {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+                    {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+                    {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                    {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                    {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+                ];
+                
+                // load the default selected target targetGroup list based on the active flag
+                for (var idx in this.state.targetGroupList) {
+                    // for active targetGroup pre-load them
+                    if (this.state.targetGroupList[idx].active) {
+                        this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                    }	
+                    // should they be shown in the comparison view
+                    if (this.state.targetGroupList[idx].crossComparisonView) {
+                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                    }			
+                }
+            } else { // when single species is selected
+                // load just the one selected from the dropdown menu - Joe
+                for (var idx in this.state.targetGroupList) {
+                    // for active targetGroup pre-load them
+                    if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
+                        this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                    }	
+                }
+            }
+            
             // initialize data processing class, 
 		    this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
             
             // starting loading the data from simsearch
-		    this.state.dataLoader.load('simsearch', querySourceList, '', this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
+		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback, this.state.searchResultLimit);
+        } else {
+            // when not work with monarch's analyze/phenotypes page
+            // load the default selected target targetGroup list based on the active flag in config, 
+            // has nothing to do with the monarch's analyze phenotypes page - Joe
+			for (var idx in this.state.targetGroupList) {
+				// for active targetGroup pre-load them
+				if (this.state.targetGroupList[idx].active) {
+					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+				}	
+				// should they be shown in the comparison view
+				if (this.state.targetGroupList[idx].crossComparisonView) {
+					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+				}			
+			}
+            
+            // initialize data processing class, 
+		    this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
+            
+            // starting loading the data from simsearch
+		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);  //optional parm:   this.limit);
         }
 	},
 
-	_postDataInitCB: function(self) {
+	_asyncDataLoadingCB: function(self) {
 		// set a max IC score
 		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
 
@@ -352,9 +385,6 @@ var images = require('./images.json');
 		this._createColorScale();  
 	},
 
-    
-
-    
     
     // for genotype expansion, we need to update the target list 
     // for each species if they have added genotypes - Joe
@@ -631,11 +661,7 @@ var images = require('./images.json');
         
         // add the scores for labels
 	    self._createTextScores();
-        
-            
-    console.log(matrix);
-    
-        
+
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
   			.data(matrix)
@@ -2721,34 +2747,6 @@ var images = require('./images.json');
 		}
 	},
 
-
-	// targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
-	// create a shortcut index for quick access to target targetGroup by name - to get index (position) 
-	_createTargetGroupList: function(targetSpecies) {
-		if (typeof(targetSpecies) !== 'undefined' && targetSpecies !== 'all') {   // for All option, see the Analyze page the dropdown menu under "search" section
-			// load just the one selected target targetGroup 
-			for (var idx in this.state.targetGroupList) {
-				// for active targetGroup pre-load them
-				if (this.state.targetGroupList[idx].name == targetSpecies) {
-					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-				}	
-			}
-
-		} else {
-			// load the default selected target targetGroup list based on the active flag
-			for (var idx in this.state.targetGroupList) {
-				// for active targetGroup pre-load them
-				if (this.state.targetGroupList[idx].active) {
-					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-				}	
-				// should they be shown in the comparison view
-				if (this.state.targetGroupList[idx].crossComparisonView) {
-					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-				}			
-			}
-		}
-	},
 
 	_isCrossComparisonView: function() {
 		if (this.state.selectedCompareTargetGroup.length === 1) {
