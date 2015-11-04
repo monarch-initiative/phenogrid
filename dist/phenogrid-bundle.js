@@ -1277,18 +1277,17 @@ DataManager.prototype = {
 			match - matching object
 	*/
  	cellPointMatch: function (key1, key2, targetGroup) {
-
 	     var rec;
 	     if (typeof(this.cellData[targetGroup]) !== 'undefined') {
-		 if (typeof(this.cellData[targetGroup][key1]) !== 'undefined') {
-		     if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
-			 rec = this.cellData[targetGroup][key1][key2];
-		     }
-		 } else if (typeof(this.cellData[targetGroup][key2]) !== 'undefined') {
-		     if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
-			 rec = this.cellData[targetGroup][key2][key1];
-		     }
-		 }
+             if (typeof(this.cellData[targetGroup][key1]) !== 'undefined') {
+                 if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
+                 rec = this.cellData[targetGroup][key1][key2];
+                 }
+             } else if (typeof(this.cellData[targetGroup][key2]) !== 'undefined') {
+                 if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
+                 rec = this.cellData[targetGroup][key2][key1];
+                 }
+             }
 	     }
 	     return rec;
 	 },
@@ -1422,11 +1421,12 @@ DataManager.prototype = {
 			xvals - target value list
 			yvals - source value list
 			flattened - flag to flatten the array into a single list of data points; true for usage with overview map
+            compare - flag to indicate if phenogrid is in owlSimFunction === 'compare' mode
 
 		Returns:
 			array
 	*/
-	buildMatrix: function(xvals, yvals, flattened) {
+	buildMatrix: function(xvals, yvals, flattened, compare) {
 	    var xvalues = xvals, yvalues = yvals;     
 	    var matrixFlatten = []; 
 
@@ -1438,16 +1438,24 @@ DataManager.prototype = {
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
 			for (var x=0; x < xvalues.length; x++ ) {
+                // when owlSimFunction === 'compare', we use 'compare' as the targetGroup name - Joe
+                if (compare === true) {
+                    var targetGroup = 'compare';
+                } else {
+                    var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
+                }
 
-				var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
-
-				if ((typeof(yvalues[y]) != 'undefined') && (typeof(xvalues[x]) != 'undefined')) 
-				{
+				if ((typeof(yvalues[y]) !== 'undefined') && (typeof(xvalues[x]) !== 'undefined')) {
 					// does a match exist in the cells
-					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') 
-					{
-						var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
-									ypos: y, targetGroup: targetGroup, type: 'cell'};
+					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') {
+						var rec = {
+                                    source_id: yvalues[y].id, 
+                                    target_id: xvalues[x].id, 
+                                    xpos: x, 
+                                    ypos: y, 
+                                    targetGroup: targetGroup, 
+                                    type: 'cell'
+                                };
 						// this will create a array as a 'flattened' list of data points, used by mini mapping
 						if (flattened) {
 							matrixFlatten.push(rec);
@@ -2224,9 +2232,12 @@ var images = require('./images.json');
 		var yScale = this.state.yAxisRender.getScale();
 
 		// use the x/y renders to generate the matrix
-	    var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
-
-
+        if (this.state.owlSimFunction === 'compare') {
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, true);
+        } else {
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
+        }
+	    
         // create column lables first, so the added genotype cells will overwrite the background color - Joe
         // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -2293,6 +2304,10 @@ var images = require('./images.json');
         
         // add the scores for labels
 	    self._createTextScores();
+        
+            
+    console.log(matrix);
+    
         
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
@@ -2364,7 +2379,7 @@ var images = require('./images.json');
         // create the grid cells after appending all the background rects
         // so they can overwrite the row background for those added genotype rows - Joe 
         row.each(createrow);
-    
+
 		function createrow(row) {
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
@@ -2673,9 +2688,13 @@ var images = require('./images.json');
 		// this should be the full set of cellData
 		var xvalues = this.state.xAxisRender.groupEntries();
 		//console.log(JSON.stringify(xvalues));
-		var yvalues = this.state.yAxisRender.groupEntries();		
-		var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true);
-		//var data = this.state.dataManager.getFlattenMatrix();
+		var yvalues = this.state.yAxisRender.groupEntries();	
+
+        if (this.state.owlSimFunction === 'compare') {
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
+        } else {
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
+        }
 
 		// Group all mini cells in g element - Joe
 		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')

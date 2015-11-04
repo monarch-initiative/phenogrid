@@ -225,18 +225,17 @@ DataManager.prototype = {
 			match - matching object
 	*/
  	cellPointMatch: function (key1, key2, targetGroup) {
-
 	     var rec;
 	     if (typeof(this.cellData[targetGroup]) !== 'undefined') {
-		 if (typeof(this.cellData[targetGroup][key1]) !== 'undefined') {
-		     if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
-			 rec = this.cellData[targetGroup][key1][key2];
-		     }
-		 } else if (typeof(this.cellData[targetGroup][key2]) !== 'undefined') {
-		     if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
-			 rec = this.cellData[targetGroup][key2][key1];
-		     }
-		 }
+             if (typeof(this.cellData[targetGroup][key1]) !== 'undefined') {
+                 if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
+                 rec = this.cellData[targetGroup][key1][key2];
+                 }
+             } else if (typeof(this.cellData[targetGroup][key2]) !== 'undefined') {
+                 if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
+                 rec = this.cellData[targetGroup][key2][key1];
+                 }
+             }
 	     }
 	     return rec;
 	 },
@@ -370,11 +369,12 @@ DataManager.prototype = {
 			xvals - target value list
 			yvals - source value list
 			flattened - flag to flatten the array into a single list of data points; true for usage with overview map
+            compare - flag to indicate if phenogrid is in owlSimFunction === 'compare' mode
 
 		Returns:
 			array
 	*/
-	buildMatrix: function(xvals, yvals, flattened) {
+	buildMatrix: function(xvals, yvals, flattened, compare) {
 	    var xvalues = xvals, yvalues = yvals;     
 	    var matrixFlatten = []; 
 
@@ -386,16 +386,24 @@ DataManager.prototype = {
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
 			for (var x=0; x < xvalues.length; x++ ) {
+                // when owlSimFunction === 'compare', we use 'compare' as the targetGroup name - Joe
+                if (compare === true) {
+                    var targetGroup = 'compare';
+                } else {
+                    var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
+                }
 
-				var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
-
-				if ((typeof(yvalues[y]) != 'undefined') && (typeof(xvalues[x]) != 'undefined')) 
-				{
+				if ((typeof(yvalues[y]) !== 'undefined') && (typeof(xvalues[x]) !== 'undefined')) {
 					// does a match exist in the cells
-					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') 
-					{
-						var rec = {source_id: yvalues[y].id, target_id: xvalues[x].id, xpos: x, 
-									ypos: y, targetGroup: targetGroup, type: 'cell'};
+					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') {
+						var rec = {
+                                    source_id: yvalues[y].id, 
+                                    target_id: xvalues[x].id, 
+                                    xpos: x, 
+                                    ypos: y, 
+                                    targetGroup: targetGroup, 
+                                    type: 'cell'
+                                };
 						// this will create a array as a 'flattened' list of data points, used by mini mapping
 						if (flattened) {
 							matrixFlatten.push(rec);

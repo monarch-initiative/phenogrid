@@ -553,9 +553,12 @@ var images = require('./images.json');
 		var yScale = this.state.yAxisRender.getScale();
 
 		// use the x/y renders to generate the matrix
-	    var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
-
-
+        if (this.state.owlSimFunction === 'compare') {
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, true);
+        } else {
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
+        }
+	    
         // create column lables first, so the added genotype cells will overwrite the background color - Joe
         // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -622,6 +625,10 @@ var images = require('./images.json');
         
         // add the scores for labels
 	    self._createTextScores();
+        
+            
+    console.log(matrix);
+    
         
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
@@ -693,7 +700,7 @@ var images = require('./images.json');
         // create the grid cells after appending all the background rects
         // so they can overwrite the row background for those added genotype rows - Joe 
         row.each(createrow);
-    
+
 		function createrow(row) {
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
@@ -1002,9 +1009,13 @@ var images = require('./images.json');
 		// this should be the full set of cellData
 		var xvalues = this.state.xAxisRender.groupEntries();
 		//console.log(JSON.stringify(xvalues));
-		var yvalues = this.state.yAxisRender.groupEntries();		
-		var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true);
-		//var data = this.state.dataManager.getFlattenMatrix();
+		var yvalues = this.state.yAxisRender.groupEntries();	
+
+        if (this.state.owlSimFunction === 'compare') {
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
+        } else {
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
+        }
 
 		// Group all mini cells in g element - Joe
 		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
