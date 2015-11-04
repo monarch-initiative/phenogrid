@@ -96,7 +96,7 @@ DataLoader.prototype = {
             dataType : 'json',
             success : function(data) {
                 console.log(data);
-                self.transform("Homo sapiens", data);  
+                self.transform("compare", data);  
                 self.postDataLoadCallback();                
             },
             error: function (xhr, errorType, exception) { 

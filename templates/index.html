@@ -84,6 +84,7 @@ window.onload = function() {
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
+        /*
         targetGroupList: [
             {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
             {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
@@ -91,6 +92,18 @@ window.onload = function() {
             {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
             {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
        ]
+       */
+       
+       targetGroupList: [
+            {name: "Homo sapiens", taxon: "9606",crossComparisonView: false, active: false},
+
+            {name: "compare", taxon: "9606",crossComparisonView: true, active: true},
+
+            {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: false},
+            {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: false},
+            {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+            {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+        ]
     });
 }
 </script>

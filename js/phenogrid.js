@@ -105,9 +105,12 @@ var images = require('./images.json');
             invertAxis: false,
             selectedSort: "Frequency",
             targetGroupList: [
-                {name: "Homo sapiens", taxon: "9606",crossComparisonView: true, active: true},
-                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
-                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                {name: "Homo sapiens", taxon: "9606",crossComparisonView: true, active: false},
+                
+                {name: "compare", taxon: "9606",crossComparisonView: false, active: true},
+                
+                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: false},
+                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: false},
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
                 {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
             ],
@@ -233,7 +236,7 @@ var images = require('./images.json');
         };
         
         // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
-		this._createTargetGroupList(this.options.targetSpecies);
+        this._createTargetGroupList(this.options.targetSpecies);
 	},
 
 	
@@ -312,6 +315,7 @@ var images = require('./images.json');
 		self._createDisplay();
 	},
 
+    // If owlSimFunction === 'compare', we do not have comparison mode
 	_updateSelectedCompareTargetGroup: function() {
 		// loop through to make sure we have data to display
 		for (var idx in this.state.selectedCompareTargetGroup) {
@@ -1647,10 +1651,12 @@ var images = require('./images.json');
             htmlContent = tooltipType + rank + score + species;
             
             // Add genotype expansion link to genes
+            // genotype expansion won't work with owlSimFunction === 'compare' since we use
+            // 'compare' as the key of the named array, while the added genotypes are named based on their species - Joe
             if (data.type === 'gene') {
                 // DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
                 // for gene and single species mode only, add genotype expansion link
-                if (this.state.selectedCompareTargetGroup.length === 1) {
+                if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
                     var expanded = this.state.dataManager.isExpanded(id); // gene id
 
                     if (expanded){
@@ -2700,7 +2706,6 @@ var images = require('./images.json');
 	// targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
 	_createTargetGroupList: function(targetSpecies) {
-	
 		if (typeof(targetSpecies) !== 'undefined' && targetSpecies !== 'all') {   // for All option, see the Analyze page
 			// load just the one selected target targetGroup 
 			for (var idx in this.state.targetGroupList) {
