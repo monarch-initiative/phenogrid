@@ -105,18 +105,15 @@ var images = require('./images.json');
             invertAxis: false,
             selectedSort: "Frequency",
             targetGroupList: [
-                {name: "Homo sapiens", taxon: "9606",crossComparisonView: true, active: false},
-                
-                {name: "compare", taxon: "9606",crossComparisonView: false, active: true},
-                
-                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: false},
-                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: false},
+                {name: "Homo sapiens", taxon: "9606",crossComparisonView: true, active: true},
+                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
                 {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
             ],
             // hard coded here for testing - Joe
-            owlSimFunction: 'compare',
-            geneList: ['NCBIGene:388552', 'NCBIGene:12166'] // an array of gene IDs
+            owlSimFunction: '', // 'compare' or 'exomiser'
+            geneList: [] // an array of gene IDs
         },
 
         // Supposed to be used by developers for deeper customization
@@ -124,10 +121,7 @@ var images = require('./images.json');
         internalOptions: {
             simServerURL: "",  // URL of the server for similarity searches
             simSearchQuery: "/simsearch/phenotype",
-            
-            
-            compareQuery: "/compare",
-            
+            compareQuery: "/compare", // used for owlSimFunction === 'compare' - Joe
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
@@ -212,6 +206,22 @@ var images = require('./images.json');
 		this.state.selectedCompareTargetGroup = [];
 		this.state.initialTargetGroupLoadList = [];
         
+        // Load data from compare API for geneList - Joe
+        if (this.state.owlSimFunction === 'compare' && this.state.geneList !== '') {
+            // overwrite the this.state.targetGroupList with only 'compare'
+            this.state.targetGroupList = [
+                {name: "Homo sapiens", taxon: "9606",crossComparisonView: false, active: false},
+                
+                // add compare
+                {name: "compare", taxon: "9606",crossComparisonView: true, active: true},
+                
+                {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: false},
+                {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: false},
+                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+            ];
+        }
+        
         // flag used for switching between single species and multi-species mode
         // named/associative array
         this.state.expandedGenotypes = {
@@ -269,23 +279,19 @@ var images = require('./images.json');
 		// }
 		var self = this;
 		
+        // no change to the callback - Joe
+        var postAsyncCallback = function() {
+            self._postDataInitCB(self); 
+        };
 
         // Load data from compare API for geneList - Joe
         if (this.state.owlSimFunction === 'compare' && this.state.geneList !== '') {
-            var postAsyncCallback = function() {
-                self._postDataInitCB(self); 
-            };
-            
             this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
             // geneList is an array of gene IDs - Joe
 		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, postAsyncCallback);
         } else {
-            var postAsyncCallback = function() {
-                self._postDataInitCB(self); 
-            };
-            
             // initialize data processing class, 
 		    this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
             
