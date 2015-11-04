@@ -601,21 +601,24 @@ var images = require('./images.json');
 			});
 	
         // grey background for added genotype columns - Joe
-        column.append("rect")
-            .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
-            .attr('width', gridRegion.cellwd)
-            .attr('height', self._gridHeight())
-            .style('fill', function(d){
-                if (d.type === 'genotype') {
-                    return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
-                } else {
-                    return 'none'; // transparent 
-                }
-            })
-            .style('opacity', 0.8)
-            .attr("transform", function(d) { 
-                return "rotate(45)"; 
-            }); //45
+        // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+        if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
+            column.append("rect")
+                .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
+                .attr('width', gridRegion.cellwd)
+                .attr('height', self._gridHeight())
+                .style('fill', function(d){
+                    if (d.type === 'genotype') {
+                        return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                    } else {
+                        return 'none'; // transparent 
+                    }
+                })
+                .style('opacity', 0.8)
+                .attr("transform", function(d) { 
+                    return "rotate(45)"; 
+                }); //45
+        }
         
         // add the scores for labels
 	    self._createTextScores();
@@ -671,18 +674,21 @@ var images = require('./images.json');
                 self._mouseout();		  		
 			});
 
-        row.append("rect")
-            .attr('width', self._gridWidth())
-            .attr('height', gridRegion.cellht)
-            .style('fill', function(d, i) { // add different color to genotype labels
-                var el = self.state.yAxisRender.itemAt(i);
-                if (el.type === 'genotype') {
-                    return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
-                } else {
-                    return 'none'; // transparent 
-                }
-            })
-            .style('opacity', 0.8);
+        // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+        if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
+            row.append("rect")
+                .attr('width', self._gridWidth())
+                .attr('height', gridRegion.cellht)
+                .style('fill', function(d, i) { // add different color to genotype labels
+                    var el = self.state.yAxisRender.itemAt(i);
+                    if (el.type === 'genotype') {
+                        return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                    } else {
+                        return 'none'; // transparent 
+                    }
+                })
+                .style('opacity', 0.8);
+        }
         
         // create the grid cells after appending all the background rects
         // so they can overwrite the row background for those added genotype rows - Joe 
@@ -704,7 +710,7 @@ var images = require('./images.json');
 				.attr("data-tooltip", "tooltip")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
+					return self._getColorForModelValue(el.value[self.state.selectedCalculation]);
 			    })
 		        .on("mouseover", function(d) { 					
                     // self is the global widget this
@@ -952,9 +958,9 @@ var images = require('./images.json');
 	    }
 	}, 
     
-	_getColorForModelValue: function(self, score) {
+	_getColorForModelValue: function(score) {
 		// This is for the new "Overview" target option
-		var selectedScale = this.state.colorScale[self.state.selectedCalculation];
+		var selectedScale = this.state.colorScale[this.state.selectedCalculation];
 		return selectedScale(score);
 	},
 
@@ -1031,7 +1037,7 @@ var images = require('./images.json');
 			.attr("height", linePad) // Defined in navigator.miniCellSize
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
+				return self._getColorForModelValue(el.value[self.state.selectedCalculation]);			 
 			});
 	
 		var yRenderedSize = this.state.yAxisRender.displayLength();
