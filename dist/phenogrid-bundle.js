@@ -1785,6 +1785,7 @@ var images = require('./images.json');
             selectedCalculation: 0,
             invertAxis: false,
             selectedSort: "Frequency",
+            // taxon is used by dataLoader to specify 'target_species' in query URL - Joe
             targetGroupList: [
                 {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
                 {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
@@ -1794,7 +1795,7 @@ var images = require('./images.json');
             ],
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
-            targetSpecies: '', // taxon number or 'all'
+            targetSpecies: '', // quoted 'taxon number' or 'all'
             searchResultLimit: 100, // the limit field under analyze/phenotypes search section
             geneList: [] // an array of gene IDs
         },
@@ -1975,7 +1976,7 @@ var images = require('./images.json');
                         this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                     }			
                 }
-            } else { // when single species is selected
+            } else { // when single species is selected (taxon is passed in)
                 // load just the one selected from the dropdown menu - Joe
                 for (var idx in this.state.targetGroupList) {
                     // for active targetGroup pre-load them
