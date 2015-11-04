@@ -1662,7 +1662,7 @@ var images = require('./images.json');
                           + this._encodeTooltipHref(sourceInfo.type, data.subsumer_id, data.subsumer_label) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
                           + "<strong>Match</strong><br>" 
                           + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
-                          + "<strong>" + Utils.capitalizeString(targetInfo.type) + " - " + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</strong><br>" 
+                          + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
                           + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
         } else {
             // disease and gene/genotype share common items
@@ -2721,15 +2721,6 @@ var images = require('./images.json');
 		}
 	},
 
-    // used by renderTooltip() - Joe
-	_getTargetGroupTaxon: function(name) {
-		for (var i in this.state.targetGroupList) {
-			if (this.state.targetGroupList[i].name == name) {
-				return this.state.targetGroupList[i].taxon;
-			}
-		}
-		return "";
-	},
 
 	// targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
 	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
