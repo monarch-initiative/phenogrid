@@ -105,11 +105,11 @@ var images = require('./images.json');
             invertAxis: false,
             selectedSort: "Frequency",
             targetGroupList: [
-                {name: "Homo sapiens", taxon: "9606",crossComparisonView: true, active: true},
-                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
-                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
-                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+                {name: "Homo sapiens", crossComparisonView: true, active: true},
+                {name: "Mus musculus", crossComparisonView: true, active: true},
+                {name: "Danio rerio", crossComparisonView: true, active: true},
+                {name: "Drosophila melanogaster", crossComparisonView: false, active: false},
+                {name: "UDPICS", crossComparisonView: false, active: false}
             ],
             // hard coded here for testing - Joe
             owlSimFunction: '', // 'compare' or 'exomiser'
@@ -210,15 +210,15 @@ var images = require('./images.json');
         if (this.state.owlSimFunction === 'compare' && this.state.geneList !== '') {
             // overwrite the this.state.targetGroupList with only 'compare'
             this.state.targetGroupList = [
-                {name: "Homo sapiens", taxon: "9606",crossComparisonView: false, active: false},
+                {name: "Homo sapiens", crossComparisonView: false, active: false},
                 
                 // add compare
-                {name: "compare", taxon: "9606",crossComparisonView: true, active: true},
+                {name: "compare", crossComparisonView: true, active: true},
                 
-                {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: false},
-                {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: false},
-                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+                {name: "Mus musculus", crossComparisonView: false, active: false},
+                {name: "Danio rerio", crossComparisonView: false, active: false},
+                {name: "Drosophila melanogaster", crossComparisonView: false, active: false},
+                {name: "UDPICS", crossComparisonView: false, active: false}
             ];
         }
         
@@ -245,7 +245,7 @@ var images = require('./images.json');
             "Danio rerio": false
         };
         
-        // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
+        // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
         this._createTargetGroupList(this.options.targetSpecies);
 	},
 
@@ -2723,13 +2723,13 @@ var images = require('./images.json');
 
 
 	// targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
-	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
+	// create a shortcut index for quick access to target targetGroup by name - to get index (position) 
 	_createTargetGroupList: function(targetSpecies) {
-		if (typeof(targetSpecies) !== 'undefined' && targetSpecies !== 'all') {   // for All option, see the Analyze page
+		if (typeof(targetSpecies) !== 'undefined' && targetSpecies !== 'all') {   // for All option, see the Analyze page the dropdown menu under "search" section
 			// load just the one selected target targetGroup 
 			for (var idx in this.state.targetGroupList) {
 				// for active targetGroup pre-load them
-				if (this.state.targetGroupList[idx].taxon == targetSpecies) {
+				if (this.state.targetGroupList[idx].name == targetSpecies) {
 					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
 					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
 				}	
