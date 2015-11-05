@@ -234,7 +234,9 @@ DataLoader.prototype = {
 				var sourceID_a, currID_b, currID_lcs;
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 					for (var matchIdx in matches) {
-						var sum = 0, count = 0;						
+						// E.g., matches[i].b is one of the input phenotypes, witch matches to matches[i].a in the mouse 
+                        // via the least common subumser (lcs) match[i].lcs. - Joe
+                        var sum = 0, count = 0;						
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
 						currID_b = Utils.getConceptId(curr_row.b.id);

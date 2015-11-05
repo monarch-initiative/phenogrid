@@ -104,6 +104,16 @@ var images = require('./images.json');
             selectedCalculation: 0,
             invertAxis: false,
             selectedSort: "Frequency",
+            // this default targetGroupList config will be used if it's not specified 
+            // in either the phenogrid_config.js or phenogrid constructor
+            // There are two parameters which allow you to control whether a target group is displayed 
+            // as a default in the multi-target comparison view, crossComparisonView and whether it should be active, active = true, 
+            // and thus fully visible within phenogrid. If crossComparisonView = true, for example, 
+            // the target group will be visible as a default within the multi-target comparison view.
+            // The active parameter can override other parameters, but activating or deactivating a target group. 
+            // For example, if the active = false, then the target group is not active within phenogrid and is not shown in comparison 
+            // nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be 
+            // displayed within phenogrid and would like to retain the target group reference within the list. - MD
             // taxon is used by dataLoader to specify 'target_species' in query URL - Joe
             targetGroupList: [
                 {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
@@ -206,8 +216,12 @@ var images = require('./images.json');
 		}
 
         // Create new arrays for later use
-		this.state.selectedCompareTargetGroup = [];
+        // initialTargetGroupLoadList is used for loading the simsearch data
 		this.state.initialTargetGroupLoadList = [];
+        
+        // selectedCompareTargetGroup is used to control what species are loaded
+        // it's possible that a species is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
+		this.state.selectedCompareTargetGroup = [];
 
         // flag used for switching between single species and multi-species mode
         // named/associative array
@@ -253,21 +267,15 @@ var images = require('./images.json');
             self._asyncDataLoadingCB(self); 
         };
 
-        // Load data from compare API for geneList - Joe
+        // Load data from compare API for geneList
+        // in compare mode, there's no crossComparisonView - Joe
         if (this.state.owlSimFunction === 'compare' && this.state.geneList !== '') {
             // overwrite the this.state.targetGroupList with only 'compare'
             this.state.targetGroupList = [
-                // deactivate other species
-                {name: "Homo sapiens", taxon: "9606", crossComparisonView: false, active: false},
-                {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: false},
-                {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: false},
-                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false},
-                // add compare
                 {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
             ];
             
-            // load the default selected target targetGroup list based on the active flag
+            // load the target targetGroup list based on the active flag
             for (var idx in this.state.targetGroupList) {
                 // for active targetGroup pre-load them
                 if (this.state.targetGroupList[idx].active) {
@@ -289,14 +297,16 @@ var images = require('./images.json');
             if (this.state.targetSpecies === 'all') {
                 // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
                 this.state.targetGroupList = [
+                    // Because only the three species are supported in monarch analyze/phenotypes page at this point - Joe
                     {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
                     {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
                     {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                    // Disabled species
                     {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
                     {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
                 ];
                 
-                // load the default selected target targetGroup list based on the active flag
+                // load the target targetGroup list based on the active flag
                 for (var idx in this.state.targetGroupList) {
                     // for active targetGroup pre-load them
                     if (this.state.targetGroupList[idx].active) {
@@ -311,6 +321,7 @@ var images = require('./images.json');
                 // load just the one selected from the dropdown menu - Joe
                 for (var idx in this.state.targetGroupList) {
                     // for active targetGroup pre-load them
+                    // The phenogrid constructor settings will overwrite the one in phenogrid_config.js - Joe
                     if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
                         this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
                         this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
@@ -359,9 +370,6 @@ var images = require('./images.json');
 		    self._updateSelectedCompareTargetGroup();
         }
 
-		// initialize the ontologyCache
-		self.state.ontologyCache = {};
-		
 	    // initialize axis groups
 	    self._createAxisRenderingGroups();
 
