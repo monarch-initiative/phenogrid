@@ -340,8 +340,12 @@ var images = require('./images.json');
 
 		self.state.dataManager = new DataManager(self.state.dataLoader);
 
-		// need to update the selectedCompareTargetGroup list depending on if we loaded all the data
-		self._updateSelectedCompareTargetGroup();
+        // No need to update in compare mode
+        // since compare only loads data once - Joe
+        if (self.state.owlSimFunction !== 'compare') { 
+            // need to update the selectedCompareTargetGroup list depending on if we loaded all the data
+		    self._updateSelectedCompareTargetGroup();
+        }
 
 		// initialize the ontologyCache
 		self.state.ontologyCache = {};

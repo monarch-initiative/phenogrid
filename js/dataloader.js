@@ -76,6 +76,7 @@ DataLoader.prototype = {
 
 	},
 
+    // used for the monarch compare api
     loadCompareData: function(qrySourceList, geneList, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
