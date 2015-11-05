@@ -125,8 +125,10 @@ var images = require('./images.json');
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
-            searchResultLimit: 100, // the limit field under analyze/phenotypes search section
-            geneList: [] // an array of gene IDs
+            searchResultLimit: 100, // the limit field under analyze/phenotypes search section in search mode, default 100
+            geneList: [], // an array of gene IDs to be used in compare mode
+            orthologList: [], // in compare mode, additional genes based on relationship with geneList
+            paralogList: [] // // in compare mode, additional genes based on relationship with geneList
         },
 
         // Supposed to be used by developers for deeper customization
@@ -265,7 +267,7 @@ var images = require('./images.json');
 
         // Load data from compare API for geneList
         // in compare mode, there's no crossComparisonView - Joe
-        if (this.state.owlSimFunction === 'compare' && this.state.geneList !== '') {
+        if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
             // overwrite the this.state.targetGroupList with only 'compare'
             this.state.targetGroupList = [
                 {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
@@ -283,12 +285,21 @@ var images = require('./images.json');
                 }			
             }	
 
+            var combinedGeneList = this.state.geneList;
+            
+            if (this.state.orthologList.length !== 0) {
+                combinedGeneList = combinedGeneList.concat(this.state.orthologList);
+            }
+            
+            if (this.state.paralogList.length !== 0) {
+                combinedGeneList = combinedGeneList.concat(this.state.paralogList);
+            }
+            
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            // geneList is an array of gene IDs - Joe
-		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
+		    this.state.dataLoader.loadCompareData(querySourceList, combinedGeneList, asyncDataLoadingCallback);
         } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
             // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
             if (this.state.targetSpecies === 'all') {
@@ -465,6 +476,7 @@ var images = require('./images.json');
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
 		} else if (this.state.selectedCompareTargetGroup.length === 1) {
 			// just get the target group name 
+            // in analyze/phenotypes compare mode, the singleTargetGroupName will be 'compare' - Joe
 			var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
 			
 			sourceList = this.state.dataManager.getData("source", singleTargetGroupName);
