@@ -267,6 +267,18 @@ var images = require('./images.json');
                 {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
             ];
             
+            // load the default selected target targetGroup list based on the active flag
+            for (var idx in this.state.targetGroupList) {
+                // for active targetGroup pre-load them
+                if (this.state.targetGroupList[idx].active) {
+                    this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                }	
+                // should they be shown in the comparison view
+                if (this.state.targetGroupList[idx].crossComparisonView) {
+                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                }			
+            }	
+
             this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
