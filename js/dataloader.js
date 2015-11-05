@@ -17,8 +17,7 @@ var Utils = require('./utils.js');
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
  */
-var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, limit) {
-	this.simServerURL = simServerUrl;
+var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.serverURL = serverUrl;	
 	this.simSearchURL = serverUrl + simSearchQuery;
 	this.qryString = '';

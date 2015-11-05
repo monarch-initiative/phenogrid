@@ -132,7 +132,6 @@ var images = require('./images.json');
         // Supposed to be used by developers for deeper customization
         // can not be overwritten from constructor
         internalOptions: {
-            simServerURL: "",  // URL of the server for similarity searches
             simSearchQuery: "/simsearch/phenotype",
             compareQuery: "/compare", // used for owlSimFunction === 'compare' - Joe
             unmatchedButtonLabel: 'Unmatched Phenotypes',
@@ -210,10 +209,6 @@ var images = require('./images.json');
         // this.options is the options object provided in phenogrid constructor
         // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
 		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
-		// default simServerURL value..
-		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
-			this.state.simServerURL = this.state.serverURL;
-		}
 
         // Create new arrays for later use
         // initialTargetGroupLoadList is used for loading the simsearch data
@@ -223,8 +218,8 @@ var images = require('./images.json');
         // it's possible that a species is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
 		this.state.selectedCompareTargetGroup = [];
 
+        // Genotype expansion flags - named/associative array
         // flag used for switching between single species and multi-species mode
-        // named/associative array
         this.state.expandedGenotypes = {
             "Mus musculus": false,
             "Danio rerio": false
@@ -241,6 +236,7 @@ var images = require('./images.json');
             "Danio rerio": false
         };
         
+        // flag to mark if hidden genotypes need to be reactivated
         this.state.reactivateGenotypes = {
             "Mus musculus": false,
             "Danio rerio": false
@@ -287,7 +283,8 @@ var images = require('./images.json');
                 }			
             }	
 
-            this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.compareQuery);
+            // initialize data processing class for compare query
+            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
             // geneList is an array of gene IDs - Joe
@@ -329,8 +326,8 @@ var images = require('./images.json');
                 }
             }
             
-            // initialize data processing class, 
-		    this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
+            // initialize data processing class for simsearch query
+		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
             
             // starting loading the data from simsearch
 		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback, this.state.searchResultLimit);
@@ -349,8 +346,8 @@ var images = require('./images.json');
 				}			
 			}
             
-            // initialize data processing class, 
-		    this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
+            // initialize data processing class for simsearch query
+		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
             
             // starting loading the data from simsearch
 		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);  //optional parm:   this.limit);
