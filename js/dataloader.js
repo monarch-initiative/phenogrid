@@ -84,7 +84,7 @@ DataLoader.prototype = {
 		this.origSourceList = qrySourceList;
 
         // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
-	    this.qryString = 'http://beta.monarchinitiative.org/compare/' + qrySourceList.join("+") + '/' + geneList.join(",");
+	    this.qryString = this.simSearchURL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
 
         var self = this;
         
