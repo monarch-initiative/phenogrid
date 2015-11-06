@@ -126,7 +126,7 @@ var images = require('./images.json');
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
             searchResultLimit: 100, // the limit field under analyze/phenotypes search section in search mode, default 100
-            geneList: [] // an array of gene IDs to be used in compare mode
+            geneList: [] // an array of gene IDs to be used in compare mode, already contains orthologs and paralogs when provided 
         },
 
         // Supposed to be used by developers for deeper customization
@@ -170,10 +170,10 @@ var images = require('./images.json');
             gridRegion: {
                 x:254, 
                 y:200, // origin coordinates for grid region (matrix)
-                ypad:15, // x distance from the first cell to the next cell
-                xpad:15, // y distance from the first cell to the next cell
-                cellwd:10, // grid cell width
-                cellht:10, // // grid cell height
+                ypad:18, // x distance from the first cell to the next cell
+                xpad:18, // y distance from the first cell to the next cell
+                cellwd:12, // grid cell width
+                cellht:12, // // grid cell height
                 rowLabelOffset:-25, // offset of the row label (left side)
                 colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares

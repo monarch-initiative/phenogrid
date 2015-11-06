@@ -1809,9 +1809,7 @@ var images = require('./images.json');
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
             searchResultLimit: 100, // the limit field under analyze/phenotypes search section in search mode, default 100
-            geneList: [], // an array of gene IDs to be used in compare mode
-            orthologList: [], // in compare mode, additional genes based on relationship with geneList
-            paralogList: [] // // in compare mode, additional genes based on relationship with geneList
+            geneList: [] // an array of gene IDs to be used in compare mode, already contains orthologs and paralogs when provided 
         },
 
         // Supposed to be used by developers for deeper customization
@@ -1855,10 +1853,10 @@ var images = require('./images.json');
             gridRegion: {
                 x:254, 
                 y:200, // origin coordinates for grid region (matrix)
-                ypad:15, // x distance from the first cell to the next cell
-                xpad:15, // y distance from the first cell to the next cell
-                cellwd:10, // grid cell width
-                cellht:10, // // grid cell height
+                ypad:18, // x distance from the first cell to the next cell
+                xpad:18, // y distance from the first cell to the next cell
+                cellwd:12, // grid cell width
+                cellht:12, // // grid cell height
                 rowLabelOffset:-25, // offset of the row label (left side)
                 colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
@@ -1968,21 +1966,11 @@ var images = require('./images.json');
                 }			
             }	
 
-            var combinedGeneList = this.state.geneList;
-            
-            if (this.state.orthologList.length !== 0) {
-                combinedGeneList = combinedGeneList.concat(this.state.orthologList);
-            }
-            
-            if (this.state.paralogList.length !== 0) {
-                combinedGeneList = combinedGeneList.concat(this.state.paralogList);
-            }
-            
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-		    this.state.dataLoader.loadCompareData(querySourceList, combinedGeneList, asyncDataLoadingCallback);
+		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
         } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
             // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
             if (this.state.targetSpecies === 'all') {
