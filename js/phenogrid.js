@@ -126,9 +126,7 @@ var images = require('./images.json');
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
             searchResultLimit: 100, // the limit field under analyze/phenotypes search section in search mode, default 100
-            geneList: [], // an array of gene IDs to be used in compare mode
-            orthologList: [], // in compare mode, additional genes based on relationship with geneList
-            paralogList: [] // // in compare mode, additional genes based on relationship with geneList
+            geneList: [] // an array of gene IDs to be used in compare mode
         },
 
         // Supposed to be used by developers for deeper customization
@@ -285,21 +283,11 @@ var images = require('./images.json');
                 }			
             }	
 
-            var combinedGeneList = this.state.geneList;
-            
-            if (this.state.orthologList.length !== 0) {
-                combinedGeneList = combinedGeneList.concat(this.state.orthologList);
-            }
-            
-            if (this.state.paralogList.length !== 0) {
-                combinedGeneList = combinedGeneList.concat(this.state.paralogList);
-            }
-            
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-		    this.state.dataLoader.loadCompareData(querySourceList, combinedGeneList, asyncDataLoadingCallback);
+		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
         } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
             // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
             if (this.state.targetSpecies === 'all') {
