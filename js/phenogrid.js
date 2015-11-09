@@ -120,7 +120,7 @@ var images = require('./images.json');
                 {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
                 {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false} // Undiagnosed Diseases Program Integrated Collaboration System(UDPICS)
             ],
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
@@ -138,7 +138,7 @@ var images = require('./images.json');
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
             defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
-            defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per organisms to be displayed in cross compare mode  
+            defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per species to be displayed in cross compare mode  
             labelCharDisplayCount : 20,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -287,6 +287,7 @@ var images = require('./images.json');
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
+            // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
 		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
         } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
             // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
@@ -353,13 +354,11 @@ var images = require('./images.json');
         }
 	},
 
+    // callback to handle the loaded owlsim data
 	_asyncDataLoadingCB: function(self) {
-		// set a max IC score
-		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
-
 		self.state.dataManager = new DataManager(self.state.dataLoader);
 
-        // No need to update in compare mode
+        // No need to update in owlSimFunction === 'compare' mode
         // since compare only loads data once - Joe
         if (self.state.owlSimFunction !== 'compare') { 
             // need to update the selectedCompareTargetGroup list depending on if we loaded all the data
@@ -396,7 +395,8 @@ var images = require('./images.json');
 
 
 	_initDefaults: function() {
-		if (this.state.owlSimFunction === 'exomiser') {
+		// hook for exomiser, PENDING - Joe
+        if (this.state.owlSimFunction === 'exomiser') {
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
 		}
 
@@ -1374,7 +1374,12 @@ var images = require('./images.json');
 	},
 
 	_createColorScale: function() {
-			var maxScore = 0,
+			// set a max IC score
+            // sometimes the 'metadata' field might be missing from the JSON,
+            // then the dataLoader.getMaxICScore() returns 0 (default value) - Joe
+            this.state.maxICScore = this.state.dataManager.maxICScore;
+                
+            var maxScore = 0,
 			method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
 
 			switch(method){

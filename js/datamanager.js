@@ -23,6 +23,8 @@ var DataManager = function(dataLoader) {
 	this.source = this.dataLoader.getSources();
 	this.cellData = this.dataLoader.getCellData();
 
+    this.maxICScore = this.dataLoader.getMaxICScore();
+    
 	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
 	this.matrix = [];
     
