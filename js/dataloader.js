@@ -17,8 +17,7 @@ var Utils = require('./utils.js');
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
  */
-var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, limit) {
-	this.simServerURL = simServerUrl;
+var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.serverURL = serverUrl;	
 	this.simSearchURL = serverUrl + simSearchQuery;
 	this.qryString = '';
@@ -33,7 +32,9 @@ var DataLoader = function(simServerUrl, serverUrl, simSearchQuery, limit) {
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
-
+    // compare api flags
+    this.noMatchesFound = false; // flag to mark if there's matches in the returned JSON
+    this.noMetadataFound = false; // flag to mark if there's metadata in the returned JSON
 };
 
 DataLoader.prototype = {
@@ -49,7 +50,7 @@ DataLoader.prototype = {
 			targetGroup - list of targetGroup
 			limit - value to limit targets returned
 	*/
-	load: function(qrySourceList, targetGroup, postDataLoadCB, limit) {
+	load: function(qrySourceList, targetGroup, asyncDataLoadingCallback, limit) {
         var targetGroupList = [];
 
 		// save the original source listing
@@ -65,17 +66,85 @@ DataLoader.prototype = {
 
 	    this.qryString = 'input_items=' + qrySourceList.join("+");
 
+        // limit is used in analyze/phenotypes search mode
+        // can also be used in general simsearch query - Joe
 		if (typeof(limit) !== 'undefined') {
 	    	this.qryString += "&limit=" + limit;
 		}
 
-		this.postDataLoadCallback = postDataLoadCB;
+		this.postDataLoadCallback = asyncDataLoadingCallback;
 
 		// begin processing
 		this.process(targetGroupList, this.qryString);
 
 	},
 
+    /*
+		Function: loadCompareData
+
+			fetch and load data from the monarch compare api
+
+		Parameters:	
+			qrySourceList - list of source items to query
+			geneList - combined list of genes
+			asyncDataLoadingCallback - callback
+	*/
+    loadCompareData: function(qrySourceList, geneList, asyncDataLoadingCallback) {
+		this.postDataLoadCallback = asyncDataLoadingCallback;
+        
+        // save the original source listing
+        // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
+		this.origSourceList = qrySourceList;
+
+        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
+	    this.qryString = this.simSearchURL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
+
+        var self = this;
+        
+		// to load the compare data via ajax GET
+        jQuery.ajax({
+            url: this.qryString,
+            method: 'GET', 
+            async : true,
+            dataType : 'json',
+            success : function(data) {
+                console.log('compare data loaded:');
+                //console.log(data);
+                
+                // sometimes the compare api doesn't find any matches, we need to stop here - Joe
+                if (typeof (data.b) === 'undefined') {
+                    self.noMatchesFound = true; // set the noMatchesFound flag
+                } else if (typeof (data.metadata) === 'undefined') {
+                    // sometimes the compare api doesn't return the metadata field, we can't create the desired colorscale
+                    // but this won't affect other UI rendering - Joe
+                    self.noMetadataFound = true; // set the noMetadataFound flag
+                } else {
+                    // use 'compare' as the key of the named array
+                    self.transform("compare", data);  
+                }
+                
+                self.postDataLoadCallback(); 
+            },
+            error: function (xhr, errorType, exception) { 
+            // Triggered if an error communicating with server
+
+            switch(xhr.status){
+                case 404:
+                case 500:
+                case 501:
+                case 502:
+                case 503:
+                case 504:
+                case 505:
+                default:
+                    console.log("exception: " + xhr.status + " " + exception);
+                    console.log("We're having some problems. Please check your network connection.");
+                    break;
+                }
+            } 
+        });
+	},
+    
 	/*
 		Function: process
 
@@ -140,6 +209,7 @@ DataLoader.prototype = {
 		    typeof (data.b) !== 'undefined') {
 			console.log("transforming...");
 
+            // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
 				this.maxICScore = data.metadata.maxMaxIC;
@@ -188,7 +258,9 @@ DataLoader.prototype = {
 				var sourceID_a, currID_b, currID_lcs;
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
 					for (var matchIdx in matches) {
-						var sum = 0, count = 0;						
+						// E.g., matches[i].b is one of the input phenotypes, witch matches to matches[i].a in the mouse 
+                        // via the least common subumser (lcs) match[i].lcs. - Joe
+                        var sum = 0, count = 0;						
 						curr_row = matches[matchIdx];
 						sourceID_a = Utils.getConceptId(curr_row.a.id);
 						currID_b = Utils.getConceptId(curr_row.b.id);

@@ -104,25 +104,41 @@ var images = require('./images.json');
             selectedCalculation: 0,
             invertAxis: false,
             selectedSort: "Frequency",
+            // this default targetGroupList config will be used if it's not specified 
+            // in either the phenogrid_config.js or phenogrid constructor
+            // There are two parameters which allow you to control whether a target group is displayed 
+            // as a default in the multi-target comparison view, crossComparisonView and whether it should be active, active = true, 
+            // and thus fully visible within phenogrid. If crossComparisonView = true, for example, 
+            // the target group will be visible as a default within the multi-target comparison view.
+            // The active parameter can override other parameters, but activating or deactivating a target group. 
+            // For example, if the active = false, then the target group is not active within phenogrid and is not shown in comparison 
+            // nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be 
+            // displayed within phenogrid and would like to retain the target group reference within the list. - MD
+            // taxon is used by dataLoader to specify 'target_species' in query URL - Joe
             targetGroupList: [
-                {name: "Homo sapiens", taxon: "9606",crossComparisonView: true, active: true},
+                {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
                 {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
                 {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
-            ]
+                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false} // Undiagnosed Diseases Program Integrated Collaboration System(UDPICS)
+            ],
+            // hooks to the monarch app's Analyze/phenotypes page - Joe
+            owlSimFunction: '', // 'compare', 'search' or 'exomiser'
+            targetSpecies: '', // quoted 'taxon number' or 'all'
+            searchResultLimit: 100, // the limit field under analyze/phenotypes search section in search mode, default 100, will be overwritten by user-input limit 
+            geneList: [] // an array of gene IDs to be used in compare mode, already contains orthologs and paralogs when provided 
         },
 
         // Supposed to be used by developers for deeper customization
         // can not be overwritten from constructor
         internalOptions: {
-            simServerURL: "",  // URL of the server for similarity searches
-            simSearchQuery: "/simsearch/phenotype",   //"/simsearch/phenotype?input_items=",    
+            simSearchQuery: "/simsearch/phenotype",
+            compareQuery: "/compare", // used for owlSimFunction === 'compare' - Joe
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
             defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
-            defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per organisms to be displayed in cross compare mode  
+            defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per species to be displayed in cross compare mode  
             labelCharDisplayCount : 20,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -154,10 +170,10 @@ var images = require('./images.json');
             gridRegion: {
                 x:254, 
                 y:200, // origin coordinates for grid region (matrix)
-                ypad:15, // x distance from the first cell to the next cell
-                xpad:15, // y distance from the first cell to the next cell
-                cellwd:10, // grid cell width
-                cellht:10, // // grid cell height
+                ypad:18, // x distance from the first cell to the next cell
+                xpad:18, // y distance from the first cell to the next cell
+                cellwd:12, // grid cell width
+                cellht:12, // // grid cell height
                 rowLabelOffset:-25, // offset of the row label (left side)
                 colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
@@ -193,40 +209,32 @@ var images = require('./images.json');
         // this.options is the options object provided in phenogrid constructor
         // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
 		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
-		// default simServerURL value..
-		if (typeof(this.state.simServerURL) === 'undefined' || this.state.simServerURL === '') {
-			this.state.simServerURL = this.state.serverURL;
-		}
 
         // Create new arrays for later use
-		this.state.selectedCompareTargetGroup = [];
+        // initialTargetGroupLoadList is used for loading the simsearch data
 		this.state.initialTargetGroupLoadList = [];
         
+        // selectedCompareTargetGroup is used to control what species are loaded
+        // it's possible that a species is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
+		this.state.selectedCompareTargetGroup = [];
+
+        // Genotype expansion flags - named/associative array
         // flag used for switching between single species and multi-species mode
-        // named/associative array
-        this.state.expandedGenotypes = {
+        // add new species names here once needed - Joe
+        var genotypeExpansionSpeciesFlagConfig = {
             "Mus musculus": false,
             "Danio rerio": false
         };
+        
+        this.state.expandedGenotypes = genotypeExpansionSpeciesFlagConfig;
         
         // genotype flags to mark every genotype expansion on/off in each species
-        this.state.newGenotypes = {
-            "Mus musculus": false,
-            "Danio rerio": false
-        };
+        this.state.newGenotypes = genotypeExpansionSpeciesFlagConfig;
         
-        this.state.removedGenotypes = {
-            "Mus musculus": false,
-            "Danio rerio": false
-        };
+        this.state.removedGenotypes = genotypeExpansionSpeciesFlagConfig;
         
-        this.state.reactivateGenotypes = {
-            "Mus musculus": false,
-            "Danio rerio": false
-        };
-        
-        // this.options.targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
-		this._createTargetGroupList(this.options.targetSpecies);
+        // flag to mark if hidden genotypes need to be reactivated
+        this.state.reactivateGenotypes = genotypeExpansionSpeciesFlagConfig;
 	},
 
 	
@@ -243,53 +251,153 @@ var images = require('./images.json');
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
-		// this.state.selectedCompareTargetGroup = [];
-		// var targetGroupLoadList = [];
-
-		// // load the default selected target targetGroup list based on the active flag
-		// for (var idx in this.state.targetGroupList) {
-		// 	// for active targetGroup pre-load them
-		// 	if (this.state.targetGroupList[idx].active) {
-		// 		targetGroupLoadList.push(this.state.targetGroupList[idx]);	
-		// 	}	
-		// 	// should they be shown in the comparison view
-		// 	if (this.state.targetGroupList[idx].crossComparisonView) {
-		// 		this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-		// 	}			
-		// }
 		var self = this;
-		var postAsyncCallback = function() {
-            self._postDataInitCB(self); 
+        // no change to the callback - Joe
+        var asyncDataLoadingCallback = function() {
+            self._asyncDataLoadingCB(self); 
         };
 
-		// initialize data processing class, 
-		this.state.dataLoader = new DataLoader(this.state.simServerURL, this.state.serverURL, this.state.simSearchQuery);
+        // Load data from compare API for geneList
+        // in compare mode, there's no crossComparisonView - Joe
+        if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
+            // overwrite the this.state.targetGroupList with only 'compare'
+            // this 'compare' is hard coded in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
+            this.state.targetGroupList = [
+                {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
+            ];
+            
+            // load the target targetGroup list based on the active flag
+            for (var idx in this.state.targetGroupList) {
+                // for active targetGroup pre-load them
+                if (this.state.targetGroupList[idx].active) {
+                    this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                }	
+                // should they be shown in the comparison view
+                if (this.state.targetGroupList[idx].crossComparisonView) {
+                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                }			
+            }	
 
-		// starting loading the data
-		this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, postAsyncCallback);  //optional parm:   this.limit);
+            // initialize data processing class for compare query
+            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+
+            // starting loading the data from compare api
+            // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
+		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
+        } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
+            // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
+            if (this.state.targetSpecies === 'all') {
+                // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
+                this.state.targetGroupList = [
+                    // Because only the three species are supported in monarch analyze/phenotypes page at this point - Joe
+                    {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+                    {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+                    {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                    // Disabled species
+                    {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                    {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+                ];
+                
+                // load the target targetGroup list based on the active flag
+                for (var idx in this.state.targetGroupList) {
+                    // for active targetGroup pre-load them
+                    if (this.state.targetGroupList[idx].active) {
+                        this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                    }	
+                    // should they be shown in the comparison view
+                    if (this.state.targetGroupList[idx].crossComparisonView) {
+                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                    }			
+                }
+            } else { // when single species is selected (taxon is passed in)
+                // load just the one selected from the dropdown menu - Joe
+                for (var idx in this.state.targetGroupList) {
+                    // for active targetGroup pre-load them
+                    // The phenogrid constructor settings will overwrite the one in phenogrid_config.js - Joe
+                    if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
+                        this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                    }	
+                }
+            }
+            
+            // initialize data processing class for simsearch query
+		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+            
+            // starting loading the data from simsearch
+		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback, this.state.searchResultLimit);
+        } else if (this.state.owlSimFunction === 'exomiser') {
+            // hook for exomiser, PENDING - Joe
+            // from the old code
+			this.state.selectedCalculation = 2; // Force the color to Uniqueness
+        } else {
+            // when not work with monarch's analyze/phenotypes page
+            // load the default selected target targetGroup list based on the active flag in config, 
+            // has nothing to do with the monarch's analyze phenotypes page - Joe
+			for (var idx in this.state.targetGroupList) {
+				// for active targetGroup pre-load them
+				if (this.state.targetGroupList[idx].active) {
+					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+				}	
+				// should they be shown in the comparison view
+				if (this.state.targetGroupList[idx].crossComparisonView) {
+					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+				}			
+			}
+            
+            // initialize data processing class for simsearch query
+		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+            
+            // starting loading the data from simsearch
+		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);  //optional parm:   this.limit);
+        }
 	},
 
-	_postDataInitCB: function(self) {
-		// set a max IC score
-		self.state.maxICScore = self.state.dataLoader.getMaxICScore();
+    // callback to handle the loaded owlsim data
+	_asyncDataLoadingCB: function(self) {
+		// add dataManager to this.state
+        self.state.dataManager = new DataManager(self.state.dataLoader);
 
-		self.state.dataManager = new DataManager(self.state.dataLoader);
+        // No need to update in owlSimFunction === 'compare' mode
+        // since compare only loads data once - Joe
+        if (self.state.owlSimFunction !== 'compare') { 
+            // need to update the selectedCompareTargetGroup list depending on if we loaded all the data
+		    self._updateSelectedCompareTargetGroup();
+        }
 
-		// need to update the selectedCompareTargetGroup list depending on if we loaded all the data
-		self._updateSelectedCompareTargetGroup();
-
-		// initialize the ontologyCache
-		self.state.ontologyCache = {};
-		
-	    // initialize axis groups
-	    self._createAxisRenderingGroups();
-
-		self._initDefaults();   
         
-        // Create all UI components
-		self._createDisplay();
+        // This removes the loading spinner, otherwise the spinner will be always there - Joe
+        self.element.empty();
+        self._createPhenogridContainer();
+
+        // check owlsim data integrity - Joe
+        if (self.state.owlSimFunction === 'compare') {
+            // noMatchesFound and noMetadataFound are compare api flags
+            // they are only available in compare mode
+            // check the flags to see if there's matches data found - Joe
+            if (self.state.dataManager.noMatchesFound) {
+                self._showNoResults();
+            } else if (self.state.dataManager.noMetadataFound) {
+                self._showNoMetadata();
+            } else {
+                // initialize axis groups
+	            self._createAxisRenderingGroups();
+        
+                // Create all UI components
+                // create the display as usual if there's 'b' and 'metadata' fields found - Joe
+                self._createDisplay();
+            }
+        } else {
+	        // initialize axis groups
+            self._createAxisRenderingGroups();
+    
+            // Create all UI components
+            // create the display as usual if there's 'b' and 'metadata' fields found - Joe
+            self._createDisplay();
+        }
 	},
 
+    // If owlSimFunction === 'compare', we do not have comparison mode
 	_updateSelectedCompareTargetGroup: function() {
 		// loop through to make sure we have data to display
 		for (var idx in this.state.selectedCompareTargetGroup) {
@@ -310,7 +418,8 @@ var images = require('./images.json');
 
 
 	_initDefaults: function() {
-		if (this.state.owlSimFunction === 'exomiser') {
+		// hook for exomiser, PENDING - Joe
+        if (this.state.owlSimFunction === 'exomiser') {
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
 		}
 
@@ -320,9 +429,6 @@ var images = require('./images.json');
 		this._createColorScale();  
 	},
 
-    
-
-    
     
     // for genotype expansion, we need to update the target list 
     // for each species if they have added genotypes - Joe
@@ -381,6 +487,7 @@ var images = require('./images.json');
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
 		} else if (this.state.selectedCompareTargetGroup.length === 1) {
 			// just get the target group name 
+            // in analyze/phenotypes compare mode, the singleTargetGroupName will be 'compare' - Joe
 			var singleTargetGroupName = this.state.selectedCompareTargetGroup[0].name;
 			
 			sourceList = this.state.dataManager.getData("source", singleTargetGroupName);
@@ -527,9 +634,12 @@ var images = require('./images.json');
 		var yScale = this.state.yAxisRender.getScale();
 
 		// use the x/y renders to generate the matrix
-	    var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
-
-
+        if (this.state.owlSimFunction === 'compare') {
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, true);
+        } else {
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
+        }
+	    
         // create column lables first, so the added genotype cells will overwrite the background color - Joe
         // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -575,25 +685,28 @@ var images = require('./images.json');
 			});
 	
         // grey background for added genotype columns - Joe
-        column.append("rect")
-            .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
-            .attr('width', gridRegion.cellwd)
-            .attr('height', self._gridHeight())
-            .style('fill', function(d){
-                if (d.type === 'genotype') {
-                    return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
-                } else {
-                    return 'none'; // transparent 
-                }
-            })
-            .style('opacity', 0.8)
-            .attr("transform", function(d) { 
-                return "rotate(45)"; 
-            }); //45
+        // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+        if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
+            column.append("rect")
+                .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
+                .attr('width', gridRegion.cellwd)
+                .attr('height', self._gridHeight())
+                .style('fill', function(d){
+                    if (d.type === 'genotype') {
+                        return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                    } else {
+                        return 'none'; // transparent 
+                    }
+                })
+                .style('opacity', 0.8)
+                .attr("transform", function(d) { 
+                    return "rotate(45)"; 
+                }); //45
+        }
         
         // add the scores for labels
 	    self._createTextScores();
-        
+
 		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
 		var row = this.state.svg.selectAll(".row")
   			.data(matrix)
@@ -645,23 +758,26 @@ var images = require('./images.json');
                 self._mouseout();		  		
 			});
 
-        row.append("rect")
-            .attr('width', self._gridWidth())
-            .attr('height', gridRegion.cellht)
-            .style('fill', function(d, i) { // add different color to genotype labels
-                var el = self.state.yAxisRender.itemAt(i);
-                if (el.type === 'genotype') {
-                    return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
-                } else {
-                    return 'none'; // transparent 
-                }
-            })
-            .style('opacity', 0.8);
+        // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+        if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
+            row.append("rect")
+                .attr('width', self._gridWidth())
+                .attr('height', gridRegion.cellht)
+                .style('fill', function(d, i) { // add different color to genotype labels
+                    var el = self.state.yAxisRender.itemAt(i);
+                    if (el.type === 'genotype') {
+                        return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                    } else {
+                        return 'none'; // transparent 
+                    }
+                })
+                .style('opacity', 0.8);
+        }
         
         // create the grid cells after appending all the background rects
         // so they can overwrite the row background for those added genotype rows - Joe 
         row.each(createrow);
-    
+
 		function createrow(row) {
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
@@ -678,7 +794,7 @@ var images = require('./images.json');
 				.attr("data-tooltip", "tooltip")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-					return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);
+					return self._getColorForModelValue(el.value[self.state.selectedCalculation]);
 			    })
 		        .on("mouseover", function(d) { 					
                     // self is the global widget this
@@ -926,9 +1042,9 @@ var images = require('./images.json');
 	    }
 	}, 
     
-	_getColorForModelValue: function(self, score) {
+	_getColorForModelValue: function(score) {
 		// This is for the new "Overview" target option
-		var selectedScale = this.state.colorScale[self.state.selectedCalculation];
+		var selectedScale = this.state.colorScale[this.state.selectedCalculation];
 		return selectedScale(score);
 	},
 
@@ -970,9 +1086,13 @@ var images = require('./images.json');
 		// this should be the full set of cellData
 		var xvalues = this.state.xAxisRender.groupEntries();
 		//console.log(JSON.stringify(xvalues));
-		var yvalues = this.state.yAxisRender.groupEntries();		
-		var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true);
-		//var data = this.state.dataManager.getFlattenMatrix();
+		var yvalues = this.state.yAxisRender.groupEntries();	
+
+        if (this.state.owlSimFunction === 'compare') {
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
+        } else {
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
+        }
 
 		// Group all mini cells in g element - Joe
 		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
@@ -1005,7 +1125,7 @@ var images = require('./images.json');
 			.attr("height", linePad) // Defined in navigator.miniCellSize
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-				return self._getColorForModelValue(self, el.value[self.state.selectedCalculation]);			 
+				return self._getColorForModelValue(el.value[self.state.selectedCalculation]);			 
 			});
 	
 		var yRenderedSize = this.state.yAxisRender.displayLength();
@@ -1175,30 +1295,16 @@ var images = require('./images.json');
 	}, 
 
 
-	_setSelectedCalculation: function(calc) {
-		var self = this;
-
-		var tempdata = self.state.similarityCalculation.filter(function(d) {
-			return d.calc == calc;
-		});
-		self.state.selectedCalculation = tempdata[0].calc;
-	},
-
-	_setDefaultSelectedSort: function(type) {
-		this.state.selectedSort = type;
-	},
-
-
     // Being called only for the first time the widget is being loaded
 	_createDisplay: function() {
-        // This removes the loading spinner, otherwise the spinner will be always there - Joe
-        this.element.empty();
-        this._createPhenogridContainer();
-        
-        // No need to recreate this tooltip on _updateDisplay() - Joe
-        this._createTooltipStub();
-        
+        // create the display as usual if there's 'b' and 'metadata' fields found - Joe
         if (this.state.dataManager.isInitialized()) {
+            // uses the metadata to get maxICScore - Joe
+            this._createColorScale();
+            
+            // No need to recreate this tooltip on _updateDisplay() - Joe
+            this._createTooltipStub();
+        
             this._createSvgComponents();
 
             // Create and postion HTML sections
@@ -1212,15 +1318,15 @@ var images = require('./images.json');
             
             // Options menu
             this._createPhenogridControls();
-			this._positionPhenogridControls();
+            this._positionPhenogridControls();
             this._togglePhenogridControls();
-		} else {
-			this._showNoResults();
-		}
+        } else {
+            this._showNoResults();
+        }
         
         this._setSvgSize();
-	},
-
+    },
+    
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
         var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
@@ -1255,6 +1361,10 @@ var images = require('./images.json');
         $('#pg_container').html('No results returned.');
     },
     
+    _showNoMetadata: function() {
+        $('#pg_container').html('No metadata returned to render the grid color.');
+    },
+    
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
 	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
@@ -1277,35 +1387,40 @@ var images = require('./images.json');
 	},
 
 	_createColorScale: function() {
-			var maxScore = 0,
-			method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
+        // set a max IC score
+        // sometimes the 'metadata' field might be missing from the JSON,
+        // then the dataLoader.getMaxICScore() returns 0 (default value) - Joe
+        this.state.maxICScore = this.state.dataManager.maxICScore;
+            
+        var maxScore = 0,
+        method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
 
-			switch(method){
-				case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
-				    break;
-				case 1: maxScore = 100;
-                    break;
-				case 0: maxScore = 100;
-                    break;
-				case 3: maxScore = 100;
-                    break;
-				default: maxScore = this.state.maxICScore;
-                    break;
-			}
-			// 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
-			this.state.colorScale = {};
+        switch(method){
+            case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
+                break;
+            case 1: maxScore = 100;
+                break;
+            case 0: maxScore = 100;
+                break;
+            case 3: maxScore = 100;
+                break;
+            default: maxScore = this.state.maxICScore;
+                break;
+        }
+        // 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
+        this.state.colorScale = {};
 
 
-			this.state.colorScale = new Array(4); // Why 4? Maybe one color scale per calculation method? - Joe
-			for (var j = 0; j < 4; j++) {
-				maxScore = 100;
-				if (j === 2) {
-					maxScore = this.state.maxICScore; // Uniqueness ? - Joe
-				}
-				if (typeof(this.state.colorRanges[j]) !== 'undefined') {
-					this.state.colorScale[j] = this._getColorScale(maxScore);
-				}
-			}
+        this.state.colorScale = new Array(4); // Why 4? Maybe one color scale per calculation method? - Joe
+        for (var j = 0; j < 4; j++) {
+            maxScore = 100;
+            if (j === 2) {
+                maxScore = this.state.maxICScore; // Uniqueness ? - Joe
+            }
+            if (typeof(this.state.colorRanges[j]) !== 'undefined') {
+                this.state.colorScale[j] = this._getColorScale(maxScore);
+            }
+        }
 	},
 
 	_getColorScale: function(maxScore) {
@@ -1449,14 +1564,15 @@ var images = require('./images.json');
 		// set up defaults as if overview
 		var titleText = this.state.gridTitle;
 
-		//if (this.state.currentTargetGroupName !== "Overview") {
 		if ( ! this._isCrossComparisonView()) {
 			targetGroup = this.state.selectedCompareTargetGroup[0].name;
 			var comp = this._getComparisonType(targetGroup);
 			titleText = this.state.gridTitle + " (grouped by " + targetGroup + " " + comp + ")";
 		}
-		// COMPARE CALL HACK - REFACTOR OUT
-		if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser'){
+		
+        // Show the default gridTitle for compare mode
+        // not sure what to show for exomiser mode, will decide later - Joe
+		if (this.state.owlSimFunction === 'compare'){
 			titleText = this.state.gridTitle;
 		}
 
@@ -1613,7 +1729,7 @@ var images = require('./images.json');
                           + this._encodeTooltipHref(sourceInfo.type, data.subsumer_id, data.subsumer_label) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
                           + "<strong>Match</strong><br>" 
                           + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
-                          + "<strong>" + Utils.capitalizeString(targetInfo.type) + " - " + data.targetGroup + " (" + this._getTargetGroupTaxon(data.targetGroup) + ")</strong><br>" 
+                          + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
                           + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
         } else {
             // disease and gene/genotype share common items
@@ -1625,10 +1741,12 @@ var images = require('./images.json');
             htmlContent = tooltipType + rank + score + species;
             
             // Add genotype expansion link to genes
+            // genotype expansion won't work with owlSimFunction === 'compare' since we use
+            // 'compare' as the key of the named array, while the added genotypes are named based on their species - Joe
             if (data.type === 'gene') {
-                /* DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
+                // DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
                 // for gene and single species mode only, add genotype expansion link
-                if (this.state.selectedCompareTargetGroup.length === 1) {
+                if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
                     var expanded = this.state.dataManager.isExpanded(id); // gene id
 
                     if (expanded){
@@ -1637,7 +1755,7 @@ var images = require('./images.json');
                         htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_insert_genotypes_" + id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
                     }
                 }
-                */
+                //
             }
         }
         
@@ -1736,13 +1854,12 @@ var images = require('./images.json');
 			for (var i=1; i < numOfTargetGroup; i++) {
 
 				var fudgeFactor = 3; //magic num
-						if (i > 1) {
-						fudgeFactor = 1;
+				if (i > 1) {
+					fudgeFactor = 1;
 				}
 				x1 = (x1 * i)+ fudgeFactor;  // add a few extra padding so it won't overlap cells
 
 				if (this.state.invertAxis) {
-
 					this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
 					.attr("transform","translate(" + x + "," + y+ ")")					
@@ -2035,8 +2152,13 @@ var images = require('./images.json');
 		var slideBtn = '<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
 		
 		var options = $(optionhtml);
-		var orgSel = this._createOrganismSelection();
-		options.append(orgSel);
+        
+        // only show the Organism(s) option when not in compare mode - Joe
+        if (this.state.owlSimFunction !== 'compare') {
+            var orgSel = this._createOrganismSelection();
+		    options.append(orgSel);
+        }
+
 		var sortSel = this._createSortPhenotypeSelection();
 		options.append(sortSel);
 		var calcSel = this._createCalculationSelection();
@@ -2195,14 +2317,14 @@ var images = require('./images.json');
 				"\" " + checked + disabled + ">" + this.state.targetGroupList[idx].name + '</div>';
 			}
 		}
-		optionhtml += "</div>";
+		optionhtml += "</div><div class='pg_hr'></div>";
 
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
-		var optionhtml = "<div class='pg_hr'></div><div class='pg_ctrl_label'>Calculation Method"+
+		var optionhtml = "<div class='pg_ctrl_label'>Calculation Method"+
 				" <i class='fa fa-info-circle cursor_pointer' id='pg_calcs_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_calculation'>";
 
@@ -2217,13 +2339,13 @@ var images = require('./images.json');
 			// We need the name attr for radio inputs so only one is checked - Joe
 			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
 		}
-		optionhtml += "</div>";
+		optionhtml += "</div><div class='pg_hr'></div>";
 		return $(optionhtml);
 	},
 
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
-		var optionhtml ="<div class='pg_hr'></div><div class='pg_ctrl_label'>Sort Phenotypes" + 
+		var optionhtml ="<div class='pg_ctrl_label'>Sort Phenotypes" + 
 				" <i class='fa fa-info-circle cursor_pointer' id='pg_sorts_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
 				"<div id='pg_sortphenotypes'>";
 
@@ -2239,7 +2361,7 @@ var images = require('./images.json');
 			// We need the name attr for radio inputs so only one is checked - Joe
 			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + this.state.phenotypeSort[idx] + "' " + checked + ">" + this.state.phenotypeSort[idx] + '</div>';
 		}
-		optionhtml += "</div>";
+		optionhtml += "</div><div class='pg_hr'></div>";
 		return $(optionhtml);
 	},
 
@@ -2249,20 +2371,20 @@ var images = require('./images.json');
 		if (this.state.invertAxis) {
 			checked = "checked";
 		}
-		var optionhtml = '<div class="pg_hr"></div><div class="pg_select_item"><input type="checkbox" id="pg_axisflip"' + checked + '>Invert Axis</div>'; 
+		var optionhtml = '<div class="pg_select_item"><input type="checkbox" id="pg_axisflip"' + checked + '>Invert Axis</div><div class="pg_hr"></div>'; 
 		return $(optionhtml);
 	},
 
 	// create about phenogrid FAQ inside the controls/options - Joe
 	_createAboutPhenogrid: function () {
-		var html = '<div class="pg_hr"></div><div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
+		var html = '<div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
 		
 		return $(html);
 	},
 	
     // Export current state of phenogrid as SVG file to be used in publications
     _createExportPhenogridButton: function() {
-        var btn = '<div class="pg_hr"></div><div id="pg_export">Save as SVG...</div>';
+        var btn = '<div id="pg_export">Save as SVG...</div><div class="pg_hr"></div>';
         
         return $(btn);
     },
@@ -2665,44 +2787,6 @@ var images = require('./images.json');
 		}
 	},
 
-    // used by renderTooltip() - Joe
-	_getTargetGroupTaxon: function(name) {
-		for (var i in this.state.targetGroupList) {
-			if (this.state.targetGroupList[i].name == name) {
-				return this.state.targetGroupList[i].taxon;
-			}
-		}
-		return "";
-	},
-
-	// targetSpecies is used by monarch-app's Analyze page, the dropdown menu - Joe
-	// create a shortcut index for quick access to target targetGroup by name - to get index (position) and taxon
-	_createTargetGroupList: function(targetSpecies) {
-	
-		if (typeof(targetSpecies) !== 'undefined' && targetSpecies !== 'all') {   // for All option, see the Analyze page
-			// load just the one selected target targetGroup 
-			for (var idx in this.state.targetGroupList) {
-				// for active targetGroup pre-load them
-				if (this.state.targetGroupList[idx].taxon == targetSpecies) {
-					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-				}	
-			}
-
-		} else {
-			// load the default selected target targetGroup list based on the active flag
-			for (var idx in this.state.targetGroupList) {
-				// for active targetGroup pre-load them
-				if (this.state.targetGroupList[idx].active) {
-					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-				}	
-				// should they be shown in the comparison view
-				if (this.state.targetGroupList[idx].crossComparisonView) {
-					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-				}			
-			}
-		}
-	},
 
 	_isCrossComparisonView: function() {
 		if (this.state.selectedCompareTargetGroup.length === 1) {
