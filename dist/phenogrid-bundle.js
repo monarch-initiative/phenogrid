@@ -1915,27 +1915,21 @@ var images = require('./images.json');
 
         // Genotype expansion flags - named/associative array
         // flag used for switching between single species and multi-species mode
-        this.state.expandedGenotypes = {
+        // add new species names here once needed - Joe
+        var genotypeExpansionSpeciesFlagConfig = {
             "Mus musculus": false,
             "Danio rerio": false
         };
+        
+        this.state.expandedGenotypes = genotypeExpansionSpeciesFlagConfig;
         
         // genotype flags to mark every genotype expansion on/off in each species
-        this.state.newGenotypes = {
-            "Mus musculus": false,
-            "Danio rerio": false
-        };
+        this.state.newGenotypes = genotypeExpansionSpeciesFlagConfig;
         
-        this.state.removedGenotypes = {
-            "Mus musculus": false,
-            "Danio rerio": false
-        };
+        this.state.removedGenotypes = genotypeExpansionSpeciesFlagConfig;
         
         // flag to mark if hidden genotypes need to be reactivated
-        this.state.reactivateGenotypes = {
-            "Mus musculus": false,
-            "Danio rerio": false
-        };
+        this.state.reactivateGenotypes = genotypeExpansionSpeciesFlagConfig;
 	},
 
 	
@@ -3069,40 +3063,40 @@ var images = require('./images.json');
 	},
 
 	_createColorScale: function() {
-			// set a max IC score
-            // sometimes the 'metadata' field might be missing from the JSON,
-            // then the dataLoader.getMaxICScore() returns 0 (default value) - Joe
-            this.state.maxICScore = this.state.dataManager.maxICScore;
-                
-            var maxScore = 0,
-			method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
+        // set a max IC score
+        // sometimes the 'metadata' field might be missing from the JSON,
+        // then the dataLoader.getMaxICScore() returns 0 (default value) - Joe
+        this.state.maxICScore = this.state.dataManager.maxICScore;
+            
+        var maxScore = 0,
+        method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
 
-			switch(method){
-				case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
-				    break;
-				case 1: maxScore = 100;
-                    break;
-				case 0: maxScore = 100;
-                    break;
-				case 3: maxScore = 100;
-                    break;
-				default: maxScore = this.state.maxICScore;
-                    break;
-			}
-			// 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
-			this.state.colorScale = {};
+        switch(method){
+            case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
+                break;
+            case 1: maxScore = 100;
+                break;
+            case 0: maxScore = 100;
+                break;
+            case 3: maxScore = 100;
+                break;
+            default: maxScore = this.state.maxICScore;
+                break;
+        }
+        // 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
+        this.state.colorScale = {};
 
 
-			this.state.colorScale = new Array(4); // Why 4? Maybe one color scale per calculation method? - Joe
-			for (var j = 0; j < 4; j++) {
-				maxScore = 100;
-				if (j === 2) {
-					maxScore = this.state.maxICScore; // Uniqueness ? - Joe
-				}
-				if (typeof(this.state.colorRanges[j]) !== 'undefined') {
-					this.state.colorScale[j] = this._getColorScale(maxScore);
-				}
-			}
+        this.state.colorScale = new Array(4); // Why 4? Maybe one color scale per calculation method? - Joe
+        for (var j = 0; j < 4; j++) {
+            maxScore = 100;
+            if (j === 2) {
+                maxScore = this.state.maxICScore; // Uniqueness ? - Joe
+            }
+            if (typeof(this.state.colorRanges[j]) !== 'undefined') {
+                this.state.colorScale[j] = this._getColorScale(maxScore);
+            }
+        }
 	},
 
 	_getColorScale: function(maxScore) {
@@ -3246,14 +3240,15 @@ var images = require('./images.json');
 		// set up defaults as if overview
 		var titleText = this.state.gridTitle;
 
-		//if (this.state.currentTargetGroupName !== "Overview") {
 		if ( ! this._isCrossComparisonView()) {
 			targetGroup = this.state.selectedCompareTargetGroup[0].name;
 			var comp = this._getComparisonType(targetGroup);
 			titleText = this.state.gridTitle + " (grouped by " + targetGroup + " " + comp + ")";
 		}
-		// COMPARE CALL HACK - REFACTOR OUT
-		if (this.state.owlSimFunction === 'compare' || this.state.owlSimFunction === 'exomiser'){
+		
+        // Show the default gridTitle for compare mode
+        // not sure what to show for exomiser mode, will decide later - Joe
+		if (this.state.owlSimFunction === 'compare'){
 			titleText = this.state.gridTitle;
 		}
 
