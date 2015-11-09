@@ -109,7 +109,7 @@ DataLoader.prototype = {
             dataType : 'json',
             success : function(data) {
                 console.log('compare data loaded:');
-                console.log(data);
+                //console.log(data);
                 
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
