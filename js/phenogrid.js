@@ -328,6 +328,7 @@ var images = require('./images.json');
 		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback, this.state.searchResultLimit);
         } else if (this.state.owlSimFunction === 'exomiser') {
             // hook for exomiser, PENDING - Joe
+            // from the old code
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
         } else {
             // when not work with monarch's analyze/phenotypes page
@@ -364,14 +365,36 @@ var images = require('./images.json');
 		    self._updateSelectedCompareTargetGroup();
         }
 
-	    // initialize axis groups
-	    self._createAxisRenderingGroups();
+        
+        // This removes the loading spinner, otherwise the spinner will be always there - Joe
+        self.element.empty();
+        self._createPhenogridContainer();
 
-        // uses the metadata to get maxICScore - Joe
-		this._createColorScale();
-         
-        // Create all UI components
-		self._createDisplay();
+        // check owlsim data integrity - Joe
+        if (self.state.owlSimFunction === 'compare') {
+            // noMatchesFound and noMetadataFound are compare api flags
+            // they are only available in compare mode
+            // check the flags to see if there's matches data found - Joe
+            if (self.state.dataManager.noMatchesFound) {
+                self._showNoResults();
+            } else if (self.state.dataManager.noMetadataFound) {
+                self._showNoMetadata();
+            } else {
+                // initialize axis groups
+	            self._createAxisRenderingGroups();
+        
+                // Create all UI components
+                // create the display as usual if there's 'b' and 'metadata' fields found - Joe
+                self._createDisplay();
+            }
+        } else {
+	        // initialize axis groups
+            self._createAxisRenderingGroups();
+    
+            // Create all UI components
+            // create the display as usual if there's 'b' and 'metadata' fields found - Joe
+            self._createDisplay();
+        }
 	},
 
     // If owlSimFunction === 'compare', we do not have comparison mode
@@ -1274,14 +1297,14 @@ var images = require('./images.json');
 
     // Being called only for the first time the widget is being loaded
 	_createDisplay: function() {
-        // This removes the loading spinner, otherwise the spinner will be always there - Joe
-        this.element.empty();
-        this._createPhenogridContainer();
-        
-        // No need to recreate this tooltip on _updateDisplay() - Joe
-        this._createTooltipStub();
-        
+        // create the display as usual if there's 'b' and 'metadata' fields found - Joe
         if (this.state.dataManager.isInitialized()) {
+            // uses the metadata to get maxICScore - Joe
+            this._createColorScale();
+            
+            // No need to recreate this tooltip on _updateDisplay() - Joe
+            this._createTooltipStub();
+        
             this._createSvgComponents();
 
             // Create and postion HTML sections
@@ -1295,15 +1318,15 @@ var images = require('./images.json');
             
             // Options menu
             this._createPhenogridControls();
-			this._positionPhenogridControls();
+            this._positionPhenogridControls();
             this._togglePhenogridControls();
-		} else {
-			this._showNoResults();
-		}
+        } else {
+            this._showNoResults();
+        }
         
         this._setSvgSize();
-	},
-
+    },
+    
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
         var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
@@ -1336,6 +1359,10 @@ var images = require('./images.json');
     
     _showNoResults: function() {
         $('#pg_container').html('No results returned.');
+    },
+    
+    _showNoMetadata: function() {
+        $('#pg_container').html('No metadata returned to render the grid color.');
     },
     
 	// Returns axis data from a ID of models or phenotypes

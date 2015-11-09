@@ -32,6 +32,9 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
+    // compare api flags
+    this.noMatchesFound = false; // flag to mark if there's matches in the returned JSON
+    this.noMetadataFound = false; // flag to mark if there's metadata in the returned JSON
 };
 
 DataLoader.prototype = {
@@ -98,7 +101,7 @@ DataLoader.prototype = {
 
         var self = this;
         
-		// ajax get to load the compare data
+		// to load the compare data via ajax GET
         jQuery.ajax({
             url: this.qryString,
             method: 'GET', 
@@ -107,9 +110,20 @@ DataLoader.prototype = {
             success : function(data) {
                 console.log('compare data loaded:');
                 console.log(data);
-                // use 'compare' as the key of the named array - Joe
-                self.transform("compare", data);  
-                self.postDataLoadCallback();                
+                
+                // sometimes the compare api doesn't find any matches, we need to stop here - Joe
+                if (typeof (data.b) === 'undefined') {
+                    self.noMatchesFound = true; // set the noMatchesFound flag
+                } else if (typeof (data.metadata) === 'undefined') {
+                    // sometimes the compare api doesn't return the metadata field, we can't create the desired colorscale
+                    // but this won't affect other UI rendering - Joe
+                    self.noMetadataFound = true; // set the noMetadataFound flag
+                } else {
+                    // use 'compare' as the key of the named array
+                    self.transform("compare", data);  
+                }
+                
+                self.postDataLoadCallback(); 
             },
             error: function (xhr, errorType, exception) { 
             // Triggered if an error communicating with server
@@ -195,6 +209,7 @@ DataLoader.prototype = {
 		    typeof (data.b) !== 'undefined') {
 			console.log("transforming...");
 
+            // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
 				this.maxICScore = data.metadata.maxMaxIC;

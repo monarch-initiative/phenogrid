@@ -25,7 +25,11 @@ var DataManager = function(dataLoader) {
 
     this.maxICScore = this.dataLoader.getMaxICScore();
     
-	// this is rebuilt everytime grid needs rerendered, cached here for quick lookup
+    // compare api flags - Joe
+    this.noMatchesFound = this.dataLoader.noMatchesFound;
+    this.noMetadataFound = this.dataLoader.noMetadataFound;
+    
+	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];
     
     // genotype expansion, named arrays of each single species
