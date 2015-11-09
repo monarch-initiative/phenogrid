@@ -1956,6 +1956,7 @@ var images = require('./images.json');
         // in compare mode, there's no crossComparisonView - Joe
         if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
             // overwrite the this.state.targetGroupList with only 'compare'
+            // this 'compare' is hard coded in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
             this.state.targetGroupList = [
                 {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
             ];
@@ -2020,6 +2021,9 @@ var images = require('./images.json');
             
             // starting loading the data from simsearch
 		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback, this.state.searchResultLimit);
+        } else if (this.state.owlSimFunction === 'exomiser') {
+            // hook for exomiser, PENDING - Joe
+			this.state.selectedCalculation = 2; // Force the color to Uniqueness
         } else {
             // when not work with monarch's analyze/phenotypes page
             // load the default selected target targetGroup list based on the active flag in config, 
@@ -2045,7 +2049,8 @@ var images = require('./images.json');
 
     // callback to handle the loaded owlsim data
 	_asyncDataLoadingCB: function(self) {
-		self.state.dataManager = new DataManager(self.state.dataLoader);
+		// add dataManager to this.state
+        self.state.dataManager = new DataManager(self.state.dataLoader);
 
         // No need to update in owlSimFunction === 'compare' mode
         // since compare only loads data once - Joe
@@ -2057,8 +2062,9 @@ var images = require('./images.json');
 	    // initialize axis groups
 	    self._createAxisRenderingGroups();
 
-		self._initDefaults();   
-        
+        // uses the metadata to get maxICScore - Joe
+		this._createColorScale();
+         
         // Create all UI components
 		self._createDisplay();
 	},
@@ -2959,20 +2965,6 @@ var images = require('./images.json');
 		}
 		return label;
 	}, 
-
-
-	_setSelectedCalculation: function(calc) {
-		var self = this;
-
-		var tempdata = self.state.similarityCalculation.filter(function(d) {
-			return d.calc == calc;
-		});
-		self.state.selectedCalculation = tempdata[0].calc;
-	},
-
-	_setDefaultSelectedSort: function(type) {
-		this.state.selectedSort = type;
-	},
 
 
     // Being called only for the first time the widget is being loaded
