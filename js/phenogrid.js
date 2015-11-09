@@ -125,7 +125,7 @@ var images = require('./images.json');
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
-            searchResultLimit: 100, // the limit field under analyze/phenotypes search section in search mode, default 100
+            searchResultLimit: 100, // the limit field under analyze/phenotypes search section in search mode, default 100, will be overwritten by user-input limit 
             geneList: [] // an array of gene IDs to be used in compare mode, already contains orthologs and paralogs when provided 
         },
 
@@ -1835,13 +1835,12 @@ var images = require('./images.json');
 			for (var i=1; i < numOfTargetGroup; i++) {
 
 				var fudgeFactor = 3; //magic num
-						if (i > 1) {
-						fudgeFactor = 1;
+				if (i > 1) {
+					fudgeFactor = 1;
 				}
 				x1 = (x1 * i)+ fudgeFactor;  // add a few extra padding so it won't overlap cells
 
 				if (this.state.invertAxis) {
-
 					this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
 					.attr("transform","translate(" + x + "," + y+ ")")					

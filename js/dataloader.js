@@ -32,7 +32,6 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
-
 };
 
 DataLoader.prototype = {
@@ -64,6 +63,8 @@ DataLoader.prototype = {
 
 	    this.qryString = 'input_items=' + qrySourceList.join("+");
 
+        // limit is used in analyze/phenotypes search mode
+        // can also be used in general simsearch query - Joe
 		if (typeof(limit) !== 'undefined') {
 	    	this.qryString += "&limit=" + limit;
 		}
@@ -75,7 +76,16 @@ DataLoader.prototype = {
 
 	},
 
-    // used for the monarch compare api
+    /*
+		Function: loadCompareData
+
+			fetch and load data from the monarch compare api
+
+		Parameters:	
+			qrySourceList - list of source items to query
+			geneList - combined list of genes
+			asyncDataLoadingCallback - callback
+	*/
     loadCompareData: function(qrySourceList, geneList, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
