@@ -2722,57 +2722,11 @@ var images = require('./images.json');
         
         // update display
         this._updateDisplay();
-        
-        /*
-        var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
-        // array of genotype id list
-        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
-         
-        // remove these genotype ids from underlying target dataset
-        // this way we still have other expanded genotypes in that sorted named array - Joe
-        // these ids in underscore format
-        for (var i = 0; i < associated_genotype_ids.length; i++) {
-            var genotype_id = associated_genotype_ids[i];
-            delete this.state.dataLoader.targetData[species_name][genotype_id]; 
-
-            // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
-            delete this.state.dataManager.reorderedTargetEntriesNamedArray[genotype_id];  
-            // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
-            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
-                if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = [];
-                }
-                
-                if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
-                    delete this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j];  
-                    break;
-                }
-            }         
-        }
-        
-        // also remove the cached gene id record from dataLoader cache
-        delete this.state.dataLoader.expandedGenotypeList[id]
-        
-        // set the flag
-        this.state.removedGenotypes[species_name] = true;
-        
-        // update the target list for axis render
-        this._updateTargetAxisRenderingGroup();
-
-        // reset flag
-        this.state.removedGenotypes[species_name] = false;
-        
-        // update display
-        this._updateDisplay();
-        
-        */
-        
-        
 	},    
     
 	_isTargetGroupSelected: function(self, name) {
 		for (var i in self.state.selectedCompareTargetGroup) {
-			if (self.state.selectedCompareTargetGroup[i].name == name) {
+			if (self.state.selectedCompareTargetGroup[i].name === name) {
 				return true;
 			}
 		}
@@ -2781,7 +2735,7 @@ var images = require('./images.json');
 
 	_getTargetGroupInfo: function(self, name) {
 		for (var i in self.state.targetGroupList) {
-			if (self.state.targetGroupList[i].name == name) {
+			if (self.state.targetGroupList[i].name === name) {
 				return self.state.targetGroupList[i];
 			}
 		}
