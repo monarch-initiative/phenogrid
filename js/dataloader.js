@@ -114,7 +114,8 @@ DataLoader.prototype = {
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
                     self.noMatchesFound = true; // set the noMatchesFound flag
-                } else if (typeof (data.metadata) === 'undefined') {
+                } else if (typeof (data.metadata.maxMaxIC) === 'undefined') {
+                    // metadata.maxMaxIC is used to generate the color sace in phenogrid.js _createColorScale()
                     // sometimes the compare api doesn't return the metadata field, we can't create the desired colorscale
                     // but this won't affect other UI rendering - Joe
                     self.noMetadataFound = true; // set the noMetadataFound flag

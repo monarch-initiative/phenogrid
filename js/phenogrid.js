@@ -190,8 +190,9 @@ var images = require('./images.json');
             similarityCalculation: [
                 {label: "Similarity", calc: 0, high: "Max", low: "Min"}, 
                 {label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"}, 
-                {label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"} , 
-                {label: "Uniqueness", calc: 2, high: "Highest", low: "Lowest"}],
+                {label: "Uniqueness", calc: 2, high: "Highest", low: "Lowest"},
+                {label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"}
+            ],
             comparisonTypes: [ 
                 {organism: "Homo sapiens", comparison: "diseases"}
             ],
@@ -794,7 +795,7 @@ var images = require('./images.json');
 				.attr("data-tooltip", "tooltip")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-					return self._getColorForModelValue(el.value[self.state.selectedCalculation]);
+					return self._getCellColor(el.value[self.state.selectedCalculation]);
 			    })
 		        .on("mouseover", function(d) { 					
                     // self is the global widget this
@@ -1042,7 +1043,7 @@ var images = require('./images.json');
 	    }
 	}, 
     
-	_getColorForModelValue: function(score) {
+	_getCellColor: function(score) {
 		// This is for the new "Overview" target option
 		var selectedScale = this.state.colorScale[this.state.selectedCalculation];
 		return selectedScale(score);
@@ -1125,7 +1126,7 @@ var images = require('./images.json');
 			.attr("height", linePad) // Defined in navigator.miniCellSize
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-				return self._getColorForModelValue(el.value[self.state.selectedCalculation]);			 
+				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
 			});
 	
 		var yRenderedSize = this.state.yAxisRender.displayLength();
@@ -1362,7 +1363,7 @@ var images = require('./images.json');
     },
     
     _showNoMetadata: function() {
-        $('#pg_container').html('No metadata returned to render the grid color.');
+        $('#pg_container').html('No data returned to render the grid cell color for each calculation method.');
     },
     
 	// Returns axis data from a ID of models or phenotypes
@@ -1388,47 +1389,62 @@ var images = require('./images.json');
 
 	_createColorScale: function() {
         // set a max IC score
+        // metadata.maxMaxIC is used to generate the color sace in phenogrid.js _createColorScale()
         // sometimes the 'metadata' field might be missing from the JSON,
         // then the dataLoader.getMaxICScore() returns 0 (default value) - Joe
         this.state.maxICScore = this.state.dataManager.maxICScore;
             
-        var maxScore = 0,
-        method = this.state.selectedCalculation; // 4 different calculations (similarity, ration (q), ratio (t), uniqueness) - Joe
+        var maxScore = 0;
+        var method = this.state.selectedCalculation; // 4 different calculations (Similarity, Ration (q), Ratio (t), Uniqueness) - Joe
 
         switch(method){
-            case 2: maxScore = this.state.maxICScore; // Uniqueness ? - Joe
+            case 0: // Similarity
+                maxScore = 100;
                 break;
-            case 1: maxScore = 100;
+            case 1: // Ration (q)
+                maxScore = 100;
                 break;
-            case 0: maxScore = 100;
+            case 2: // Uniqueness
+                maxScore = this.state.maxICScore; 
                 break;
-            case 3: maxScore = 100;
+            case 3: // Ratio (t)
+                maxScore = 100;
                 break;
-            default: maxScore = this.state.maxICScore;
+            default: 
+                maxScore = this.state.maxICScore;
                 break;
         }
-        // 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
-        this.state.colorScale = {};
 
-
-        this.state.colorScale = new Array(4); // Why 4? Maybe one color scale per calculation method? - Joe
-        for (var j = 0; j < 4; j++) {
+        this.state.colorScale = new Array(4); // Why 4? One color scale per calculation method - Joe
+        for (var i = 0; i < 4; i++) {
             maxScore = 100;
-            if (j === 2) {
-                maxScore = this.state.maxICScore; // Uniqueness ? - Joe
+            if (i === 2) {
+                maxScore = this.state.maxICScore; // Uniqueness 
             }
-            if (typeof(this.state.colorRanges[j]) !== 'undefined') {
-                this.state.colorScale[j] = this._getColorScale(maxScore);
-            }
+            
+            // colorRanges has 6 stop colors
+            this.state.colorScale[i] = this._getColorScale(maxScore);
         }
 	},
 
+    // create color scale for each calculation method
 	_getColorScale: function(maxScore) {
-		var cs = d3.scale.linear();
-		cs.domain([3, maxScore]);
-		cs.domain(this.state.colorDomains.map(cs.invert));
-		cs.range(this.state.colorRanges);
-		return cs;
+        var cs = d3.scale.linear(); // Constructs a new linear scale with the default domain [0,1] and the default range [0,1]. 
+        // Simply put: scales transform a number in a certain interval (called the domain) 
+        // into a number in another interval (called the range).
+
+        // transform a score domain to a color domain, then transform a color domain into an actual color range
+        cs.domain([0, maxScore]); // sets the scale's input domain to the specified array of numbers
+
+        // this.state.colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1]
+        // this.state.colorDomains.map(cs.invert): [0, 20, 40, 60, 80, 100]
+        cs.domain(this.state.colorDomains.map(cs.invert));
+
+        // sets the scale's output range to the specified array of values
+        cs.range(this.state.colorRanges);
+
+        // returns function
+        return cs;
 	},
 
 	_createSvgContainer: function() {
@@ -1437,7 +1453,7 @@ var images = require('./images.json');
         // Define a font-family for all SVG texts 
         // so we don't have to apply font-family separately for each SVG text - Joe
         this.state.svg = d3.select("#pg_svg_group")
-            .style("font-family", "Verdana, Geneva, sans-serif");;
+            .style("font-family", "Verdana, Geneva, sans-serif");
 	},
 
 	_createPhenogridContainer: function(msg) {
