@@ -704,7 +704,10 @@ var images = require('./images.json');
 				return "pg_grid_row_"+i;
             })
   			.attr("transform", function(d, i) { 
-  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; 
+                var y = self.state.gridRegion.y;
+                var ypad = self.state.gridRegion.ypad;
+
+                return "translate(" + gridRegion.x +"," + (y+(i*ypad)) + ")"; 
             });
 
    		// create row labels
@@ -766,7 +769,9 @@ var images = require('./images.json');
         // so they can overwrite the row background for those added genotype rows - Joe 
         row.each(createrow);
 
+        // callback for row.each()
 		function createrow(row) {
+            // The each operator can be used to process selections recursively, by using d3.select(this) within the callback function.
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
 		        .enter().append("rect")
@@ -840,13 +845,6 @@ var images = require('./images.json');
 			.attr('y1', y1)
 			.attr('x2', x2)
 			.attr('y2', y2);
-	},
-	
-	_calcYCoord: function (d, i) {
-		var y = this.state.gridRegion.y;
-		var ypad = this.state.gridRegion.ypad;
-
-		return (y+(i*ypad));
 	},
 
     // mouseover x/y label and grid cell
