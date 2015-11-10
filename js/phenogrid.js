@@ -1414,9 +1414,6 @@ var images = require('./images.json');
                 maxScore = this.state.maxICScore;
                 break;
         }
-        // 3 september 2014 still a bit clunky in handling many organisms, but much less hardbound.
-        this.state.colorScale = {};
-
 
         this.state.colorScale = new Array(4); // Why 4? One color scale per calculation method - Joe
         for (var i = 0; i < 4; i++) {
@@ -1432,22 +1429,22 @@ var images = require('./images.json');
 
     // create color scale for each calculation method
 	_getColorScale: function(maxScore) {
-		var cs = d3.scale.linear(); // Constructs a new linear scale with the default domain [0,1] and the default range [0,1]. 
-		// Simply put: scales transform a number in a certain interval (called the domain) 
+        var cs = d3.scale.linear(); // Constructs a new linear scale with the default domain [0,1] and the default range [0,1]. 
+        // Simply put: scales transform a number in a certain interval (called the domain) 
         // into a number in another interval (called the range).
-        
+
         // transform a score domain to a color domain, then transform a color domain into an actual color range
         cs.domain([0, maxScore]); // sets the scale's input domain to the specified array of numbers
 
         // this.state.colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1]
         // this.state.colorDomains.map(cs.invert): [0, 20, 40, 60, 80, 100]
         cs.domain(this.state.colorDomains.map(cs.invert));
-		
+
         // sets the scale's output range to the specified array of values
         cs.range(this.state.colorRanges);
 
         // returns function
-		return cs;
+        return cs;
 	},
 
 	_createSvgContainer: function() {
