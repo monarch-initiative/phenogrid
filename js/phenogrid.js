@@ -1019,12 +1019,12 @@ var images = require('./images.json');
                 });  
 	    } else {
 	    	scores	      		
-	    	.attr("transform", function(d, i) { 
-                return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
-                     "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
-                })
-            .attr("x", 0)
-            .attr("y", scale.rangeBand()+2);
+                .attr("transform", function(d, i) { 
+                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
+                         "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
+                    })
+                .attr("x", 0)
+                .attr("y", scale.rangeBand()+2);
 	    }
 	}, 
     
@@ -1100,13 +1100,15 @@ var images = require('./images.json');
 			.attr("y", function(d, i) { 
 				var yid = d.source_id;
 				var yscale = self.state.smallYScale(yid);
-			        var y = yscale + linePad / 2;
-				return y;})
+			    var y = yscale + linePad / 2;
+				return y;
+            })
 			.attr("x", function(d) { 
 				var xid = d.target_id;
 				var xscale = self.state.smallXScale(xid);
 				var x =  xscale + linePad / 2; 
-				return x;})
+				return x;
+            })
 			.attr("width", linePad) // Defined in navigator.miniCellSize
 			.attr("height", linePad) // Defined in navigator.miniCellSize
 			.attr("fill", function(d) {
@@ -1247,13 +1249,16 @@ var images = require('./images.json');
 	    targetList = self.state.xAxisRender.groupIDs();
 
 		self.state.smallYScale = d3.scale.ordinal()
-			.domain(sourceList.map(function (d) {return d; }))
+			.domain(sourceList.map(function (d) {
+                return d; 
+            }))
 			.rangePoints([0, overviewRegionSize]);
 
 		self.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
 				var td = d;
-				return d; }))
+				return d; 
+            }))
 			.rangePoints([0, overviewRegionSize]);   	    
 	},
 
@@ -1267,14 +1272,14 @@ var images = require('./images.json');
 	},
 
 	_getComparisonType: function(organism){
-		var label = "";
+		var label = '';
 
 		for (var i in this.state.comparisonTypes) {
 			if (organism === this.state.comparisonTypes[i].organism){
 				label = this.state.comparisonTypes[i].comparison;
 			}
 		}
-		if (label === ""){
+		if (label === ''){
 			label = this.state.defaultComparisonType.comparison;
 		}
 		return label;
@@ -1354,18 +1359,19 @@ var images = require('./images.json');
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
 	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
-	     if (this.state.yAxisRender.contains(key)){
-		    return this.state.yAxisRender.get(key);
-		 } else if (this.state.xAxisRender.contains(key)){
-		    return this.state.xAxisRender.get(key);
-		 }
-		 else { return null; }
+        if (this.state.yAxisRender.contains(key)) {
+            return this.state.yAxisRender.get(key);
+        } else if (this.state.xAxisRender.contains(key)) {
+            return this.state.xAxisRender.get(key);
+        } else { 
+            return null; 
+        }
 	},
 
 	_getAxisDataPosition: function(key) {
-	    if (this.state.yAxisRender.contains(key)){
+	    if (this.state.yAxisRender.contains(key)) {
 		    return this.state.yAxisRender.position(key);
-		} else if (this.state.xAxisRender.contains(key)){
+		} else if (this.state.xAxisRender.contains(key)) {
 		    return this.state.xAxisRender.position(key);
 		} else { 
             return -1; 
@@ -1573,7 +1579,7 @@ var images = require('./images.json');
 		
         // Show the default gridTitle for compare mode
         // not sure what to show for exomiser mode, will decide later - Joe
-		if (this.state.owlSimFunction === 'compare'){
+		if (this.state.owlSimFunction === 'compare') {
 			titleText = this.state.gridTitle;
 		}
 
@@ -1610,11 +1616,11 @@ var images = require('./images.json');
 
 		// for cells we need to check the invertAxis to adjust for correct id
 		if (data.type === 'cell') {
-			 if (this.state.invertAxis) {
-				id = data.target_id;
-			 } else {
-				id = data.source_id;
-			 }
+            if (this.state.invertAxis) {
+                id = data.target_id;
+            } else {
+                id = data.source_id;
+            }
 		} else {
 			id = data.id;
 		}
@@ -1795,7 +1801,7 @@ var images = require('./images.json');
 					}
 					
 					if (level === 0){
-						results += "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight) + this._getOntologyLabel(id) + "<br>";
+						results += "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight) + this.state.dataManager.getOntologyLabel(id) + "<br>";
 						this.state.ontologyTreeHeight = 0;
 					}
 				}
@@ -1818,16 +1824,9 @@ var images = require('./images.json');
 		return indent + '&#8627'; // HTML entity - Joe
 	},
 
-	_getOntologyLabel: function(id) {
-		var label = this.state.dataManager.getOntologyLabel(id);
-		return label;
-	},
-
 	// Based on the ID, it pulls the label from CacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 	_buildOntologyHyperLink: function(id){
-		var label = this._getOntologyLabel(id);
-		var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
-		return link;
+		return "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + this.state.dataManager.getOntologyLabel(id) + "</a>";
 	},
 
 	_createTargetGroupDividerLines: function() {
