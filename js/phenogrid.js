@@ -418,19 +418,6 @@ var images = require('./images.json');
 	}, 
 
 
-	_initDefaults: function() {
-		// hook for exomiser, PENDING - Joe
-        if (this.state.owlSimFunction === 'exomiser') {
-			this.state.selectedCalculation = 2; // Force the color to Uniqueness
-		}
-
-	    this._setSelectedCalculation(this.state.selectedCalculation);
-		this._setDefaultSelectedSort(this.state.selectedSort);
-
-		this._createColorScale();  
-	},
-
-    
     // for genotype expansion, we need to update the target list 
     // for each species if they have added genotypes - Joe
     _updateTargetAxisRenderingGroup: function(species_name) {
