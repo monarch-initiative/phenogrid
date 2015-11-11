@@ -1872,10 +1872,10 @@ var images = require('./images.json');
             navigator: {
                 x:112, 
                 y: 65, 
-                width:110,
-                height:110,
-                size:110, // size of the entire mini map region - it is a square
-                miniCellSize: 2
+                width:110, // will be updated based on the number of x count - Joe
+                height:110, // will be updated based on the number of y count - Joe
+                miniCellwd:2,
+                miniCellht:2
             },// controls the navigator mapview - Joe
             logo: {
                 x: 70, 
@@ -1889,7 +1889,7 @@ var images = require('./images.json');
                 ypad:18, // x distance from the first cell to the next cell
                 xpad:18, // y distance from the first cell to the next cell
                 cellwd:12, // grid cell width
-                cellht:12, // // grid cell height
+                cellht:12, // grid cell height
                 rowLabelOffset:-25, // offset of the row label (left side)
                 colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
@@ -2738,36 +2738,64 @@ var images = require('./images.json');
     // in cross comparision mode, only show mini map 
     // when there are more sources than the default limit
     _whetherToCreateOverviewSection: function() {
-        var yCount = this.state.yAxisRender.displayLength();  
-	    var xCount = this.state.xAxisRender.displayLength(); 
+        var xCount = this.state.xAxisRender.displayLength();
+        var yCount = this.state.yAxisRender.displayLength();
+        var width = this.state.navigator.width;
+        var height =this.state.navigator.height;
         
-        if ( ! this._isCrossComparisonView()) {
-            if (yCount >= this.state.defaultSourceDisplayLimit) {
-                if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
-                    this._createOverviewSection();
+        if (this.state.invertAxis) {
+            if ( ! this._isCrossComparisonView()) {
+                if (xCount >= this.state.defaultSourceDisplayLimit) {
+                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        this._createOverviewSection(width, height);
+                    } else {
+                        // shrink the height
+                        height = height * (yCount/this.state.defaultSingleTargetDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
                 } else {
-                    // shrink the width
-                    this.state.navigator.width = this.state.navigator.width * (xCount/this.state.defaultSingleTargetDisplayLimit);
-                    this._createOverviewSection();
+                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        // shrink the width
+                        width = width * (xCount/this.state.defaultSourceDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    } else {
+                        // no need to create the mini map
+                    }
                 }
             } else {
-                if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
-                    // shrink the height
-                    this.state.navigator.height = this.state.navigator.height * (yCount/this.state.defaultSourceDisplayLimit);
-                    this._createOverviewSection();
-                } else {
-                    // no need to create the mini map
-                }
+                if (xCount >= this.state.defaultSourceDisplayLimit) {  
+                    this._createOverviewSection(width, height);
+                } 
             }
-        } else {
-            if (yCount >= this.state.defaultSourceDisplayLimit) {  
-                this._createOverviewSection();
-            } 
-        }
+	   	} else {
+            if ( ! this._isCrossComparisonView()) {
+                if (yCount >= this.state.defaultSourceDisplayLimit) {
+                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        this._createOverviewSection(width, height);
+                    } else {
+                        // shrink the width
+                        width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
+                } else {
+                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        // shrink the height
+                        height = height * (yCount/this.state.defaultSourceDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    } else {
+                        // no need to create the mini map
+                    }
+                }
+            } else {
+                if (yCount >= this.state.defaultSourceDisplayLimit) {  
+                    this._createOverviewSection(width, height);
+                } 
+            }
+        }   
     },
     
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
-	_createOverviewSection: function() {
+	_createOverviewSection: function(width, height) {
 		// set the display counts on each axis
 		var yCount = this.state.yAxisRender.displayLength();  
 	    var xCount = this.state.xAxisRender.displayLength();  
@@ -2777,10 +2805,10 @@ var images = require('./images.json');
 		var overviewY = this.state.navigator.y;
 
 		// create the main box
-		this._initializeOverviewRegion(overviewX, overviewY, this.state.navigator.width + this.state.navigator.miniCellSize * 2 + 2, this.state.navigator.height + this.state.navigator.miniCellSize * 2 + 2);
+		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.miniCellwd * 2 + 2, height + this.state.navigator.miniCellht * 2 + 2);
 
 		// create the scales based on the mini map region size
-		this._createSmallScales(this.state.navigator.width, this.state.navigator.height);
+		this._createSmallScales(width, height);
 
 		// this should be the full set of cellData
 		var xvalues = this.state.xAxisRender.groupEntries();
@@ -2816,13 +2844,13 @@ var images = require('./images.json');
 			.append("rect")
 			.attr("class", "mini_cell")
 			.attr("x", function(d) { 
-				return self.state.smallXScale(d.target_id) + self.state.navigator.miniCellSize / 2; 
+				return self.state.smallXScale(d.target_id) + self.state.navigator.miniCellwd / 2; 
             })
             .attr("y", function(d, i) { 
-				return self.state.smallYScale(d.source_id) + self.state.navigator.miniCellSize / 2;
+				return self.state.smallYScale(d.source_id) + self.state.navigator.miniCellht / 2;
             })
-			.attr("width", this.state.navigator.miniCellSize) 
-			.attr("height", this.state.navigator.miniCellSize) 
+			.attr("width", this.state.navigator.miniCellwd) 
+			.attr("height", this.state.navigator.miniCellht) 
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
@@ -2864,10 +2892,10 @@ var images = require('./images.json');
 					var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
 
 					// Restrict Movement if no need to move map
-					if (selectRectHeight === self.state.navigator.height) {
+					if (selectRectHeight === height) {
 						newY = overviewY;
 					}
-					if (selectRectWidth === self.state.navigator.width) {
+					if (selectRectWidth === width) {
 						newX = overviewX;
 					}
 
@@ -2880,13 +2908,13 @@ var images = require('./images.json');
 						newY = overviewY;
 					}
 					// right
-					if (newX + selectRectWidth > overviewX + self.state.navigator.width) {
-						newX = overviewX + self.state.navigator.width - selectRectWidth;
+					if (newX + selectRectWidth > overviewX + width) {
+						newX = overviewX + width - selectRectWidth;
 					}
 
 					// bottom
-					if (newY + selectRectHeight > overviewY + self.state.navigator.height) {
-						newY = overviewY + self.state.navigator.height - selectRectHeight;
+					if (newY + selectRectHeight > overviewY + height) {
+						newY = overviewY + height - selectRectHeight;
 					}
                     
 					var draggableArea = self.state.svg.select("#pg_navigator_shaded_area")
