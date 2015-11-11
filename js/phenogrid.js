@@ -157,6 +157,8 @@ var images = require('./images.json');
             navigator: {
                 x:112, 
                 y: 65, 
+                width:110,
+                height:110,
                 size:110, // size of the entire mini map region - it is a square
                 miniCellSize: 2
             },// controls the navigator mapview - Joe
@@ -1025,16 +1027,27 @@ var images = require('./images.json');
 	    var xCount = this.state.xAxisRender.displayLength(); 
         
         if ( ! this._isCrossComparisonView()) {
-            if ((yCount >= this.state.defaultSourceDisplayLimit) || (xCount >= this.state.defaultSingleTargetDisplayLimit)) {  
-                this._createOverviewSection();
+            if (yCount >= this.state.defaultSourceDisplayLimit) {
+                if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                    this._createOverviewSection();
+                } else {
+                    // shrink the width
+                    this.state.navigator.width = this.state.navigator.width * (xCount/this.state.defaultSingleTargetDisplayLimit);
+                    this._createOverviewSection();
+                }
             } else {
-                // no need to create the mini map
-                // no change to the gridRegion.y since we still want some long labels display as the old way
+                if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                    // shrink the height
+                    this.state.navigator.height = this.state.navigator.height * (yCount/this.state.defaultSourceDisplayLimit);
+                    this._createOverviewSection();
+                } else {
+                    // no need to create the mini map
+                }
             }
         } else {
             if (yCount >= this.state.defaultSourceDisplayLimit) {  
                 this._createOverviewSection();
-            }
+            } 
         }
     },
     
@@ -1048,17 +1061,11 @@ var images = require('./images.json');
 		var overviewX = this.state.navigator.x;
 		var overviewY = this.state.navigator.y;
 
-        // size of the entire region - it is a square
-		var overviewRegionSize = this.state.navigator.size;
-
-		// make it a bit bigger to count for widths
-		var overviewBoxDim = overviewRegionSize + this.state.navigator.miniCellSize * 2 + 2;
-
 		// create the main box
-		this._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
+		this._initializeOverviewRegion(overviewX, overviewY, this.state.navigator.width + this.state.navigator.miniCellSize * 2 + 2, this.state.navigator.height + this.state.navigator.miniCellSize * 2 + 2);
 
 		// create the scales based on the mini map region size
-		this._createSmallScales(overviewRegionSize);
+		this._createSmallScales(this.state.navigator.width, this.state.navigator.height);
 
 		// this should be the full set of cellData
 		var xvalues = this.state.xAxisRender.groupEntries();
@@ -1142,10 +1149,10 @@ var images = require('./images.json');
 					var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
 
 					// Restrict Movement if no need to move map
-					if (selectRectHeight === overviewRegionSize) {
+					if (selectRectHeight === self.state.navigator.height) {
 						newY = overviewY;
 					}
-					if (selectRectWidth === overviewRegionSize) {
+					if (selectRectWidth === self.state.navigator.width) {
 						newX = overviewX;
 					}
 
@@ -1158,13 +1165,13 @@ var images = require('./images.json');
 						newY = overviewY;
 					}
 					// right
-					if (newX + selectRectWidth > overviewX + overviewRegionSize) {
-						newX = overviewX + overviewRegionSize - selectRectWidth;
+					if (newX + selectRectWidth > overviewX + self.state.navigator.width) {
+						newX = overviewX + self.state.navigator.width - selectRectWidth;
 					}
 
 					// bottom
-					if (newY + selectRectHeight > overviewY + overviewRegionSize) {
-						newY = overviewY + overviewRegionSize - selectRectHeight;
+					if (newY + selectRectHeight > overviewY + self.state.navigator.height) {
+						newY = overviewY + self.state.navigator.height - selectRectHeight;
 					}
                     
 					var draggableArea = self.state.svg.select("#pg_navigator_shaded_area")
@@ -1201,7 +1208,7 @@ var images = require('./images.json');
 			});
 	},
 		
-	_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
+	_initializeOverviewRegion: function(overviewX, overviewY, width, height) {
 		// Group the overview region and text together - Joe
 		var globalviewGrp = this.state.svg.append("g")
 			.attr("id", "pg_navigator");
@@ -1212,15 +1219,15 @@ var images = require('./images.json');
 			.attr("x", overviewX)
 			.attr("y", overviewY)
 			.attr("id", "pg_globalview")
-			.attr("height", overviewBoxDim)
-			.attr("width", overviewBoxDim)
+			.attr("height", height)
+			.attr("width", width)
             .style("fill", "#fff")
             .style("stroke", "#000")
             .style("stroke-width", 2);
 	},
 
     // for overview mini map
-	_createSmallScales: function(overviewRegionSize) {
+	_createSmallScales: function(width, height) {
 		var sourceList = [];
 		var targetList = [];
 
@@ -1232,14 +1239,14 @@ var images = require('./images.json');
 			.domain(sourceList.map(function (d) {
                 return d; 
             }))
-			.rangePoints([0, overviewRegionSize]);
+			.rangePoints([0, height]);
 
 		this.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
 				var td = d;
 				return d; 
             }))
-			.rangePoints([0, overviewRegionSize]);   	    
+			.rangePoints([0, width]);   	    
 	},
 
 	_invertOverviewDragPosition: function(scale, value) {
