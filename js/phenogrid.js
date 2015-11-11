@@ -157,8 +157,7 @@ var images = require('./images.json');
             navigator: {
                 x:112, 
                 y: 65, 
-                size:110, 
-                reducedSize: 50, 
+                size:110, // size of the entire mini map region - it is a square
                 miniCellSize: 2
             },// controls the navigator mapview - Joe
             logo: {
@@ -551,10 +550,10 @@ var images = require('./images.json');
         this._createSvgContainer();
         this._addLogoImage();
         this._createOverviewTargetGroupLabels();
+        this._whetherToCreateOverviewSection();
         this._createGrid();
         this._createScoresTipIcon();
         this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
-        this._createOverviewSection();
         this._createGradientLegend();
         this._createTargetGroupDividerLines();
         this._createMonarchInitiativeText(); // For exported phenogrid SVG, hide by default
@@ -1017,33 +1016,48 @@ var images = require('./images.json');
 		return selectedScale(score);
 	},
 
+    // in single species mode, only show mini map 
+    // when there are more sources than the default limit or more targets than default limit
+    // in cross comparision mode, only show mini map 
+    // when there are more sources than the default limit
+    _whetherToCreateOverviewSection: function() {
+        var yCount = this.state.yAxisRender.displayLength();  
+	    var xCount = this.state.xAxisRender.displayLength(); 
+        
+        if ( ! this._isCrossComparisonView()) {
+            if ((yCount >= this.state.defaultSourceDisplayLimit) || (xCount >= this.state.defaultSingleTargetDisplayLimit)) {  
+                this._createOverviewSection();
+            } else {
+                // no need to create the mini map
+                // no change to the gridRegion.y since we still want some long labels display as the old way
+            }
+        } else {
+            if (yCount >= this.state.defaultSourceDisplayLimit) {  
+                this._createOverviewSection();
+            }
+        }
+    },
+    
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
 	_createOverviewSection: function() {
 		// set the display counts on each axis
 		var yCount = this.state.yAxisRender.displayLength();  
 	    var xCount = this.state.xAxisRender.displayLength();  
 
-		// add-ons for stroke size on view box. Preferably even numbers
-		var linePad = this.state.navigator.miniCellSize;
-		var viewPadding = linePad * 2 + 2;
-
 		// these translations from the top-left of the rectangular region give the absolute coordinates
 		var overviewX = this.state.navigator.x;
 		var overviewY = this.state.navigator.y;
 
-		// size of the entire region - it is a square
+        // size of the entire region - it is a square
 		var overviewRegionSize = this.state.navigator.size;
-		if (this.state.yAxisRender.groupLength() < yCount) {  
-			overviewRegionSize = this.state.navigator.reducedSize;
-		}
 
 		// make it a bit bigger to count for widths
-		var overviewBoxDim = overviewRegionSize + viewPadding;
+		var overviewBoxDim = overviewRegionSize + this.state.navigator.miniCellSize * 2 + 2;
 
 		// create the main box
 		this._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
 
-		// create the scales
+		// create the scales based on the mini map region size
 		this._createSmallScales(overviewRegionSize);
 
 		// this should be the full set of cellData
@@ -1051,14 +1065,15 @@ var images = require('./images.json');
 		//console.log(JSON.stringify(xvalues));
 		var yvalues = this.state.yAxisRender.groupEntries();	
 
+        // in compare mode, the targetGroup will be 'compare' instead of actual species name - Joe
+        // each element in data contains source_id, targetGroup, target_id, type ('cell'), xpos, and ypos
         if (this.state.owlSimFunction === 'compare') {
             var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
         } else {
             var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
         }
 
-
-        // add 1px unit space to the sides
+        // add 1px unit space to the left and top
         overviewX++;
 		overviewY++;
         
@@ -1068,31 +1083,24 @@ var images = require('./images.json');
 							.attr("id", "pg_mini_cells_container")
                             .attr("transform", "translate(" + overviewX + "," + overviewY + ")");
 						
-        // Add cells to the miniCellsGrp - Joe						
+        var self = this; // to be used in callback
+        
+        // Add cells to the miniCellsGrp	
 		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
 			.data(data, function(d) {
                 return d.source_id + d.target_id;
-            });  
-
-        var self = this; // to be used in callback
-        
-		cell_rects.enter()
+            })
+            .enter()
 			.append("rect")
 			.attr("class", "mini_cell")
 			.attr("x", function(d) { 
-				var xid = d.target_id;
-				var xscale = self.state.smallXScale(xid);
-				var x =  xscale + linePad / 2; 
-				return x;
+				return self.state.smallXScale(d.target_id) + self.state.navigator.miniCellSize / 2; 
             })
             .attr("y", function(d, i) { 
-				var yid = d.source_id;
-				var yscale = self.state.smallYScale(yid);
-			    var y = yscale + linePad / 2;
-				return y;
+				return self.state.smallYScale(d.source_id) + self.state.navigator.miniCellSize / 2;
             })
-			.attr("width", linePad) // Defined in navigator.miniCellSize
-			.attr("height", linePad) // Defined in navigator.miniCellSize
+			.attr("width", this.state.navigator.miniCellSize) 
+			.attr("height", this.state.navigator.miniCellSize) 
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
@@ -1129,17 +1137,9 @@ var images = require('./images.json');
 					 * notes: account for the width of the rectangle in my x and y calculations
 					 * do not use the event x and y, they will be out of range at times. Use the converted values instead.
 					 */
-					var current = d3.select(this);
-                    console.log(current);
-                    
-					var curX = parseFloat(current.attr("x"));
-					var curY = parseFloat(current.attr("y"));
-
-					var rect = self.state.svg.select("#pg_navigator_shaded_area");
-
 					// limit the range of the x value
-					var newX = curX + d3.event.dx;
-					var newY = curY + d3.event.dy;
+					var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
+					var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
 
 					// Restrict Movement if no need to move map
 					if (selectRectHeight === overviewRegionSize) {
@@ -1166,21 +1166,20 @@ var images = require('./images.json');
 					if (newY + selectRectHeight > overviewY + overviewRegionSize) {
 						newY = overviewY + overviewRegionSize - selectRectHeight;
 					}
-					rect.attr("x", newX);
-					// This changes for vertical positioning
-					rect.attr("y", newY);
+                    
+					var draggableArea = self.state.svg.select("#pg_navigator_shaded_area")
+                        .attr("x", newX)
+                        .attr("y", newY);
 
 					// adjust x back to have 0,0 as base instead of overviewX, overviewY
 					newX = newX - overviewX;
 					newY = newY - overviewY;
 
-					// invert newX and newY into posiions in the model and phenotype lists.
-					var j = self._invertOverviewDragPosition(self.state.smallXScale,newX);
-					var newXPos = j + xCount;
+					// invert newX and newY into positions in the model and phenotype lists.
+					var newXPos = self._invertOverviewDragPosition(self.state.smallXScale, newX) + xCount;
+					var newYPos = self._invertOverviewDragPosition(self.state.smallYScale, newY) + yCount;
 
-					var jj = self._invertOverviewDragPosition(self.state.smallYScale,newY);
-					var newYPos = jj + yCount;
-
+                    // grid region needs to be updated accordingly
 					self._updateGrid(newXPos, newYPos);
 		}));
 	},
@@ -1220,22 +1219,22 @@ var images = require('./images.json');
             .style("stroke-width", 2);
 	},
 
+    // for overview mini map
 	_createSmallScales: function(overviewRegionSize) {
-		var self = this;
 		var sourceList = [];
 		var targetList = [];
 
 		// create list of all item ids within each axis
-   	    sourceList = self.state.yAxisRender.groupIDs();
-	    targetList = self.state.xAxisRender.groupIDs();
+   	    sourceList = this.state.yAxisRender.groupIDs();
+	    targetList = this.state.xAxisRender.groupIDs();
 
-		self.state.smallYScale = d3.scale.ordinal()
+		this.state.smallYScale = d3.scale.ordinal()
 			.domain(sourceList.map(function (d) {
                 return d; 
             }))
 			.rangePoints([0, overviewRegionSize]);
 
-		self.state.smallXScale = d3.scale.ordinal()
+		this.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
 				var td = d;
 				return d; 
@@ -1243,7 +1242,7 @@ var images = require('./images.json');
 			.rangePoints([0, overviewRegionSize]);   	    
 	},
 
-	_invertOverviewDragPosition: function(scale,value) {
+	_invertOverviewDragPosition: function(scale, value) {
 		var leftEdges = scale.range();
 		var size = scale.rangeBand();
 		var j;
@@ -1879,7 +1878,7 @@ var images = require('./images.json');
 	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
-		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.xAxisRender.displayLength());
+		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
 
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.yAxisRender.displayLength());
