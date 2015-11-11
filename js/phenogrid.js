@@ -181,7 +181,7 @@ var images = require('./images.json');
             gradientRegion: {
                 width: 240,
                 height: 5
-            }, // width will be calculated - Joe
+            },
             phenotypeSort: [
                 "Alphabetic", 
                 "Frequency and Rarity", 
@@ -375,7 +375,7 @@ var images = require('./images.json');
             if (self.state.dataManager.noMatchesFound) {
                 self._showNoResults();
             } else if (self.state.dataManager.noMetadataFound) {
-                self._showNoMetadata();
+                self._showNoMetadata(); // May need to be removed if maxMaxIC is a fixed number - Joe
             } else {
                 // initialize axis groups
 	            self._createAxisRenderingGroups();
@@ -406,9 +406,6 @@ var images = require('./images.json');
                 // use splice() not slice() - Joe
                 // splice() modifies the array in place and returns a new array containing the elements that have been removed.
                 this.state.selectedCompareTargetGroup.splice(idx, 1);
-
-//				this.state.selectedCompareTargetGroup[idx].active = false;
-//				this.state.selectedCompareTargetGroup[idx].crossComparisonView = false;
 			}
 		}
 	}, 
@@ -917,16 +914,11 @@ var images = require('./images.json');
     // removes the highlighted x/y labels as well as highlighted grid cell
 	_removeMatchingHighlight: function() {
 		// remove highlighting for row/col
-		d3.selectAll(".row text")
-			  .classed("pg_active", false);
-		d3.selectAll(".column text")
-			  .classed("pg_active", false);
-		d3.selectAll(".row text")
-			  .classed("pg_related_active", false);
-		d3.selectAll(".column text")
-			  .classed("pg_related_active", false);		
-		d3.selectAll(".cell")
-				.classed("pg_rowcolmatch", false);	
+		d3.selectAll(".row text").classed("pg_active", false);
+		d3.selectAll(".column text").classed("pg_active", false);
+		d3.selectAll(".row text").classed("pg_related_active", false);
+		d3.selectAll(".column text").classed("pg_related_active", false);		
+		d3.selectAll(".cell").classed("pg_rowcolmatch", false);	
 	},
 
 	_createMatchingHighlight: function(elem, data) {
@@ -941,24 +933,20 @@ var images = require('./images.json');
 
 			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
-					d3.select("#pg_grid_row_" + matches[k].ypos +" text")
-				  	.classed("pg_related_active", true);
+					d3.select("#pg_grid_row_" + matches[k].ypos +" text").classed("pg_related_active", true);
 				}
 			}	
-	  		d3.select("#pg_grid_col_" + currenPos +" text")
-				  .classed("pg_active", true);	
+	  		d3.select("#pg_grid_col_" + currenPos +" text").classed("pg_active", true);	
 		} else {  // hovered over a row
 			hightlightSources = false;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
 
 			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
-					d3.select("#pg_grid_col_" + matches[k].xpos +" text")
-				  	.classed("pg_related_active", true);
+					d3.select("#pg_grid_col_" + matches[k].xpos +" text").classed("pg_related_active", true);
 				}
 			}		
-			d3.select("#pg_grid_row_" + currenPos +" text")
-				  .classed("pg_active", true);
+			d3.select("#pg_grid_row_" + currenPos +" text").classed("pg_active", true);
 		}				
 
 	},
@@ -971,8 +959,7 @@ var images = require('./images.json');
 
 	_gridHeight: function() {
 		var gridRegion = this.state.gridRegion; 
-		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);
-		//var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
+		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);	
 		return height;
 	},
 
@@ -1035,11 +1022,11 @@ var images = require('./images.json');
 		var self = this;
 
 		// set the display counts on each axis
-		var yCount = self.state.yAxisRender.displayLength();  
-	    var xCount = self.state.xAxisRender.displayLength();  
+		var yCount = this.state.yAxisRender.displayLength();  
+	    var xCount = this.state.xAxisRender.displayLength();  
 
 		// add-ons for stroke size on view box. Preferably even numbers
-		var linePad = self.state.navigator.miniCellSize;
+		var linePad = this.state.navigator.miniCellSize;
 		var viewPadding = linePad * 2 + 2;
 
 		// overview region is offset by xTranslation, yTranslation
@@ -1047,13 +1034,13 @@ var images = require('./images.json');
 		var yTranslation = 30;
 
 		// these translations from the top-left of the rectangular region give the absolute coordinates
-		var overviewX = self.state.navigator.x;
-		var overviewY = self.state.navigator.y;
+		var overviewX = this.state.navigator.x;
+		var overviewY = this.state.navigator.y;
 
 		// size of the entire region - it is a square
-		var overviewRegionSize = self.state.navigator.size;
+		var overviewRegionSize = this.state.navigator.size;
 		if (this.state.yAxisRender.groupLength() < yCount) {  
-			overviewRegionSize = self.state.navigator.reducedSize;
+			overviewRegionSize = this.state.navigator.reducedSize;
 		}
 
 		// make it a bit bigger to ccont for widths
