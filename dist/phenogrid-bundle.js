@@ -1872,8 +1872,8 @@ var images = require('./images.json');
             navigator: {
                 x:112, 
                 y: 65, 
-                width:110, // will be updated based on the number of x count - Joe
-                height:110, // will be updated based on the number of y count - Joe
+                width:110, // the actual width will be calculated based on the number of x count - Joe
+                height:110, // the actual height will be calculated based on the number of y count - Joe
                 miniCellwd:2,
                 miniCellht:2
             },// controls the navigator mapview - Joe
@@ -1921,7 +1921,7 @@ var images = require('./images.json');
         // Merge into one object
         // this.options is the options object provided in phenogrid constructor
         // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
-		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
+		this.state = $.extend({}, this.internalOptions, this.config, this.configoptions, this.options);
 
         // Create new arrays for later use
         // initialTargetGroupLoadList is used for loading the simsearch data
@@ -2733,9 +2733,9 @@ var images = require('./images.json');
 		return selectedScale(score);
 	},
 
-    // in single species mode, only show mini map 
+    // In single species mode, only show mini map 
     // when there are more sources than the default limit or more targets than default limit
-    // in cross comparision mode, only show mini map 
+    // In cross comparison mode, only show mini map 
     // when there are more sources than the default limit
     _whetherToCreateOverviewSection: function() {
         var xCount = this.state.xAxisRender.displayLength();
@@ -2743,54 +2743,58 @@ var images = require('./images.json');
         var width = this.state.navigator.width;
         var height =this.state.navigator.height;
         
-        if (this.state.invertAxis) {
+        // check xCount based on yCount
+        if ( ! this.state.invertAxis) {
+            if ( ! this._isCrossComparisonView()) {
+                if (yCount >= this.state.defaultSourceDisplayLimit) {
+                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        // just use the default mini map width and height
+                        this._createOverviewSection(width, height);
+                    } else {
+                        // shrink the width of mini map based on the xCount/this.state.defaultSingleTargetDisplayLimit
+                        // and keep the hight unchanged
+                        width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
+                } else {
+                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        // shrink the height of mini map based on the yCount/this.state.defaultSourceDisplayLimit ratio
+                        // and keep the hight unchanged
+                        height = height * (yCount/this.state.defaultSourceDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    } 
+                    
+                    // No need to create the mini map if both xCount and yCount are within the default limit
+                }
+            } else {
+                // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
+                if (yCount >= this.state.defaultSourceDisplayLimit) {  
+                    // just use the default mini map width and height
+                    this._createOverviewSection(width, height);
+                } 
+                
+                // No need to create the mini map if yCount is within the default limit
+            }
+	   	} else {
             if ( ! this._isCrossComparisonView()) {
                 if (xCount >= this.state.defaultSourceDisplayLimit) {
                     if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
                         this._createOverviewSection(width, height);
                     } else {
-                        // shrink the height
                         height = height * (yCount/this.state.defaultSingleTargetDisplayLimit);
                         this._createOverviewSection(width, height);
                     }
                 } else {
                     if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        // shrink the width
                         width = width * (xCount/this.state.defaultSourceDisplayLimit);
                         this._createOverviewSection(width, height);
-                    } else {
-                        // no need to create the mini map
                     }
                 }
             } else {
                 if (xCount >= this.state.defaultSourceDisplayLimit) {  
                     this._createOverviewSection(width, height);
                 } 
-            }
-	   	} else {
-            if ( ! this._isCrossComparisonView()) {
-                if (yCount >= this.state.defaultSourceDisplayLimit) {
-                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        this._createOverviewSection(width, height);
-                    } else {
-                        // shrink the width
-                        width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
-                        this._createOverviewSection(width, height);
-                    }
-                } else {
-                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        // shrink the height
-                        height = height * (yCount/this.state.defaultSourceDisplayLimit);
-                        this._createOverviewSection(width, height);
-                    } else {
-                        // no need to create the mini map
-                    }
-                }
-            } else {
-                if (yCount >= this.state.defaultSourceDisplayLimit) {  
-                    this._createOverviewSection(width, height);
-                } 
-            }
+            } 
         }   
     },
     
@@ -2966,7 +2970,7 @@ var images = require('./images.json');
 			.attr("width", width)
             .style("fill", "#fff")
             .style("stroke", "#000")
-            .style("stroke-width", 2);
+            .style("stroke-width", 2); // border thickness
 	},
 
     // for overview mini map
