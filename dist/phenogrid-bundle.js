@@ -3312,7 +3312,8 @@ var images = require('./images.json');
 
 	// Positioned next to the grid region bottom
 	_addLogoImage: function() { 
-		this.state.svg.append("svg:image")
+		var self = this;
+        this.state.svg.append("svg:image")
 			.attr("xlink:href", images.logo)
 			.attr("x", this.state.logo.x)
 			.attr("y", this.state.logo.y)
@@ -3321,7 +3322,7 @@ var images = require('./images.json');
 			.attr("width", this.state.logo.width)
 			.attr("height", this.state.logo.height)
 			.on('click', function() {
-				window.open('http://monarchinitiative.org', '_blank');
+				window.open(self.state.serverURL, '_blank');
 			});
 	},
 
@@ -3566,8 +3567,7 @@ var images = require('./images.json');
 				y = y - gridRegion.colLabelOffset;  // offset the line to reach the labels
 			}
 
-			for (var i=1; i < numOfTargetGroup; i++) {
-
+			for (var i = 1; i < numOfTargetGroup; i++) {
 				var fudgeFactor = 3; //magic num
 				if (i > 1) {
 					fudgeFactor = 1;
@@ -3601,7 +3601,7 @@ var images = require('./images.json');
 
 
 					// render the slanted line between targetGroup (targetGroup) columns
-					 this.state.svg.append("line")				
+					this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
 					.attr("transform","translate(" + x + "," + y + ")rotate(-45 " + x1 + " 0)")				
 					.attr("x1", x1)
@@ -3614,13 +3614,11 @@ var images = require('./images.json');
 				}
 			}
 		}
-
 	},
 
 
 	/*
-	 * Change the list of phenotypes and filter the models accordingly. The 
-	 * Movecount is an integer and can be either positive or negative
+	 * Change the list of phenotypes and filter the models accordingly.
 	 */
 	_updateGrid: function(newXPos, newYPos){
 		var xSize = this.state.xAxisRender.groupLength();
@@ -3900,7 +3898,6 @@ var images = require('./images.json');
 			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
 			var temp = [];
 			for (var idx = 0; idx < items.length; idx++) {
-
 				if (items[idx].childNodes[0].checked) {
 					var rec = self._getTargetGroupInfo(self, items[idx].textContent);
 					temp.push(rec);
@@ -3989,7 +3986,7 @@ var images = require('./images.json');
 			.attr("id", "pg_monarchinitiative_text")
 			.attr('class', 'pg_hide') // Only show this text in exported SVG of Phenogrid 
             .style('font-size', '11px')
-			.text('monarchinitiative.org');
+			.text(this.state.serverURL);
     },
     
 	// Position the control panel when the gridRegion changes
@@ -4093,14 +4090,12 @@ var images = require('./images.json');
 	// create about phenogrid FAQ inside the controls/options - Joe
 	_createAboutPhenogrid: function () {
 		var html = '<div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
-		
 		return $(html);
 	},
 	
     // Export current state of phenogrid as SVG file to be used in publications
     _createExportPhenogridButton: function() {
         var btn = '<div id="pg_export">Save as SVG...</div><div class="pg_hr"></div>';
-        
         return $(btn);
     },
     
