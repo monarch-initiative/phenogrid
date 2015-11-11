@@ -2734,8 +2734,6 @@ var images = require('./images.json');
 
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
 	_createOverviewSection: function() {
-		var self = this;
-
 		// set the display counts on each axis
 		var yCount = this.state.yAxisRender.displayLength();  
 	    var xCount = this.state.xAxisRender.displayLength();  
@@ -2743,10 +2741,6 @@ var images = require('./images.json');
 		// add-ons for stroke size on view box. Preferably even numbers
 		var linePad = this.state.navigator.miniCellSize;
 		var viewPadding = linePad * 2 + 2;
-
-		// overview region is offset by xTranslation, yTranslation
-		var xTranslation = 42; 
-		var yTranslation = 30;
 
 		// these translations from the top-left of the rectangular region give the absolute coordinates
 		var overviewX = this.state.navigator.x;
@@ -2758,10 +2752,10 @@ var images = require('./images.json');
 			overviewRegionSize = this.state.navigator.reducedSize;
 		}
 
-		// make it a bit bigger to ccont for widths
+		// make it a bit bigger to count for widths
 		var overviewBoxDim = overviewRegionSize + viewPadding;
 
-		// create the main box and the instruction labels.
+		// create the main box
 		this._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
 
 		// create the scales
@@ -2778,34 +2772,39 @@ var images = require('./images.json');
             var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
         }
 
-		// Group all mini cells in g element - Joe
+
+        // add 1px unit space to the sides
+        overviewX++;
+		overviewY++;
+        
+		// Group all mini cells in g element
+        // apply the translate to the #pg_mini_cells_container instead of each cell - Joe
 		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
-							.attr("id", "pg_mini_cells_container");
+							.attr("id", "pg_mini_cells_container")
+                            .attr("transform", "translate(" + overviewX + "," + overviewY + ")");
 						
         // Add cells to the miniCellsGrp - Joe						
 		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
-			.data(data, function(d) {return d.source_id + d.target_id;});  
-			
-			
-		overviewX++;	// Corrects the gapping on the sides
-		overviewY++;
-		var cellRectTransform = "translate(" + overviewX +	"," + overviewY + ")";
+			.data(data, function(d) {
+                return d.source_id + d.target_id;
+            });  
 
+        var self = this; // to be used in callback
+        
 		cell_rects.enter()
 			.append("rect")
-			.attr("transform", cellRectTransform)
 			.attr("class", "mini_cell")
-			.attr("y", function(d, i) { 
-				var yid = d.source_id;
-				var yscale = self.state.smallYScale(yid);
-			    var y = yscale + linePad / 2;
-				return y;
-            })
 			.attr("x", function(d) { 
 				var xid = d.target_id;
 				var xscale = self.state.smallXScale(xid);
 				var x =  xscale + linePad / 2; 
 				return x;
+            })
+            .attr("y", function(d, i) { 
+				var yid = d.source_id;
+				var yscale = self.state.smallYScale(yid);
+			    var y = yscale + linePad / 2;
+				return y;
             })
 			.attr("width", linePad) // Defined in navigator.miniCellSize
 			.attr("height", linePad) // Defined in navigator.miniCellSize
@@ -2838,20 +2837,20 @@ var images = require('./images.json');
 			.attr("class", "pg_draggable")
             .style("fill", "grey")
             .style("opacity", 0.5)
-			.call(d3.behavior.drag()
+			.call(d3.behavior.drag() // Constructs a new drag behavior
 				.on("drag", function(d) {
 					/*
 					 * drag the highlight in the overview window
 					 * notes: account for the width of the rectangle in my x and y calculations
 					 * do not use the event x and y, they will be out of range at times. Use the converted values instead.
 					 */
-
 					var current = d3.select(this);
+                    console.log(current);
+                    
 					var curX = parseFloat(current.attr("x"));
 					var curY = parseFloat(current.attr("y"));
 
 					var rect = self.state.svg.select("#pg_navigator_shaded_area");
-					rect.attr("transform","translate(0,0)");
 
 					// limit the range of the x value
 					var newX = curX + d3.event.dx;
@@ -2899,7 +2898,6 @@ var images = require('./images.json');
 
 					self._updateGrid(newXPos, newYPos);
 		}));
-		// set this back to 0 so it doesn't affect other rendering
 	},
 
     // Tip info icon for more info on those text scores
@@ -2924,8 +2922,8 @@ var images = require('./images.json');
 		var globalviewGrp = this.state.svg.append("g")
 			.attr("id", "pg_navigator");
 		
-		// rectangular border for overview
-		// border color and thickness are defined in phenogrid.css #pg_globalview - Joe
+		// rectangular border for overview map
+		// border color and thickness are defined inline so it can be used by exported svg - Joe
 		globalviewGrp.append("rect")
 			.attr("x", overviewX)
 			.attr("y", overviewY)
