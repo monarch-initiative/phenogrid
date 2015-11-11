@@ -192,11 +192,7 @@ var images = require('./images.json');
                 {label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"}, 
                 {label: "Uniqueness", calc: 2, high: "Highest", low: "Lowest"},
                 {label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"}
-            ],
-            comparisonTypes: [ 
-                {organism: "Homo sapiens", comparison: "diseases"}
-            ],
-            defaultComparisonType: {comparison: "genes"}
+            ]
         },
 
 
@@ -1271,21 +1267,6 @@ var images = require('./images.json');
 		return j;
 	},
 
-	_getComparisonType: function(organism){
-		var label = '';
-
-		for (var i in this.state.comparisonTypes) {
-			if (organism === this.state.comparisonTypes[i].organism){
-				label = this.state.comparisonTypes[i].comparison;
-			}
-		}
-		if (label === ''){
-			label = this.state.defaultComparisonType.comparison;
-		}
-		return label;
-	}, 
-
-
     // Being called only for the first time the widget is being loaded
 	_createDisplay: function() {
         // create the display as usual if there's 'b' and 'metadata' fields found - Joe
@@ -1348,10 +1329,13 @@ var images = require('./images.json');
         }
     },
     
+    // if no owlsim data returned
     _showNoResults: function() {
         $('#pg_container').html('No results returned.');
     },
     
+    // if no metadata.maxMaxIC found in the owlsim JSON
+    // may need to get rid of this if maxMaxIC is a fixed number - Joe
     _showNoMetadata: function() {
         $('#pg_container').html('No data returned to render the grid cell color for each calculation method.');
     },
@@ -1438,6 +1422,7 @@ var images = require('./images.json');
         return cs;
 	},
 
+    // the svg container
 	_createSvgContainer: function() {
         this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
 	
@@ -1447,6 +1432,7 @@ var images = require('./images.json');
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
 
+    // phenogrid container div
 	_createPhenogridContainer: function(msg) {
 		var container = $('<div id="pg_container"></div>');
 		this.state.pgContainer = container;
@@ -1566,23 +1552,6 @@ var images = require('./images.json');
 
 	// Grid main top title
 	_addGridTitle: function() {
-		var targetGroup = '';
-
-		// set up defaults as if overview
-		var titleText = this.state.gridTitle;
-
-		if ( ! this._isCrossComparisonView()) {
-			targetGroup = this.state.selectedCompareTargetGroup[0].name;
-			var comp = this._getComparisonType(targetGroup);
-			titleText = this.state.gridTitle + " (grouped by " + targetGroup + " " + comp + ")";
-		}
-		
-        // Show the default gridTitle for compare mode
-        // not sure what to show for exomiser mode, will decide later - Joe
-		if (this.state.owlSimFunction === 'compare') {
-			titleText = this.state.gridTitle;
-		}
-
 		// Add the top main title to pg_svg_group
 		this.state.svg.append("svg:text")
 			.attr("id", "pg_toptitle")
@@ -1591,7 +1560,7 @@ var images = require('./images.json');
 			.style('text-anchor', 'middle') // Center the main title - Joe
             .style('font-size', '1.4em')
             .style('font-weight', 'bold')
-			.text(titleText);
+			.text(this.state.gridTitle);
 	},
 
 
