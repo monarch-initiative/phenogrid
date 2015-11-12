@@ -24,7 +24,7 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
-	this.maxICScore = 0;
+	this.maxMaxIC = 0;
 	this.targetData = [];
 	this.sourceData = [];
 	this.cellData = [];
@@ -207,7 +207,7 @@ DataLoader.prototype = {
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
-				this.maxICScore = data.metadata.maxMaxIC;
+				this.maxMaxIC = data.metadata.maxMaxIC;
 			}
 			
             // just initialize the specific targetGroup
@@ -262,7 +262,7 @@ DataLoader.prototype = {
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
 						// get the normalized IC
-						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
+						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
 						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
@@ -318,7 +318,7 @@ DataLoader.prototype = {
 
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
-				this.maxICScore = data.metadata.maxMaxIC;
+				this.maxMaxIC = data.metadata.maxMaxIC;
 			}
 
             // no need to initialize the specific targetGroup
@@ -362,7 +362,7 @@ DataLoader.prototype = {
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
 						// get the normalized IC
-						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
+						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
                         if(typeof(this.sourceData[targetGroup]) === 'undefined') {
                             this.sourceData[targetGroup] = {};
@@ -719,11 +719,6 @@ DataLoader.prototype = {
 	getOntologyCacheLabels: function() {
 		return this.ontologyCacheLabels;
 	},
-
-	getMaxICScore: function() {
-		return this.maxICScore;
-	},
-
 
 	/*
 		Function: dataExists

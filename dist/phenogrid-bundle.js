@@ -337,7 +337,7 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
-	this.maxICScore = 0;
+	this.maxMaxIC = 0;
 	this.targetData = [];
 	this.sourceData = [];
 	this.cellData = [];
@@ -347,7 +347,6 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.postDataLoadCallback = '';
     // compare api flags
     this.noMatchesFound = false; // flag to mark if there's matches in the returned JSON
-    this.noMetadataFound = false; // flag to mark if there's metadata in the returned JSON
 };
 
 DataLoader.prototype = {
@@ -427,11 +426,6 @@ DataLoader.prototype = {
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
                     self.noMatchesFound = true; // set the noMatchesFound flag
-                } else if (typeof (data.metadata.maxMaxIC) === 'undefined') {
-                    // metadata.maxMaxIC is used to generate the color sace in phenogrid.js _createColorScale()
-                    // sometimes the compare api doesn't return the metadata field, we can't create the desired colorscale
-                    // but this won't affect other UI rendering - Joe
-                    self.noMetadataFound = true; // set the noMetadataFound flag
                 } else {
                     // use 'compare' as the key of the named array
                     self.transform("compare", data);  
@@ -526,7 +520,7 @@ DataLoader.prototype = {
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
-				this.maxICScore = data.metadata.maxMaxIC;
+				this.maxMaxIC = data.metadata.maxMaxIC;
 			}
 			
             // just initialize the specific targetGroup
@@ -581,7 +575,7 @@ DataLoader.prototype = {
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
 						// get the normalized IC
-						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
+						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
 						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
@@ -637,7 +631,7 @@ DataLoader.prototype = {
 
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
-				this.maxICScore = data.metadata.maxMaxIC;
+				this.maxMaxIC = data.metadata.maxMaxIC;
 			}
 
             // no need to initialize the specific targetGroup
@@ -681,7 +675,7 @@ DataLoader.prototype = {
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
 						// get the normalized IC
-						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
+						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
                         if(typeof(this.sourceData[targetGroup]) === 'undefined') {
                             this.sourceData[targetGroup] = {};
@@ -1039,11 +1033,6 @@ DataLoader.prototype = {
 		return this.ontologyCacheLabels;
 	},
 
-	getMaxICScore: function() {
-		return this.maxICScore;
-	},
-
-
 	/*
 		Function: dataExists
 
@@ -1105,12 +1094,11 @@ var DataManager = function(dataLoader) {
 	this.source = this.dataLoader.getSources();
 	this.cellData = this.dataLoader.getCellData();
 
-    this.maxICScore = this.dataLoader.getMaxICScore();
+    this.maxMaxIC = this.dataLoader.maxMaxIC;
     
-    // compare api flags - Joe
+    // compare api flag - Joe
     this.noMatchesFound = this.dataLoader.noMatchesFound;
-    this.noMetadataFound = this.dataLoader.noMetadataFound;
-    
+
 	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];
     
@@ -1816,7 +1804,7 @@ var images = require('./images.json');
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
             serverURL: "http://beta.monarchinitiative.org",
-            selectedCalculation: 0,
+            selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ration (q), 2 - Uniqueness, 3- Ratio (t))
             invertAxis: false,
             selectedSort: "Frequency",
             // this default targetGroupList config will be used if it's not specified 
@@ -2090,8 +2078,6 @@ var images = require('./images.json');
             // check the flags to see if there's matches data found - Joe
             if (self.state.dataManager.noMatchesFound) {
                 self._showNoResults();
-            } else if (self.state.dataManager.noMetadataFound) {
-                self._showNoMetadata(); // May need to be removed if maxMaxIC is a fixed number - Joe
             } else {
                 // initialize axis groups
 	            self._createAxisRenderingGroups();
@@ -2728,7 +2714,6 @@ var images = require('./images.json');
 	}, 
     
 	_getCellColor: function(score) {
-		// This is for the new "Overview" target option
 		var selectedScale = this.state.colorScale[this.state.selectedCalculation];
 		return selectedScale(score);
 	},
@@ -3009,8 +2994,7 @@ var images = require('./images.json');
 	_createDisplay: function() {
         // create the display as usual if there's 'b' and 'metadata' fields found - Joe
         if (this.state.dataManager.isInitialized()) {
-            // uses the metadata to get maxICScore - Joe
-            this._createColorScale();
+            this._createColorScalePerSimilarityCalculation();
             
             // No need to recreate this tooltip on _updateDisplay() - Joe
             this._createTooltipStub();
@@ -3071,13 +3055,7 @@ var images = require('./images.json');
     _showNoResults: function() {
         $('#pg_container').html('No results returned.');
     },
-    
-    // if no metadata.maxMaxIC found in the owlsim JSON
-    // may need to get rid of this if maxMaxIC is a fixed number - Joe
-    _showNoMetadata: function() {
-        $('#pg_container').html('No data returned to render the grid cell color for each calculation method.');
-    },
-    
+
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
 	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
@@ -3100,64 +3078,38 @@ var images = require('./images.json');
         }
 	},
 
-	_createColorScale: function() {
-        // set a max IC score
-        // metadata.maxMaxIC is used to generate the color sace in phenogrid.js _createColorScale()
-        // sometimes the 'metadata' field might be missing from the JSON,
-        // then the dataLoader.getMaxICScore() returns 0 (default value) - Joe
-        this.state.maxICScore = this.state.dataManager.maxICScore;
-            
-        var maxScore = 0;
-        var method = this.state.selectedCalculation; // 4 different calculations (Similarity, Ration (q), Ratio (t), Uniqueness) - Joe
-
-        switch(method){
-            case 0: // Similarity
-                maxScore = 100;
-                break;
-            case 1: // Ration (q)
-                maxScore = 100;
-                break;
-            case 2: // Uniqueness
-                maxScore = this.state.maxICScore; 
-                break;
-            case 3: // Ratio (t)
-                maxScore = 100;
-                break;
-            default: 
-                maxScore = this.state.maxICScore;
-                break;
-        }
-
-        this.state.colorScale = new Array(4); // Why 4? One color scale per calculation method - Joe
-        for (var i = 0; i < 4; i++) {
-            maxScore = 100;
-            if (i === 2) {
-                maxScore = this.state.maxICScore; // Uniqueness 
-            }
-            
-            // colorRanges has 6 stop colors
-            this.state.colorScale[i] = this._getColorScale(maxScore);
-        }
-	},
 
     // create color scale for each calculation method
-	_getColorScale: function(maxScore) {
-        var cs = d3.scale.linear(); // Constructs a new linear scale with the default domain [0,1] and the default range [0,1]. 
-        // Simply put: scales transform a number in a certain interval (called the domain) 
-        // into a number in another interval (called the range).
+	_createColorScalePerSimilarityCalculation: function() {
+        this.state.colorScale = []; // One color scale per calculation method - Joe
+        // 4 different calculations (0 - Similarity, 1 - Ration (q), 2 - Uniqueness, 3- Ratio (t))
+        var len = this.state.similarityCalculation.length;
+ 
+        for (var i = 0; i < len; i++) {
+            // Except Uniqueness (index is 2), all other three methods use 100 as the maxScore
+            var maxScore = 100;
+            if (i === 2) {
+                maxScore = this.state.dataManager.maxMaxIC; // Uniqueness 
+            }
+            
+            // Constructs a new linear scale with the default domain [0,1] and the default range [0,1]. 
+            var cs = d3.scale.linear(); 
+            // Simply put: scales transform a number in a certain interval (called the domain) 
+            // into a number in another interval (called the range).
 
-        // transform a score domain to a color domain, then transform a color domain into an actual color range
-        cs.domain([0, maxScore]); // sets the scale's input domain to the specified array of numbers
+            // transform a score domain to a color domain, then transform a color domain into an actual color range
+            cs.domain([0, maxScore]); // sets the scale's input domain to the specified array of numbers
 
-        // this.state.colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1]
-        // this.state.colorDomains.map(cs.invert): [0, 20, 40, 60, 80, 100]
-        cs.domain(this.state.colorDomains.map(cs.invert));
+            // this.state.colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1]
+            // this.state.colorDomains.map(cs.invert): [0, 20, 40, 60, 80, 100]
+            cs.domain(this.state.colorDomains.map(cs.invert));
 
-        // sets the scale's output range to the specified array of values
-        cs.range(this.state.colorRanges);
+            // sets the scale's output range to the specified array of values
+            cs.range(this.state.colorRanges);
 
-        // returns function
-        return cs;
+            // colorRanges has 6 stop colors
+            this.state.colorScale[i] = cs;
+        }
 	},
 
     // the svg container

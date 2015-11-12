@@ -23,7 +23,7 @@ var DataManager = function(dataLoader) {
 	this.source = this.dataLoader.getSources();
 	this.cellData = this.dataLoader.getCellData();
 
-    this.maxICScore = this.dataLoader.getMaxICScore();
+    this.maxMaxIC = this.dataLoader.maxMaxIC;
     
     // compare api flag - Joe
     this.noMatchesFound = this.dataLoader.noMatchesFound;
