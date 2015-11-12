@@ -25,10 +25,9 @@ var DataManager = function(dataLoader) {
 
     this.maxICScore = this.dataLoader.getMaxICScore();
     
-    // compare api flags - Joe
+    // compare api flag - Joe
     this.noMatchesFound = this.dataLoader.noMatchesFound;
-    this.noMetadataFound = this.dataLoader.noMetadataFound;
-    
+
 	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];
     

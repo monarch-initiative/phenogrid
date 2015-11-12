@@ -375,8 +375,6 @@ var images = require('./images.json');
             // check the flags to see if there's matches data found - Joe
             if (self.state.dataManager.noMatchesFound) {
                 self._showNoResults();
-            } else if (self.state.dataManager.noMetadataFound) {
-                self._showNoMetadata(); // May need to be removed if maxMaxIC is a fixed number - Joe
             } else {
                 // initialize axis groups
 	            self._createAxisRenderingGroups();
@@ -1356,13 +1354,7 @@ var images = require('./images.json');
     _showNoResults: function() {
         $('#pg_container').html('No results returned.');
     },
-    
-    // if no metadata.maxMaxIC found in the owlsim JSON
-    // may need to get rid of this if maxMaxIC is a fixed number - Joe
-    _showNoMetadata: function() {
-        $('#pg_container').html('No data returned to render the grid cell color for each calculation method.');
-    },
-    
+
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
 	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
