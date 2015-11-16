@@ -1716,6 +1716,11 @@ module.exports={
  *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
  *         serverURL : "http://monarchinitiative.org",
  *         phenotypeData: phenotypes,
+ *         targetGroupList: [
+ *           {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
+ *           {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
+ *           {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true}
+ *         ]
  *     });
  * }
  *
@@ -1729,26 +1734,11 @@ module.exports={
  *
  *	Given an input list of phenotypes and parameters indicating
  *	desired source of matching models (humans, model organisms, etc.),
- *	the phenogrid will call the Monarch API to get OWLSim results
- *	consisting of arrays of the items of the following form:
- *	{
- *		"id":"HP_0000716_MP_0001413_MGI_006446",
- *		"label_a":"Depression",
- *		"id_a":"HP:0000716",
- *		"subsumer_label":"Abnormal emotion/affect behavior",
- *		"subsumer_id":"HP:0100851",
- *		"value":5.667960271407814,
- *		"label_b":"abnormal response to new environment",
- *		"id_b":"MP:0001413",
- *		"model_id":"MGI_006446",
- *		"model_label":"B10.Cg-H2<sup>h4</sup>Sh3pxd2b<sup>nee</sup>/GrsrJ",
- *	},
- *
- *	These results will then be rendered in the phenogrid
+ *	the Phenogrid will call the Monarch API to get OWLSim results. These results will then be rendered in the Phenogrid
  */
 
 
-// Will need to install jquery, jquery-ui, d3, jshashtable first via npm - Joe
+
 // Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
 // npm install jquery jquery-ui d3 filesaver
 
@@ -1803,7 +1793,7 @@ var images = require('./images.json');
 	$.widget("ui.phenogrid", {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
-            serverURL: "http://monarchinitiative.org",
+            serverURL: "http://monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ration (q), 2 - Uniqueness, 3- Ratio (t))
             invertAxis: false,
             selectedSort: "Frequency",
