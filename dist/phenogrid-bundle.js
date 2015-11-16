@@ -1803,7 +1803,7 @@ var images = require('./images.json');
 	$.widget("ui.phenogrid", {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
-            serverURL: "http://beta.monarchinitiative.org",
+            serverURL: "http://monarchinitiative.org",
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ration (q), 2 - Uniqueness, 3- Ratio (t))
             invertAxis: false,
             selectedSort: "Frequency",
