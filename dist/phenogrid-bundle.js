@@ -1795,7 +1795,6 @@ var images = require('./images.json');
         config: {		
             serverURL: "http://monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ration (q), 2 - Uniqueness, 3- Ratio (t))
-            invertAxis: false,
             selectedSort: "Frequency",
             // this default targetGroupList config will be used if it's not specified 
             // in either the phenogrid_config.js or phenogrid constructor
@@ -1825,6 +1824,7 @@ var images = require('./images.json');
         // Supposed to be used by developers for deeper customization
         // can not be overwritten from constructor
         internalOptions: {
+            invertAxis: false,
             simSearchQuery: "/simsearch/phenotype",
             compareQuery: "/compare", // used for owlSimFunction === 'compare' - Joe
             unmatchedButtonLabel: 'Unmatched Phenotypes',
