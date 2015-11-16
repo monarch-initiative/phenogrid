@@ -619,12 +619,21 @@ var images = require('./images.json');
             .style("font-size", '11px')            
 			.attr("id", function(d, i) { 
 				return "pg_grid_col_"+i;
-            })	      	
-	        .attr("transform", function(d) { 
+            })
+            .attr("transform", function(d, i) { 
                 var offset = gridRegion.colLabelOffset;
                 var xs = xScale(d.id);
-                return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
-            }); //-45
+                
+                if (i < 10) {
+                    return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
+                } else if (i >= 10 && i < 20) {
+                    return "translate(" + (gridRegion.x + ((xs + 1)*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)";
+                } else if (i >= 20 && i < 30) {
+                    return "translate(" + (gridRegion.x + ((xs + 2)*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)";
+                }
+
+            });
+	        
 
 	    // create column labels
 	  	column.append("text")
@@ -757,12 +766,18 @@ var images = require('./images.json');
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
 		        .enter().append("rect")
-		      	.attr("id", function(d, i) { 
+		      	.attr("id", function(d) { 
 		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; 
                 })
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
-		        	return d.xpos * gridRegion.xpad;
+		        	if (d.xpos < 10) {
+                        return d.xpos * gridRegion.xpad;
+                    } else if (d.xpos >= 10 && d.xpos < 20) {
+                        return (d.xpos + 1) * gridRegion.xpad;
+                    } else if (d.xpos >= 20 && d.xpos < 30) {
+                        return (d.xpos + 2) * gridRegion.xpad;
+                    }
                 })
 		        .attr("width", gridRegion.cellwd)
 		        .attr("height", gridRegion.cellht) 
@@ -954,19 +969,20 @@ var images = require('./images.json');
 
 	_createTextScores: function () {
 		var self = this;
-		var gridRegion = self.state.gridRegion; 
+		var gridRegion = this.state.gridRegion; 
 		var list, scale, axRender;
 
-		if (self.state.invertAxis) {
-			list = self.state.yAxisRender.keys();  
-			scale = self.state.yAxisRender.getScale();
-			axRender = self.state.yAxisRender;
+		if (this.state.invertAxis) {
+			list = this.state.yAxisRender.keys();  
+			scale = this.state.yAxisRender.getScale();
+			axRender = this.state.yAxisRender;
 		} else {
-			list = self.state.xAxisRender.keys(); 
-			scale = self.state.xAxisRender.getScale();
-			axRender = self.state.xAxisRender;
+			list = this.state.xAxisRender.keys(); 
+			scale = this.state.xAxisRender.getScale();
+			axRender = this.state.xAxisRender;
 		}
-	    var scores = this.state.svg.selectAll(".scores")
+	    
+        var scores = this.state.svg.selectAll(".scores")
 	        .data(list)
 	        .enter().append("g")
 	    	.attr("class", "pg_score_text");
@@ -980,23 +996,22 @@ var images = require('./images.json');
 	      		return el.score; 
 	      	});
 
-	    if (self.state.invertAxis) { // score are render vertically
+	    if (this.state.invertAxis) { // score are render vertically
 			scores
 				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; 
-                })
-	      		.attr("x", gridRegion.rowLabelOffset)
-	      		.attr("y",  function(d, i) {
-                    return scale.rangeBand(i)/2;
-                });  
+  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")";
+                }); 
 	    } else {
 	    	scores	      		
                 .attr("transform", function(d, i) { 
-                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
-                         "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
-                    })
-                .attr("x", 0)
-                .attr("y", scale.rangeBand()+2);
+                    if (i < 10) {
+                        return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) + "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
+                    } else if (i >= 10 && i < 20) {
+                        return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1 + gridRegion.xpad) + "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
+                    } else if (i >= 20 && i < 30) {
+                        return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1 + gridRegion.xpad + gridRegion.xpad) + "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
+                    }
+                });
 	    }
 	}, 
     
@@ -1783,12 +1798,10 @@ var images = require('./images.json');
 		var height = this._gridHeight() + gridRegion.colLabelOffset;// adjust due to extending it to the col labels
 		var width = this._gridWidth();
 
-		if (this._isCrossComparisonView() ) {
-			//var grps = self.state.selectedCompareTargetGroup.forEach(function(d) { if(d.crossComparisonView)return d; });
+        // Only create these divider lines in cross comparison mode
+		if (this._isCrossComparisonView()) {
 			var numOfTargetGroup = this.state.selectedCompareTargetGroup.length; 
 			var xScale = this.state.xAxisRender.getScale();
-
-			//var cellsDisplayedPer = (self.state.defaultSingleTargetDisplayLimit / numOfTargetGroup);
 			var cellsDisplayedPer = this.state.defaultCrossCompareTargetLimitPerTargetGroup;
 			var x1 = 0;
 			if (this.state.invertAxis) {
@@ -1799,49 +1812,47 @@ var images = require('./images.json');
 			}
 
 			for (var i = 1; i < numOfTargetGroup; i++) {
-				var fudgeFactor = 3; //magic num
+				var fudgeFactor = 13; //magic num
 				if (i > 1) {
-					fudgeFactor = 1;
+					fudgeFactor = 30;
 				}
 				x1 = (x1 * i)+ fudgeFactor;  // add a few extra padding so it won't overlap cells
 
 				if (this.state.invertAxis) {
 					this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")
-					.attr("transform","translate(" + x + "," + y+ ")")					
-					.attr("x1", gridRegion.rowLabelOffset)  // 0
-					.attr("y1", x1-2)
-					.attr("x2", width)   // adjust this for to go beyond the row label
-					.attr("y2", x1-2)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
-                    .style("shape-rendering", "crispEdges");
-
+                        .attr("class", "pg_target_grp_divider")
+                        .attr("transform","translate(" + x + "," + y+ ")")					
+                        .attr("x1", gridRegion.rowLabelOffset)  // 0
+                        .attr("y1", x1-2)
+                        .attr("x2", width)   // adjust this for to go beyond the row label
+                        .attr("y2", x1-2)
+                        .style("stroke", "black")
+                        .style("stroke-width", 1)
+                        .style("shape-rendering", "crispEdges");
 				} else {
 					// render vertical divider line
 					this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")
-					.attr("transform","translate(" + x + "," + y+ ")")					
-					.attr("x1", x1)
-					.attr("y1", 0)
-					.attr("x2", x1)
-					.attr("y2", height)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
-                    .style("shape-rendering", "crispEdges");
-
+                        .attr("class", "pg_target_grp_divider")
+                        .attr("transform","translate(" + x + "," + y+ ")")					
+                        .attr("x1", x1)
+                        .attr("y1", 0)
+                        .attr("x2", x1)
+                        .attr("y2", height)
+                        .style("stroke", "black")
+                        .style("stroke-width", 1)
+                        .style("shape-rendering", "crispEdges");
 
 					// render the slanted line between targetGroup (targetGroup) columns
 					this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")
-					.attr("transform","translate(" + x + "," + y + ")rotate(-45 " + x1 + " 0)")				
-					.attr("x1", x1)
-					.attr("y1", 0)
-					.attr("x2", x1 + 110)  // extend the line out to underline the labels					
-					.attr("y2", 0)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
-                    .style("shape-rendering", "crispEdges");
+                        .attr("class", "pg_target_grp_divider")
+                        .attr("transform","translate(" + x + "," + y + ")rotate(-45 " + x1 + " 0)")				
+                        .attr("x1", x1)
+                        .attr("y1", 0)
+                        .attr("x2", x1 + 110)  // extend the line out to underline the labels					
+                        .attr("y2", 0)
+                        .style("stroke", "black")
+                        .style("stroke-width", 1)
+                        .style("shape-rendering", "crispEdges");
 				}
 			}
 		}
