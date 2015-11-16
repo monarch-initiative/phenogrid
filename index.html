@@ -217,6 +217,8 @@ window.onload = function() {
     Phenogrid.createPhenogridForElement(document.getElementById(&#39;phenogrid_container&#39;), {
         serverURL : &quot;http://monarchinitiative.org&quot;,
         phenotypeData: phenotypes,
+        selectedSort: &quot;Frequency&quot;, // sort method of sources: &quot;Alphabetic&quot;, &quot;Frequency and Rarity&quot;, &quot;Frequency&quot; 
+        selectedCalculation: 0, // 0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t)
         targetGroupList: [
             {&quot;name&quot;: &quot;Homo sapiens&quot;, &quot;taxon&quot;: &quot;9606&quot;,&quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
             {&quot;name&quot;: &quot;Mus musculus&quot;, &quot;taxon&quot;: &quot;10090&quot;, &quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
@@ -247,6 +249,21 @@ window.onload = function() {
 </ul>
 <h2 id="-phenotypedata-array-required"><code>phenotypeData</code>  array | required</h2>
 <p>It is a Javascript array of objects listing the phenotypes to be rendered in the widget.</p>
+<h2 id="-selectedsort-string-optional"><code>selectedSort</code>  string | optional</h2>
+<p>The different ways that the sources (e.g., phenotypes) can be sorted. The sources that are shown on the left side of the grid may be sorted using one of three methods. </p>
+<ul>
+<li>Alphabetical - A-Z</li>
+<li>Frequency and Rarity - sources, e.g., phenotypes are sorted by the sum of the phenotype values across all models/genes</li>
+<li>Frequency - Default, sources, e.g., phenotypes are sorted by the count of the number of model/gene matches per phenotype</li>
+</ul>
+<h2 id="-selectedcalculation-string-optional"><code>selectedCalculation</code>  string | optional</h2>
+<p>For each pairwise comparison of phenotypes from the query (q) and target (t), we can assess their individual similarities in a number of ways. </p>
+<ul>
+<li>0 - Similarity</li>
+<li>1 - Ratio (q)</li>
+<li>2 - Uniqueness</li>
+<li>3- Ratio (t)</li>
+</ul>
 <h2 id="-targetgrouplist-array-optional"><code>targetGroupList</code>  array | optional</h2>
 <p>This option allows you to specify the set of target groups (i.e., species) that will be visible throughout Phenogrid. There are two parameters which allow you to control whether a target group is displayed as a default in the multi-target comparison view, <code>crossComparisonView</code> and whether it should be active, <code>active = true</code>,  and thus fully visible within phenogrid. If <code>crossComparisonView = true</code>, for example, the target group will be visible as a default within the multi-target comparison view. For example, by default the following targets will be visible upon loading phenogrid (active must be set to true):</p>
 <pre><code>{&quot;name&quot;: &quot;Homo sapiens&quot;, &quot;taxon&quot;: &quot;9606&quot;,&quot;crossComparisonView&quot;: true, &quot;active&quot;: true},
