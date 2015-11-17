@@ -357,6 +357,11 @@ var images = require('./images.json');
 		element.appendTo(this.state.pgContainer);
 	},
     
+    // if no owlsim data returned
+    _showNoResults: function() {
+        $('#pg_container').html('No results returned.');
+    },
+    
     // callback to handle the loaded owlsim data
 	_asyncDataLoadingCB: function(self) {
 		// add dataManager to this.state
@@ -444,9 +449,7 @@ var images = require('./images.json');
 
     	this._setAxisRenderers();
 	},
-    
-    
-    
+
     /* create the groups to contain the rendering 
        information for x and y axes. Use already loaded data
        in various hashes, etc. to create objects containing
@@ -524,8 +527,37 @@ var images = require('./images.json');
 	   	}
     },
 
-	
-	
+    // Being called only for the first time the widget is being loaded
+	_createDisplay: function() {
+        // create the display as usual if there's 'b' and 'metadata' fields found - Joe
+        if (this.state.dataManager.isInitialized()) {
+            this._createColorScalePerSimilarityCalculation();
+            
+            // No need to recreate this tooltip on _updateDisplay() - Joe
+            this._createTooltipStub();
+        
+            this._createSvgComponents();
+
+            // Create and postion HTML sections
+            
+            // Unmatched sources
+            this._createUnmatchedSources();
+            this._positionUnmatchedSources();
+            this._toggleUnmatchedSources();
+            
+            this._addUnmatchedData(this);
+            
+            // Options menu
+            this._createPhenogridControls();
+            this._positionPhenogridControls();
+            this._togglePhenogridControls();
+        } else {
+            this._showNoResults();
+        }
+        
+        this._setSvgSize();
+    },
+    
     // Recreates the SVG content and leave the HTML sections unchanged
 	_updateDisplay: function() {
         // Only remove the #pg_svg node and leave #pg_controls and #pg_unmatched there
@@ -559,6 +591,298 @@ var images = require('./images.json');
         
         // this must be called here so the tooltip disappears when we mouseout the current element - Joe
         this._relinkTooltip();
+    },
+    
+    // the svg container
+	_createSvgContainer: function() {
+        this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
+	
+        // Define a font-family for all SVG texts 
+        // so we don't have to apply font-family separately for each SVG text - Joe
+        this.state.svg = d3.select("#pg_svg_group")
+            .style("font-family", "Verdana, Geneva, sans-serif");
+	},
+    
+    // Positioned next to the grid region bottom
+	_addLogoImage: function() { 
+		var self = this;
+        this.state.svg.append("svg:image")
+			.attr("xlink:href", images.logo)
+			.attr("x", this.state.logo.x)
+			.attr("y", this.state.logo.y)
+			.attr("id", "pg_logo")
+			.attr('class', 'pg_cursor_pointer')
+			.attr("width", this.state.logo.width)
+			.attr("height", this.state.logo.height)
+			.on('click', function() {
+				window.open(self.state.serverURL, '_blank');
+			});
+	},
+    
+    _createOverviewTargetGroupLabels: function () {
+		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
+            var self = this;
+            // targetGroupList is an array that contains all the selected targetGroup names
+            var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
+
+            // Inverted and multi targetGroup
+            if (self.state.invertAxis) { 
+                var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
+
+                this.state.svg.selectAll(".pg_targetGroup_name")
+                    .data(targetGroupList)
+                    .enter()
+                    .append("text")
+                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 20) // 20 is margin - Joe
+                    .attr("y", function(d, i) { 
+                            return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                        })
+                    .attr('transform', function(d, i) {
+                        var currX = self.state.gridRegion.x + self._gridWidth() + 20;
+                        var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                        return 'rotate(90 ' + currX + ' ' + currY + ')';
+                    }) // rotate by 90 degrees 
+                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                    .text(function (d, i){return targetGroupList[i];})
+                    .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
+            } else {
+            	var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
+
+                this.state.svg.selectAll(".pg_targetGroup_name")
+                    .data(targetGroupList)
+                    .enter()
+                    .append("text")
+                    .attr("x", function(d, i){ 
+                            return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
+                        })
+                    .attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                    .text(function(d, i){return targetGroupList[i];})
+                    .attr("text-anchor", function() {
+                        if (self._isCrossComparisonView()) {
+                            return 'start'; // Try to align with the rotated divider lines for cross-target comparison
+                        } else {
+                            return 'middle'; // Position the label in middle for single species
+                        }
+                    }); 
+            }
+        } 
+	},
+
+        // In single species mode, only show mini map 
+    // when there are more sources than the default limit or more targets than default limit
+    // In cross comparison mode, only show mini map 
+    // when there are more sources than the default limit
+    _whetherToCreateOverviewSection: function() {
+        var xCount = this.state.xAxisRender.displayLength();
+        var yCount = this.state.yAxisRender.displayLength();
+        var width = this.state.navigator.width;
+        var height =this.state.navigator.height;
+        
+        // check xCount based on yCount
+        if ( ! this.state.invertAxis) {
+            if ( ! this._isCrossComparisonView()) {
+                if (yCount >= this.state.defaultSourceDisplayLimit) {
+                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        // just use the default mini map width and height
+                        this._createOverviewSection(width, height);
+                    } else {
+                        // shrink the width of mini map based on the xCount/this.state.defaultSingleTargetDisplayLimit
+                        // and keep the hight unchanged
+                        width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
+                } else {
+                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        // shrink the height of mini map based on the yCount/this.state.defaultSourceDisplayLimit ratio
+                        // and keep the hight unchanged
+                        height = height * (yCount/this.state.defaultSourceDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    } 
+                    
+                    // No need to create the mini map if both xCount and yCount are within the default limit
+                }
+            } else {
+                // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
+                if (yCount >= this.state.defaultSourceDisplayLimit) {  
+                    // just use the default mini map width and height
+                    this._createOverviewSection(width, height);
+                } 
+                
+                // No need to create the mini map if yCount is within the default limit
+            }
+	   	} else {
+            if ( ! this._isCrossComparisonView()) {
+                if (xCount >= this.state.defaultSourceDisplayLimit) {
+                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        this._createOverviewSection(width, height);
+                    } else {
+                        height = height * (yCount/this.state.defaultSingleTargetDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
+                } else {
+                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        width = width * (xCount/this.state.defaultSourceDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
+                }
+            } else {
+                if (xCount >= this.state.defaultSourceDisplayLimit) {  
+                    this._createOverviewSection(width, height);
+                } 
+            } 
+        }   
+    },
+    
+	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
+	_createOverviewSection: function(width, height) {
+		// set the display counts on each axis
+		var yCount = this.state.yAxisRender.displayLength();  
+	    var xCount = this.state.xAxisRender.displayLength();  
+
+		// these translations from the top-left of the rectangular region give the absolute coordinates
+		var overviewX = this.state.navigator.x;
+		var overviewY = this.state.navigator.y;
+
+		// create the main box
+		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.miniCellwd * 2 + 2, height + this.state.navigator.miniCellht * 2 + 2);
+
+		// create the scales based on the mini map region size
+		this._createSmallScales(width, height);
+
+		// this should be the full set of cellData
+		var xvalues = this.state.xAxisRender.groupEntries();
+		//console.log(JSON.stringify(xvalues));
+		var yvalues = this.state.yAxisRender.groupEntries();	
+
+        // in compare mode, the targetGroup will be 'compare' instead of actual species name - Joe
+        // each element in data contains source_id, targetGroup, target_id, type ('cell'), xpos, and ypos
+        if (this.state.owlSimFunction === 'compare') {
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
+        } else {
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
+        }
+
+        // add 1px unit space to the left and top
+        overviewX++;
+		overviewY++;
+        
+		// Group all mini cells in g element
+        // apply the translate to the #pg_mini_cells_container instead of each cell - Joe
+		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
+							.attr("id", "pg_mini_cells_container")
+                            .attr("transform", "translate(" + overviewX + "," + overviewY + ")");
+						
+        var self = this; // to be used in callback
+        
+        // Add cells to the miniCellsGrp	
+		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
+			.data(data, function(d) {
+                return d.source_id + d.target_id;
+            })
+            .enter()
+			.append("rect")
+			.attr("class", "mini_cell")
+			.attr("x", function(d) { 
+				return self.state.smallXScale(d.target_id) + self.state.navigator.miniCellwd / 2; 
+            })
+            .attr("y", function(d, i) { 
+				return self.state.smallYScale(d.source_id) + self.state.navigator.miniCellht / 2;
+            })
+			.attr("width", this.state.navigator.miniCellwd) 
+			.attr("height", this.state.navigator.miniCellht) 
+			.attr("fill", function(d) {
+				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
+			});
+	
+		var yRenderedSize = this.state.yAxisRender.displayLength();
+		var xRenderedSize = this.state.xAxisRender.displayLength();		
+     	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
+	    var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
+		var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  	
+
+        // start point (x, y) of the shaded draggable area
+		var selectRectX = this.state.smallXScale(startXId);
+		var selectRectY = this.state.smallYScale(startYId);
+		// width and height of the shaded draggable area
+		var selectRectHeight = this.state.smallYScale(lastYId) - this.state.smallYScale(startYId);
+		var selectRectWidth = this.state.smallXScale(lastXId) - this.state.smallXScale(startXId);
+		
+		// Also add the shaded area in the pg_navigator group - Joe
+		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
+			.attr("x", overviewX + selectRectX)
+			.attr("y", overviewY + selectRectY)
+			.attr("id", "pg_navigator_shaded_area")
+			.attr("height", selectRectHeight + 4)
+			.attr("width", selectRectWidth + 4)
+			.attr("class", "pg_draggable")
+            .style("fill", "grey")
+            .style("opacity", 0.5)
+			.call(d3.behavior.drag() // Constructs a new drag behavior
+				.on("drag", function(d) {
+					/*
+					 * drag the highlight in the overview window
+					 * notes: account for the width of the rectangle in my x and y calculations
+					 * do not use the event x and y, they will be out of range at times. Use the converted values instead.
+					 */
+					// limit the range of the x value
+					var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
+					var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
+
+					// Restrict Movement if no need to move map
+					if (selectRectHeight === height) {
+						newY = overviewY;
+					}
+					if (selectRectWidth === width) {
+						newX = overviewX;
+					}
+
+					// block from going out of bounds on left
+					if (newX < overviewX) {
+						newX = overviewX;
+					}
+					// top
+					if (newY < overviewY) {
+						newY = overviewY;
+					}
+					// right
+					if (newX + selectRectWidth > overviewX + width) {
+						newX = overviewX + width - selectRectWidth;
+					}
+
+					// bottom
+					if (newY + selectRectHeight > overviewY + height) {
+						newY = overviewY + height - selectRectHeight;
+					}
+                    
+					var draggableArea = self.state.svg.select("#pg_navigator_shaded_area")
+                        .attr("x", newX)
+                        .attr("y", newY);
+
+					// adjust x back to have 0,0 as base instead of overviewX, overviewY
+					newX = newX - overviewX;
+					newY = newY - overviewY;
+
+					// invert newX and newY into positions in the model and phenotype lists.
+					var newXPos = self._invertOverviewDragPosition(self.state.smallXScale, newX) + xCount;
+					var newYPos = self._invertOverviewDragPosition(self.state.smallYScale, newY) + yCount;
+
+                    // grid region needs to be updated accordingly
+					self._updateGrid(newXPos, newYPos);
+		}));
+	},
+
+    _setSvgSize: function() {
+        // Update the width and height of #pg_svg
+        var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
+        var calculatedSvgWidth = this.state.gridRegion.x + this._gridWidth();
+        var svgWidth = (toptitleWidth >= calculatedSvgWidth) ? toptitleWidth : calculatedSvgWidth;
+        
+        d3.select("#pg_svg")
+            .attr('width', svgWidth + 100)
+            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100) // Add an extra 100 to height - Joe
     },
     
 	// Click the setting button to open the control options
@@ -600,198 +924,6 @@ var images = require('./images.json');
 		});
 	},
     
-	// create the grid
-	_createGrid: function() {
-		var self = this;
-        // xvalues and yvalues are index arrays that contain the current x and y items, not all of them
-        // if any items are added genotypes, they only contain visible genotypes
-        // Axisgroup's constructor does the data filtering - Joe
-		var xvalues = this.state.xAxisRender.entries(); 
-		var yvalues = this.state.yAxisRender.entries();
-		var gridRegion = this.state.gridRegion; 
-		var xScale = this.state.xAxisRender.getScale();
-		var yScale = this.state.yAxisRender.getScale();
-
-		// use the x/y renders to generate the matrix
-        if (this.state.owlSimFunction === 'compare') {
-            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, true);
-        } else {
-            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
-        }
-	    
-        // create column lables first, so the added genotype cells will overwrite the background color - Joe
-        // create columns using the xvalues (targets)
-	  	var column = this.state.svg.selectAll(".column")
-	        .data(xvalues)
-	        .enter().append("g")
-            .attr("class", 'column')
-            .style("font-size", '11px')            
-			.attr("id", function(d, i) { 
-				return "pg_grid_col_"+i;
-            })	      	
-	        .attr("transform", function(d) { 
-                var offset = gridRegion.colLabelOffset;
-                var xs = xScale(d.id);
-                return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
-            }); //-45
-
-	    // create column labels
-	  	column.append("text")
-	      	.attr("x", 0)
-	      	.attr("y", xScale.rangeBand()+2)  //2
-		    .attr("dy", ".32em")
-            .style('fill', function(d) { // add different color to genotype labels
-                if (d.type === 'genotype') {
-                    return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
-                } else {
-                    return '';
-                }
-            })
-		    .attr("data-tooltip", "pg_tooltip")   			
-	      	.attr("text-anchor", "start")
-	      	.text(function(d, i) { 		
-	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
-            })
-		    .on("mouseover", function(d, i) { 				
-		    	// self is the global widget this
-                // this passed to _mouseover refers to the current element
-                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
-                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                self._mouseover(this, d, self);})
-			.on("mouseout", function(d) {
-				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
-                self._mouseout();
-			});
-	
-        // grey background for added genotype columns - Joe
-        // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
-        if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
-            column.append("rect")
-                .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
-                .attr('width', gridRegion.cellwd)
-                .attr('height', self._gridHeight())
-                .style('fill', function(d){
-                    if (d.type === 'genotype') {
-                        return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
-                    } else {
-                        return 'none'; // transparent 
-                    }
-                })
-                .style('opacity', 0.8)
-                .attr("transform", function(d) { 
-                    return "rotate(45)"; 
-                }); //45
-        }
-        
-        // add the scores for labels
-	    self._createTextScores();
-
-		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
-		var row = this.state.svg.selectAll(".row")
-  			.data(matrix)
-			.enter().append("g")			
-			.attr("class", "row")	 		
-			.attr("id", function(d, i) { 
-				return "pg_grid_row_"+i;
-            })
-  			.attr("transform", function(d, i) { 
-                var y = self.state.gridRegion.y;
-                var ypad = self.state.gridRegion.ypad;
-
-                return "translate(" + gridRegion.x +"," + (y+(i*ypad)) + ")"; 
-            });
-
-   		// create row labels
-	  	row.append("text")
-			.attr("x", gridRegion.rowLabelOffset)	  		
-	      	.attr("y",  function(d, i) {
-	      		var rb = yScale.rangeBand(i)/2;
-	      		return rb;
-	      	})  
-	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
-	      	.attr("text-anchor", "end")
-            .style("font-size", "11px")
-            
-            // the d.type is cell instead of genotype because the d refers to cell data
-            // we'll need to get the genotype data from yAxisRender - Joe
-            .style('fill', function(d, i) { // add different color to genotype labels
-                var el = self.state.yAxisRender.itemAt(i);
-                if (el.type === 'genotype') {
-                    return '#EA763B'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
-                } else {
-                    return '';
-                }
-            })
-			.attr("data-tooltip", "pg_tooltip")   				      
-		    .text(function(d, i) { 
-	      		var el = self.state.yAxisRender.itemAt(i);
-	      		return Utils.getShortLabel(el.label); 
-            })
-			.on("mouseover", function(d, i) { 		
-				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
-				// self is the global widget this
-                // this passed to _mouseover refers to the current element
-                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
-                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                self._mouseover(this, data, self);
-            })
-			.on("mouseout", function() {
-				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
-                self._mouseout();		  		
-			});
-
-        // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
-        if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
-            row.append("rect")
-                .attr('width', self._gridWidth())
-                .attr('height', gridRegion.cellht)
-                .style('fill', function(d, i) { // add different color to genotype labels
-                    var el = self.state.yAxisRender.itemAt(i);
-                    if (el.type === 'genotype') {
-                        return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
-                    } else {
-                        return 'none'; // transparent 
-                    }
-                })
-                .style('opacity', 0.8);
-        }
-        
-        // create the grid cells after appending all the background rects
-        // so they can overwrite the row background for those added genotype rows - Joe 
-        row.each(createrow);
-
-        // callback for row.each()
-		function createrow(row) {
-            // The each operator can be used to process selections recursively, by using d3.select(this) within the callback function.
-		    var cell = d3.select(this).selectAll(".cell")
-		        .data(row)
-		        .enter().append("rect")
-		      	.attr("id", function(d, i) { 
-		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; 
-                })
-		        .attr("class", "cell")
-		        .attr("x", function(d) { 
-		        	return d.xpos * gridRegion.xpad;
-                })
-		        .attr("width", gridRegion.cellwd)
-		        .attr("height", gridRegion.cellht) 
-				.attr("data-tooltip", "tooltip")   					        
-		        .style("fill", function(d) { 
-					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-					return self._getCellColor(el.value[self.state.selectedCalculation]);
-			    })
-		        .on("mouseover", function(d) { 					
-                    // self is the global widget this
-                    // this passed to _mouseover refers to the current element
-                    // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
-                    // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-		        	self._mouseover(this, d, self);})							
-		        .on("mouseout", function(d) {
-		        	// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
-                    self._mouseout();
-		        });
-		}
-	},
 
 	_crossHairsOff: function() {
         this.state.svg.selectAll(".pg_focusLine").remove();			
@@ -1014,210 +1146,6 @@ var images = require('./images.json');
 		return selectedScale(score);
 	},
 
-    // In single species mode, only show mini map 
-    // when there are more sources than the default limit or more targets than default limit
-    // In cross comparison mode, only show mini map 
-    // when there are more sources than the default limit
-    _whetherToCreateOverviewSection: function() {
-        var xCount = this.state.xAxisRender.displayLength();
-        var yCount = this.state.yAxisRender.displayLength();
-        var width = this.state.navigator.width;
-        var height =this.state.navigator.height;
-        
-        // check xCount based on yCount
-        if ( ! this.state.invertAxis) {
-            if ( ! this._isCrossComparisonView()) {
-                if (yCount >= this.state.defaultSourceDisplayLimit) {
-                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        // just use the default mini map width and height
-                        this._createOverviewSection(width, height);
-                    } else {
-                        // shrink the width of mini map based on the xCount/this.state.defaultSingleTargetDisplayLimit
-                        // and keep the hight unchanged
-                        width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
-                        this._createOverviewSection(width, height);
-                    }
-                } else {
-                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        // shrink the height of mini map based on the yCount/this.state.defaultSourceDisplayLimit ratio
-                        // and keep the hight unchanged
-                        height = height * (yCount/this.state.defaultSourceDisplayLimit);
-                        this._createOverviewSection(width, height);
-                    } 
-                    
-                    // No need to create the mini map if both xCount and yCount are within the default limit
-                }
-            } else {
-                // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
-                if (yCount >= this.state.defaultSourceDisplayLimit) {  
-                    // just use the default mini map width and height
-                    this._createOverviewSection(width, height);
-                } 
-                
-                // No need to create the mini map if yCount is within the default limit
-            }
-	   	} else {
-            if ( ! this._isCrossComparisonView()) {
-                if (xCount >= this.state.defaultSourceDisplayLimit) {
-                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        this._createOverviewSection(width, height);
-                    } else {
-                        height = height * (yCount/this.state.defaultSingleTargetDisplayLimit);
-                        this._createOverviewSection(width, height);
-                    }
-                } else {
-                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        width = width * (xCount/this.state.defaultSourceDisplayLimit);
-                        this._createOverviewSection(width, height);
-                    }
-                }
-            } else {
-                if (xCount >= this.state.defaultSourceDisplayLimit) {  
-                    this._createOverviewSection(width, height);
-                } 
-            } 
-        }   
-    },
-    
-	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
-	_createOverviewSection: function(width, height) {
-		// set the display counts on each axis
-		var yCount = this.state.yAxisRender.displayLength();  
-	    var xCount = this.state.xAxisRender.displayLength();  
-
-		// these translations from the top-left of the rectangular region give the absolute coordinates
-		var overviewX = this.state.navigator.x;
-		var overviewY = this.state.navigator.y;
-
-		// create the main box
-		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.miniCellwd * 2 + 2, height + this.state.navigator.miniCellht * 2 + 2);
-
-		// create the scales based on the mini map region size
-		this._createSmallScales(width, height);
-
-		// this should be the full set of cellData
-		var xvalues = this.state.xAxisRender.groupEntries();
-		//console.log(JSON.stringify(xvalues));
-		var yvalues = this.state.yAxisRender.groupEntries();	
-
-        // in compare mode, the targetGroup will be 'compare' instead of actual species name - Joe
-        // each element in data contains source_id, targetGroup, target_id, type ('cell'), xpos, and ypos
-        if (this.state.owlSimFunction === 'compare') {
-            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
-        } else {
-            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
-        }
-
-        // add 1px unit space to the left and top
-        overviewX++;
-		overviewY++;
-        
-		// Group all mini cells in g element
-        // apply the translate to the #pg_mini_cells_container instead of each cell - Joe
-		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
-							.attr("id", "pg_mini_cells_container")
-                            .attr("transform", "translate(" + overviewX + "," + overviewY + ")");
-						
-        var self = this; // to be used in callback
-        
-        // Add cells to the miniCellsGrp	
-		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
-			.data(data, function(d) {
-                return d.source_id + d.target_id;
-            })
-            .enter()
-			.append("rect")
-			.attr("class", "mini_cell")
-			.attr("x", function(d) { 
-				return self.state.smallXScale(d.target_id) + self.state.navigator.miniCellwd / 2; 
-            })
-            .attr("y", function(d, i) { 
-				return self.state.smallYScale(d.source_id) + self.state.navigator.miniCellht / 2;
-            })
-			.attr("width", this.state.navigator.miniCellwd) 
-			.attr("height", this.state.navigator.miniCellht) 
-			.attr("fill", function(d) {
-				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
-			});
-	
-		var yRenderedSize = this.state.yAxisRender.displayLength();
-		var xRenderedSize = this.state.xAxisRender.displayLength();		
-     	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
-	    var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
-		var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  	
-
-        // start point (x, y) of the shaded draggable area
-		var selectRectX = this.state.smallXScale(startXId);
-		var selectRectY = this.state.smallYScale(startYId);
-		// width and height of the shaded draggable area
-		var selectRectHeight = this.state.smallYScale(lastYId) - this.state.smallYScale(startYId);
-		var selectRectWidth = this.state.smallXScale(lastXId) - this.state.smallXScale(startXId);
-		
-		// Also add the shaded area in the pg_navigator group - Joe
-		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
-			.attr("x", overviewX + selectRectX)
-			.attr("y", overviewY + selectRectY)
-			.attr("id", "pg_navigator_shaded_area")
-			.attr("height", selectRectHeight + 4)
-			.attr("width", selectRectWidth + 4)
-			.attr("class", "pg_draggable")
-            .style("fill", "grey")
-            .style("opacity", 0.5)
-			.call(d3.behavior.drag() // Constructs a new drag behavior
-				.on("drag", function(d) {
-					/*
-					 * drag the highlight in the overview window
-					 * notes: account for the width of the rectangle in my x and y calculations
-					 * do not use the event x and y, they will be out of range at times. Use the converted values instead.
-					 */
-					// limit the range of the x value
-					var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
-					var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
-
-					// Restrict Movement if no need to move map
-					if (selectRectHeight === height) {
-						newY = overviewY;
-					}
-					if (selectRectWidth === width) {
-						newX = overviewX;
-					}
-
-					// block from going out of bounds on left
-					if (newX < overviewX) {
-						newX = overviewX;
-					}
-					// top
-					if (newY < overviewY) {
-						newY = overviewY;
-					}
-					// right
-					if (newX + selectRectWidth > overviewX + width) {
-						newX = overviewX + width - selectRectWidth;
-					}
-
-					// bottom
-					if (newY + selectRectHeight > overviewY + height) {
-						newY = overviewY + height - selectRectHeight;
-					}
-                    
-					var draggableArea = self.state.svg.select("#pg_navigator_shaded_area")
-                        .attr("x", newX)
-                        .attr("y", newY);
-
-					// adjust x back to have 0,0 as base instead of overviewX, overviewY
-					newX = newX - overviewX;
-					newY = newY - overviewY;
-
-					// invert newX and newY into positions in the model and phenotype lists.
-					var newXPos = self._invertOverviewDragPosition(self.state.smallXScale, newX) + xCount;
-					var newYPos = self._invertOverviewDragPosition(self.state.smallYScale, newY) + yCount;
-
-                    // grid region needs to be updated accordingly
-					self._updateGrid(newXPos, newYPos);
-		}));
-	},
 
     // Tip info icon for more info on those text scores
 	_createScoresTipIcon: function() {
@@ -1286,47 +1214,8 @@ var images = require('./images.json');
 		return j;
 	},
 
-    // Being called only for the first time the widget is being loaded
-	_createDisplay: function() {
-        // create the display as usual if there's 'b' and 'metadata' fields found - Joe
-        if (this.state.dataManager.isInitialized()) {
-            this._createColorScalePerSimilarityCalculation();
-            
-            // No need to recreate this tooltip on _updateDisplay() - Joe
-            this._createTooltipStub();
-        
-            this._createSvgComponents();
-
-            // Create and postion HTML sections
-            
-            // Unmatched sources
-            this._createUnmatchedSources();
-            this._positionUnmatchedSources();
-            this._toggleUnmatchedSources();
-            
-            this._addUnmatchedData(this);
-            
-            // Options menu
-            this._createPhenogridControls();
-            this._positionPhenogridControls();
-            this._togglePhenogridControls();
-        } else {
-            this._showNoResults();
-        }
-        
-        this._setSvgSize();
-    },
     
-    _setSvgSize: function() {
-        // Update the width and height of #pg_svg
-        var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
-        var calculatedSvgWidth = this.state.gridRegion.x + this._gridWidth();
-        var svgWidth = (toptitleWidth >= calculatedSvgWidth) ? toptitleWidth : calculatedSvgWidth;
-        
-        d3.select("#pg_svg")
-            .attr('width', svgWidth + 100)
-            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100) // Add an extra 100 to height - Joe
-    },
+    
     
     // Add the unmatched data to #pg_unmatched_list
     _addUnmatchedData: function(self) {
@@ -1347,10 +1236,7 @@ var images = require('./images.json');
         }
     },
     
-    // if no owlsim data returned
-    _showNoResults: function() {
-        $('#pg_container').html('No results returned.');
-    },
+    
 
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
@@ -1408,15 +1294,7 @@ var images = require('./images.json');
         }
 	},
 
-    // the svg container
-	_createSvgContainer: function() {
-        this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
-	
-        // Define a font-family for all SVG texts 
-        // so we don't have to apply font-family separately for each SVG text - Joe
-        this.state.svg = d3.select("#pg_svg_group")
-            .style("font-family", "Verdana, Geneva, sans-serif");
-	},
+    
 
     
 
@@ -1545,21 +1423,7 @@ var images = require('./images.json');
 	},
 
 
-	// Positioned next to the grid region bottom
-	_addLogoImage: function() { 
-		var self = this;
-        this.state.svg.append("svg:image")
-			.attr("xlink:href", images.logo)
-			.attr("x", this.state.logo.x)
-			.attr("y", this.state.logo.y)
-			.attr("id", "pg_logo")
-			.attr('class', 'pg_cursor_pointer')
-			.attr("width", this.state.logo.width)
-			.attr("height", this.state.logo.height)
-			.on('click', function() {
-				window.open(self.state.serverURL, '_blank');
-			});
-	},
+	
 
     // data is either cell data or label data details - Joe
 	_createHoverBox: function(data){
@@ -1852,6 +1716,200 @@ var images = require('./images.json');
 	},
 
 
+    	// create the grid
+	_createGrid: function() {
+		var self = this;
+        // xvalues and yvalues are index arrays that contain the current x and y items, not all of them
+        // if any items are added genotypes, they only contain visible genotypes
+        // Axisgroup's constructor does the data filtering - Joe
+		var xvalues = this.state.xAxisRender.entries(); 
+		var yvalues = this.state.yAxisRender.entries();
+		var gridRegion = this.state.gridRegion; 
+		var xScale = this.state.xAxisRender.getScale();
+		var yScale = this.state.yAxisRender.getScale();
+
+		// use the x/y renders to generate the matrix
+        if (this.state.owlSimFunction === 'compare') {
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, true);
+        } else {
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
+        }
+	    
+        // create column lables first, so the added genotype cells will overwrite the background color - Joe
+        // create columns using the xvalues (targets)
+	  	var column = this.state.svg.selectAll(".column")
+	        .data(xvalues)
+	        .enter().append("g")
+            .attr("class", 'column')
+            .style("font-size", '11px')            
+			.attr("id", function(d, i) { 
+				return "pg_grid_col_"+i;
+            })	      	
+	        .attr("transform", function(d) { 
+                var offset = gridRegion.colLabelOffset;
+                var xs = xScale(d.id);
+                return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
+            }); //-45
+
+	    // create column labels
+	  	column.append("text")
+	      	.attr("x", 0)
+	      	.attr("y", xScale.rangeBand()+2)  //2
+		    .attr("dy", ".32em")
+            .style('fill', function(d) { // add different color to genotype labels
+                if (d.type === 'genotype') {
+                    return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
+                } else {
+                    return '';
+                }
+            })
+		    .attr("data-tooltip", "pg_tooltip")   			
+	      	.attr("text-anchor", "start")
+	      	.text(function(d, i) { 		
+	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
+            })
+		    .on("mouseover", function(d, i) { 				
+		    	// self is the global widget this
+                // this passed to _mouseover refers to the current element
+                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                self._mouseover(this, d, self);})
+			.on("mouseout", function(d) {
+				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+                self._mouseout();
+			});
+	
+        // grey background for added genotype columns - Joe
+        // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+        if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
+            column.append("rect")
+                .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
+                .attr('width', gridRegion.cellwd)
+                .attr('height', self._gridHeight())
+                .style('fill', function(d){
+                    if (d.type === 'genotype') {
+                        return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                    } else {
+                        return 'none'; // transparent 
+                    }
+                })
+                .style('opacity', 0.8)
+                .attr("transform", function(d) { 
+                    return "rotate(45)"; 
+                }); //45
+        }
+        
+        // add the scores for labels
+	    self._createTextScores();
+
+		// create a row, the matrix contains an array of rows (yscale) with an array of columns (xscale)
+		var row = this.state.svg.selectAll(".row")
+  			.data(matrix)
+			.enter().append("g")			
+			.attr("class", "row")	 		
+			.attr("id", function(d, i) { 
+				return "pg_grid_row_"+i;
+            })
+  			.attr("transform", function(d, i) { 
+                var y = self.state.gridRegion.y;
+                var ypad = self.state.gridRegion.ypad;
+
+                return "translate(" + gridRegion.x +"," + (y+(i*ypad)) + ")"; 
+            });
+
+   		// create row labels
+	  	row.append("text")
+			.attr("x", gridRegion.rowLabelOffset)	  		
+	      	.attr("y",  function(d, i) {
+	      		var rb = yScale.rangeBand(i)/2;
+	      		return rb;
+	      	})  
+	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
+	      	.attr("text-anchor", "end")
+            .style("font-size", "11px")
+            
+            // the d.type is cell instead of genotype because the d refers to cell data
+            // we'll need to get the genotype data from yAxisRender - Joe
+            .style('fill', function(d, i) { // add different color to genotype labels
+                var el = self.state.yAxisRender.itemAt(i);
+                if (el.type === 'genotype') {
+                    return '#EA763B'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                } else {
+                    return '';
+                }
+            })
+			.attr("data-tooltip", "pg_tooltip")   				      
+		    .text(function(d, i) { 
+	      		var el = self.state.yAxisRender.itemAt(i);
+	      		return Utils.getShortLabel(el.label); 
+            })
+			.on("mouseover", function(d, i) { 		
+				var data = self.state.yAxisRender.itemAt(i); // d is really an array of data points, not individual data pt
+				// self is the global widget this
+                // this passed to _mouseover refers to the current element
+                // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                self._mouseover(this, data, self);
+            })
+			.on("mouseout", function() {
+				// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+                self._mouseout();		  		
+			});
+
+        // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+        if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
+            row.append("rect")
+                .attr('width', self._gridWidth())
+                .attr('height', gridRegion.cellht)
+                .style('fill', function(d, i) { // add different color to genotype labels
+                    var el = self.state.yAxisRender.itemAt(i);
+                    if (el.type === 'genotype') {
+                        return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
+                    } else {
+                        return 'none'; // transparent 
+                    }
+                })
+                .style('opacity', 0.8);
+        }
+        
+        // create the grid cells after appending all the background rects
+        // so they can overwrite the row background for those added genotype rows - Joe 
+        row.each(createrow);
+
+        // callback for row.each()
+		function createrow(row) {
+            // The each operator can be used to process selections recursively, by using d3.select(this) within the callback function.
+		    var cell = d3.select(this).selectAll(".cell")
+		        .data(row)
+		        .enter().append("rect")
+		      	.attr("id", function(d, i) { 
+		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; 
+                })
+		        .attr("class", "cell")
+		        .attr("x", function(d) { 
+		        	return d.xpos * gridRegion.xpad;
+                })
+		        .attr("width", gridRegion.cellwd)
+		        .attr("height", gridRegion.cellht) 
+				.attr("data-tooltip", "tooltip")   					        
+		        .style("fill", function(d) { 
+					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+					return self._getCellColor(el.value[self.state.selectedCalculation]);
+			    })
+		        .on("mouseover", function(d) { 					
+                    // self is the global widget this
+                    // this passed to _mouseover refers to the current element
+                    // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                    // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+		        	self._mouseover(this, d, self);})							
+		        .on("mouseout", function(d) {
+		        	// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+                    self._mouseout();
+		        });
+		}
+	},
+
+    
 	/*
 	 * Change the list of phenotypes and filter the models accordingly.
 	 */
@@ -1893,56 +1951,7 @@ var images = require('./images.json');
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
 
-	_createOverviewTargetGroupLabels: function () {
-		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
-            var self = this;
-            // targetGroupList is an array that contains all the selected targetGroup names
-            var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
-
-            // Inverted and multi targetGroup
-            if (self.state.invertAxis) { 
-                var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
-
-                this.state.svg.selectAll(".pg_targetGroup_name")
-                    .data(targetGroupList)
-                    .enter()
-                    .append("text")
-                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 20) // 20 is margin - Joe
-                    .attr("y", function(d, i) { 
-                            return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-                        })
-                    .attr('transform', function(d, i) {
-                        var currX = self.state.gridRegion.x + self._gridWidth() + 20;
-                        var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-                        return 'rotate(90 ' + currX + ' ' + currY + ')';
-                    }) // rotate by 90 degrees 
-                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                    .text(function (d, i){return targetGroupList[i];})
-                    .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
-            } else {
-            	var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
-
-                this.state.svg.selectAll(".pg_targetGroup_name")
-                    .data(targetGroupList)
-                    .enter()
-                    .append("text")
-                    .attr("x", function(d, i){ 
-                            return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
-                        })
-                    .attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
-                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                    .text(function(d, i){return targetGroupList[i];})
-                    .attr("text-anchor", function() {
-                        if (self._isCrossComparisonView()) {
-                            return 'start'; // Try to align with the rotated divider lines for cross-target comparison
-                        } else {
-                            return 'middle'; // Position the label in middle for single species
-                        }
-                    }); 
-            }
-        } 
-	},
-
+	
 	_populateDialog: function(text) {
 		var SplitText = "Title";
 		var $dialog = $('<div></div>')
@@ -2200,7 +2209,7 @@ var images = require('./images.json');
 		});
         
 		// FAQ popups
-		$("#pg_sorts_faq").click("click", function(){
+		$("#pg_sorts_faq").click("click", function() {
 			self._populateDialog(htmlnotes.sorts);
 		});
 
@@ -2225,7 +2234,7 @@ var images = require('./images.json');
     },
     
 	// Position the control panel when the gridRegion changes
-	_positionPhenogridControls: function(){
+	_positionPhenogridControls: function() {
 		// Note: CANNOT use this inside _createPhenogridControls() since the _createGrid() is called after it
 		// we won't have the _gridHeight() by that time - Joe
 		var gridRegion = this.state.gridRegion; 
