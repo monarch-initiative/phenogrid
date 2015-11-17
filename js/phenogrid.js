@@ -582,6 +582,9 @@ var images = require('./images.json');
         this._createOverviewTargetGroupLabels();
         this._whetherToCreateOverviewSection();
         this._createGrid();
+        
+        this._createScrollbars();
+        
         this._createScoresTipIcon();
         this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
         this._createGradientLegend();
@@ -668,7 +671,7 @@ var images = require('./images.json');
         } 
 	},
 
-        // In single species mode, only show mini map 
+    // In single species mode, only show mini map 
     // when there are more sources than the default limit or more targets than default limit
     // In cross comparison mode, only show mini map 
     // when there are more sources than the default limit
@@ -873,6 +876,45 @@ var images = require('./images.json');
 		}));
 	},
 
+    _createScrollbars: function() {
+        // vertical scrollbar
+        var verticalScrollbarGrp = this.state.svg.append("g")
+			.attr("id", "pg_vertical_scrollbar_group");
+            
+        verticalScrollbarGrp.append("rect")
+			.attr("x", this.state.gridRegion.x + this._gridWidth() + 20) // 20 is margin
+			.attr("y", this.state.gridRegion.y)
+			.attr("id", "pg_vertical_scrollbar")
+			.attr("height", this._gridHeight())
+			.attr("width", 15)
+            .style("fill", "#fff")
+            .style("stroke", "#000")
+            .style("stroke-width", 2); // border thickness
+        
+        verticalScrollbarGrp.append("rect")
+			.attr("x", this.state.gridRegion.x + this._gridWidth() + 20 + 2) // 20 is margin
+            .attr("y", this.state.gridRegion.y + 2)
+			.attr("id", "pg_vertical_scrollbar_slider")
+			.attr("height", 40)
+			.attr("width", 11)
+            .style("fill", "#44A293")
+            .call(d3.behavior.drag());
+        
+        // horizontal scrollbar
+        var horizontalScrollbarGrp = this.state.svg.append("g")
+			.attr("id", "pg_horizontal_scrollbar_group");
+            
+        horizontalScrollbarGrp.append("rect")
+			.attr("x", this.state.gridRegion.x) // 20 is margin
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 20)
+			.attr("id", "pg_horizontal_scrollbar")
+			.attr("height", 15)
+			.attr("width", this._gridWidth())
+            .style("fill", "#fff")
+            .style("stroke", "#000")
+            .style("stroke-width", 2);
+    },
+    
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
         var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
