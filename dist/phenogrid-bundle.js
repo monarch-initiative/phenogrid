@@ -2049,9 +2049,8 @@ var images = require('./images.json');
 
     // Phenogrid container div
 	_createPhenogridContainer: function(msg) {
-		var container = $('<div id="pg_container"></div>');
-		this.state.pgContainer = container;
-		this.element.append(container);
+		this.state.pgContainer = $('<div id="pg_container"></div>');
+		this.element.append(this.state.pgContainer);
 	},
     
     // Loading spinner image from font awesome - Joe
@@ -2062,7 +2061,7 @@ var images = require('./images.json');
     
     // if no owlsim data returned
     _showNoResults: function() {
-        $('#pg_container').html('No results returned.');
+        this.state.pgContainer.html('No results returned.');
     },
     
     // callback to handle the loaded owlsim data
@@ -3011,7 +3010,7 @@ var images = require('./images.json');
 
         pg_tooltip.append(pg_tooltip_inner);
 		// Append to #pg_container
-        $('#pg_container').append(pg_tooltip);
+        this.state.pgContainer.append(pg_tooltip);
 
         // Hide the tooltip div by default
         this._hideTooltip(pg_tooltip);
@@ -3052,7 +3051,7 @@ var images = require('./images.json');
         // .offset() is a jquery method, so we need to use $(elem) - Joe
         var pos = $(elem).offset();
         // position of the pg_container
-        var pgContainerPos = $('#pg_container').offset();
+        var pgContainerPos = this.state.pgContainer.offset();
         // Calculate the absolute x and y position of the tooltip,
         // otherwise, the tooltip will be incorrectly position when run phenogrid inside monarch-app - Joe
 		var leftPos = pos.left - pgContainerPos.left;
@@ -3782,7 +3781,7 @@ var images = require('./images.json');
         var pg_unmatched = $('<div id="pg_unmatched"></div>');
 
         // Not in the #pg_svg_group div since it's HTML - Joe
-		$('#pg_container').append(pg_unmatched);
+		this.state.pgContainer.append(pg_unmatched);
         
         // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
 		var pg_unmatched_list = '<div id="pg_unmatched_list"><i id="pg_unmatched_close" class="fa fa-times"></i><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span><div id="pg_unmatched_list_data"></div></div>';
@@ -3803,7 +3802,7 @@ var images = require('./images.json');
 		var phenogridControls = $('<div id="pg_controls"></div>');
 
 		// Not in the #pg_svg_group div since it's HTML - Joe
-		$('#pg_container').append(phenogridControls);
+		this.state.pgContainer.append(phenogridControls);
 		
 		// Need to put .pg_controls_options_arrow_border span before .pg_controls_options_arrow span - Joe
 		var optionhtml = '<div id="pg_controls_options"><i id="pg_controls_close"class="fa fa-times"></i><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
