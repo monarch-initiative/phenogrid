@@ -233,6 +233,9 @@ var images = require('./images.json');
 	_init: function() {
 		this.element.empty();
 
+        // create the Phenogrid div
+        this._createPhenogridContainer();
+        
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
@@ -341,6 +344,19 @@ var images = require('./images.json');
         }
 	},
 
+    // Phenogrid container div
+	_createPhenogridContainer: function(msg) {
+		var container = $('<div id="pg_container"></div>');
+		this.state.pgContainer = container;
+		this.element.append(container);
+	},
+    
+    // Loading spinner image from font awesome - Joe
+	_showLoadingSpinner: function() {
+		var element = $('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
+		element.appendTo(this.state.pgContainer);
+	},
+    
     // callback to handle the loaded owlsim data
 	_asyncDataLoadingCB: function(self) {
 		// add dataManager to this.state
@@ -352,11 +368,9 @@ var images = require('./images.json');
             // need to update the selectedCompareTargetGroup list depending on if we loaded all the data
 		    self._updateSelectedCompareTargetGroup();
         }
-
         
         // This removes the loading spinner, otherwise the spinner will be always there - Joe
-        self.element.empty();
-        self._createPhenogridContainer();
+        self.state.pgContainer.html('');
 
         // check owlsim data integrity - Joe
         if (self.state.owlSimFunction === 'compare') {
@@ -510,12 +524,7 @@ var images = require('./images.json');
 	   	}
     },
 
-	// Loading spinner image from font awesome - Joe
-	_showLoadingSpinner: function() {
-		var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
-		this._createPhenogridContainer();
-		element.appendTo(this.state.pgContainer);
-	},
+	
 	
     // Recreates the SVG content and leave the HTML sections unchanged
 	_updateDisplay: function() {
@@ -1409,12 +1418,7 @@ var images = require('./images.json');
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
 
-    // phenogrid container div
-	_createPhenogridContainer: function(msg) {
-		var container = $('<div id="pg_container"></div>');
-		this.state.pgContainer = container;
-		this.element.append(container);
-	},
+    
 
 	// add a tooltip div stub, this is used to dynamically set a tooltip info 
 	_createTooltipStub: function() {

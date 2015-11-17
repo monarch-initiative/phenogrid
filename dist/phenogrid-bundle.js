@@ -1936,6 +1936,9 @@ var images = require('./images.json');
 	_init: function() {
 		this.element.empty();
 
+        // create the Phenogrid div
+        this._createPhenogridContainer();
+        
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
@@ -2044,6 +2047,19 @@ var images = require('./images.json');
         }
 	},
 
+    // Phenogrid container div
+	_createPhenogridContainer: function(msg) {
+		var container = $('<div id="pg_container"></div>');
+		this.state.pgContainer = container;
+		this.element.append(container);
+	},
+    
+    // Loading spinner image from font awesome - Joe
+	_showLoadingSpinner: function() {
+		var element = $('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
+		element.appendTo(this.state.pgContainer);
+	},
+    
     // callback to handle the loaded owlsim data
 	_asyncDataLoadingCB: function(self) {
 		// add dataManager to this.state
@@ -2055,11 +2071,9 @@ var images = require('./images.json');
             // need to update the selectedCompareTargetGroup list depending on if we loaded all the data
 		    self._updateSelectedCompareTargetGroup();
         }
-
         
         // This removes the loading spinner, otherwise the spinner will be always there - Joe
-        self.element.empty();
-        self._createPhenogridContainer();
+        self.state.pgContainer.html('');
 
         // check owlsim data integrity - Joe
         if (self.state.owlSimFunction === 'compare') {
@@ -2213,12 +2227,7 @@ var images = require('./images.json');
 	   	}
     },
 
-	// Loading spinner image from font awesome - Joe
-	_showLoadingSpinner: function() {
-		var element =$('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
-		this._createPhenogridContainer();
-		element.appendTo(this.state.pgContainer);
-	},
+	
 	
     // Recreates the SVG content and leave the HTML sections unchanged
 	_updateDisplay: function() {
@@ -3112,12 +3121,7 @@ var images = require('./images.json');
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
 
-    // phenogrid container div
-	_createPhenogridContainer: function(msg) {
-		var container = $('<div id="pg_container"></div>');
-		this.state.pgContainer = container;
-		this.element.append(container);
-	},
+    
 
 	// add a tooltip div stub, this is used to dynamically set a tooltip info 
 	_createTooltipStub: function() {
@@ -4511,7 +4515,7 @@ module.exports = Utils;
 },{"jquery":11}],8:[function(require,module,exports){
 !function() {
   var d3 = {
-    version: "3.5.8"
+    version: "3.5.9"
   };
   var d3_arraySlice = [].slice, d3_array = function(list) {
     return d3_arraySlice.call(list);
@@ -5743,7 +5747,7 @@ module.exports = Utils;
         function ended() {
           if (!position(parent, dragId)) return;
           dragSubject.on(move + dragName, null).on(end + dragName, null);
-          dragRestore(dragged && d3.event.target === target);
+          dragRestore(dragged);
           dispatch({
             type: "dragend"
           });
@@ -5981,7 +5985,7 @@ module.exports = Utils;
       }), center0 = null;
     }
     function mousedowned() {
-      var that = this, target = d3.event.target, dispatch = event.of(that, arguments), dragged = 0, subject = d3.select(d3_window(that)).on(mousemove, moved).on(mouseup, ended), location0 = location(d3.mouse(that)), dragRestore = d3_event_dragSuppress(that);
+      var that = this, dispatch = event.of(that, arguments), dragged = 0, subject = d3.select(d3_window(that)).on(mousemove, moved).on(mouseup, ended), location0 = location(d3.mouse(that)), dragRestore = d3_event_dragSuppress(that);
       d3_selection_interrupt.call(that);
       zoomstarted(dispatch);
       function moved() {
@@ -5991,7 +5995,7 @@ module.exports = Utils;
       }
       function ended() {
         subject.on(mousemove, null).on(mouseup, null);
-        dragRestore(dragged && d3.event.target === target);
+        dragRestore(dragged);
         zoomended(dispatch);
       }
     }
@@ -13438,6 +13442,14 @@ module.exports = Utils;
           delete lock[cancelId];
         }
       }
+      timer.c = tick;
+      d3_timer(function() {
+        if (timer.c && tick(elapsed || 1)) {
+          timer.c = null;
+          timer.t = NaN;
+        }
+        return 1;
+      }, 0, time);
       lock.active = id;
       transition.event && transition.event.start.call(node, node.__data__, i);
       tweens = [];
@@ -13448,14 +13460,6 @@ module.exports = Utils;
       });
       ease = transition.ease;
       duration = transition.duration;
-      timer.c = tick;
-      d3_timer(function() {
-        if (timer.c && tick(elapsed || 1)) {
-          timer.c = null;
-          timer.t = NaN;
-        }
-        return 1;
-      }, 0, time);
     }
     function tick(elapsed) {
       var t = elapsed / duration, e = ease(t), n = tweens.length;
@@ -14057,7 +14061,7 @@ module.exports = Utils;
   d3.xml = d3_xhrType(function(request) {
     return request.responseXML;
   });
-  if (typeof define === "function" && define.amd) define(this.d3 = d3); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
+  if (typeof define === "function" && define.amd) this.d3 = d3, define(d3); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
 }();
 },{}],9:[function(require,module,exports){
 /* FileSaver.js
