@@ -13,6 +13,11 @@
  *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
  *         serverURL : "http://monarchinitiative.org",
  *         phenotypeData: phenotypes,
+ *         targetGroupList: [
+ *           {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
+ *           {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
+ *           {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true}
+ *         ]
  *     });
  * }
  *
@@ -26,26 +31,11 @@
  *
  *	Given an input list of phenotypes and parameters indicating
  *	desired source of matching models (humans, model organisms, etc.),
- *	the phenogrid will call the Monarch API to get OWLSim results
- *	consisting of arrays of the items of the following form:
- *	{
- *		"id":"HP_0000716_MP_0001413_MGI_006446",
- *		"label_a":"Depression",
- *		"id_a":"HP:0000716",
- *		"subsumer_label":"Abnormal emotion/affect behavior",
- *		"subsumer_id":"HP:0100851",
- *		"value":5.667960271407814,
- *		"label_b":"abnormal response to new environment",
- *		"id_b":"MP:0001413",
- *		"model_id":"MGI_006446",
- *		"model_label":"B10.Cg-H2<sup>h4</sup>Sh3pxd2b<sup>nee</sup>/GrsrJ",
- *	},
- *
- *	These results will then be rendered in the phenogrid
+ *	the Phenogrid will call the Monarch API to get OWLSim results. These results will then be rendered in the Phenogrid
  */
 
 
-// Will need to install jquery, jquery-ui, d3, jshashtable first via npm - Joe
+
 // Note: jquery 2.1.0 is capable of using browserify's module.exports - Joe
 // npm install jquery jquery-ui d3 filesaver
 
@@ -100,10 +90,9 @@ var images = require('./images.json');
 	$.widget("ui.phenogrid", {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
-            serverURL: "http://beta.monarchinitiative.org",
-            selectedCalculation: 0,
-            invertAxis: false,
-            selectedSort: "Frequency",
+            serverURL: "http://monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
+            selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
+            selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
             // this default targetGroupList config will be used if it's not specified 
             // in either the phenogrid_config.js or phenogrid constructor
             // There are two parameters which allow you to control whether a target group is displayed 
@@ -132,6 +121,7 @@ var images = require('./images.json');
         // Supposed to be used by developers for deeper customization
         // can not be overwritten from constructor
         internalOptions: {
+            invertAxis: false,
             simSearchQuery: "/simsearch/phenotype",
             compareQuery: "/compare", // used for owlSimFunction === 'compare' - Joe
             unmatchedButtonLabel: 'Unmatched Phenotypes',
@@ -157,9 +147,10 @@ var images = require('./images.json');
             navigator: {
                 x:112, 
                 y: 65, 
-                size:110, 
-                reducedSize: 50, 
-                miniCellSize: 2
+                width:110, // the actual width will be calculated based on the number of x count - Joe
+                height:110, // the actual height will be calculated based on the number of y count - Joe
+                miniCellwd:2,
+                miniCellht:2
             },// controls the navigator mapview - Joe
             logo: {
                 x: 70, 
@@ -173,7 +164,7 @@ var images = require('./images.json');
                 ypad:18, // x distance from the first cell to the next cell
                 xpad:18, // y distance from the first cell to the next cell
                 cellwd:12, // grid cell width
-                cellht:12, // // grid cell height
+                cellht:12, // grid cell height
                 rowLabelOffset:-25, // offset of the row label (left side)
                 colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
@@ -181,7 +172,7 @@ var images = require('./images.json');
             gradientRegion: {
                 width: 240,
                 height: 5
-            }, // width will be calculated - Joe
+            },
             phenotypeSort: [
                 "Alphabetic", 
                 "Frequency and Rarity", 
@@ -192,11 +183,7 @@ var images = require('./images.json');
                 {label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"}, 
                 {label: "Uniqueness", calc: 2, high: "Highest", low: "Lowest"},
                 {label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"}
-            ],
-            comparisonTypes: [ 
-                {organism: "Homo sapiens", comparison: "diseases"}
-            ],
-            defaultComparisonType: {comparison: "genes"}
+            ]
         },
 
 
@@ -209,7 +196,7 @@ var images = require('./images.json');
         // Merge into one object
         // this.options is the options object provided in phenogrid constructor
         // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
-		this.state = $.extend({},this.internalOptions,this.config,this.configoptions,this.options);
+		this.state = $.extend({}, this.internalOptions, this.config, this.configoptions, this.options);
 
         // Create new arrays for later use
         // initialTargetGroupLoadList is used for loading the simsearch data
@@ -378,8 +365,6 @@ var images = require('./images.json');
             // check the flags to see if there's matches data found - Joe
             if (self.state.dataManager.noMatchesFound) {
                 self._showNoResults();
-            } else if (self.state.dataManager.noMetadataFound) {
-                self._showNoMetadata();
             } else {
                 // initialize axis groups
 	            self._createAxisRenderingGroups();
@@ -410,27 +395,11 @@ var images = require('./images.json');
                 // use splice() not slice() - Joe
                 // splice() modifies the array in place and returns a new array containing the elements that have been removed.
                 this.state.selectedCompareTargetGroup.splice(idx, 1);
-
-//				this.state.selectedCompareTargetGroup[idx].active = false;
-//				this.state.selectedCompareTargetGroup[idx].crossComparisonView = false;
 			}
 		}
 	}, 
 
 
-	_initDefaults: function() {
-		// hook for exomiser, PENDING - Joe
-        if (this.state.owlSimFunction === 'exomiser') {
-			this.state.selectedCalculation = 2; // Force the color to Uniqueness
-		}
-
-	    this._setSelectedCalculation(this.state.selectedCalculation);
-		this._setDefaultSelectedSort(this.state.selectedSort);
-
-		this._createColorScale();  
-	},
-
-    
     // for genotype expansion, we need to update the target list 
     // for each species if they have added genotypes - Joe
     _updateTargetAxisRenderingGroup: function(species_name) {
@@ -571,10 +540,10 @@ var images = require('./images.json');
         this._createSvgContainer();
         this._addLogoImage();
         this._createOverviewTargetGroupLabels();
+        this._whetherToCreateOverviewSection();
         this._createGrid();
         this._createScoresTipIcon();
         this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
-        this._createOverviewSection();
         this._createGradientLegend();
         this._createTargetGroupDividerLines();
         this._createMonarchInitiativeText(); // For exported phenogrid SVG, hide by default
@@ -717,7 +686,10 @@ var images = require('./images.json');
 				return "pg_grid_row_"+i;
             })
   			.attr("transform", function(d, i) { 
-  			 	return "translate(" + gridRegion.x +"," + self._calcYCoord(d, i) + ")"; 
+                var y = self.state.gridRegion.y;
+                var ypad = self.state.gridRegion.ypad;
+
+                return "translate(" + gridRegion.x +"," + (y+(i*ypad)) + ")"; 
             });
 
    		// create row labels
@@ -779,7 +751,9 @@ var images = require('./images.json');
         // so they can overwrite the row background for those added genotype rows - Joe 
         row.each(createrow);
 
+        // callback for row.each()
 		function createrow(row) {
+            // The each operator can be used to process selections recursively, by using d3.select(this) within the callback function.
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
 		        .enter().append("rect")
@@ -853,13 +827,6 @@ var images = require('./images.json');
 			.attr('y1', y1)
 			.attr('x2', x2)
 			.attr('y2', y2);
-	},
-	
-	_calcYCoord: function (d, i) {
-		var y = this.state.gridRegion.y;
-		var ypad = this.state.gridRegion.ypad;
-
-		return (y+(i*ypad));
 	},
 
     // mouseover x/y label and grid cell
@@ -936,16 +903,11 @@ var images = require('./images.json');
     // removes the highlighted x/y labels as well as highlighted grid cell
 	_removeMatchingHighlight: function() {
 		// remove highlighting for row/col
-		d3.selectAll(".row text")
-			  .classed("pg_active", false);
-		d3.selectAll(".column text")
-			  .classed("pg_active", false);
-		d3.selectAll(".row text")
-			  .classed("pg_related_active", false);
-		d3.selectAll(".column text")
-			  .classed("pg_related_active", false);		
-		d3.selectAll(".cell")
-				.classed("pg_rowcolmatch", false);	
+		d3.selectAll(".row text").classed("pg_active", false);
+		d3.selectAll(".column text").classed("pg_active", false);
+		d3.selectAll(".row text").classed("pg_related_active", false);
+		d3.selectAll(".column text").classed("pg_related_active", false);		
+		d3.selectAll(".cell").classed("pg_rowcolmatch", false);	
 	},
 
 	_createMatchingHighlight: function(elem, data) {
@@ -960,24 +922,20 @@ var images = require('./images.json');
 
 			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
-					d3.select("#pg_grid_row_" + matches[k].ypos +" text")
-				  	.classed("pg_related_active", true);
+					d3.select("#pg_grid_row_" + matches[k].ypos +" text").classed("pg_related_active", true);
 				}
 			}	
-	  		d3.select("#pg_grid_col_" + currenPos +" text")
-				  .classed("pg_active", true);	
+	  		d3.select("#pg_grid_col_" + currenPos +" text").classed("pg_active", true);	
 		} else {  // hovered over a row
 			hightlightSources = false;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
 
 			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
-					d3.select("#pg_grid_col_" + matches[k].xpos +" text")
-				  	.classed("pg_related_active", true);
+					d3.select("#pg_grid_col_" + matches[k].xpos +" text").classed("pg_related_active", true);
 				}
 			}		
-			d3.select("#pg_grid_row_" + currenPos +" text")
-				  .classed("pg_active", true);
+			d3.select("#pg_grid_row_" + currenPos +" text").classed("pg_active", true);
 		}				
 
 	},
@@ -990,8 +948,7 @@ var images = require('./images.json');
 
 	_gridHeight: function() {
 		var gridRegion = this.state.gridRegion; 
-		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);
-		//var height = (gridRegion.ypad * this.state.sourceDisplayLimit) - (gridRegion.ypad - gridRegion.cellht);		
+		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);	
 		return height;
 	},
 
@@ -1034,96 +991,142 @@ var images = require('./images.json');
                 });  
 	    } else {
 	    	scores	      		
-	    	.attr("transform", function(d, i) { 
-                return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
-                     "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
-                })
-            .attr("x", 0)
-            .attr("y", scale.rangeBand()+2);
+                .attr("transform", function(d, i) { 
+                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
+                         "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
+                    })
+                .attr("x", 0)
+                .attr("y", scale.rangeBand()+2);
 	    }
 	}, 
     
 	_getCellColor: function(score) {
-		// This is for the new "Overview" target option
 		var selectedScale = this.state.colorScale[this.state.selectedCalculation];
 		return selectedScale(score);
 	},
 
+    // In single species mode, only show mini map 
+    // when there are more sources than the default limit or more targets than default limit
+    // In cross comparison mode, only show mini map 
+    // when there are more sources than the default limit
+    _whetherToCreateOverviewSection: function() {
+        var xCount = this.state.xAxisRender.displayLength();
+        var yCount = this.state.yAxisRender.displayLength();
+        var width = this.state.navigator.width;
+        var height =this.state.navigator.height;
+        
+        // check xCount based on yCount
+        if ( ! this.state.invertAxis) {
+            if ( ! this._isCrossComparisonView()) {
+                if (yCount >= this.state.defaultSourceDisplayLimit) {
+                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        // just use the default mini map width and height
+                        this._createOverviewSection(width, height);
+                    } else {
+                        // shrink the width of mini map based on the xCount/this.state.defaultSingleTargetDisplayLimit
+                        // and keep the hight unchanged
+                        width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
+                } else {
+                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        // shrink the height of mini map based on the yCount/this.state.defaultSourceDisplayLimit ratio
+                        // and keep the hight unchanged
+                        height = height * (yCount/this.state.defaultSourceDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    } 
+                    
+                    // No need to create the mini map if both xCount and yCount are within the default limit
+                }
+            } else {
+                // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
+                if (yCount >= this.state.defaultSourceDisplayLimit) {  
+                    // just use the default mini map width and height
+                    this._createOverviewSection(width, height);
+                } 
+                
+                // No need to create the mini map if yCount is within the default limit
+            }
+	   	} else {
+            if ( ! this._isCrossComparisonView()) {
+                if (xCount >= this.state.defaultSourceDisplayLimit) {
+                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        this._createOverviewSection(width, height);
+                    } else {
+                        height = height * (yCount/this.state.defaultSingleTargetDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
+                } else {
+                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
+                        width = width * (xCount/this.state.defaultSourceDisplayLimit);
+                        this._createOverviewSection(width, height);
+                    }
+                }
+            } else {
+                if (xCount >= this.state.defaultSourceDisplayLimit) {  
+                    this._createOverviewSection(width, height);
+                } 
+            } 
+        }   
+    },
+    
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
-	_createOverviewSection: function() {
-		var self = this;
-
+	_createOverviewSection: function(width, height) {
 		// set the display counts on each axis
-		var yCount = self.state.yAxisRender.displayLength();  
-	    var xCount = self.state.xAxisRender.displayLength();  
-
-		// add-ons for stroke size on view box. Preferably even numbers
-		var linePad = self.state.navigator.miniCellSize;
-		var viewPadding = linePad * 2 + 2;
-
-		// overview region is offset by xTranslation, yTranslation
-		var xTranslation = 42; 
-		var yTranslation = 30;
+		var yCount = this.state.yAxisRender.displayLength();  
+	    var xCount = this.state.xAxisRender.displayLength();  
 
 		// these translations from the top-left of the rectangular region give the absolute coordinates
-		var overviewX = self.state.navigator.x;
-		var overviewY = self.state.navigator.y;
+		var overviewX = this.state.navigator.x;
+		var overviewY = this.state.navigator.y;
 
-		// size of the entire region - it is a square
-		var overviewRegionSize = self.state.navigator.size;
-		if (this.state.yAxisRender.groupLength() < yCount) {  
-			overviewRegionSize = self.state.navigator.reducedSize;
-		}
+		// create the main box
+		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.miniCellwd * 2 + 2, height + this.state.navigator.miniCellht * 2 + 2);
 
-		// make it a bit bigger to ccont for widths
-		var overviewBoxDim = overviewRegionSize + viewPadding;
-
-		// create the main box and the instruction labels.
-		this._initializeOverviewRegion(overviewBoxDim, overviewX, overviewY);
-
-		// create the scales
-		this._createSmallScales(overviewRegionSize);
+		// create the scales based on the mini map region size
+		this._createSmallScales(width, height);
 
 		// this should be the full set of cellData
 		var xvalues = this.state.xAxisRender.groupEntries();
 		//console.log(JSON.stringify(xvalues));
 		var yvalues = this.state.yAxisRender.groupEntries();	
 
+        // in compare mode, the targetGroup will be 'compare' instead of actual species name - Joe
+        // each element in data contains source_id, targetGroup, target_id, type ('cell'), xpos, and ypos
         if (this.state.owlSimFunction === 'compare') {
             var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
         } else {
             var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
         }
 
-		// Group all mini cells in g element - Joe
-		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
-							.attr("id", "pg_mini_cells_container");
-						
-        // Add cells to the miniCellsGrp - Joe						
-		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
-			.data(data, function(d) {return d.source_id + d.target_id;});  
-			
-			
-		overviewX++;	// Corrects the gapping on the sides
+        // add 1px unit space to the left and top
+        overviewX++;
 		overviewY++;
-		var cellRectTransform = "translate(" + overviewX +	"," + overviewY + ")";
-
-		cell_rects.enter()
+        
+		// Group all mini cells in g element
+        // apply the translate to the #pg_mini_cells_container instead of each cell - Joe
+		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
+							.attr("id", "pg_mini_cells_container")
+                            .attr("transform", "translate(" + overviewX + "," + overviewY + ")");
+						
+        var self = this; // to be used in callback
+        
+        // Add cells to the miniCellsGrp	
+		var cell_rects = miniCellsGrp.selectAll(".mini_cell")
+			.data(data, function(d) {
+                return d.source_id + d.target_id;
+            })
+            .enter()
 			.append("rect")
-			.attr("transform", cellRectTransform)
 			.attr("class", "mini_cell")
-			.attr("y", function(d, i) { 
-				var yid = d.source_id;
-				var yscale = self.state.smallYScale(yid);
-			        var y = yscale + linePad / 2;
-				return y;})
 			.attr("x", function(d) { 
-				var xid = d.target_id;
-				var xscale = self.state.smallXScale(xid);
-				var x =  xscale + linePad / 2; 
-				return x;})
-			.attr("width", linePad) // Defined in navigator.miniCellSize
-			.attr("height", linePad) // Defined in navigator.miniCellSize
+				return self.state.smallXScale(d.target_id) + self.state.navigator.miniCellwd / 2; 
+            })
+            .attr("y", function(d, i) { 
+				return self.state.smallYScale(d.source_id) + self.state.navigator.miniCellht / 2;
+            })
+			.attr("width", this.state.navigator.miniCellwd) 
+			.attr("height", this.state.navigator.miniCellht) 
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
@@ -1153,30 +1156,22 @@ var images = require('./images.json');
 			.attr("class", "pg_draggable")
             .style("fill", "grey")
             .style("opacity", 0.5)
-			.call(d3.behavior.drag()
+			.call(d3.behavior.drag() // Constructs a new drag behavior
 				.on("drag", function(d) {
 					/*
 					 * drag the highlight in the overview window
 					 * notes: account for the width of the rectangle in my x and y calculations
 					 * do not use the event x and y, they will be out of range at times. Use the converted values instead.
 					 */
-
-					var current = d3.select(this);
-					var curX = parseFloat(current.attr("x"));
-					var curY = parseFloat(current.attr("y"));
-
-					var rect = self.state.svg.select("#pg_navigator_shaded_area");
-					rect.attr("transform","translate(0,0)");
-
 					// limit the range of the x value
-					var newX = curX + d3.event.dx;
-					var newY = curY + d3.event.dy;
+					var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
+					var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
 
 					// Restrict Movement if no need to move map
-					if (selectRectHeight === overviewRegionSize) {
+					if (selectRectHeight === height) {
 						newY = overviewY;
 					}
-					if (selectRectWidth === overviewRegionSize) {
+					if (selectRectWidth === width) {
 						newX = overviewX;
 					}
 
@@ -1189,32 +1184,30 @@ var images = require('./images.json');
 						newY = overviewY;
 					}
 					// right
-					if (newX + selectRectWidth > overviewX + overviewRegionSize) {
-						newX = overviewX + overviewRegionSize - selectRectWidth;
+					if (newX + selectRectWidth > overviewX + width) {
+						newX = overviewX + width - selectRectWidth;
 					}
 
 					// bottom
-					if (newY + selectRectHeight > overviewY + overviewRegionSize) {
-						newY = overviewY + overviewRegionSize - selectRectHeight;
+					if (newY + selectRectHeight > overviewY + height) {
+						newY = overviewY + height - selectRectHeight;
 					}
-					rect.attr("x", newX);
-					// This changes for vertical positioning
-					rect.attr("y", newY);
+                    
+					var draggableArea = self.state.svg.select("#pg_navigator_shaded_area")
+                        .attr("x", newX)
+                        .attr("y", newY);
 
 					// adjust x back to have 0,0 as base instead of overviewX, overviewY
 					newX = newX - overviewX;
 					newY = newY - overviewY;
 
-					// invert newX and newY into posiions in the model and phenotype lists.
-					var j = self._invertOverviewDragPosition(self.state.smallXScale,newX);
-					var newXPos = j + xCount;
+					// invert newX and newY into positions in the model and phenotype lists.
+					var newXPos = self._invertOverviewDragPosition(self.state.smallXScale, newX) + xCount;
+					var newYPos = self._invertOverviewDragPosition(self.state.smallYScale, newY) + yCount;
 
-					var jj = self._invertOverviewDragPosition(self.state.smallYScale,newY);
-					var newYPos = jj + yCount;
-
+                    // grid region needs to be updated accordingly
 					self._updateGrid(newXPos, newYPos);
 		}));
-		// set this back to 0 so it doesn't affect other rendering
 	},
 
     // Tip info icon for more info on those text scores
@@ -1234,45 +1227,48 @@ var images = require('./images.json');
 			});
 	},
 		
-	_initializeOverviewRegion: function(overviewBoxDim, overviewX, overviewY) {
+	_initializeOverviewRegion: function(overviewX, overviewY, width, height) {
 		// Group the overview region and text together - Joe
 		var globalviewGrp = this.state.svg.append("g")
 			.attr("id", "pg_navigator");
 		
-		// rectangular border for overview
-		// border color and thickness are defined in phenogrid.css #pg_globalview - Joe
+		// rectangular border for overview map
+		// border color and thickness are defined inline so it can be used by exported svg - Joe
 		globalviewGrp.append("rect")
 			.attr("x", overviewX)
 			.attr("y", overviewY)
 			.attr("id", "pg_globalview")
-			.attr("height", overviewBoxDim)
-			.attr("width", overviewBoxDim)
+			.attr("height", height)
+			.attr("width", width)
             .style("fill", "#fff")
             .style("stroke", "#000")
-            .style("stroke-width", 2);
+            .style("stroke-width", 2); // border thickness
 	},
 
-	_createSmallScales: function(overviewRegionSize) {
-		var self = this;
+    // for overview mini map
+	_createSmallScales: function(width, height) {
 		var sourceList = [];
 		var targetList = [];
 
 		// create list of all item ids within each axis
-   	    sourceList = self.state.yAxisRender.groupIDs();
-	    targetList = self.state.xAxisRender.groupIDs();
+   	    sourceList = this.state.yAxisRender.groupIDs();
+	    targetList = this.state.xAxisRender.groupIDs();
 
-		self.state.smallYScale = d3.scale.ordinal()
-			.domain(sourceList.map(function (d) {return d; }))
-			.rangePoints([0, overviewRegionSize]);
+		this.state.smallYScale = d3.scale.ordinal()
+			.domain(sourceList.map(function (d) {
+                return d; 
+            }))
+			.rangePoints([0, height]);
 
-		self.state.smallXScale = d3.scale.ordinal()
+		this.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
 				var td = d;
-				return d; }))
-			.rangePoints([0, overviewRegionSize]);   	    
+				return d; 
+            }))
+			.rangePoints([0, width]);   	    
 	},
 
-	_invertOverviewDragPosition: function(scale,value) {
+	_invertOverviewDragPosition: function(scale, value) {
 		var leftEdges = scale.range();
 		var size = scale.rangeBand();
 		var j;
@@ -1281,27 +1277,11 @@ var images = require('./images.json');
 		return j;
 	},
 
-	_getComparisonType: function(organism){
-		var label = "";
-
-		for (var i in this.state.comparisonTypes) {
-			if (organism === this.state.comparisonTypes[i].organism){
-				label = this.state.comparisonTypes[i].comparison;
-			}
-		}
-		if (label === ""){
-			label = this.state.defaultComparisonType.comparison;
-		}
-		return label;
-	}, 
-
-
     // Being called only for the first time the widget is being loaded
 	_createDisplay: function() {
         // create the display as usual if there's 'b' and 'metadata' fields found - Joe
         if (this.state.dataManager.isInitialized()) {
-            // uses the metadata to get maxICScore - Joe
-            this._createColorScale();
+            this._createColorScalePerSimilarityCalculation();
             
             // No need to recreate this tooltip on _updateDisplay() - Joe
             this._createTooltipStub();
@@ -1358,95 +1338,68 @@ var images = require('./images.json');
         }
     },
     
+    // if no owlsim data returned
     _showNoResults: function() {
         $('#pg_container').html('No results returned.');
     },
-    
-    _showNoMetadata: function() {
-        $('#pg_container').html('No data returned to render the grid cell color for each calculation method.');
-    },
-    
+
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
 	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
-	     if (this.state.yAxisRender.contains(key)){
-		    return this.state.yAxisRender.get(key);
-		 } else if (this.state.xAxisRender.contains(key)){
-		    return this.state.xAxisRender.get(key);
-		 }
-		 else { return null; }
+        if (this.state.yAxisRender.contains(key)) {
+            return this.state.yAxisRender.get(key);
+        } else if (this.state.xAxisRender.contains(key)) {
+            return this.state.xAxisRender.get(key);
+        } else { 
+            return null; 
+        }
 	},
 
 	_getAxisDataPosition: function(key) {
-	    if (this.state.yAxisRender.contains(key)){
+	    if (this.state.yAxisRender.contains(key)) {
 		    return this.state.yAxisRender.position(key);
-		} else if (this.state.xAxisRender.contains(key)){
+		} else if (this.state.xAxisRender.contains(key)) {
 		    return this.state.xAxisRender.position(key);
 		} else { 
             return -1; 
         }
 	},
 
-	_createColorScale: function() {
-        // set a max IC score
-        // metadata.maxMaxIC is used to generate the color sace in phenogrid.js _createColorScale()
-        // sometimes the 'metadata' field might be missing from the JSON,
-        // then the dataLoader.getMaxICScore() returns 0 (default value) - Joe
-        this.state.maxICScore = this.state.dataManager.maxICScore;
-            
-        var maxScore = 0;
-        var method = this.state.selectedCalculation; // 4 different calculations (Similarity, Ration (q), Ratio (t), Uniqueness) - Joe
-
-        switch(method){
-            case 0: // Similarity
-                maxScore = 100;
-                break;
-            case 1: // Ration (q)
-                maxScore = 100;
-                break;
-            case 2: // Uniqueness
-                maxScore = this.state.maxICScore; 
-                break;
-            case 3: // Ratio (t)
-                maxScore = 100;
-                break;
-            default: 
-                maxScore = this.state.maxICScore;
-                break;
-        }
-
-        this.state.colorScale = new Array(4); // Why 4? One color scale per calculation method - Joe
-        for (var i = 0; i < 4; i++) {
-            maxScore = 100;
-            if (i === 2) {
-                maxScore = this.state.maxICScore; // Uniqueness 
-            }
-            
-            // colorRanges has 6 stop colors
-            this.state.colorScale[i] = this._getColorScale(maxScore);
-        }
-	},
 
     // create color scale for each calculation method
-	_getColorScale: function(maxScore) {
-        var cs = d3.scale.linear(); // Constructs a new linear scale with the default domain [0,1] and the default range [0,1]. 
-        // Simply put: scales transform a number in a certain interval (called the domain) 
-        // into a number in another interval (called the range).
+	_createColorScalePerSimilarityCalculation: function() {
+        this.state.colorScale = []; // One color scale per calculation method - Joe
+        // 4 different calculations (0 - Similarity, 1 - Ration (q), 2 - Uniqueness, 3- Ratio (t))
+        var len = this.state.similarityCalculation.length;
+ 
+        for (var i = 0; i < len; i++) {
+            // Except Uniqueness (index is 2), all other three methods use 100 as the maxScore
+            var maxScore = 100;
+            if (i === 2) {
+                maxScore = this.state.dataManager.maxMaxIC; // Uniqueness 
+            }
+            
+            // Constructs a new linear scale with the default domain [0,1] and the default range [0,1]. 
+            var cs = d3.scale.linear(); 
+            // Simply put: scales transform a number in a certain interval (called the domain) 
+            // into a number in another interval (called the range).
 
-        // transform a score domain to a color domain, then transform a color domain into an actual color range
-        cs.domain([0, maxScore]); // sets the scale's input domain to the specified array of numbers
+            // transform a score domain to a color domain, then transform a color domain into an actual color range
+            cs.domain([0, maxScore]); // sets the scale's input domain to the specified array of numbers
 
-        // this.state.colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1]
-        // this.state.colorDomains.map(cs.invert): [0, 20, 40, 60, 80, 100]
-        cs.domain(this.state.colorDomains.map(cs.invert));
+            // this.state.colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1]
+            // this.state.colorDomains.map(cs.invert): [0, 20, 40, 60, 80, 100]
+            cs.domain(this.state.colorDomains.map(cs.invert));
 
-        // sets the scale's output range to the specified array of values
-        cs.range(this.state.colorRanges);
+            // sets the scale's output range to the specified array of values
+            cs.range(this.state.colorRanges);
 
-        // returns function
-        return cs;
+            // colorRanges has 6 stop colors
+            this.state.colorScale[i] = cs;
+        }
 	},
 
+    // the svg container
 	_createSvgContainer: function() {
         this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
 	
@@ -1456,6 +1409,7 @@ var images = require('./images.json');
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
 
+    // phenogrid container div
 	_createPhenogridContainer: function(msg) {
 		var container = $('<div id="pg_container"></div>');
 		this.state.pgContainer = container;
@@ -1575,23 +1529,6 @@ var images = require('./images.json');
 
 	// Grid main top title
 	_addGridTitle: function() {
-		var targetGroup = '';
-
-		// set up defaults as if overview
-		var titleText = this.state.gridTitle;
-
-		if ( ! this._isCrossComparisonView()) {
-			targetGroup = this.state.selectedCompareTargetGroup[0].name;
-			var comp = this._getComparisonType(targetGroup);
-			titleText = this.state.gridTitle + " (grouped by " + targetGroup + " " + comp + ")";
-		}
-		
-        // Show the default gridTitle for compare mode
-        // not sure what to show for exomiser mode, will decide later - Joe
-		if (this.state.owlSimFunction === 'compare'){
-			titleText = this.state.gridTitle;
-		}
-
 		// Add the top main title to pg_svg_group
 		this.state.svg.append("svg:text")
 			.attr("id", "pg_toptitle")
@@ -1600,13 +1537,14 @@ var images = require('./images.json');
 			.style('text-anchor', 'middle') // Center the main title - Joe
             .style('font-size', '1.4em')
             .style('font-weight', 'bold')
-			.text(titleText);
+			.text(this.state.gridTitle);
 	},
 
 
 	// Positioned next to the grid region bottom
 	_addLogoImage: function() { 
-		this.state.svg.append("svg:image")
+		var self = this;
+        this.state.svg.append("svg:image")
 			.attr("xlink:href", images.logo)
 			.attr("x", this.state.logo.x)
 			.attr("y", this.state.logo.y)
@@ -1615,7 +1553,7 @@ var images = require('./images.json');
 			.attr("width", this.state.logo.width)
 			.attr("height", this.state.logo.height)
 			.on('click', function() {
-				window.open('http://monarchinitiative.org', '_blank');
+				window.open(self.state.serverURL, '_blank');
 			});
 	},
 
@@ -1625,11 +1563,11 @@ var images = require('./images.json');
 
 		// for cells we need to check the invertAxis to adjust for correct id
 		if (data.type === 'cell') {
-			 if (this.state.invertAxis) {
-				id = data.target_id;
-			 } else {
-				id = data.source_id;
-			 }
+            if (this.state.invertAxis) {
+                id = data.target_id;
+            } else {
+                id = data.source_id;
+            }
 		} else {
 			id = data.id;
 		}
@@ -1795,7 +1733,7 @@ var images = require('./images.json');
 				break;
 			}
 			// Currently only allows subClassOf relations.  When new relations are introducted, it should be simple to implement
-			if (edges[j].pred === "subClassOf" && this.state.ontologyTreesDone != this.state.ontologyTreeAmounts){
+			if (edges[j].pred === "subClassOf" && this.state.ontologyTreesDone !== this.state.ontologyTreeAmounts){
 				if (edges[j].sub === id){
 					if (this.state.ontologyTreeHeight < nextLevel){
 						this.state.ontologyTreeHeight++;
@@ -1810,7 +1748,7 @@ var images = require('./images.json');
 					}
 					
 					if (level === 0){
-						results += "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight) + this._getOntologyLabel(id) + "<br>";
+						results += "<br>" + this._buildIndentMark(this.state.ontologyTreeHeight) + this.state.dataManager.getOntologyLabel(id) + "<br>";
 						this.state.ontologyTreeHeight = 0;
 					}
 				}
@@ -1833,16 +1771,9 @@ var images = require('./images.json');
 		return indent + '&#8627'; // HTML entity - Joe
 	},
 
-	_getOntologyLabel: function(id) {
-		var label = this.state.dataManager.getOntologyLabel(id);
-		return label;
-	},
-
 	// Based on the ID, it pulls the label from CacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 	_buildOntologyHyperLink: function(id){
-		var label = this._getOntologyLabel(id);
-		var link = "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + label + "</a>";
-		return link;
+		return "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + this.state.dataManager.getOntologyLabel(id) + "</a>";
 	},
 
 	_createTargetGroupDividerLines: function() {
@@ -1867,8 +1798,7 @@ var images = require('./images.json');
 				y = y - gridRegion.colLabelOffset;  // offset the line to reach the labels
 			}
 
-			for (var i=1; i < numOfTargetGroup; i++) {
-
+			for (var i = 1; i < numOfTargetGroup; i++) {
 				var fudgeFactor = 3; //magic num
 				if (i > 1) {
 					fudgeFactor = 1;
@@ -1902,7 +1832,7 @@ var images = require('./images.json');
 
 
 					// render the slanted line between targetGroup (targetGroup) columns
-					 this.state.svg.append("line")				
+					this.state.svg.append("line")				
 					.attr("class", "pg_target_grp_divider")
 					.attr("transform","translate(" + x + "," + y + ")rotate(-45 " + x1 + " 0)")				
 					.attr("x1", x1)
@@ -1915,13 +1845,11 @@ var images = require('./images.json');
 				}
 			}
 		}
-
 	},
 
 
 	/*
-	 * Change the list of phenotypes and filter the models accordingly. The 
-	 * Movecount is an integer and can be either positive or negative
+	 * Change the list of phenotypes and filter the models accordingly.
 	 */
 	_updateGrid: function(newXPos, newYPos){
 		var xSize = this.state.xAxisRender.groupLength();
@@ -1943,7 +1871,7 @@ var images = require('./images.json');
 	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
-		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx-this.state.xAxisRender.displayLength());
+		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
 
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.yAxisRender.displayLength());
@@ -2201,7 +2129,6 @@ var images = require('./images.json');
 			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
 			var temp = [];
 			for (var idx = 0; idx < items.length; idx++) {
-
 				if (items[idx].childNodes[0].checked) {
 					var rec = self._getTargetGroupInfo(self, items[idx].textContent);
 					temp.push(rec);
@@ -2290,7 +2217,7 @@ var images = require('./images.json');
 			.attr("id", "pg_monarchinitiative_text")
 			.attr('class', 'pg_hide') // Only show this text in exported SVG of Phenogrid 
             .style('font-size', '11px')
-			.text('monarchinitiative.org');
+			.text(this.state.serverURL);
     },
     
 	// Position the control panel when the gridRegion changes
@@ -2394,14 +2321,12 @@ var images = require('./images.json');
 	// create about phenogrid FAQ inside the controls/options - Joe
 	_createAboutPhenogrid: function () {
 		var html = '<div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
-		
 		return $(html);
 	},
 	
     // Export current state of phenogrid as SVG file to be used in publications
     _createExportPhenogridButton: function() {
         var btn = '<div id="pg_export">Save as SVG...</div><div class="pg_hr"></div>';
-        
         return $(btn);
     },
     
@@ -2738,57 +2663,11 @@ var images = require('./images.json');
         
         // update display
         this._updateDisplay();
-        
-        /*
-        var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
-        // array of genotype id list
-        var associated_genotype_ids = this.state.dataLoader.expandedGenotypeList[id];
-         
-        // remove these genotype ids from underlying target dataset
-        // this way we still have other expanded genotypes in that sorted named array - Joe
-        // these ids in underscore format
-        for (var i = 0; i < associated_genotype_ids.length; i++) {
-            var genotype_id = associated_genotype_ids[i];
-            delete this.state.dataLoader.targetData[species_name][genotype_id]; 
-
-            // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
-            delete this.state.dataManager.reorderedTargetEntriesNamedArray[genotype_id];  
-            // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
-            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
-                if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = [];
-                }
-                
-                if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
-                    delete this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j];  
-                    break;
-                }
-            }         
-        }
-        
-        // also remove the cached gene id record from dataLoader cache
-        delete this.state.dataLoader.expandedGenotypeList[id]
-        
-        // set the flag
-        this.state.removedGenotypes[species_name] = true;
-        
-        // update the target list for axis render
-        this._updateTargetAxisRenderingGroup();
-
-        // reset flag
-        this.state.removedGenotypes[species_name] = false;
-        
-        // update display
-        this._updateDisplay();
-        
-        */
-        
-        
 	},    
     
 	_isTargetGroupSelected: function(self, name) {
 		for (var i in self.state.selectedCompareTargetGroup) {
-			if (self.state.selectedCompareTargetGroup[i].name == name) {
+			if (self.state.selectedCompareTargetGroup[i].name === name) {
 				return true;
 			}
 		}
@@ -2797,7 +2676,7 @@ var images = require('./images.json');
 
 	_getTargetGroupInfo: function(self, name) {
 		for (var i in self.state.targetGroupList) {
-			if (self.state.targetGroupList[i].name == name) {
+			if (self.state.targetGroupList[i].name === name) {
 				return self.state.targetGroupList[i];
 			}
 		}
@@ -2817,4 +2696,3 @@ var images = require('./images.json');
 });
 
 }());
-

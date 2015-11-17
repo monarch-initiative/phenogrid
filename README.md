@@ -144,6 +144,8 @@ window.onload = function() {
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
         serverURL : "http://monarchinitiative.org",
         phenotypeData: phenotypes,
+        selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
+        selectedCalculation: 0, // 0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t)
         targetGroupList: [
             {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
             {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
@@ -178,6 +180,21 @@ This URL should be pointed to the OWLSim URL server associated with your install
 ## `phenotypeData`  array | required
 
 It is a Javascript array of objects listing the phenotypes to be rendered in the widget.
+
+## `selectedSort`  string | optional
+
+The different ways that the sources (e.g., phenotypes) can be sorted. The sources that are shown on the left side of the grid may be sorted using one of three methods. 
+- Alphabetical - A-Z
+- Frequency and Rarity - sources, e.g., phenotypes are sorted by the sum of the phenotype values across all models/genes
+- Frequency - Default, sources, e.g., phenotypes are sorted by the count of the number of model/gene matches per phenotype
+
+## `selectedCalculation`  string | optional
+
+For each pairwise comparison of phenotypes from the query (q) and target (t), we can assess their individual similarities in a number of ways. 
+- 0 - Similarity
+- 1 - Ratio (q)
+- 2 - Uniqueness
+- 3- Ratio (t)
 
 
 ## `targetGroupList`  array | optional

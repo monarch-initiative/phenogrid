@@ -1,7 +1,6 @@
 var configoptions = {
-    serverURL: "http://beta.monarchinitiative.org",
+    serverURL: "http://monarchinitiative.org",
     selectedCalculation: 0,
-    invertAxis: false,
     selectedSort: "Frequency",
     targetGroupList: [
         {name: "Homo sapiens", taxon: "9606",crossComparisonView: true, active: true},

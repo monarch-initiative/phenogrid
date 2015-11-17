@@ -24,7 +24,7 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
-	this.maxICScore = 0;
+	this.maxMaxIC = 0;
 	this.targetData = [];
 	this.sourceData = [];
 	this.cellData = [];
@@ -34,7 +34,6 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.postDataLoadCallback = '';
     // compare api flags
     this.noMatchesFound = false; // flag to mark if there's matches in the returned JSON
-    this.noMetadataFound = false; // flag to mark if there's metadata in the returned JSON
 };
 
 DataLoader.prototype = {
@@ -114,11 +113,6 @@ DataLoader.prototype = {
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
                     self.noMatchesFound = true; // set the noMatchesFound flag
-                } else if (typeof (data.metadata.maxMaxIC) === 'undefined') {
-                    // metadata.maxMaxIC is used to generate the color sace in phenogrid.js _createColorScale()
-                    // sometimes the compare api doesn't return the metadata field, we can't create the desired colorscale
-                    // but this won't affect other UI rendering - Joe
-                    self.noMetadataFound = true; // set the noMetadataFound flag
                 } else {
                     // use 'compare' as the key of the named array
                     self.transform("compare", data);  
@@ -213,7 +207,7 @@ DataLoader.prototype = {
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
-				this.maxICScore = data.metadata.maxMaxIC;
+				this.maxMaxIC = data.metadata.maxMaxIC;
 			}
 			
             // just initialize the specific targetGroup
@@ -268,7 +262,7 @@ DataLoader.prototype = {
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
 						// get the normalized IC
-						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
+						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
 						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
@@ -324,7 +318,7 @@ DataLoader.prototype = {
 
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
-				this.maxICScore = data.metadata.maxMaxIC;
+				this.maxMaxIC = data.metadata.maxMaxIC;
 			}
 
             // no need to initialize the specific targetGroup
@@ -368,7 +362,7 @@ DataLoader.prototype = {
 						currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 
 						// get the normalized IC
-						lcs = Utils.normalizeIC(curr_row, this.maxICScore);
+						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
                         if(typeof(this.sourceData[targetGroup]) === 'undefined') {
                             this.sourceData[targetGroup] = {};
@@ -725,11 +719,6 @@ DataLoader.prototype = {
 	getOntologyCacheLabels: function() {
 		return this.ontologyCacheLabels;
 	},
-
-	getMaxICScore: function() {
-		return this.maxICScore;
-	},
-
 
 	/*
 		Function: dataExists

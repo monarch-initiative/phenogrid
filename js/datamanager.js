@@ -23,12 +23,11 @@ var DataManager = function(dataLoader) {
 	this.source = this.dataLoader.getSources();
 	this.cellData = this.dataLoader.getCellData();
 
-    this.maxICScore = this.dataLoader.getMaxICScore();
+    this.maxMaxIC = this.dataLoader.maxMaxIC;
     
-    // compare api flags - Joe
+    // compare api flag - Joe
     this.noMatchesFound = this.dataLoader.noMatchesFound;
-    this.noMetadataFound = this.dataLoader.noMetadataFound;
-    
+
 	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];
     
