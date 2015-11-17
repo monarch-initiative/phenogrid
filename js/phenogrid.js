@@ -1567,6 +1567,7 @@ var images = require('./images.json');
             if (data.type === 'gene') {
                 // DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
                 // for gene and single species mode only, add genotype expansion link
+                /*
                 if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
                     var expanded = this.state.dataManager.isExpanded(id); // gene id
 
@@ -1576,7 +1577,7 @@ var images = require('./images.json');
                         htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_insert_genotypes_" + id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
                     }
                 }
-                //
+                */
             }
         }
         
