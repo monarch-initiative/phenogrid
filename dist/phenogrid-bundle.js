@@ -2582,30 +2582,49 @@ var images = require('./images.json');
 
     _createScrollbars: function() {
         var self = this;
+        var sccrollbarToGridMargin = 20;
+        var scrollbarFixedSize = 12;
+        var scrollbarBorderThickness = 2;
+        var scrollbarBorderColor = "#000";
+        var scrollbarBgColor = "#fff";
+        var sliderFixedSize = 8;
+        var sliderColor = "grey";
+        var sliderOpacity = 0.5;
         
         // vertical scrollbar
         var verticalScrollbarGrp = this.state.svg.append("g")
 			.attr("id", "pg_vertical_scrollbar_group");
             
         verticalScrollbarGrp.append("rect")
-			.attr("x", this.state.gridRegion.x + this._gridWidth() + 20) // 20 is margin
+			.attr("x", this.state.gridRegion.x + this._gridWidth() + sccrollbarToGridMargin)
 			.attr("y", this.state.gridRegion.y)
 			.attr("id", "pg_vertical_scrollbar")
 			.attr("height", this._gridHeight())
-			.attr("width", 15)
-            .style("fill", "#fff")
-            .style("stroke", "#000")
-            .style("stroke-width", 2); // border thickness
+			.attr("width", scrollbarFixedSize)
+            .style("fill", scrollbarBgColor)
+            .style("stroke", scrollbarBorderColor)
+            .style("stroke-width", scrollbarBorderThickness); // border thickness
         
-        var defaultY = this.state.gridRegion.y + 2;
-        var sliderHeight = 40;
+        
+        // create the scales based on the scrollbar size
+        // don't include the border thickness (2) on both sides
+		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
+        
+        var yCount = this.state.yAxisRender.displayLength();  
+        var yRenderedSize = this.state.yAxisRender.displayLength();
+        var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
+        var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+        var defaultY = this.state.gridRegion.y + scrollbarBorderThickness;
+        var sliderHeight = this.state.verticalScrollbarScale(lastYId) - this.state.verticalScrollbarScale(startYId);
+
         verticalScrollbarGrp.append("rect")
-			.attr("x", this.state.gridRegion.x + this._gridWidth() + 20 + 2) // 20 is margin
+			.attr("x", this.state.gridRegion.x + this._gridWidth() + sccrollbarToGridMargin + scrollbarBorderThickness) 
             .attr("y", defaultY)
 			.attr("id", "pg_vertical_scrollbar_slider")
 			.attr("height", sliderHeight)
-			.attr("width", 11)
-            .style("fill", "#44A293")
+			.attr("width", sliderFixedSize)
+            .style("fill", sliderColor)
+            .style('opacity', sliderOpacity)
             .attr("class", "pg_draggable")
             .call(d3.behavior.drag()
                 .on("drag", function() {
@@ -2618,12 +2637,34 @@ var images = require('./images.json');
                     }
                     
                     // bottom
-                    if ((newY + sliderHeight) > (self.state.gridRegion.y + self._gridHeight() - 2)) {
-                        newY = self.state.gridRegion.y + self._gridHeight() - sliderHeight - 2;
+                    if ((newY + sliderHeight) > (self.state.gridRegion.y + self._gridHeight() - scrollbarBorderThickness)) {
+                        newY = self.state.gridRegion.y + self._gridHeight() - sliderHeight - scrollbarBorderThickness;
                     }
                     
                     self.state.svg.select("#pg_vertical_scrollbar_slider")
                         .attr("y", newY);
+                        
+                    // adjust
+					newY = newY - defaultY;
+
+                    var newYPos = self._invertOverviewDragPosition(self.state.verticalScrollbarScale, newY) + yCount;
+                    
+                    var ySize = self.state.yAxisRender.groupLength();
+                    
+                    if (newYPos >= ySize){
+                        self.state.currYIdx = ySize;
+                    } else {
+                        self.state.currYIdx = newYPos;
+                    }
+
+
+                    self.state.yAxisRender.setRenderStartPos(self.state.currYIdx - self.state.yAxisRender.displayLength());
+                    self.state.yAxisRender.setRenderEndPos(self.state.currYIdx);
+                    self._clearGrid();
+                    self._createGrid();
+                    
+                    // this must be called here so the tooltip disappears when we mouseout the current element - Joe
+                    self._relinkTooltip();
                 })
             );
         
@@ -2632,45 +2673,92 @@ var images = require('./images.json');
 			.attr("id", "pg_horizontal_scrollbar_group");
             
         horizontalScrollbarGrp.append("rect")
-			.attr("x", this.state.gridRegion.x) // 20 is margin
-			.attr("y", this.state.gridRegion.y + this._gridHeight() + 20)
+			.attr("x", this.state.gridRegion.x)
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin)
 			.attr("id", "pg_horizontal_scrollbar")
-			.attr("height", 15)
+			.attr("height", scrollbarFixedSize)
 			.attr("width", this._gridWidth())
-            .style("fill", "#fff")
-            .style("stroke", "#000")
-            .style("stroke-width", 2);
+            .style("fill", scrollbarBgColor)
+            .style("stroke", scrollbarBorderColor)
+            .style("stroke-width", scrollbarBorderThickness);
         
-        var defaultX = this.state.gridRegion.x + 2;
-        var sliderWidth = 40;
-       horizontalScrollbarGrp.append("rect")
+        var xCount = this.state.xAxisRender.displayLength();  
+        var xRenderedSize = this.state.xAxisRender.displayLength();
+        var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
+        var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+        var defaultX = this.state.gridRegion.x + scrollbarBorderThickness;
+        var sliderWidth = this.state.horizontalScrollbarScale(lastXId) - this.state.horizontalScrollbarScale(startXId);
+
+        horizontalScrollbarGrp.append("rect")
 			.attr("x", defaultX)
-            .attr("y", this.state.gridRegion.y + this._gridHeight() + 20 + 2)
+            .attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin + scrollbarBorderThickness)
 			.attr("id", "pg_horizontal_scrollbar_slider")
-			.attr("height", 11)
+			.attr("height", sliderFixedSize)
 			.attr("width", sliderWidth)
-            .style("fill", "#44A293")
+            .style("fill", sliderColor)
+            .style('opacity', sliderOpacity)
             .attr("class", "pg_draggable")
             .call(d3.behavior.drag()
                 .on("drag", function() {
                     var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
                     
-                    // Make sure the slider moves within the scrollbar vertically - Joe
+                    // Make sure the slider moves within the scrollbar horizontally - Joe
                     // left
                     if (newX < defaultX) {
                         newX = defaultX;
                     }
                     
                     // right
-                    if ((newX + sliderWidth) > (self.state.gridRegion.x + self._gridWidth() - 2)) {
-                        newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth - 2;
+                    if ((newX + sliderWidth) > (self.state.gridRegion.x + self._gridWidth() - scrollbarBorderThickness)) {
+                        newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth - scrollbarBorderThickness;
                     }
                     
                     self.state.svg.select("#pg_horizontal_scrollbar_slider")
                         .attr("x", newX);
+                    
+                    // adjust
+					newX = newX - defaultX;
+
+                    var newXPos = self._invertOverviewDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
+                    
+                    var xSize = self.state.xAxisRender.groupLength();
+                    
+                    if (newXPos >= xSize){
+                        self.state.currXIdx = xSize;
+                    } else {
+                        self.state.currXIdx = newXPos;
+                    }
+
+
+                    self.state.xAxisRender.setRenderStartPos(self.state.currXIdx - self.state.xAxisRender.displayLength());
+                    self.state.xAxisRender.setRenderEndPos(self.state.currXIdx);
+                    self._clearGrid();
+                    self._createGrid();
+                    
+                    // this must be called here so the tooltip disappears when we mouseout the current element - Joe
+                    self._relinkTooltip();
                 })
             );
     },
+    
+    // for scrollbars
+	_createScrollbarScales: function(width, height) {
+		// create list of all item ids within each axis
+   	    var sourceList = this.state.yAxisRender.groupIDs();
+	    var targetList = this.state.xAxisRender.groupIDs();
+
+		this.state.verticalScrollbarScale = d3.scale.ordinal()
+			.domain(sourceList.map(function(d) {
+                return d; 
+            }))
+			.rangePoints([0, height]);
+
+		this.state.horizontalScrollbarScale = d3.scale.ordinal()
+			.domain(targetList.map(function(d) {
+				return d; 
+            }))
+			.rangePoints([0, width]);   	    
+	},
     
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
@@ -2982,12 +3070,9 @@ var images = require('./images.json');
 
     // for overview mini map
 	_createSmallScales: function(width, height) {
-		var sourceList = [];
-		var targetList = [];
-
 		// create list of all item ids within each axis
-   	    sourceList = this.state.yAxisRender.groupIDs();
-	    targetList = this.state.xAxisRender.groupIDs();
+   	    var sourceList = this.state.yAxisRender.groupIDs();
+	    var targetList = this.state.xAxisRender.groupIDs();
 
 		this.state.smallYScale = d3.scale.ordinal()
 			.domain(sourceList.map(function (d) {
@@ -2997,7 +3082,6 @@ var images = require('./images.json');
 
 		this.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
-				var td = d;
 				return d; 
             }))
 			.rangePoints([0, width]);   	    
