@@ -2600,8 +2600,8 @@ var images = require('./images.json');
 					newY = newY - overviewY;
 
 					// invert newX and newY into positions in the model and phenotype lists.
-					var newXPos = self._invertOverviewDragPosition(self.state.smallXScale, newX) + xCount;
-					var newYPos = self._invertOverviewDragPosition(self.state.smallYScale, newY) + yCount;
+					var newXPos = self._invertDragPosition(self.state.smallXScale, newX) + xCount;
+					var newYPos = self._invertDragPosition(self.state.smallYScale, newY) + yCount;
 
                     // grid region needs to be updated accordingly
 					self._updateGrid(newXPos, newYPos);
@@ -2647,11 +2647,12 @@ var images = require('./images.json');
         var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
         var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
         var defaultY = this.state.gridRegion.y + scrollbarBorderThickness;
+        var sliderRectY = this.state.verticalScrollbarScale(startYId);
         var sliderHeight = this.state.verticalScrollbarScale(lastYId) - this.state.verticalScrollbarScale(startYId);
 
         verticalScrollbarGrp.append("rect")
 			.attr("x", this.state.gridRegion.x + this._gridWidth() + sccrollbarToGridMargin + scrollbarBorderThickness) 
-            .attr("y", defaultY)
+            .attr("y", defaultY + sliderRectY) // sets the slider to the desired position after inverting axis - Joe
 			.attr("id", "pg_vertical_scrollbar_slider")
 			.attr("height", sliderHeight)
 			.attr("width", sliderFixedSize)
@@ -2682,7 +2683,7 @@ var images = require('./images.json');
                         .attr("y", function() {
                             // NOTE: d3 returns string so we need to use parseFloat()
                             var factor = (newY - defaultY) / (self._gridHeight() - 2*scrollbarBorderThickness);
-                            var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")) - 2*self.state.navigator.borderThickness; // since the height may change due to shrinking - Joe
+                            var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")) - 2*self.state.navigator.borderThickness; 
                             return self.state.navigator.y + minimap_height*factor;
                         });
                         
@@ -2690,7 +2691,7 @@ var images = require('./images.json');
                     // adjust
 					newY = newY - defaultY;
 
-                    var newYPos = self._invertOverviewDragPosition(self.state.verticalScrollbarScale, newY) + yCount;
+                    var newYPos = self._invertDragPosition(self.state.verticalScrollbarScale, newY) + yCount;
                     
                     var ySize = self.state.yAxisRender.groupLength();
                     
@@ -2729,10 +2730,11 @@ var images = require('./images.json');
         var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
         var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
         var defaultX = this.state.gridRegion.x + scrollbarBorderThickness;
+        var sliderRectX = this.state.horizontalScrollbarScale(startXId);
         var sliderWidth = this.state.horizontalScrollbarScale(lastXId) - this.state.horizontalScrollbarScale(startXId);
 
         horizontalScrollbarGrp.append("rect")
-			.attr("x", defaultX)
+			.attr("x", defaultX + sliderRectX) // sets the slider to the desired position after inverting axis - Joe
             .attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin + scrollbarBorderThickness)
 			.attr("id", "pg_horizontal_scrollbar_slider")
 			.attr("height", sliderFixedSize)
@@ -2764,14 +2766,14 @@ var images = require('./images.json');
                         .attr("x", function() {
                             // NOTE: d3 returns string so we need to use parseFloat()
                             var factor = (newX - defaultX) / (self._gridWidth() - 2*scrollbarBorderThickness);
-                            var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.navigator.borderThickness; // since the width may change due to shrinking - Joe
+                            var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.navigator.borderThickness;
                             return self.state.navigator.x + minimap_width*factor;
                         });
                         
                     // adjust
 					newX = newX - defaultX;
 
-                    var newXPos = self._invertOverviewDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
+                    var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
                     
                     var xSize = self.state.xAxisRender.groupLength();
                     
@@ -3139,7 +3141,8 @@ var images = require('./images.json');
 			.rangePoints([0, width]);   	    
 	},
 
-	_invertOverviewDragPosition: function(scale, value) {
+    // Used by minimap and scrollbars
+	_invertDragPosition: function(scale, value) {
 		var leftEdges = scale.range();
 		var size = scale.rangeBand();
 		var j;
