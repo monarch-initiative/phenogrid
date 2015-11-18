@@ -1852,15 +1852,16 @@ var images = require('./images.json');
                 y: 65, 
                 width:110, // the actual width will be calculated based on the number of x count - Joe
                 height:110, // the actual height will be calculated based on the number of y count - Joe
+                borderThickness:2, // stroke-width
                 miniCellwd:2,
                 miniCellht:2
             },// controls the navigator mapview - Joe
             scrollbar: {
                 toGridMargin: 20,
                 barFixedSize: 12,
-                barBorderThickness: 2,
+                barBorderThickness: 2, // stroke-width
                 barBorderColor: "#000",
-                barBgColor: "#fff",
+                barBgColor: "#fff", // fill
                 sliderFixedSize: 8,
                 sliderColor: "grey",
                 sliderOpacity: 0.5
@@ -2460,7 +2461,7 @@ var images = require('./images.json');
 		var overviewY = this.state.navigator.y;
 
 		// create the main box
-		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.miniCellwd * 2 + 2, height + this.state.navigator.miniCellht * 2 + 2);
+		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.borderThickness * 2, height + this.state.navigator.borderThickness * 2);
 
 		// create the scales based on the mini map region size
 		this._createSmallScales(width, height);
@@ -2479,8 +2480,8 @@ var images = require('./images.json');
         }
 
         // add 1px unit space to the left and top
-        overviewX++;
-		overviewY++;
+        //overviewX++;
+		//overviewY++;
         
 		// Group all mini cells in g element
         // apply the translate to the #pg_mini_cells_container instead of each cell - Joe
@@ -2613,14 +2614,17 @@ var images = require('./images.json');
 
     _createScrollbars: function() {
         var self = this;
-        var sccrollbarToGridMargin = this.state.scrollbar.toGridMargin;
-        var scrollbarFixedSize = this.state.scrollbar.barFixedSize;
-        var scrollbarBorderThickness = this.state.scrollbar.barBorderThickness;
-        var scrollbarBorderColor = this.state.scrollbar.barBorderColor;
-        var scrollbarBgColor = this.state.scrollbar.barBgColor;
-        var sliderFixedSize = this.state.scrollbar.sliderFixedSize;
-        var sliderColor = this.state.scrollbar.sliderColor;
-        var sliderOpacity = this.state.scrollbar.sliderOpacity;
+        
+        var scrollbar = this.state.scrollbar;
+        
+        var sccrollbarToGridMargin = scrollbar.toGridMargin;
+        var scrollbarFixedSize = scrollbar.barFixedSize;
+        var scrollbarBorderThickness = scrollbar.barBorderThickness;
+        var scrollbarBorderColor = scrollbar.barBorderColor;
+        var scrollbarBgColor = scrollbar.barBgColor;
+        var sliderFixedSize = scrollbar.sliderFixedSize;
+        var sliderColor = scrollbar.sliderColor;
+        var sliderOpacity = scrollbar.sliderOpacity;
 
         // create the scales based on the scrollbar size
         // don't include the border thickness (2) on both sides
