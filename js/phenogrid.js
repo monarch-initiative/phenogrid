@@ -988,23 +988,11 @@ var images = require('./images.json');
                     // adjust
 					newY = newY - defaultY;
 
+                    var currXPos = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
                     var newYPos = self._invertDragPosition(self.state.verticalScrollbarScale, newY) + yCount;
                     
-                    var ySize = self.state.yAxisRender.groupLength();
-                    
-                    if (newYPos >= ySize){
-                        self.state.currYIdx = ySize;
-                    } else {
-                        self.state.currYIdx = newYPos;
-                    }
-
-                    self.state.yAxisRender.setRenderStartPos(self.state.currYIdx - self.state.yAxisRender.displayLength());
-                    self.state.yAxisRender.setRenderEndPos(self.state.currYIdx);
-                    self._clearGrid();
-                    self._createGrid();
-                    
-                    // this must be called here so the tooltip disappears when we mouseout the current element - Joe
-                    self._relinkTooltip();
+                    // grid region needs to be updated accordingly
+					self._updateGrid(currXPos, newYPos);
                 })
             );
         
@@ -1071,23 +1059,10 @@ var images = require('./images.json');
 					newX = newX - defaultX;
 
                     var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
+                    var currYPos = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
                     
-                    var xSize = self.state.xAxisRender.groupLength();
-                    
-                    if (newXPos >= xSize){
-                        self.state.currXIdx = xSize;
-                    } else {
-                        self.state.currXIdx = newXPos;
-                    }
-
-
-                    self.state.xAxisRender.setRenderStartPos(self.state.currXIdx - self.state.xAxisRender.displayLength());
-                    self.state.xAxisRender.setRenderEndPos(self.state.currXIdx);
-                    self._clearGrid();
-                    self._createGrid();
-                    
-                    // this must be called here so the tooltip disappears when we mouseout the current element - Joe
-                    self._relinkTooltip();
+                    // grid region needs to be updated accordingly
+					self._updateGrid(newXPos, currYPos);
                 })
             );
     },
@@ -2171,7 +2146,7 @@ var images = require('./images.json');
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
 
-		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.yAxisRender.displayLength());
+		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx - this.state.yAxisRender.displayLength());
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
 		this._clearGrid();
 		this._createGrid();
