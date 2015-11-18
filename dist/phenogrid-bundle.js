@@ -2479,10 +2479,6 @@ var images = require('./images.json');
             var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
         }
 
-        // add 1px unit space to the left and top
-        //overviewX++;
-		//overviewY++;
-        
 		// Group all mini cells in g element
         // apply the translate to the #pg_mini_cells_container instead of each cell - Joe
 		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
@@ -2686,7 +2682,7 @@ var images = require('./images.json');
                         .attr("y", function() {
                             // NOTE: d3 returns string so we need to use parseFloat()
                             var factor = (newY - defaultY) / (self._gridHeight() - 2*scrollbarBorderThickness);
-                            var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")); // since the height may change due to shrinking - Joe
+                            var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")) - 2*self.state.navigator.borderThickness; // since the height may change due to shrinking - Joe
                             return self.state.navigator.y + minimap_height*factor;
                         });
                         
@@ -2703,7 +2699,6 @@ var images = require('./images.json');
                     } else {
                         self.state.currYIdx = newYPos;
                     }
-
 
                     self.state.yAxisRender.setRenderStartPos(self.state.currYIdx - self.state.yAxisRender.displayLength());
                     self.state.yAxisRender.setRenderEndPos(self.state.currYIdx);
@@ -2769,7 +2764,7 @@ var images = require('./images.json');
                         .attr("x", function() {
                             // NOTE: d3 returns string so we need to use parseFloat()
                             var factor = (newX - defaultX) / (self._gridWidth() - 2*scrollbarBorderThickness);
-                            var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width")); // since the width may change due to shrinking - Joe
+                            var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.navigator.borderThickness; // since the width may change due to shrinking - Joe
                             return self.state.navigator.x + minimap_width*factor;
                         });
                         
