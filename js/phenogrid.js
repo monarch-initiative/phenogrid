@@ -858,11 +858,12 @@ var images = require('./images.json');
 					if (newY + selectRectHeight > overviewY + height) {
 						newY = overviewY + height - selectRectHeight;
 					}
-                    
-					var draggableArea = self.state.svg.select("#pg_navigator_shaded_area")
+
+                    // Update the position of the shaded area
+                    self.state.svg.select("#pg_navigator_shaded_area")
                         .attr("x", newX)
                         .attr("y", newY);
-
+                        
 					// adjust x back to have 0,0 as base instead of overviewX, overviewY
 					newX = newX - overviewX;
 					newY = newY - overviewY;
@@ -877,6 +878,8 @@ var images = require('./images.json');
 	},
 
     _createScrollbars: function() {
+        var self = this;
+        
         // vertical scrollbar
         var verticalScrollbarGrp = this.state.svg.append("g")
 			.attr("id", "pg_vertical_scrollbar_group");
@@ -891,14 +894,35 @@ var images = require('./images.json');
             .style("stroke", "#000")
             .style("stroke-width", 2); // border thickness
         
+        var defaultY = this.state.gridRegion.y + 2;
+        var sliderHeight = 40;
         verticalScrollbarGrp.append("rect")
 			.attr("x", this.state.gridRegion.x + this._gridWidth() + 20 + 2) // 20 is margin
-            .attr("y", this.state.gridRegion.y + 2)
+            .attr("y", defaultY)
 			.attr("id", "pg_vertical_scrollbar_slider")
-			.attr("height", 40)
+			.attr("height", sliderHeight)
 			.attr("width", 11)
             .style("fill", "#44A293")
-            .call(d3.behavior.drag());
+            .attr("class", "pg_draggable")
+            .call(d3.behavior.drag()
+                .on("drag", function() {
+                    var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
+                    
+                    // Make sure the slider moves within the scrollbar vertically - Joe
+                    // top
+                    if (newY < defaultY) {
+                        newY = defaultY;
+                    }
+                    
+                    // bottom
+                    if ((newY + sliderHeight) > (self.state.gridRegion.y + self._gridHeight() - 2)) {
+                        newY = self.state.gridRegion.y + self._gridHeight() - sliderHeight - 2;
+                    }
+                    
+                    self.state.svg.select("#pg_vertical_scrollbar_slider")
+                        .attr("y", newY);
+                })
+            );
         
         // horizontal scrollbar
         var horizontalScrollbarGrp = this.state.svg.append("g")
@@ -913,6 +937,36 @@ var images = require('./images.json');
             .style("fill", "#fff")
             .style("stroke", "#000")
             .style("stroke-width", 2);
+        
+        var defaultX = this.state.gridRegion.x + 2;
+        var sliderWidth = 40;
+       horizontalScrollbarGrp.append("rect")
+			.attr("x", defaultX)
+            .attr("y", this.state.gridRegion.y + this._gridHeight() + 20 + 2)
+			.attr("id", "pg_horizontal_scrollbar_slider")
+			.attr("height", 11)
+			.attr("width", sliderWidth)
+            .style("fill", "#44A293")
+            .attr("class", "pg_draggable")
+            .call(d3.behavior.drag()
+                .on("drag", function() {
+                    var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
+                    
+                    // Make sure the slider moves within the scrollbar vertically - Joe
+                    // left
+                    if (newX < defaultX) {
+                        newX = defaultX;
+                    }
+                    
+                    // right
+                    if ((newX + sliderWidth) > (self.state.gridRegion.x + self._gridWidth() - 2)) {
+                        newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth - 2;
+                    }
+                    
+                    self.state.svg.select("#pg_horizontal_scrollbar_slider")
+                        .attr("x", newX);
+                })
+            );
     },
     
     _setSvgSize: function() {
