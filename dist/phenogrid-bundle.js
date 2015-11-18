@@ -2646,6 +2646,16 @@ var images = require('./images.json');
                     self.state.svg.select("#pg_vertical_scrollbar_slider")
                         .attr("y", newY);
                         
+                    // update the shaded area in mini map accordingly  
+                    self.state.svg.select("#pg_navigator_shaded_area")
+                        .attr("y", function() {
+                            // NOTE: d3 returns string so we need to use parseFloat()
+                            var factor = (newY - defaultY) / (self._gridHeight() - 2*scrollbarBorderThickness);
+                            var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")); // since the height may change due to shrinking - Joe
+                            return self.state.navigator.y + minimap_height*factor;
+                        });
+                        
+                   
                     // adjust
 					newY = newY - defaultY;
 
@@ -2719,6 +2729,15 @@ var images = require('./images.json');
                     self.state.svg.select("#pg_horizontal_scrollbar_slider")
                         .attr("x", newX);
                     
+                    // update the shaded area in mini map accordingly  
+                    self.state.svg.select("#pg_navigator_shaded_area")
+                        .attr("x", function() {
+                            // NOTE: d3 returns string so we need to use parseFloat()
+                            var factor = (newX - defaultX) / (self._gridWidth() - 2*scrollbarBorderThickness);
+                            var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width")); // since the width may change due to shrinking - Joe
+                            return self.state.navigator.x + minimap_width*factor;
+                        });
+                        
                     // adjust
 					newX = newX - defaultX;
 
