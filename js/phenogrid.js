@@ -152,6 +152,16 @@ var images = require('./images.json');
                 miniCellwd:2,
                 miniCellht:2
             },// controls the navigator mapview - Joe
+            scrollbar: {
+                toGridMargin: 20,
+                barFixedSize: 12,
+                barBorderThickness: 2,
+                barBorderColor: "#000",
+                barBgColor: "#fff",
+                sliderFixedSize: 8,
+                sliderColor: "grey",
+                sliderOpacity: 0.5
+            },
             logo: {
                 x: 70, 
                 y: 65, 
@@ -863,7 +873,28 @@ var images = require('./images.json');
                     self.state.svg.select("#pg_navigator_shaded_area")
                         .attr("x", newX)
                         .attr("y", newY);
-                        
+                    
+                    
+                    
+                    // update the position of slider in each scrollbar accordingly   
+                    self.state.svg.select("#pg_horizontal_scrollbar_slider")
+                        .attr("x", function() {
+                            // NOTE: d3 returns string so we need to use parseFloat()
+                            var factor = (newX - overviewX) / width;
+                            var horizontal_scrollbar_width = parseFloat(d3.select("#pg_horizontal_scrollbar").attr("width"));
+                            return self.state.gridRegion.x + self.state.scrollbar.barBorderThickness + horizontal_scrollbar_width*factor;
+                        });
+                    
+                    self.state.svg.select("#pg_vertical_scrollbar_slider")
+                        .attr("y", function() {
+                            // NOTE: d3 returns string so we need to use parseFloat()
+                            var factor = (newY - overviewY) / height;
+                            var vertical_scrollbar_height = parseFloat(d3.select("#pg_vertical_scrollbar").attr("height"));
+                            return self.state.gridRegion.y + self.state.scrollbar.barBorderThickness + vertical_scrollbar_height*factor;
+                        });
+                    
+                    
+                    
 					// adjust x back to have 0,0 as base instead of overviewX, overviewY
 					newX = newX - overviewX;
 					newY = newY - overviewY;
@@ -879,15 +910,15 @@ var images = require('./images.json');
 
     _createScrollbars: function() {
         var self = this;
-        var sccrollbarToGridMargin = 20;
-        var scrollbarFixedSize = 12;
-        var scrollbarBorderThickness = 2;
-        var scrollbarBorderColor = "#000";
-        var scrollbarBgColor = "#fff";
-        var sliderFixedSize = 8;
-        var sliderColor = "grey";
-        var sliderOpacity = 0.5;
-        
+        var sccrollbarToGridMargin = this.state.scrollbar.toGridMargin;
+        var scrollbarFixedSize = this.state.scrollbar.barFixedSize;
+        var scrollbarBorderThickness = this.state.scrollbar.barBorderThickness;
+        var scrollbarBorderColor = this.state.scrollbar.barBorderColor;
+        var scrollbarBgColor = this.state.scrollbar.barBgColor;
+        var sliderFixedSize = this.state.scrollbar.sliderFixedSize;
+        var sliderColor = this.state.scrollbar.sliderColor;
+        var sliderOpacity = this.state.scrollbar.sliderOpacity;
+
         // create the scales based on the scrollbar size
         // don't include the border thickness (2) on both sides
 		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
