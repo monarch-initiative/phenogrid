@@ -4183,7 +4183,7 @@ var images = require('./images.json');
 		var pg_ctrl_options = $('#pg_controls_options');
 		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
-        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 37); // create a 5px gap between the vertical scrollbar (12px wide) - Joe
+        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 42); // create a 10px gap between the vertical scrollbar (12px wide) - Joe
     },	
 	
 	_createOrganismSelection: function() {
@@ -4312,7 +4312,8 @@ var images = require('./images.json');
 		var gridRegion = this.state.gridRegion; 
 		$('#pg_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
         $('#pg_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#pg_unmatched_btn').outerHeight() + + 17 + 10);
-        $('#pg_unmatched_list').css('width', gridRegion.x + this._gridWidth());
+        $('#pg_unmatched_list').css('min-width', gridRegion.x - 20); // don't include the paddings 2*10px = 20 - Joe
+        $('#pg_unmatched_list').css('max-width', gridRegion.x + this._gridWidth() - 20); // don't include the paddings 2*10px = 20 - Joe
     },	
     
     // ajax callback
