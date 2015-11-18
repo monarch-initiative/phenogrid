@@ -2591,6 +2591,11 @@ var images = require('./images.json');
         var sliderColor = "grey";
         var sliderOpacity = 0.5;
         
+        // create the scales based on the scrollbar size
+        // don't include the border thickness (2) on both sides
+		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
+        
+        
         // vertical scrollbar
         var verticalScrollbarGrp = this.state.svg.append("g")
 			.attr("id", "pg_vertical_scrollbar_group");
@@ -2605,11 +2610,7 @@ var images = require('./images.json');
             .style("stroke", scrollbarBorderColor)
             .style("stroke-width", scrollbarBorderThickness); // border thickness
         
-        
-        // create the scales based on the scrollbar size
-        // don't include the border thickness (2) on both sides
-		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
-        
+
         var yCount = this.state.yAxisRender.displayLength();  
         var yRenderedSize = this.state.yAxisRender.displayLength();
         var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
@@ -2641,6 +2642,7 @@ var images = require('./images.json');
                         newY = self.state.gridRegion.y + self._gridHeight() - sliderHeight - scrollbarBorderThickness;
                     }
                     
+                    // update the position of slider
                     self.state.svg.select("#pg_vertical_scrollbar_slider")
                         .attr("y", newY);
                         
@@ -2713,6 +2715,7 @@ var images = require('./images.json');
                         newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth - scrollbarBorderThickness;
                     }
                     
+                    // update the position of slider
                     self.state.svg.select("#pg_horizontal_scrollbar_slider")
                         .attr("x", newX);
                     
@@ -4128,7 +4131,7 @@ var images = require('./images.json');
 		var pg_ctrl_options = $('#pg_controls_options');
 		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
-        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 20);
+        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 37); // create a 5px gap between the vertical scrollbar (12px wide) - Joe
     },	
 	
 	_createOrganismSelection: function() {
