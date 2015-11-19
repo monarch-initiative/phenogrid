@@ -2638,6 +2638,8 @@ var images = require('./images.json');
         var sliderColor = scrollbar.sliderColor;
         var sliderOpacity = scrollbar.sliderOpacity;
 
+        
+
         // create the scales based on the scrollbar size
         // don't include the border thickness (2) on both sides
 		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
@@ -2676,6 +2678,17 @@ var images = require('./images.json');
                 .style("stroke", scrollbarBorderColor)
                 .style("stroke-width", scrollbarBorderThickness);
 
+            var drag = d3.behavior.drag()
+                .on("dragstart", function() {
+                    //d3.event.sourceEvent.stopPropagation();
+                    // change the slider color while dragging
+                    d3.select(this).classed("pg_dragging", true); 
+                })
+                .on("dragend", function() {
+                    // remove the dragging color
+                    d3.select(this).classed("pg_dragging", false);
+                });
+            
             // slider rect
             horizontalScrollbarGrp.append("rect")
                 .attr("x", defaultX + sliderRectX) // sets the slider to the desired position after inverting axis - Joe
@@ -2687,6 +2700,15 @@ var images = require('./images.json');
                 .style('opacity', sliderOpacity)
                 .attr("class", "pg_draggable")
                 .call(d3.behavior.drag()
+                    .on("dragstart", function() {
+                        //d3.event.sourceEvent.stopPropagation();
+                        // change the slider color while dragging
+                        d3.select(this).classed("pg_dragging", true); 
+                    })
+                    .on("dragend", function() {
+                        // remove the dragging color
+                        d3.select(this).classed("pg_dragging", false);
+                    })
                     .on("drag", function() {
                         var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
                         
@@ -2752,6 +2774,15 @@ var images = require('./images.json');
                 .style('opacity', sliderOpacity)
                 .attr("class", "pg_draggable")
                 .call(d3.behavior.drag()
+                    .on("dragstart", function() {
+                        //d3.event.sourceEvent.stopPropagation();
+                        // change the slider color while dragging
+                        d3.select(this).classed("pg_dragging", true); 
+                    })
+                    .on("dragend", function() {
+                        // remove the dragging color
+                        d3.select(this).classed("pg_dragging", false);
+                    })
                     .on("drag", function() {
                         var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
                         
@@ -3896,7 +3927,7 @@ var images = require('./images.json');
     _recreateGrid: function() {
         this._clearGrid();
 		this._createGrid();
-        // this must be called here so the tooltip disappears when we mouseout the current element - Joe
+        // this must be called  here so the tooltip disappears when we mouseout the current element - Joe
 		this._relinkTooltip();
     },
 
