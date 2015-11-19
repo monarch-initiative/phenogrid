@@ -2296,7 +2296,6 @@ var images = require('./images.json');
         this._createOverviewTargetGroupLabels();
         this._createNavigation();
         this._createGrid();
-
         this._createScoresTipIcon();
         this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
         this._createGradientLegend();
@@ -2628,8 +2627,8 @@ var images = require('./images.json');
     _createScrollbars: function(horizontal, vertical) {
         var self = this;
         
+        // variables for scrollbar and slider SVG rendering
         var scrollbar = this.state.scrollbar;
-        
         var sccrollbarToGridMargin = scrollbar.toGridMargin;
         var scrollbarFixedSize = scrollbar.barFixedSize;
         var scrollbarBorderThickness = scrollbar.barBorderThickness;
@@ -2643,11 +2642,95 @@ var images = require('./images.json');
         // don't include the border thickness (2) on both sides
 		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
         
+        // variables for creating horizontal bar
+        var xCount = this.state.xAxisRender.displayLength();  
+        var xRenderedSize = this.state.xAxisRender.displayLength();
+        var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
+        var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+        var defaultX = this.state.gridRegion.x + scrollbarBorderThickness;
+        var sliderRectX = this.state.horizontalScrollbarScale(startXId);
+        var sliderWidth = this.state.horizontalScrollbarScale(lastXId) - this.state.horizontalScrollbarScale(startXId);
+        
+        // variables for creating vertical scrollbar
+        var yCount = this.state.yAxisRender.displayLength();  
+        var yRenderedSize = this.state.yAxisRender.displayLength();
+        var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
+        var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+        var defaultY = this.state.gridRegion.y + scrollbarBorderThickness;
+        var sliderRectY = this.state.verticalScrollbarScale(startYId);
+        var sliderHeight = this.state.verticalScrollbarScale(lastYId) - this.state.verticalScrollbarScale(startYId);
+    
+        // horizontal scrollbar
+        if (horizontal === true) {
+            var horizontalScrollbarGrp = this.state.svg.append("g")
+                .attr("id", "pg_horizontal_scrollbar_group");
+            
+            // scrollbar rect
+            horizontalScrollbarGrp.append("rect")
+                .attr("x", this.state.gridRegion.x)
+                .attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin)
+                .attr("id", "pg_horizontal_scrollbar")
+                .attr("height", scrollbarFixedSize)
+                .attr("width", this._gridWidth())
+                .style("fill", scrollbarBgColor)
+                .style("stroke", scrollbarBorderColor)
+                .style("stroke-width", scrollbarBorderThickness);
+
+            // slider rect
+            horizontalScrollbarGrp.append("rect")
+                .attr("x", defaultX + sliderRectX) // sets the slider to the desired position after inverting axis - Joe
+                .attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin + scrollbarBorderThickness)
+                .attr("id", "pg_horizontal_scrollbar_slider")
+                .attr("height", sliderFixedSize)
+                .attr("width", sliderWidth)
+                .style("fill", sliderColor)
+                .style('opacity', sliderOpacity)
+                .attr("class", "pg_draggable")
+                .call(d3.behavior.drag()
+                    .on("drag", function() {
+                        var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
+                        
+                        // Make sure the slider moves within the scrollbar horizontally - Joe
+                        // left
+                        if (newX < defaultX) {
+                            newX = defaultX;
+                        }
+                        
+                        // right
+                        if ((newX + sliderWidth) > (self.state.gridRegion.x + self._gridWidth() - scrollbarBorderThickness)) {
+                            newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth - scrollbarBorderThickness;
+                        }
+                        
+                        // update the position of slider
+                        self.state.svg.select("#pg_horizontal_scrollbar_slider")
+                            .attr("x", newX);
+                        
+                        // update the shaded area in mini map accordingly  
+                        self.state.svg.select("#pg_navigator_shaded_area")
+                            .attr("x", function() {
+                                // NOTE: d3 returns string so we need to use parseFloat()
+                                var factor = (newX - defaultX) / (self._gridWidth() - 2*scrollbarBorderThickness);
+                                var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.navigator.borderThickness;
+                                return self.state.navigator.x + minimap_width*factor;
+                            });
+                            
+                        // adjust
+                        newX = newX - defaultX;
+                        
+                        var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
+                        
+                        // Horizontal grid region needs to be updated accordingly
+                        self._updateHorizontalGrid(newXPos);
+                    })
+                );
+        }
+        
         // vertical scrollbar
         if (vertical === true) {
             var verticalScrollbarGrp = this.state.svg.append("g")
                 .attr("id", "pg_vertical_scrollbar_group");
-                
+            
+            // scrollbar rect
             verticalScrollbarGrp.append("rect")
                 .attr("x", this.state.gridRegion.x + this._gridWidth() + sccrollbarToGridMargin)
                 .attr("y", this.state.gridRegion.y)
@@ -2657,16 +2740,8 @@ var images = require('./images.json');
                 .style("fill", scrollbarBgColor)
                 .style("stroke", scrollbarBorderColor)
                 .style("stroke-width", scrollbarBorderThickness); // border thickness
-            
 
-            var yCount = this.state.yAxisRender.displayLength();  
-            var yRenderedSize = this.state.yAxisRender.displayLength();
-            var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
-            var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-            var defaultY = this.state.gridRegion.y + scrollbarBorderThickness;
-            var sliderRectY = this.state.verticalScrollbarScale(startYId);
-            var sliderHeight = this.state.verticalScrollbarScale(lastYId) - this.state.verticalScrollbarScale(startYId);
-
+            // slider rect
             verticalScrollbarGrp.append("rect")
                 .attr("x", this.state.gridRegion.x + this._gridWidth() + sccrollbarToGridMargin + scrollbarBorderThickness) 
                 .attr("y", defaultY + sliderRectY) // sets the slider to the desired position after inverting axis - Joe
@@ -2708,83 +2783,10 @@ var images = require('./images.json');
                         // adjust
                         newY = newY - defaultY;
 
-                        var currXPos = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
                         var newYPos = self._invertDragPosition(self.state.verticalScrollbarScale, newY) + yCount;
                         
-                        // grid region needs to be updated accordingly
-                        self._updateGrid(currXPos, newYPos);
-                    })
-                );
-        }
-        
-        // horizontal scrollbar
-        if (horizontal === true) {
-            var horizontalScrollbarGrp = this.state.svg.append("g")
-                .attr("id", "pg_horizontal_scrollbar_group");
-                
-            horizontalScrollbarGrp.append("rect")
-                .attr("x", this.state.gridRegion.x)
-                .attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin)
-                .attr("id", "pg_horizontal_scrollbar")
-                .attr("height", scrollbarFixedSize)
-                .attr("width", this._gridWidth())
-                .style("fill", scrollbarBgColor)
-                .style("stroke", scrollbarBorderColor)
-                .style("stroke-width", scrollbarBorderThickness);
-            
-            var xCount = this.state.xAxisRender.displayLength();  
-            var xRenderedSize = this.state.xAxisRender.displayLength();
-            var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
-            var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-            var defaultX = this.state.gridRegion.x + scrollbarBorderThickness;
-            var sliderRectX = this.state.horizontalScrollbarScale(startXId);
-            var sliderWidth = this.state.horizontalScrollbarScale(lastXId) - this.state.horizontalScrollbarScale(startXId);
-
-            horizontalScrollbarGrp.append("rect")
-                .attr("x", defaultX + sliderRectX) // sets the slider to the desired position after inverting axis - Joe
-                .attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin + scrollbarBorderThickness)
-                .attr("id", "pg_horizontal_scrollbar_slider")
-                .attr("height", sliderFixedSize)
-                .attr("width", sliderWidth)
-                .style("fill", sliderColor)
-                .style('opacity', sliderOpacity)
-                .attr("class", "pg_draggable")
-                .call(d3.behavior.drag()
-                    .on("drag", function() {
-                        var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
-                        
-                        // Make sure the slider moves within the scrollbar horizontally - Joe
-                        // left
-                        if (newX < defaultX) {
-                            newX = defaultX;
-                        }
-                        
-                        // right
-                        if ((newX + sliderWidth) > (self.state.gridRegion.x + self._gridWidth() - scrollbarBorderThickness)) {
-                            newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth - scrollbarBorderThickness;
-                        }
-                        
-                        // update the position of slider
-                        self.state.svg.select("#pg_horizontal_scrollbar_slider")
-                            .attr("x", newX);
-                        
-                        // update the shaded area in mini map accordingly  
-                        self.state.svg.select("#pg_navigator_shaded_area")
-                            .attr("x", function() {
-                                // NOTE: d3 returns string so we need to use parseFloat()
-                                var factor = (newX - defaultX) / (self._gridWidth() - 2*scrollbarBorderThickness);
-                                var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.navigator.borderThickness;
-                                return self.state.navigator.x + minimap_width*factor;
-                            });
-                            
-                        // adjust
-                        newX = newX - defaultX;
-
-                        var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
-                        var currYPos = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
-                        
-                        // grid region needs to be updated accordingly
-                        self._updateGrid(newXPos, currYPos);
+                        // Vertical grid region needs to be updated accordingly
+                        self._updateVerticalGrid(newYPos);
                     })
                 );
         }
@@ -3849,7 +3851,6 @@ var images = require('./images.json');
 	_updateGrid: function(newXPos, newYPos){
 		var xSize = this.state.xAxisRender.groupLength();
 		var ySize = this.state.yAxisRender.groupLength();
-		var newXEndPos, newYEndPos;
 
 		if (newXPos >= xSize){
 			this.state.currXIdx = xSize;
@@ -3871,6 +3872,46 @@ var images = require('./images.json');
 
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx - this.state.yAxisRender.displayLength());
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
+		this._clearGrid();
+		this._createGrid();
+        
+        // this must be called here so the tooltip disappears when we mouseout the current element - Joe
+		this._relinkTooltip();
+	},
+    
+    // used by vertical scrollbar 
+    _updateVerticalGrid: function(newYPos){
+		var ySize = this.state.yAxisRender.groupLength();
+
+		if (newYPos >= ySize){
+			this.state.currYIdx = ySize;
+		} else {
+			this.state.currYIdx = newYPos;
+		}
+
+		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx - this.state.yAxisRender.displayLength());
+		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
+		this._clearGrid();
+		this._createGrid();
+        
+        // this must be called here so the tooltip disappears when we mouseout the current element - Joe
+		this._relinkTooltip();
+	},
+    
+    // used by horizontal scrollbar 
+    _updateHorizontalGrid: function(newXPos){
+		var xSize = this.state.xAxisRender.groupLength();
+
+		if (newXPos >= xSize){
+			this.state.currXIdx = xSize;
+		} else {
+			this.state.currXIdx = newXPos;
+		}
+
+		// note: that the currXIdx accounts for the size of the hightlighted selection area
+		// so, the starting render position is this size minus the display limit
+		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
+		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
 		this._clearGrid();
 		this._createGrid();
         
