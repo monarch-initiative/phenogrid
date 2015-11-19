@@ -3852,19 +3852,10 @@ var images = require('./images.json');
 		var xSize = this.state.xAxisRender.groupLength();
 		var ySize = this.state.yAxisRender.groupLength();
 
-		if (newXPos >= xSize){
-			this.state.currXIdx = xSize;
-		} else {
-			this.state.currXIdx = newXPos;
-		}
+		this.state.currXIdx = (newXPos >= xSize) ? xSize : newXPos;
 
-		if (newYPos >= ySize){
-			this.state.currYIdx = ySize;
-		} else {
-			this.state.currYIdx = newYPos;
-		}
+		this.state.currYIdx = (newYPos >= ySize) ? ySize : newYPos;
 
-	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
@@ -3872,60 +3863,49 @@ var images = require('./images.json');
 
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx - this.state.yAxisRender.displayLength());
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
-		this._clearGrid();
-		this._createGrid();
-        
-        // this must be called here so the tooltip disappears when we mouseout the current element - Joe
-		this._relinkTooltip();
+		
+        this._recreateGrid();
 	},
     
     // used by vertical scrollbar 
     _updateVerticalGrid: function(newYPos){
 		var ySize = this.state.yAxisRender.groupLength();
 
-		if (newYPos >= ySize){
-			this.state.currYIdx = ySize;
-		} else {
-			this.state.currYIdx = newYPos;
-		}
+		this.state.currYIdx = (newYPos >= ySize) ? ySize : newYPos;
 
 		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx - this.state.yAxisRender.displayLength());
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
-		this._clearGrid();
-		this._createGrid();
-        
-        // this must be called here so the tooltip disappears when we mouseout the current element - Joe
-		this._relinkTooltip();
+		
+        this._recreateGrid();
 	},
     
     // used by horizontal scrollbar 
     _updateHorizontalGrid: function(newXPos){
 		var xSize = this.state.xAxisRender.groupLength();
 
-		if (newXPos >= xSize){
-			this.state.currXIdx = xSize;
-		} else {
-			this.state.currXIdx = newXPos;
-		}
+		this.state.currXIdx = (newXPos >= xSize) ? xSize : newXPos;
 
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
-		this._clearGrid();
+		
+        this._recreateGrid();
+	},
+    
+    _recreateGrid: function() {
+        this._clearGrid();
 		this._createGrid();
-        
         // this must be called here so the tooltip disappears when we mouseout the current element - Joe
 		this._relinkTooltip();
-	},
+    },
 
 	_clearGrid: function() {
 		this.state.svg.selectAll("g.row").remove();
 		this.state.svg.selectAll("g.column").remove();
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
-
-	
+    
 	_populateDialog: function(text) {
 		var SplitText = "Title";
 		var $dialog = $('<div></div>')
