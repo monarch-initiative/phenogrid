@@ -2567,7 +2567,10 @@ var images = require('./images.json');
 			.call(d3.behavior.drag() // Constructs a new drag behavior
 				.on("dragstart", self._dragstarted) // self._dragstarted() won't work - Joe
                 .on("drag", function() {
-					/*
+                    // Random movement while dragging triggers mouseover on labels and cells (luckly, only crosshairs show up in this case)
+                    self._crossHairsOff();
+                    
+                    /*
 					 * drag the highlight in the overview window
 					 * notes: account for the width of the rectangle in my x and y calculations
 					 * do not use the event x and y, they will be out of range at times. Use the converted values instead.
@@ -2712,6 +2715,9 @@ var images = require('./images.json');
                 .call(d3.behavior.drag()
                     .on("dragstart", self._dragstarted)
                     .on("drag", function() {
+                        // Random movement while dragging triggers mouseover on labels and cells (luckly, only crosshairs show up in this case)
+                        self._crossHairsOff();
+                        
                         var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
                         
                         // Make sure the slider moves within the scrollbar horizontally - Joe
@@ -2777,6 +2783,9 @@ var images = require('./images.json');
                 .call(d3.behavior.drag()
                     .on("dragstart", self._dragstarted)
                     .on("drag", function() {
+                        // Random movement while dragging triggers mouseover on labels and cells (luckly, only crosshairs show up in this case)
+                        self._crossHairsOff();
+                        
                         var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
                         
                         // Make sure the slider moves within the scrollbar vertically - Joe
