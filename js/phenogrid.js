@@ -144,7 +144,7 @@ var images = require('./images.json');
                 'rgb(29,145,192)',
                 'rgb(34,94,168)'
             ], // stop colors for corresponding stop points - Joe
-            navigator: {
+            minimap: {
                 x:112, 
                 y: 65, 
                 width:110, // the actual width will be calculated based on the number of x count - Joe
@@ -156,7 +156,7 @@ var images = require('./images.json');
                 miniCellht:2,
                 shadedAreaBgColor: '#666',
                 shadedAreaOpacity: 0.5
-            },// controls the navigator mapview - Joe
+            },
             scrollbar: {
                 barToGridMargin: 20,
                 barThickness: 1,
@@ -691,8 +691,8 @@ var images = require('./images.json');
     _createNavigation: function() {
         var xCount = this.state.xAxisRender.displayLength();
         var yCount = this.state.yAxisRender.displayLength();
-        var width = this.state.navigator.width;
-        var height =this.state.navigator.height;
+        var width = this.state.minimap.width;
+        var height =this.state.minimap.height;
         
         // check xCount based on yCount
         if ( ! this.state.invertAxis) {
@@ -700,14 +700,14 @@ var images = require('./images.json');
                 if (yCount >= this.state.defaultSourceDisplayLimit) {
                     if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
                         // just use the default mini map width and height
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
                         // create both horizontal and vertical scrollbars
                         this._createScrollbars(true, true);
                     } else {
                         // shrink the width of mini map based on the xCount/this.state.defaultSingleTargetDisplayLimit
                         // and keep the hight unchanged
                         width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
                         // only create vertical scrollbar
                         this._createScrollbars(false, true);
                     }
@@ -716,7 +716,7 @@ var images = require('./images.json');
                         // shrink the height of mini map based on the yCount/this.state.defaultSourceDisplayLimit ratio
                         // and keep the hight unchanged
                         height = height * (yCount/this.state.defaultSourceDisplayLimit);
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
                         // only create horizontal scrollbar
                         this._createScrollbars(true, false);
                     } 
@@ -727,7 +727,7 @@ var images = require('./images.json');
                 // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
                 if (yCount >= this.state.defaultSourceDisplayLimit) {  
                     // just use the default mini map width and height
-                    this._createOverviewSection(width, height);
+                    this._createMinimap(width, height);
                     // only create vertical scrollbar
                     this._createScrollbars(false, true);
                 } 
@@ -738,26 +738,26 @@ var images = require('./images.json');
             if ( ! this._isCrossComparisonView()) {
                 if (xCount >= this.state.defaultSourceDisplayLimit) {
                     if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
                         // create both horizontal and vertical scrollbars
                         this._createScrollbars(true, true);
                     } else {
                         height = height * (yCount/this.state.defaultSingleTargetDisplayLimit);
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
                         // only create horizontal scrollbar
                         this._createScrollbars(true, false);
                     }
                 } else {
                     if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
                         width = width * (xCount/this.state.defaultSourceDisplayLimit);
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
                         // only create vertical scrollbar
                         this._createScrollbars(false, true);
                     }
                 }
             } else {
                 if (xCount >= this.state.defaultSourceDisplayLimit) {  
-                    this._createOverviewSection(width, height);
+                    this._createMinimap(width, height);
                     // only create horizontal scrollbar
                     this._createScrollbars(true, false);
                 } 
@@ -766,18 +766,31 @@ var images = require('./images.json');
     },
     
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
-	_createOverviewSection: function(width, height) {
+	_createMinimap: function(width, height) {
 		// set the display counts on each axis
 		var yCount = this.state.yAxisRender.displayLength();  
 	    var xCount = this.state.xAxisRender.displayLength();  
 
 		// these translations from the top-left of the rectangular region give the absolute coordinates
-		var overviewX = this.state.navigator.x;
-		var overviewY = this.state.navigator.y;
+		var overviewX = this.state.minimap.x;
+		var overviewY = this.state.minimap.y;
 
 		// create the main box
-        // include the border thickness - Joe
-		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.borderThickness*2, height + this.state.navigator.borderThickness*2);
+        // Group the overview region and text together - Joe
+		var globalviewGrp = this.state.svg.append("g")
+			.attr("id", "pg_navigator");
+		
+		// rectangular border for overview map
+		// border color and thickness are defined inline so it can be used by exported svg - Joe
+		globalviewGrp.append("rect")
+			.attr("x", overviewX)
+			.attr("y", overviewY)
+			.attr("id", "pg_globalview")
+			.attr("width", width + this.state.minimap.borderThickness*2) // include the border thickness - Joe
+            .attr("height", height + this.state.minimap.borderThickness*2)
+            .style("fill", this.state.minimap.bgColor)
+            .style("stroke", this.state.minimap.borderColor)
+            .style("stroke-width", this.state.minimap.borderThickness);
 
 		// create the scales based on the mini map region size
 		this._createSmallScales(width, height);
@@ -812,13 +825,13 @@ var images = require('./images.json');
 			.append("rect")
 			.attr("class", "mini_cell")
 			.attr("x", function(d) { 
-				return self.state.smallXScale(d.target_id) + self.state.navigator.miniCellwd / 2; 
+				return self.state.smallXScale(d.target_id) + self.state.minimap.miniCellwd / 2; 
             })
             .attr("y", function(d, i) { 
-				return self.state.smallYScale(d.source_id) + self.state.navigator.miniCellht / 2;
+				return self.state.smallYScale(d.source_id) + self.state.minimap.miniCellht / 2;
             })
-			.attr("width", this.state.navigator.miniCellwd) 
-			.attr("height", this.state.navigator.miniCellht) 
+			.attr("width", this.state.minimap.miniCellwd) 
+			.attr("height", this.state.minimap.miniCellht) 
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
@@ -843,11 +856,11 @@ var images = require('./images.json');
 			.attr("x", overviewX + selectRectX)
 			.attr("y", overviewY + selectRectY)
 			.attr("id", "pg_navigator_shaded_area")
-			.attr("height", selectRectHeight + this.state.navigator.borderThickness*2)
-			.attr("width", selectRectWidth + this.state.navigator.borderThickness*2)
+			.attr("height", selectRectHeight + this.state.minimap.borderThickness*2)
+			.attr("width", selectRectWidth + this.state.minimap.borderThickness*2)
 			.attr("class", "pg_draggable")
-            .style("fill", this.state.navigator.shadedAreaBgColor)
-            .style("opacity", this.state.navigator.shadedAreaOpacity)
+            .style("fill", this.state.minimap.shadedAreaBgColor)
+            .style("opacity", this.state.minimap.shadedAreaOpacity)
 			.call(d3.behavior.drag() // Constructs a new drag behavior
 				.on("dragstart", self._dragstarted) // self._dragstarted() won't work - Joe
                 .on("drag", function() {
@@ -1018,8 +1031,8 @@ var images = require('./images.json');
                             .attr("x", function() {
                                 // NOTE: d3 returns string so we need to use parseFloat()
                                 var factor = (newX - defaultX) / self._gridWidth();
-                                var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.navigator.borderThickness;
-                                return self.state.navigator.x + minimap_width*factor;
+                                var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.minimap.borderThickness;
+                                return self.state.minimap.x + minimap_width*factor;
                             });
                             
                         // adjust
@@ -1083,8 +1096,8 @@ var images = require('./images.json');
                             .attr("y", function() {
                                 // NOTE: d3 returns string so we need to use parseFloat()
                                 var factor = (newY - defaultY) / self._gridHeight();
-                                var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")) - 2*self.state.navigator.borderThickness; 
-                                return self.state.navigator.y + minimap_height*factor;
+                                var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")) - 2*self.state.minimap.borderThickness; 
+                                return self.state.minimap.y + minimap_height*factor;
                             });
                             
                        
@@ -1410,23 +1423,6 @@ var images = require('./images.json');
 			});
 	},
 		
-	_initializeOverviewRegion: function(overviewX, overviewY, width, height) {
-		// Group the overview region and text together - Joe
-		var globalviewGrp = this.state.svg.append("g")
-			.attr("id", "pg_navigator");
-		
-		// rectangular border for overview map
-		// border color and thickness are defined inline so it can be used by exported svg - Joe
-		globalviewGrp.append("rect")
-			.attr("x", overviewX)
-			.attr("y", overviewY)
-			.attr("id", "pg_globalview")
-			.attr("height", height)
-			.attr("width", width)
-            .style("fill", this.state.navigator.bgColor)
-            .style("stroke", this.state.navigator.borderColor)
-            .style("stroke-width", this.state.navigator.borderThickness);
-	},
 
     // for overview mini map
 	_createSmallScales: function(width, height) {
