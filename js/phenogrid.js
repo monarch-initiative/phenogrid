@@ -152,8 +152,7 @@ var images = require('./images.json');
                 bgColor: '#fff',
                 borderColor: '#666',
                 borderThickness:2, // 2 works best, any other number will cause imperfect display - Joe
-                miniCellwd:2,
-                miniCellht:2,
+                miniCellSize:2, // width/height
                 shadedAreaBgColor: '#666',
                 shadedAreaOpacity: 0.5
             },
@@ -173,10 +172,8 @@ var images = require('./images.json');
             gridRegion: {
                 x:254, 
                 y:200, // origin coordinates for grid region (matrix)
-                ypad:18, // x distance from the first cell to the next cell
-                xpad:18, // y distance from the first cell to the next cell
-                cellwd:12, // grid cell width
-                cellht:12, // grid cell height
+                cellPad:18, // distance from the first cell to the next cell
+                cellSize:12, // grid cell width/height
                 rowLabelOffset:-25, // offset of the row label (left side)
                 colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
@@ -825,13 +822,13 @@ var images = require('./images.json');
 			.append("rect")
 			.attr("class", "mini_cell")
 			.attr("x", function(d) { 
-				return self.state.smallXScale(d.target_id) + self.state.minimap.miniCellwd / 2; 
+				return self.state.smallXScale(d.target_id) + self.state.minimap.miniCellSize / 2; 
             })
             .attr("y", function(d, i) { 
-				return self.state.smallYScale(d.source_id) + self.state.minimap.miniCellht / 2;
+				return self.state.smallYScale(d.source_id) + self.state.minimap.miniCellSize / 2;
             })
-			.attr("width", this.state.minimap.miniCellwd) 
-			.attr("height", this.state.minimap.miniCellht) 
+			.attr("width", this.state.minimap.miniCellSize) 
+			.attr("height", this.state.minimap.miniCellSize) 
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
@@ -864,7 +861,7 @@ var images = require('./images.json');
 			.call(d3.behavior.drag() // Constructs a new drag behavior
 				.on("dragstart", self._dragstarted) // self._dragstarted() won't work - Joe
                 .on("drag", function() {
-                    // Random movement while dragging triggers mouseover on labels and cells (luckly, only crosshairs show up in this case)
+                    // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
                     self._crossHairsOff();
                     
                     /*
@@ -1012,7 +1009,7 @@ var images = require('./images.json');
                 .call(d3.behavior.drag()
                     .on("dragstart", self._dragstarted)
                     .on("drag", function() {
-                        // Random movement while dragging triggers mouseover on labels and cells (luckly, only crosshairs show up in this case)
+                        // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
                         self._crossHairsOff();
                         
                         var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
@@ -1080,7 +1077,8 @@ var images = require('./images.json');
                 .call(d3.behavior.drag()
                     .on("dragstart", self._dragstarted)
                     .on("drag", function() {
-                        // Random movement while dragging triggers mouseover on labels and cells (luckly, only crosshairs show up in this case)
+                        // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
+                        // Adding this in _dragstarted() won't work since the crosshair lines are being created during dragging
                         self._crossHairsOff();
                         
                         var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
@@ -1204,8 +1202,8 @@ var images = require('./images.json');
     	var xs = xScale(id);
 
     	var gridRegion = this.state.gridRegion; 
-        var x = gridRegion.x + (xs * gridRegion.xpad) + 5;  // magic number to make sure it goes through the middle of the cell
-        var y = gridRegion.y + (ypos * gridRegion.ypad) + 5; 
+        var x = gridRegion.x + (xs * gridRegion.cellPad) + 5;  // magic number to make sure it goes through the middle of the cell
+        var y = gridRegion.y + (ypos * gridRegion.cellPad) + 5; 
 
 		if (direction === 'vertical') {
 			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + this._gridHeight());
@@ -1213,10 +1211,10 @@ var images = require('./images.json');
 			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
         } else {
 			// creating 4 lines around the cell, this way there's no svg elements overlapped - Joe
-            this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + gridRegion.ypad*ypos); // vertical line above cell
-            this._createFocusLineVertical(x, gridRegion.y + gridRegion.ypad*ypos + gridRegion.cellht, x, gridRegion.y + this._gridHeight()); // vertical line under cell
-			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + gridRegion.xpad*xs, y); // horizontal line on the left of cell
-            this._createFocusLineHorizontal(gridRegion.x + gridRegion.xpad*xs + gridRegion.cellwd, y, gridRegion.x + this._gridWidth(), y); // horizontal line on the right of cell	         
+            this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + gridRegion.cellPad*ypos); // vertical line above cell
+            this._createFocusLineVertical(x, gridRegion.y + gridRegion.cellPad*ypos + gridRegion.cellSize, x, gridRegion.y + this._gridHeight()); // vertical line under cell
+			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + gridRegion.cellPad*xs, y); // horizontal line on the left of cell
+            this._createFocusLineHorizontal(gridRegion.x + gridRegion.cellPad*xs + gridRegion.cellSize, y, gridRegion.x + this._gridWidth(), y); // horizontal line on the right of cell	         
         }
 	},
 	
@@ -1351,13 +1349,13 @@ var images = require('./images.json');
 
 	_gridWidth: function() {
         var gridRegion = this.state.gridRegion; 
-        var gridWidth = (gridRegion.xpad * this.state.xAxisRender.displayLength()) - (gridRegion.xpad - gridRegion.cellwd);
+        var gridWidth = (gridRegion.cellPad * this.state.xAxisRender.displayLength()) - (gridRegion.cellPad - gridRegion.cellSize);
         return gridWidth;
     },
 
 	_gridHeight: function() {
 		var gridRegion = this.state.gridRegion; 
-		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);	
+		var height = (gridRegion.cellPad * this.state.yAxisRender.displayLength()) - (gridRegion.cellPad - gridRegion.cellSize);	
 		return height;
 	},
 
@@ -1392,7 +1390,7 @@ var images = require('./images.json');
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
 				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; 
+  					return "translate(" + (gridRegion.x-gridRegion.cellPad-5) +"," + (gridRegion.y+scale(d)*gridRegion.cellPad+10) + ")"; 
                 })
 	      		.attr("x", gridRegion.rowLabelOffset)
 	      		.attr("y",  function(d, i) {
@@ -1401,7 +1399,7 @@ var images = require('./images.json');
 	    } else {
 	    	scores	      		
                 .attr("transform", function(d, i) { 
-                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
+                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.cellPad-1) +
                          "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
                     })
                 .attr("x", 0)
@@ -1909,9 +1907,9 @@ var images = require('./images.json');
 			var cellsDisplayedPer = this.state.defaultCrossCompareTargetLimitPerTargetGroup;
 			var x1 = 0;
 			if (this.state.invertAxis) {
-				x1 = ((gridRegion.ypad * (cellsDisplayedPer-1)) + gridRegion.cellht);  //-gridRegion.rowLabelOffset; 								
+				x1 = ((gridRegion.cellPad * (cellsDisplayedPer-1)) + gridRegion.cellSize);  //-gridRegion.rowLabelOffset; 								
 			} else {
-				x1 = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd); 
+				x1 = ((gridRegion.cellPad * (cellsDisplayedPer-1)) + gridRegion.cellSize); 
 				y = y - gridRegion.colLabelOffset;  // offset the line to reach the labels
 			}
 
@@ -1997,7 +1995,7 @@ var images = require('./images.json');
 	        .attr("transform", function(d) { 
                 var offset = gridRegion.colLabelOffset;
                 var xs = xScale(d.id);
-                return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
+                return "translate(" + (gridRegion.x + (xs*gridRegion.cellPad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
             }); //-45
 
 	    // create column labels
@@ -2033,7 +2031,7 @@ var images = require('./images.json');
         if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
             column.append("rect")
                 .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
-                .attr('width', gridRegion.cellwd)
+                .attr('width', gridRegion.cellSize)
                 .attr('height', self._gridHeight())
                 .style('fill', function(d){
                     if (d.type === 'genotype') {
@@ -2061,7 +2059,7 @@ var images = require('./images.json');
             })
   			.attr("transform", function(d, i) { 
                 var y = self.state.gridRegion.y;
-                var ypad = self.state.gridRegion.ypad;
+                var ypad = self.state.gridRegion.cellPad;
 
                 return "translate(" + gridRegion.x +"," + (y+(i*ypad)) + ")"; 
             });
@@ -2136,10 +2134,10 @@ var images = require('./images.json');
                 })
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
-		        	return d.xpos * gridRegion.xpad;
+		        	return d.xpos * gridRegion.cellPad;
                 })
-		        .attr("width", gridRegion.cellwd)
-		        .attr("height", gridRegion.cellht) 
+		        .attr("width", gridRegion.cellSize)
+		        .attr("height", gridRegion.cellSize) 
 				.attr("data-tooltip", "tooltip")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
