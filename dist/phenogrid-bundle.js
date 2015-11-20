@@ -1872,6 +1872,10 @@ var images = require('./images.json');
                 width: 40, 
                 height: 26
             },
+            targetGroupDividerLine: {
+                color: "#666",
+                thickness: 1
+            },
             gridRegion: {
                 x:254, 
                 y:200, // origin coordinates for grid region (matrix)
@@ -3624,8 +3628,8 @@ var images = require('./images.json');
 					.attr("y1", x1-2)
 					.attr("x2", width)   // adjust this for to go beyond the row label
 					.attr("y2", x1-2)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
+                    .style("stroke", this.state.targetGroupDividerLine.color)
+                    .style("stroke-width", this.state.targetGroupDividerLine.thickness)
                     .style("shape-rendering", "crispEdges");
 
 				} else {
@@ -3637,8 +3641,8 @@ var images = require('./images.json');
 					.attr("y1", 0)
 					.attr("x2", x1)
 					.attr("y2", height)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
+                    .style("stroke", this.state.targetGroupDividerLine.color)
+                    .style("stroke-width", this.state.targetGroupDividerLine.thickness)
                     .style("shape-rendering", "crispEdges");
 
 
@@ -3650,8 +3654,8 @@ var images = require('./images.json');
 					.attr("y1", 0)
 					.attr("x2", x1 + 110)  // extend the line out to underline the labels					
 					.attr("y2", 0)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
+                    .style("stroke", this.state.targetGroupDividerLine.color)
+                    .style("stroke-width", this.state.targetGroupDividerLine.thickness)
                     .style("shape-rendering", "crispEdges");
 				}
 			}
