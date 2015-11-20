@@ -2548,7 +2548,8 @@ var images = require('./images.json');
             .style("fill", "grey")
             .style("opacity", 0.5)
 			.call(d3.behavior.drag() // Constructs a new drag behavior
-				.on("drag", function(d) {
+				.on("dragstart", self._dragstarted) // self._dragstarted() won't work - Joe
+                .on("drag", function() {
 					/*
 					 * drag the highlight in the overview window
 					 * notes: account for the width of the rectangle in my x and y calculations
@@ -2588,9 +2589,7 @@ var images = require('./images.json');
                     self.state.svg.select("#pg_navigator_shaded_area")
                         .attr("x", newX)
                         .attr("y", newY);
-                    
-                    
-                    
+
                     // update the position of slider in each scrollbar accordingly   
                     self.state.svg.select("#pg_horizontal_scrollbar_slider")
                         .attr("x", function() {
@@ -2620,9 +2619,24 @@ var images = require('./images.json');
 
                     // grid region needs to be updated accordingly
 					self._updateGrid(newXPos, newYPos);
-		}));
+		        })
+                .on("dragend", self._dragended) // self._dragended() won't work - Joe
+        );
 	},
 
+    // when a drag gesture starts
+    // define the dragging color in CSS since it won't show in the exported SVG
+    _dragstarted: function() {
+        // change the slider color while dragging
+        d3.select(this).classed("pg_dragging", true); 
+    },
+
+    // when the drag gesture finishes
+    _dragended: function() {
+        // remove the dragging color
+        d3.select(this).classed("pg_dragging", false);
+    },
+    
     // Create horizontal and vertical scrollbars based on needs
     _createScrollbars: function(horizontal, vertical) {
         var self = this;
@@ -2638,18 +2652,6 @@ var images = require('./images.json');
         var sliderColor = scrollbar.sliderColor;
         var sliderOpacity = scrollbar.sliderOpacity;
 
-        // when a drag gesture starts
-        var dragstarted = function() {
-            // change the slider color while dragging
-            d3.select(this).classed("pg_dragging", true); 
-        };
-
-        // when the drag gesture finishes
-        var dragended = function() {
-            // remove the dragging color
-            d3.select(this).classed("pg_dragging", false);
-        };
-        
         // create the scales based on the scrollbar size
         // don't include the border thickness (2) on both sides
 		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
@@ -2699,8 +2701,7 @@ var images = require('./images.json');
                 .style('opacity', sliderOpacity)
                 .attr("class", "pg_draggable")
                 .call(d3.behavior.drag()
-                    .on("dragstart", dragstarted)
-                    .on("dragend", dragstarted)
+                    .on("dragstart", self._dragstarted)
                     .on("drag", function() {
                         var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
                         
@@ -2736,6 +2737,7 @@ var images = require('./images.json');
                         // Horizontal grid region needs to be updated accordingly
                         self._updateHorizontalGrid(newXPos);
                     })
+                    .on("dragend", self._dragended)
                 );
         }
         
@@ -2766,8 +2768,7 @@ var images = require('./images.json');
                 .style('opacity', sliderOpacity)
                 .attr("class", "pg_draggable")
                 .call(d3.behavior.drag()
-                    .on("dragstart", dragstarted)
-                    .on("dragend", dragstarted)
+                    .on("dragstart", self._dragstarted)
                     .on("drag", function() {
                         var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
                         
@@ -2804,6 +2805,7 @@ var images = require('./images.json');
                         // Vertical grid region needs to be updated accordingly
                         self._updateVerticalGrid(newYPos);
                     })
+                    .on("dragend", self._dragended)
                 );
         }
     },

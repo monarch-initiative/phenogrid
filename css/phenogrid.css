@@ -251,7 +251,7 @@ cursor:move;
 }
 
 #pg_container  .pg_dragging {
-fill: red !important;
+fill: #EA763B !important;
 }
 
 /* clearfix hack http://nicolasgallagher.com/micro-clearfix-hack/ */
