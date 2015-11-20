@@ -935,8 +935,18 @@ var images = require('./images.json');
         var sliderColor = scrollbar.sliderColor;
         var sliderOpacity = scrollbar.sliderOpacity;
 
-        
+        // when a drag gesture starts
+        var dragstarted = function() {
+            // change the slider color while dragging
+            d3.select(this).classed("pg_dragging", true); 
+        };
 
+        // when the drag gesture finishes
+        var dragended = function() {
+            // remove the dragging color
+            d3.select(this).classed("pg_dragging", false);
+        };
+        
         // create the scales based on the scrollbar size
         // don't include the border thickness (2) on both sides
 		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
@@ -975,17 +985,6 @@ var images = require('./images.json');
                 .style("stroke", scrollbarBorderColor)
                 .style("stroke-width", scrollbarBorderThickness);
 
-            var drag = d3.behavior.drag()
-                .on("dragstart", function() {
-                    //d3.event.sourceEvent.stopPropagation();
-                    // change the slider color while dragging
-                    d3.select(this).classed("pg_dragging", true); 
-                })
-                .on("dragend", function() {
-                    // remove the dragging color
-                    d3.select(this).classed("pg_dragging", false);
-                });
-            
             // slider rect
             horizontalScrollbarGrp.append("rect")
                 .attr("x", defaultX + sliderRectX) // sets the slider to the desired position after inverting axis - Joe
@@ -997,15 +996,8 @@ var images = require('./images.json');
                 .style('opacity', sliderOpacity)
                 .attr("class", "pg_draggable")
                 .call(d3.behavior.drag()
-                    .on("dragstart", function() {
-                        //d3.event.sourceEvent.stopPropagation();
-                        // change the slider color while dragging
-                        d3.select(this).classed("pg_dragging", true); 
-                    })
-                    .on("dragend", function() {
-                        // remove the dragging color
-                        d3.select(this).classed("pg_dragging", false);
-                    })
+                    .on("dragstart", dragstarted)
+                    .on("dragend", dragstarted)
                     .on("drag", function() {
                         var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
                         
@@ -1071,15 +1063,8 @@ var images = require('./images.json');
                 .style('opacity', sliderOpacity)
                 .attr("class", "pg_draggable")
                 .call(d3.behavior.drag()
-                    .on("dragstart", function() {
-                        //d3.event.sourceEvent.stopPropagation();
-                        // change the slider color while dragging
-                        d3.select(this).classed("pg_dragging", true); 
-                    })
-                    .on("dragend", function() {
-                        // remove the dragging color
-                        d3.select(this).classed("pg_dragging", false);
-                    })
+                    .on("dragstart", dragstarted)
+                    .on("dragend", dragstarted)
                     .on("drag", function() {
                         var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
                         
