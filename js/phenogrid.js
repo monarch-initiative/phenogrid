@@ -175,7 +175,7 @@ var images = require('./images.json');
                 cellPad:18, // distance from the first cell to the next cell
                 cellSize:12, // grid cell width/height
                 rowLabelOffset:-25, // offset of the row label (left side)
-                colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
+                colLabelOffset: 20,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
             },
             gradientRegion: {
@@ -1390,20 +1390,13 @@ var images = require('./images.json');
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
 				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.cellPad-5) +"," + (gridRegion.y+scale(d)*gridRegion.cellPad+10) + ")"; 
-                })
-	      		.attr("x", gridRegion.rowLabelOffset)
-	      		.attr("y",  function(d, i) {
-                    return scale.rangeBand(i)/2;
-                });  
+  					return "translate(" + (gridRegion.x - gridRegion.cellPad) +", " + (gridRegion.y+scale(d)*gridRegion.cellPad + 9) + ")"; 
+                });
 	    } else {
 	    	scores	      		
                 .attr("transform", function(d, i) { 
-                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.cellPad-1) +
-                         "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
-                    })
-                .attr("x", 0)
-                .attr("y", scale.rangeBand()+2);
+                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.cellPad) + "," + (gridRegion.y - gridRegion.scoreOffset) +")";
+                    });
 	    }
 	}, 
     
