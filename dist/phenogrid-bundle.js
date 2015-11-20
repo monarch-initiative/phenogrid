@@ -1854,14 +1854,16 @@ var images = require('./images.json');
                 height:110, // the actual height will be calculated based on the number of y count - Joe
                 borderThickness:2, // stroke-width
                 miniCellwd:2,
-                miniCellht:2
+                miniCellht:2,
+                shadedAreaBgColor: '#666',
+                shadedAreaOpacity: 0.5
             },// controls the navigator mapview - Joe
             scrollbar: {
                 barToGridMargin: 20,
                 barThickness: 1,
-                barColor: "#ddd",
+                barColor: "#ccc",
                 sliderThickness: 8,
-                sliderColor: "#ccc"
+                sliderColor: "#999",
             },
             logo: {
                 x: 70, 
@@ -2544,8 +2546,8 @@ var images = require('./images.json');
 			.attr("height", selectRectHeight + 4)
 			.attr("width", selectRectWidth + 4)
 			.attr("class", "pg_draggable")
-            .style("fill", "grey")
-            .style("opacity", 0.5)
+            .style("fill", this.state.navigator.shadedAreaBgColor)
+            .style("opacity", this.state.navigator.shadedAreaOpacity)
 			.call(d3.behavior.drag() // Constructs a new drag behavior
 				.on("dragstart", self._dragstarted) // self._dragstarted() won't work - Joe
                 .on("drag", function() {
