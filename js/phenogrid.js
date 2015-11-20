@@ -154,14 +154,11 @@ var images = require('./images.json');
                 miniCellht:2
             },// controls the navigator mapview - Joe
             scrollbar: {
-                toGridMargin: 20,
-                barFixedSize: 12,
-                barBorderThickness: 2, // stroke-width
-                barBorderColor: "#000",
-                barBgColor: "#fff", // fill
-                sliderFixedSize: 8,
-                sliderColor: "grey",
-                sliderOpacity: 0.5
+                barToGridMargin: 20,
+                barThickness: 1,
+                barColor: "#ddd",
+                sliderThickness: 8,
+                sliderColor: "#ccc"
             },
             logo: {
                 x: 70, 
@@ -643,17 +640,19 @@ var images = require('./images.json');
                     .data(targetGroupList)
                     .enter()
                     .append("text")
-                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 20) // 20 is margin - Joe
+                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
                     .attr("y", function(d, i) { 
                             return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
                         })
                     .attr('transform', function(d, i) {
-                        var currX = self.state.gridRegion.x + self._gridWidth() + 20;
+                        var currX = self.state.gridRegion.x + self._gridWidth() + 25;
                         var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
                         return 'rotate(90 ' + currX + ' ' + currY + ')';
                     }) // rotate by 90 degrees 
                     .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                    .text(function (d, i){return targetGroupList[i];})
+                    .text(function (d, i){
+                        return targetGroupList[i];
+                    })
                     .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
             } else {
             	var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
@@ -890,18 +889,16 @@ var images = require('./images.json');
                     // update the position of slider in each scrollbar accordingly   
                     self.state.svg.select("#pg_horizontal_scrollbar_slider")
                         .attr("x", function() {
-                            // NOTE: d3 returns string so we need to use parseFloat()
                             var factor = (newX - overviewX) / width;
-                            var horizontal_scrollbar_width = parseFloat(d3.select("#pg_horizontal_scrollbar").attr("width"));
-                            return self.state.gridRegion.x + self.state.scrollbar.barBorderThickness + horizontal_scrollbar_width*factor;
+                            var horizontal_scrollbar_width = self._gridWidth();
+                            return self.state.gridRegion.x + horizontal_scrollbar_width*factor;
                         });
                     
                     self.state.svg.select("#pg_vertical_scrollbar_slider")
                         .attr("y", function() {
-                            // NOTE: d3 returns string so we need to use parseFloat()
                             var factor = (newY - overviewY) / height;
-                            var vertical_scrollbar_height = parseFloat(d3.select("#pg_vertical_scrollbar").attr("height"));
-                            return self.state.gridRegion.y + self.state.scrollbar.barBorderThickness + vertical_scrollbar_height*factor;
+                            var vertical_scrollbar_height = self._gridHeight();
+                            return self.state.gridRegion.y + vertical_scrollbar_height*factor;
                         });
                     
                     
@@ -940,25 +937,21 @@ var images = require('./images.json');
         
         // variables for scrollbar and slider SVG rendering
         var scrollbar = this.state.scrollbar;
-        var sccrollbarToGridMargin = scrollbar.toGridMargin;
-        var scrollbarFixedSize = scrollbar.barFixedSize;
-        var scrollbarBorderThickness = scrollbar.barBorderThickness;
-        var scrollbarBorderColor = scrollbar.barBorderColor;
-        var scrollbarBgColor = scrollbar.barBgColor;
-        var sliderFixedSize = scrollbar.sliderFixedSize;
+        var barToGridMargin = scrollbar.barToGridMargin;
+        var barThickness = scrollbar.barThickness;
+        var barColor = scrollbar.barColor;
+        var sliderThickness = scrollbar.sliderThickness;
         var sliderColor = scrollbar.sliderColor;
-        var sliderOpacity = scrollbar.sliderOpacity;
 
         // create the scales based on the scrollbar size
-        // don't include the border thickness (2) on both sides
-		this._createScrollbarScales(this._gridWidth() - 2*scrollbarBorderThickness, this._gridHeight() - 2*scrollbarBorderThickness);
+		this._createScrollbarScales(this._gridWidth(), this._gridHeight());
         
         // variables for creating horizontal bar
         var xCount = this.state.xAxisRender.displayLength();  
         var xRenderedSize = this.state.xAxisRender.displayLength();
         var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
         var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-        var defaultX = this.state.gridRegion.x + scrollbarBorderThickness;
+        var defaultX = this.state.gridRegion.x;
         var sliderRectX = this.state.horizontalScrollbarScale(startXId);
         var sliderWidth = this.state.horizontalScrollbarScale(lastXId) - this.state.horizontalScrollbarScale(startXId);
         
@@ -967,7 +960,7 @@ var images = require('./images.json');
         var yRenderedSize = this.state.yAxisRender.displayLength();
         var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
         var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-        var defaultY = this.state.gridRegion.y + scrollbarBorderThickness;
+        var defaultY = this.state.gridRegion.y;
         var sliderRectY = this.state.verticalScrollbarScale(startYId);
         var sliderHeight = this.state.verticalScrollbarScale(lastYId) - this.state.verticalScrollbarScale(startYId);
     
@@ -976,26 +969,24 @@ var images = require('./images.json');
             var horizontalScrollbarGrp = this.state.svg.append("g")
                 .attr("id", "pg_horizontal_scrollbar_group");
             
-            // scrollbar rect
-            horizontalScrollbarGrp.append("rect")
-                .attr("x", this.state.gridRegion.x)
-                .attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin)
+            // scrollbar line
+            horizontalScrollbarGrp.append("line")
+                .attr("x1", this.state.gridRegion.x)
+                .attr("y1", this.state.gridRegion.y + this._gridHeight() + barToGridMargin)
+                .attr("x2", this.state.gridRegion.x + this._gridWidth())
+                .attr("y2", this.state.gridRegion.y + this._gridHeight() + barToGridMargin)
                 .attr("id", "pg_horizontal_scrollbar")
-                .attr("height", scrollbarFixedSize)
-                .attr("width", this._gridWidth())
-                .style("fill", scrollbarBgColor)
-                .style("stroke", scrollbarBorderColor)
-                .style("stroke-width", scrollbarBorderThickness);
+                .style("stroke", barColor)
+                .style("stroke-width", barThickness);
 
             // slider rect
             horizontalScrollbarGrp.append("rect")
                 .attr("x", defaultX + sliderRectX) // sets the slider to the desired position after inverting axis - Joe
-                .attr("y", this.state.gridRegion.y + this._gridHeight() + sccrollbarToGridMargin + scrollbarBorderThickness)
+                .attr("y", this.state.gridRegion.y + this._gridHeight() + barToGridMargin - sliderThickness/2)
                 .attr("id", "pg_horizontal_scrollbar_slider")
-                .attr("height", sliderFixedSize)
+                .attr("height", sliderThickness)
                 .attr("width", sliderWidth)
                 .style("fill", sliderColor)
-                .style('opacity', sliderOpacity)
                 .attr("class", "pg_draggable")
                 .call(d3.behavior.drag()
                     .on("dragstart", self._dragstarted)
@@ -1009,8 +1000,8 @@ var images = require('./images.json');
                         }
                         
                         // right
-                        if ((newX + sliderWidth) > (self.state.gridRegion.x + self._gridWidth() - scrollbarBorderThickness)) {
-                            newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth - scrollbarBorderThickness;
+                        if ((newX + sliderWidth) > (self.state.gridRegion.x + self._gridWidth())) {
+                            newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth;
                         }
                         
                         // update the position of slider
@@ -1021,7 +1012,7 @@ var images = require('./images.json');
                         self.state.svg.select("#pg_navigator_shaded_area")
                             .attr("x", function() {
                                 // NOTE: d3 returns string so we need to use parseFloat()
-                                var factor = (newX - defaultX) / (self._gridWidth() - 2*scrollbarBorderThickness);
+                                var factor = (newX - defaultX) / self._gridWidth();
                                 var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.navigator.borderThickness;
                                 return self.state.navigator.x + minimap_width*factor;
                             });
@@ -1044,25 +1035,23 @@ var images = require('./images.json');
                 .attr("id", "pg_vertical_scrollbar_group");
             
             // scrollbar rect
-            verticalScrollbarGrp.append("rect")
-                .attr("x", this.state.gridRegion.x + this._gridWidth() + sccrollbarToGridMargin)
-                .attr("y", this.state.gridRegion.y)
+            verticalScrollbarGrp.append("line")
+                .attr("x1", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
+                .attr("y1", this.state.gridRegion.y)
+                .attr("x2", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
+                .attr("y2", this.state.gridRegion.y + this._gridHeight())
                 .attr("id", "pg_vertical_scrollbar")
-                .attr("height", this._gridHeight())
-                .attr("width", scrollbarFixedSize)
-                .style("fill", scrollbarBgColor)
-                .style("stroke", scrollbarBorderColor)
-                .style("stroke-width", scrollbarBorderThickness); // border thickness
+                .style("stroke", barColor)
+                .style("stroke-width", barThickness);
 
             // slider rect
             verticalScrollbarGrp.append("rect")
-                .attr("x", this.state.gridRegion.x + this._gridWidth() + sccrollbarToGridMargin + scrollbarBorderThickness) 
+                .attr("x", this.state.gridRegion.x + this._gridWidth() + barToGridMargin - sliderThickness/2) 
                 .attr("y", defaultY + sliderRectY) // sets the slider to the desired position after inverting axis - Joe
                 .attr("id", "pg_vertical_scrollbar_slider")
                 .attr("height", sliderHeight)
-                .attr("width", sliderFixedSize)
+                .attr("width", sliderThickness)
                 .style("fill", sliderColor)
-                .style('opacity', sliderOpacity)
                 .attr("class", "pg_draggable")
                 .call(d3.behavior.drag()
                     .on("dragstart", self._dragstarted)
@@ -1076,8 +1065,8 @@ var images = require('./images.json');
                         }
                         
                         // bottom
-                        if ((newY + sliderHeight) > (self.state.gridRegion.y + self._gridHeight() - scrollbarBorderThickness)) {
-                            newY = self.state.gridRegion.y + self._gridHeight() - sliderHeight - scrollbarBorderThickness;
+                        if ((newY + sliderHeight) > (self.state.gridRegion.y + self._gridHeight())) {
+                            newY = self.state.gridRegion.y + self._gridHeight() - sliderHeight;
                         }
                         
                         // update the position of slider
@@ -1088,7 +1077,7 @@ var images = require('./images.json');
                         self.state.svg.select("#pg_navigator_shaded_area")
                             .attr("y", function() {
                                 // NOTE: d3 returns string so we need to use parseFloat()
-                                var factor = (newY - defaultY) / (self._gridHeight() - 2*scrollbarBorderThickness);
+                                var factor = (newY - defaultY) / self._gridHeight();
                                 var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")) - 2*self.state.navigator.borderThickness; 
                                 return self.state.navigator.y + minimap_height*factor;
                             });
