@@ -149,7 +149,9 @@ var images = require('./images.json');
                 y: 65, 
                 width:110, // the actual width will be calculated based on the number of x count - Joe
                 height:110, // the actual height will be calculated based on the number of y count - Joe
-                borderThickness:2, // stroke-width
+                bgColor: '#fff',
+                borderColor: '#666',
+                borderThickness:2, // 2 works best, any other number will cause imperfect display - Joe
                 miniCellwd:2,
                 miniCellht:2,
                 shadedAreaBgColor: '#666',
@@ -774,7 +776,8 @@ var images = require('./images.json');
 		var overviewY = this.state.navigator.y;
 
 		// create the main box
-		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.borderThickness * 2, height + this.state.navigator.borderThickness * 2);
+        // include the border thickness - Joe
+		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.borderThickness*2, height + this.state.navigator.borderThickness*2);
 
 		// create the scales based on the mini map region size
 		this._createSmallScales(width, height);
@@ -840,8 +843,8 @@ var images = require('./images.json');
 			.attr("x", overviewX + selectRectX)
 			.attr("y", overviewY + selectRectY)
 			.attr("id", "pg_navigator_shaded_area")
-			.attr("height", selectRectHeight + 4)
-			.attr("width", selectRectWidth + 4)
+			.attr("height", selectRectHeight + this.state.navigator.borderThickness*2)
+			.attr("width", selectRectWidth + this.state.navigator.borderThickness*2)
 			.attr("class", "pg_draggable")
             .style("fill", this.state.navigator.shadedAreaBgColor)
             .style("opacity", this.state.navigator.shadedAreaOpacity)
@@ -1420,9 +1423,9 @@ var images = require('./images.json');
 			.attr("id", "pg_globalview")
 			.attr("height", height)
 			.attr("width", width)
-            .style("fill", "#fff")
-            .style("stroke", "#000")
-            .style("stroke-width", 2); // border thickness
+            .style("fill", this.state.navigator.bgColor)
+            .style("stroke", this.state.navigator.borderColor)
+            .style("stroke-width", this.state.navigator.borderThickness);
 	},
 
     // for overview mini map
