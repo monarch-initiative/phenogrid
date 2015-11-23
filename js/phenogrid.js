@@ -170,7 +170,7 @@ var images = require('./images.json');
                 height: 26
             },
             targetGroupDividerLine: {
-                color: "#666",
+                color: "#EA763B",
                 thickness: 1
             },
             gridRegion: {
