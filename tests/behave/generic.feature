@@ -38,3 +38,8 @@ Feature: Generic features work when running Phenogrid as a standalone widget
         Given I go to page "/index.html"
             And I click the "pg_scores_tip_icon"
             Then the document should contain "What is the score shown at the top of the grid?"
+
+    
+    Scenario: Appearance of vertical scrollbar slider
+        Given I go to page "/index.html"
+            Then the document should contain id "pg_vertical_scrollbar_slider"
