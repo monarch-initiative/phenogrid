@@ -71,6 +71,14 @@ def step_impl(context, text):
     # print(webelt.get_attribute('innerHTML'))
     # assert webelt.get_attribute('innerHTML').rfind(text) != -1
 
+# The document body should contain a certain id
+@then('the document should contain id "{id}"')
+def step_impl(context, id):
+    print(context.browser.title)
+    webelt = context.browser.find_element_by_id(id)
+    assert webelt.get_attribute('id') == id
+
+    
 # The document body should contain a hyperlink with text.
 @then('the document should contain link with "{text}"')
 def step_impl(context, text):

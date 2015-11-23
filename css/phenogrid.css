@@ -30,7 +30,7 @@ box-shadow: 4px 4px 2px #ddd;
 #pg_container  .pg_controls_options_arrow_border{
 display: block;
 position: absolute;
-left: 17px;
+left: 27px;
 bottom: -16px;
 border-color: #222 transparent transparent transparent;
 border-style: solid;
@@ -42,7 +42,7 @@ width: 0;
 #pg_container  .pg_controls_options_arrow{
 display: block;
 position: absolute;
-left: 17px;
+left: 27px;
 bottom: -15px;
 border-color: #F1F3F8 transparent transparent transparent;
 border-style: solid;
@@ -248,6 +248,10 @@ text-decoration: line-through;
 /* Cursor for mini map */
 #pg_container  .pg_draggable{
 cursor:move;
+}
+
+#pg_container  .pg_dragging {
+fill: #EA763B !important;
 }
 
 /* clearfix hack http://nicolasgallagher.com/micro-clearfix-hack/ */

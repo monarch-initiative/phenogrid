@@ -144,29 +144,43 @@ var images = require('./images.json');
                 'rgb(29,145,192)',
                 'rgb(34,94,168)'
             ], // stop colors for corresponding stop points - Joe
-            navigator: {
+            minimap: {
                 x:112, 
                 y: 65, 
                 width:110, // the actual width will be calculated based on the number of x count - Joe
                 height:110, // the actual height will be calculated based on the number of y count - Joe
-                miniCellwd:2,
-                miniCellht:2
-            },// controls the navigator mapview - Joe
+                bgColor: '#fff',
+                borderColor: '#666',
+                borderThickness:2, // 2 works best, any other number will cause imperfect display - Joe
+                miniCellSize:2, // width/height
+                shadedAreaBgColor: '#666',
+                shadedAreaOpacity: 0.5
+            },
+            scrollbar: {
+                barToGridMargin: 20,
+                barThickness: 1,
+                barColor: "#ccc",
+                sliderThickness: 8,
+                sliderColor: "#999",
+            },
             logo: {
                 x: 70, 
                 y: 65, 
                 width: 40, 
                 height: 26
             },
+            targetGroupDividerLine: {
+                color: "#EA763B",
+                thickness: 1,
+                rotatedDividerLength: 110 // the length of the divider line for the rotated labels
+            },
             gridRegion: {
                 x:254, 
                 y:200, // origin coordinates for grid region (matrix)
-                ypad:18, // x distance from the first cell to the next cell
-                xpad:18, // y distance from the first cell to the next cell
-                cellwd:12, // grid cell width
-                cellht:12, // grid cell height
-                rowLabelOffset:-25, // offset of the row label (left side)
-                colLabelOffset: 18,  // offset of column label (adjusted for text score) from the top of grid squares
+                cellPad:19, // distance from the first cell to the next cell, odd number(19 - 12 = 7) makes the divider line entered perfectly - Joe
+                cellSize:12, // grid cell width/height
+                rowLabelOffset:25, // offset of the row label (left side)
+                colLabelOffset:20,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
             },
             gradientRegion: {
@@ -345,7 +359,7 @@ var images = require('./images.json');
 	},
 
     // Phenogrid container div
-	_createPhenogridContainer: function(msg) {
+	_createPhenogridContainer: function() {
 		this.state.pgContainer = $('<div id="pg_container"></div>');
 		this.element.append(this.state.pgContainer);
 	},
@@ -580,7 +594,7 @@ var images = require('./images.json');
         this._createSvgContainer();
         this._addLogoImage();
         this._createOverviewTargetGroupLabels();
-        this._whetherToCreateOverviewSection();
+        this._createNavigation();
         this._createGrid();
         this._createScoresTipIcon();
         this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
@@ -632,17 +646,19 @@ var images = require('./images.json');
                     .data(targetGroupList)
                     .enter()
                     .append("text")
-                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 20) // 20 is margin - Joe
+                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
                     .attr("y", function(d, i) { 
                             return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
                         })
                     .attr('transform', function(d, i) {
-                        var currX = self.state.gridRegion.x + self._gridWidth() + 20;
+                        var currX = self.state.gridRegion.x + self._gridWidth() + 25;
                         var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
                         return 'rotate(90 ' + currX + ' ' + currY + ')';
                     }) // rotate by 90 degrees 
                     .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                    .text(function (d, i){return targetGroupList[i];})
+                    .text(function (d, i){
+                        return targetGroupList[i];
+                    })
                     .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
             } else {
             	var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
@@ -668,15 +684,17 @@ var images = require('./images.json');
         } 
 	},
 
-        // In single species mode, only show mini map 
+    // Create minimap and scrollbars based on needs
+    // In single species mode, only show mini map 
     // when there are more sources than the default limit or more targets than default limit
     // In cross comparison mode, only show mini map 
     // when there are more sources than the default limit
-    _whetherToCreateOverviewSection: function() {
+    // Create scrollbars accordingly
+    _createNavigation: function() {
         var xCount = this.state.xAxisRender.displayLength();
         var yCount = this.state.yAxisRender.displayLength();
-        var width = this.state.navigator.width;
-        var height =this.state.navigator.height;
+        var width = this.state.minimap.width;
+        var height =this.state.minimap.height;
         
         // check xCount based on yCount
         if ( ! this.state.invertAxis) {
@@ -684,19 +702,25 @@ var images = require('./images.json');
                 if (yCount >= this.state.defaultSourceDisplayLimit) {
                     if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
                         // just use the default mini map width and height
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
+                        // create both horizontal and vertical scrollbars
+                        this._createScrollbars(true, true);
                     } else {
                         // shrink the width of mini map based on the xCount/this.state.defaultSingleTargetDisplayLimit
                         // and keep the hight unchanged
                         width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
+                        // only create vertical scrollbar
+                        this._createScrollbars(false, true);
                     }
                 } else {
                     if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
                         // shrink the height of mini map based on the yCount/this.state.defaultSourceDisplayLimit ratio
                         // and keep the hight unchanged
                         height = height * (yCount/this.state.defaultSourceDisplayLimit);
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
+                        // only create horizontal scrollbar
+                        this._createScrollbars(true, false);
                     } 
                     
                     // No need to create the mini map if both xCount and yCount are within the default limit
@@ -705,7 +729,9 @@ var images = require('./images.json');
                 // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
                 if (yCount >= this.state.defaultSourceDisplayLimit) {  
                     // just use the default mini map width and height
-                    this._createOverviewSection(width, height);
+                    this._createMinimap(width, height);
+                    // only create vertical scrollbar
+                    this._createScrollbars(false, true);
                 } 
                 
                 // No need to create the mini map if yCount is within the default limit
@@ -714,37 +740,59 @@ var images = require('./images.json');
             if ( ! this._isCrossComparisonView()) {
                 if (xCount >= this.state.defaultSourceDisplayLimit) {
                     if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
+                        // create both horizontal and vertical scrollbars
+                        this._createScrollbars(true, true);
                     } else {
                         height = height * (yCount/this.state.defaultSingleTargetDisplayLimit);
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
+                        // only create horizontal scrollbar
+                        this._createScrollbars(true, false);
                     }
                 } else {
                     if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
                         width = width * (xCount/this.state.defaultSourceDisplayLimit);
-                        this._createOverviewSection(width, height);
+                        this._createMinimap(width, height);
+                        // only create vertical scrollbar
+                        this._createScrollbars(false, true);
                     }
                 }
             } else {
                 if (xCount >= this.state.defaultSourceDisplayLimit) {  
-                    this._createOverviewSection(width, height);
+                    this._createMinimap(width, height);
+                    // only create horizontal scrollbar
+                    this._createScrollbars(true, false);
                 } 
             } 
         }   
     },
     
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
-	_createOverviewSection: function(width, height) {
+	_createMinimap: function(width, height) {
 		// set the display counts on each axis
 		var yCount = this.state.yAxisRender.displayLength();  
 	    var xCount = this.state.xAxisRender.displayLength();  
 
 		// these translations from the top-left of the rectangular region give the absolute coordinates
-		var overviewX = this.state.navigator.x;
-		var overviewY = this.state.navigator.y;
+		var overviewX = this.state.minimap.x;
+		var overviewY = this.state.minimap.y;
 
 		// create the main box
-		this._initializeOverviewRegion(overviewX, overviewY, width + this.state.navigator.miniCellwd * 2 + 2, height + this.state.navigator.miniCellht * 2 + 2);
+        // Group the overview region and text together - Joe
+		var globalviewGrp = this.state.svg.append("g")
+			.attr("id", "pg_navigator");
+		
+		// rectangular border for overview map
+		// border color and thickness are defined inline so it can be used by exported svg - Joe
+		globalviewGrp.append("rect")
+			.attr("x", overviewX)
+			.attr("y", overviewY)
+			.attr("id", "pg_globalview")
+			.attr("width", width + this.state.minimap.borderThickness*2) // include the border thickness - Joe
+            .attr("height", height + this.state.minimap.borderThickness*2)
+            .style("fill", this.state.minimap.bgColor)
+            .style("stroke", this.state.minimap.borderColor)
+            .style("stroke-width", this.state.minimap.borderThickness);
 
 		// create the scales based on the mini map region size
 		this._createSmallScales(width, height);
@@ -762,10 +810,6 @@ var images = require('./images.json');
             var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
         }
 
-        // add 1px unit space to the left and top
-        overviewX++;
-		overviewY++;
-        
 		// Group all mini cells in g element
         // apply the translate to the #pg_mini_cells_container instead of each cell - Joe
 		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
@@ -783,13 +827,13 @@ var images = require('./images.json');
 			.append("rect")
 			.attr("class", "mini_cell")
 			.attr("x", function(d) { 
-				return self.state.smallXScale(d.target_id) + self.state.navigator.miniCellwd / 2; 
+				return self.state.smallXScale(d.target_id) + self.state.minimap.miniCellSize / 2; 
             })
-            .attr("y", function(d, i) { 
-				return self.state.smallYScale(d.source_id) + self.state.navigator.miniCellht / 2;
+            .attr("y", function(d) { 
+				return self.state.smallYScale(d.source_id) + self.state.minimap.miniCellSize / 2;
             })
-			.attr("width", this.state.navigator.miniCellwd) 
-			.attr("height", this.state.navigator.miniCellht) 
+			.attr("width", this.state.minimap.miniCellSize) 
+			.attr("height", this.state.minimap.miniCellSize) 
 			.attr("fill", function(d) {
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
@@ -814,14 +858,18 @@ var images = require('./images.json');
 			.attr("x", overviewX + selectRectX)
 			.attr("y", overviewY + selectRectY)
 			.attr("id", "pg_navigator_shaded_area")
-			.attr("height", selectRectHeight + 4)
-			.attr("width", selectRectWidth + 4)
+			.attr("height", selectRectHeight + this.state.minimap.borderThickness*2)
+			.attr("width", selectRectWidth + this.state.minimap.borderThickness*2)
 			.attr("class", "pg_draggable")
-            .style("fill", "grey")
-            .style("opacity", 0.5)
+            .style("fill", this.state.minimap.shadedAreaBgColor)
+            .style("opacity", this.state.minimap.shadedAreaOpacity)
 			.call(d3.behavior.drag() // Constructs a new drag behavior
-				.on("drag", function(d) {
-					/*
+				.on("dragstart", self._dragstarted) // self._dragstarted() won't work - Joe
+                .on("drag", function() {
+                    // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
+                    self._crossHairsOff();
+                    
+                    /*
 					 * drag the highlight in the overview window
 					 * notes: account for the width of the rectangle in my x and y calculations
 					 * do not use the event x and y, they will be out of range at times. Use the converted values instead.
@@ -855,24 +903,248 @@ var images = require('./images.json');
 					if (newY + selectRectHeight > overviewY + height) {
 						newY = overviewY + height - selectRectHeight;
 					}
-                    
-					var draggableArea = self.state.svg.select("#pg_navigator_shaded_area")
+
+                    // Update the position of the shaded area
+                    self.state.svg.select("#pg_navigator_shaded_area")
                         .attr("x", newX)
                         .attr("y", newY);
 
+                    // update the position of slider in each scrollbar accordingly   
+                    self.state.svg.select("#pg_horizontal_scrollbar_slider")
+                        .attr("x", function() {
+                            var factor = (newX - overviewX) / width;
+                            var horizontal_scrollbar_width = self._gridWidth();
+                            return self.state.gridRegion.x + horizontal_scrollbar_width*factor;
+                        });
+                    
+                    self.state.svg.select("#pg_vertical_scrollbar_slider")
+                        .attr("y", function() {
+                            var factor = (newY - overviewY) / height;
+                            var vertical_scrollbar_height = self._gridHeight();
+                            return self.state.gridRegion.y + vertical_scrollbar_height*factor;
+                        });
+                    
+                    
+                    
 					// adjust x back to have 0,0 as base instead of overviewX, overviewY
 					newX = newX - overviewX;
 					newY = newY - overviewY;
 
 					// invert newX and newY into positions in the model and phenotype lists.
-					var newXPos = self._invertOverviewDragPosition(self.state.smallXScale, newX) + xCount;
-					var newYPos = self._invertOverviewDragPosition(self.state.smallYScale, newY) + yCount;
+					var newXPos = self._invertDragPosition(self.state.smallXScale, newX) + xCount;
+					var newYPos = self._invertDragPosition(self.state.smallYScale, newY) + yCount;
 
                     // grid region needs to be updated accordingly
 					self._updateGrid(newXPos, newYPos);
-		}));
+		        })
+                .on("dragend", self._dragended) // self._dragended() won't work - Joe
+        );
 	},
 
+    // when a drag gesture starts
+    // define the dragging color in CSS since it won't show in the exported SVG
+    _dragstarted: function() {
+        // change the slider color while dragging
+        d3.select(this).classed("pg_dragging", true); 
+    },
+
+    // when the drag gesture finishes
+    _dragended: function() {
+        // remove the dragging color
+        d3.select(this).classed("pg_dragging", false);
+    },
+    
+    // Create horizontal and vertical scrollbars based on needs
+    _createScrollbars: function(horizontal, vertical) {
+        var self = this;
+        
+        // variables for scrollbar and slider SVG rendering
+        var scrollbar = this.state.scrollbar;
+        var barToGridMargin = scrollbar.barToGridMargin;
+        var barThickness = scrollbar.barThickness;
+        var barColor = scrollbar.barColor;
+        var sliderThickness = scrollbar.sliderThickness;
+        var sliderColor = scrollbar.sliderColor;
+
+        // create the scales based on the scrollbar size
+		this._createScrollbarScales(this._gridWidth(), this._gridHeight());
+        
+        // variables for creating horizontal bar
+        var xCount = this.state.xAxisRender.displayLength();  
+        var xRenderedSize = this.state.xAxisRender.displayLength();
+        var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
+        var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+        var defaultX = this.state.gridRegion.x;
+        var sliderRectX = this.state.horizontalScrollbarScale(startXId);
+        var sliderWidth = this.state.horizontalScrollbarScale(lastXId) - this.state.horizontalScrollbarScale(startXId);
+        
+        // variables for creating vertical scrollbar
+        var yCount = this.state.yAxisRender.displayLength();  
+        var yRenderedSize = this.state.yAxisRender.displayLength();
+        var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
+        var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+        var defaultY = this.state.gridRegion.y;
+        var sliderRectY = this.state.verticalScrollbarScale(startYId);
+        var sliderHeight = this.state.verticalScrollbarScale(lastYId) - this.state.verticalScrollbarScale(startYId);
+    
+        // horizontal scrollbar
+        if (horizontal === true) {
+            var horizontalScrollbarGrp = this.state.svg.append("g")
+                .attr("id", "pg_horizontal_scrollbar_group");
+            
+            // scrollbar line
+            horizontalScrollbarGrp.append("line")
+                .attr("x1", this.state.gridRegion.x)
+                .attr("y1", this.state.gridRegion.y + this._gridHeight() + barToGridMargin)
+                .attr("x2", this.state.gridRegion.x + this._gridWidth())
+                .attr("y2", this.state.gridRegion.y + this._gridHeight() + barToGridMargin)
+                .attr("id", "pg_horizontal_scrollbar")
+                .style("stroke", barColor)
+                .style("stroke-width", barThickness);
+
+            // slider rect
+            horizontalScrollbarGrp.append("rect")
+                .attr("x", defaultX + sliderRectX) // sets the slider to the desired position after inverting axis - Joe
+                .attr("y", this.state.gridRegion.y + this._gridHeight() + barToGridMargin - sliderThickness/2)
+                .attr("id", "pg_horizontal_scrollbar_slider")
+                .attr("height", sliderThickness)
+                .attr("width", sliderWidth)
+                .style("fill", sliderColor)
+                .attr("class", "pg_draggable")
+                .call(d3.behavior.drag()
+                    .on("dragstart", self._dragstarted)
+                    .on("drag", function() {
+                        // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
+                        self._crossHairsOff();
+                        
+                        var newX = parseFloat(d3.select(this).attr("x")) + d3.event.dx;
+                        
+                        // Make sure the slider moves within the scrollbar horizontally - Joe
+                        // left
+                        if (newX < defaultX) {
+                            newX = defaultX;
+                        }
+                        
+                        // right
+                        if ((newX + sliderWidth) > (self.state.gridRegion.x + self._gridWidth())) {
+                            newX = self.state.gridRegion.x + self._gridWidth() - sliderWidth;
+                        }
+                        
+                        // update the position of slider
+                        self.state.svg.select("#pg_horizontal_scrollbar_slider")
+                            .attr("x", newX);
+                        
+                        // update the shaded area in mini map accordingly  
+                        self.state.svg.select("#pg_navigator_shaded_area")
+                            .attr("x", function() {
+                                // NOTE: d3 returns string so we need to use parseFloat()
+                                var factor = (newX - defaultX) / self._gridWidth();
+                                var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.minimap.borderThickness;
+                                return self.state.minimap.x + minimap_width*factor;
+                            });
+                            
+                        // adjust
+                        newX = newX - defaultX;
+                        
+                        var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
+                        
+                        // Horizontal grid region needs to be updated accordingly
+                        self._updateHorizontalGrid(newXPos);
+                    })
+                    .on("dragend", self._dragended)
+                );
+        }
+        
+        // vertical scrollbar
+        if (vertical === true) {
+            var verticalScrollbarGrp = this.state.svg.append("g")
+                .attr("id", "pg_vertical_scrollbar_group");
+            
+            // scrollbar rect
+            verticalScrollbarGrp.append("line")
+                .attr("x1", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
+                .attr("y1", this.state.gridRegion.y)
+                .attr("x2", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
+                .attr("y2", this.state.gridRegion.y + this._gridHeight())
+                .attr("id", "pg_vertical_scrollbar")
+                .style("stroke", barColor)
+                .style("stroke-width", barThickness);
+
+            // slider rect
+            verticalScrollbarGrp.append("rect")
+                .attr("x", this.state.gridRegion.x + this._gridWidth() + barToGridMargin - sliderThickness/2) 
+                .attr("y", defaultY + sliderRectY) // sets the slider to the desired position after inverting axis - Joe
+                .attr("id", "pg_vertical_scrollbar_slider")
+                .attr("height", sliderHeight)
+                .attr("width", sliderThickness)
+                .style("fill", sliderColor)
+                .attr("class", "pg_draggable")
+                .call(d3.behavior.drag()
+                    .on("dragstart", self._dragstarted)
+                    .on("drag", function() {
+                        // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
+                        // Adding this in _dragstarted() won't work since the crosshair lines are being created during dragging
+                        self._crossHairsOff();
+                        
+                        var newY = parseFloat(d3.select(this).attr("y")) + d3.event.dy;
+                        
+                        // Make sure the slider moves within the scrollbar vertically - Joe
+                        // top
+                        if (newY < defaultY) {
+                            newY = defaultY;
+                        }
+                        
+                        // bottom
+                        if ((newY + sliderHeight) > (self.state.gridRegion.y + self._gridHeight())) {
+                            newY = self.state.gridRegion.y + self._gridHeight() - sliderHeight;
+                        }
+                        
+                        // update the position of slider
+                        self.state.svg.select("#pg_vertical_scrollbar_slider")
+                            .attr("y", newY);
+                            
+                        // update the shaded area in mini map accordingly  
+                        self.state.svg.select("#pg_navigator_shaded_area")
+                            .attr("y", function() {
+                                // NOTE: d3 returns string so we need to use parseFloat()
+                                var factor = (newY - defaultY) / self._gridHeight();
+                                var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")) - 2*self.state.minimap.borderThickness; 
+                                return self.state.minimap.y + minimap_height*factor;
+                            });
+                            
+                       
+                        // adjust
+                        newY = newY - defaultY;
+
+                        var newYPos = self._invertDragPosition(self.state.verticalScrollbarScale, newY) + yCount;
+                        
+                        // Vertical grid region needs to be updated accordingly
+                        self._updateVerticalGrid(newYPos);
+                    })
+                    .on("dragend", self._dragended)
+                );
+        }
+    },
+    
+    // for scrollbars
+	_createScrollbarScales: function(width, height) {
+		// create list of all item ids within each axis
+   	    var sourceList = this.state.yAxisRender.groupIDs();
+	    var targetList = this.state.xAxisRender.groupIDs();
+
+		this.state.verticalScrollbarScale = d3.scale.ordinal()
+			.domain(sourceList.map(function(d) {
+                return d; 
+            }))
+			.rangePoints([0, height]);
+
+		this.state.horizontalScrollbarScale = d3.scale.ordinal()
+			.domain(targetList.map(function(d) {
+				return d; 
+            }))
+			.rangePoints([0, width]);   	    
+	},
+    
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
         var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
@@ -881,7 +1153,7 @@ var images = require('./images.json');
         
         d3.select("#pg_svg")
             .attr('width', svgWidth + 100)
-            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100) // Add an extra 100 to height - Joe
+            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100); // Add an extra 100 to height - Joe
     },
     
 	// Click the setting button to open the control options
@@ -935,8 +1207,8 @@ var images = require('./images.json');
     	var xs = xScale(id);
 
     	var gridRegion = this.state.gridRegion; 
-        var x = gridRegion.x + (xs * gridRegion.xpad) + 5;  // magic number to make sure it goes through the middle of the cell
-        var y = gridRegion.y + (ypos * gridRegion.ypad) + 5; 
+        var x = gridRegion.x + (xs * gridRegion.cellPad) + 5;  // magic number to make sure it goes through the middle of the cell
+        var y = gridRegion.y + (ypos * gridRegion.cellPad) + 5; 
 
 		if (direction === 'vertical') {
 			this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + this._gridHeight());
@@ -944,10 +1216,10 @@ var images = require('./images.json');
 			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + this._gridWidth(), y);	        
         } else {
 			// creating 4 lines around the cell, this way there's no svg elements overlapped - Joe
-            this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + gridRegion.ypad*ypos); // vertical line above cell
-            this._createFocusLineVertical(x, gridRegion.y + gridRegion.ypad*ypos + gridRegion.cellht, x, gridRegion.y + this._gridHeight()); // vertical line under cell
-			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + gridRegion.xpad*xs, y); // horizontal line on the left of cell
-            this._createFocusLineHorizontal(gridRegion.x + gridRegion.xpad*xs + gridRegion.cellwd, y, gridRegion.x + this._gridWidth(), y); // horizontal line on the right of cell	         
+            this._createFocusLineVertical(x, gridRegion.y, x, gridRegion.y + gridRegion.cellPad*ypos); // vertical line above cell
+            this._createFocusLineVertical(x, gridRegion.y + gridRegion.cellPad*ypos + gridRegion.cellSize, x, gridRegion.y + this._gridHeight()); // vertical line under cell
+			this._createFocusLineHorizontal(gridRegion.x, y, gridRegion.x + gridRegion.cellPad*xs, y); // horizontal line on the left of cell
+            this._createFocusLineHorizontal(gridRegion.x + gridRegion.cellPad*xs + gridRegion.cellSize, y, gridRegion.x + this._gridWidth(), y); // horizontal line on the right of cell	         
         }
 	},
 	
@@ -1082,13 +1354,13 @@ var images = require('./images.json');
 
 	_gridWidth: function() {
         var gridRegion = this.state.gridRegion; 
-        var gridWidth = (gridRegion.xpad * this.state.xAxisRender.displayLength()) - (gridRegion.xpad - gridRegion.cellwd);
+        var gridWidth = (gridRegion.cellPad * this.state.xAxisRender.displayLength()) - (gridRegion.cellPad - gridRegion.cellSize);
         return gridWidth;
     },
 
 	_gridHeight: function() {
 		var gridRegion = this.state.gridRegion; 
-		var height = (gridRegion.ypad * this.state.yAxisRender.displayLength()) - (gridRegion.ypad - gridRegion.cellht);	
+		var height = (gridRegion.cellPad * this.state.yAxisRender.displayLength()) - (gridRegion.cellPad - gridRegion.cellSize);	
 		return height;
 	},
 
@@ -1122,21 +1394,14 @@ var images = require('./images.json');
 
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
-				.attr("transform", function(d, i) { 
-  					return "translate(" + (gridRegion.x-gridRegion.xpad-5) +"," + (gridRegion.y+scale(d)*gridRegion.ypad+10) + ")"; 
-                })
-	      		.attr("x", gridRegion.rowLabelOffset)
-	      		.attr("y",  function(d, i) {
-                    return scale.rangeBand(i)/2;
-                });  
+				.attr("transform", function(d) { 
+  					return "translate(" + (gridRegion.x - gridRegion.cellPad) +", " + (gridRegion.y+scale(d)*gridRegion.cellPad + 9) + ")"; 
+                });
 	    } else {
 	    	scores	      		
-                .attr("transform", function(d, i) { 
-                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.xpad-1) +
-                         "," + (gridRegion.y-gridRegion.scoreOffset ) +")";
-                    })
-                .attr("x", 0)
-                .attr("y", scale.rangeBand()+2);
+                .attr("transform", function(d) { 
+                    return "translate(" + (gridRegion.x + scale(d)*gridRegion.cellPad) + "," + (gridRegion.y - gridRegion.scoreOffset) +")";
+                    });
 	    }
 	}, 
     
@@ -1152,7 +1417,7 @@ var images = require('./images.json');
 
 		this.state.svg.append("text")
 			.attr('font-family', 'FontAwesome')
-			.text(function(d) {
+			.text(function() {
 				return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 			})
 			.attr("id", "pg_scores_tip_icon")
@@ -1163,32 +1428,12 @@ var images = require('./images.json');
 			});
 	},
 		
-	_initializeOverviewRegion: function(overviewX, overviewY, width, height) {
-		// Group the overview region and text together - Joe
-		var globalviewGrp = this.state.svg.append("g")
-			.attr("id", "pg_navigator");
-		
-		// rectangular border for overview map
-		// border color and thickness are defined inline so it can be used by exported svg - Joe
-		globalviewGrp.append("rect")
-			.attr("x", overviewX)
-			.attr("y", overviewY)
-			.attr("id", "pg_globalview")
-			.attr("height", height)
-			.attr("width", width)
-            .style("fill", "#fff")
-            .style("stroke", "#000")
-            .style("stroke-width", 2); // border thickness
-	},
 
     // for overview mini map
 	_createSmallScales: function(width, height) {
-		var sourceList = [];
-		var targetList = [];
-
 		// create list of all item ids within each axis
-   	    sourceList = this.state.yAxisRender.groupIDs();
-	    targetList = this.state.xAxisRender.groupIDs();
+   	    var sourceList = this.state.yAxisRender.groupIDs();
+	    var targetList = this.state.xAxisRender.groupIDs();
 
 		this.state.smallYScale = d3.scale.ordinal()
 			.domain(sourceList.map(function (d) {
@@ -1198,13 +1443,13 @@ var images = require('./images.json');
 
 		this.state.smallXScale = d3.scale.ordinal()
 			.domain(targetList.map(function (d) {
-				var td = d;
 				return d; 
             }))
 			.rangePoints([0, width]);   	    
 	},
 
-	_invertOverviewDragPosition: function(scale, value) {
+    // Used by minimap and scrollbars
+	_invertDragPosition: function(scale, value) {
 		var leftEdges = scale.range();
 		var size = scale.rangeBand();
 		var j;
@@ -1646,70 +1891,54 @@ var images = require('./images.json');
 
 	_createTargetGroupDividerLines: function() {
 		var gridRegion = this.state.gridRegion;
-		var x = gridRegion.x;     
-		var y = gridRegion.y;   
-		var height = this._gridHeight() + gridRegion.colLabelOffset;// adjust due to extending it to the col labels
-		var width = this._gridWidth();
 
 		if (this._isCrossComparisonView() ) {
-			//var grps = self.state.selectedCompareTargetGroup.forEach(function(d) { if(d.crossComparisonView)return d; });
 			var numOfTargetGroup = this.state.selectedCompareTargetGroup.length; 
-			var xScale = this.state.xAxisRender.getScale();
-
-			//var cellsDisplayedPer = (self.state.defaultSingleTargetDisplayLimit / numOfTargetGroup);
-			var cellsDisplayedPer = this.state.defaultCrossCompareTargetLimitPerTargetGroup;
-			var x1 = 0;
-			if (this.state.invertAxis) {
-				x1 = ((gridRegion.ypad * (cellsDisplayedPer-1)) + gridRegion.cellht);  //-gridRegion.rowLabelOffset; 								
-			} else {
-				x1 = ((gridRegion.xpad * (cellsDisplayedPer-1)) + gridRegion.cellwd); 
-				y = y - gridRegion.colLabelOffset;  // offset the line to reach the labels
-			}
 
 			for (var i = 1; i < numOfTargetGroup; i++) {
-				var fudgeFactor = 3; //magic num
-				if (i > 1) {
-					fudgeFactor = 1;
-				}
-				x1 = (x1 * i)+ fudgeFactor;  // add a few extra padding so it won't overlap cells
-
 				if (this.state.invertAxis) {
-					this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")
-					.attr("transform","translate(" + x + "," + y+ ")")					
-					.attr("x1", gridRegion.rowLabelOffset)  // 0
-					.attr("y1", x1-2)
-					.attr("x2", width)   // adjust this for to go beyond the row label
-					.attr("y2", x1-2)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
-                    .style("shape-rendering", "crispEdges");
+					// gridRegion.colLabelOffset: offset the line to reach the labels
+                    var y = gridRegion.y + gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
+                    // render horizontal divider line
+                    this.state.svg.append("line")				
+                        .attr("class", "pg_target_grp_divider")				
+                        .attr("x1", gridRegion.x - gridRegion.rowLabelOffset)
+                        .attr("y1", y)
+                        .attr("x2", gridRegion.x + this._gridWidth())   // adjust this for to go beyond the row label
+                        .attr("y2", y)
+                        .style("stroke", this.state.targetGroupDividerLine.color)
+                        .style("stroke-width", this.state.targetGroupDividerLine.thickness)
+                        .style("shape-rendering", "crispEdges");
 				} else {
-					// render vertical divider line
-					this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")
-					.attr("transform","translate(" + x + "," + y+ ")")					
-					.attr("x1", x1)
-					.attr("y1", 0)
-					.attr("x2", x1)
-					.attr("y2", height)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
-                    .style("shape-rendering", "crispEdges");
+					// Perfectly center the first divider line between the 10th and 11th cell, same rule for the second line ...
+                    var x = gridRegion.x + gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
+                    // render vertical divider line
+					this.state.svg.append("line")				
+                        .attr("class", "pg_target_grp_divider")					
+                        .attr("x1", x)
+                        .attr("y1", gridRegion.y - gridRegion.colLabelOffset)
+                        .attr("x2", x)
+                        .attr("y2", gridRegion.y + this._gridHeight())
+                        .style("stroke", this.state.targetGroupDividerLine.color)
+                        .style("stroke-width", this.state.targetGroupDividerLine.thickness)
+                        .style("shape-rendering", "crispEdges");
 
 					// render the slanted line between targetGroup (targetGroup) columns
 					this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")
-					.attr("transform","translate(" + x + "," + y + ")rotate(-45 " + x1 + " 0)")				
-					.attr("x1", x1)
-					.attr("y1", 0)
-					.attr("x2", x1 + 110)  // extend the line out to underline the labels					
-					.attr("y2", 0)
-                    .style("stroke", "black")
-                    .style("stroke-width", 1)
-                    .style("shape-rendering", "crispEdges");
+                        .attr("class", "pg_target_grp_divider")
+                        // rotate(<rotate-angle> [<cx> <cy>])
+                        // The optional cx and cy values represent the unitless coordinates of the point used as a center of rotation. 
+                        // If cx and cy are not provided, the rotation is about the origin of the current user coordinate system. 
+                        .attr("transform", "rotate(-45 " + x + " " + (gridRegion.y - gridRegion.colLabelOffset) + ")")				
+                        .attr("x1", x)
+                        .attr("y1", gridRegion.y - gridRegion.colLabelOffset)
+                        .attr("x2", x + this.state.targetGroupDividerLine.rotatedDividerLength)  // extend the line out to underline the labels					
+                        .attr("y2", gridRegion.y - gridRegion.colLabelOffset)
+                        .style("stroke", this.state.targetGroupDividerLine.color)
+                        .style("stroke-width", this.state.targetGroupDividerLine.thickness)
+                        .style("shape-rendering", "crispEdges");
 				}
 			}
 		}
@@ -1748,7 +1977,7 @@ var images = require('./images.json');
 	        .attr("transform", function(d) { 
                 var offset = gridRegion.colLabelOffset;
                 var xs = xScale(d.id);
-                return "translate(" + (gridRegion.x + (xs*gridRegion.xpad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
+                return "translate(" + (gridRegion.x + (xs*gridRegion.cellPad)) + "," + (gridRegion.y - offset) + ")rotate(-45)"; 
             }); //-45
 
 	    // create column labels
@@ -1765,10 +1994,10 @@ var images = require('./images.json');
             })
 		    .attr("data-tooltip", "pg_tooltip")   			
 	      	.attr("text-anchor", "start")
-	      	.text(function(d, i) { 		
+	      	.text(function(d) { 		
 	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
             })
-		    .on("mouseover", function(d, i) { 				
+		    .on("mouseover", function(d) { 				
 		    	// self is the global widget this
                 // this passed to _mouseover refers to the current element
                 // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
@@ -1784,7 +2013,7 @@ var images = require('./images.json');
         if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
             column.append("rect")
                 .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
-                .attr('width', gridRegion.cellwd)
+                .attr('width', gridRegion.cellSize)
                 .attr('height', self._gridHeight())
                 .style('fill', function(d){
                     if (d.type === 'genotype') {
@@ -1808,18 +2037,18 @@ var images = require('./images.json');
 			.enter().append("g")			
 			.attr("class", "row")	 		
 			.attr("id", function(d, i) { 
-				return "pg_grid_row_"+i;
+				return "pg_grid_row_" + i;
             })
   			.attr("transform", function(d, i) { 
                 var y = self.state.gridRegion.y;
-                var ypad = self.state.gridRegion.ypad;
+                var ypad = self.state.gridRegion.cellPad;
 
-                return "translate(" + gridRegion.x +"," + (y+(i*ypad)) + ")"; 
+                return "translate(" + gridRegion.x +"," + (y + (i*ypad)) + ")"; 
             });
 
    		// create row labels
 	  	row.append("text")
-			.attr("x", gridRegion.rowLabelOffset)	  		
+			.attr("x", -gridRegion.rowLabelOffset) // shift a bit to the left to create some white spaces for inverting	  		
 	      	.attr("y",  function(d, i) {
 	      		var rb = yScale.rangeBand(i)/2;
 	      		return rb;
@@ -1827,7 +2056,6 @@ var images = require('./images.json');
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
             .style("font-size", "11px")
-            
             // the d.type is cell instead of genotype because the d refers to cell data
             // we'll need to get the genotype data from yAxisRender - Joe
             .style('fill', function(d, i) { // add different color to genotype labels
@@ -1882,15 +2110,15 @@ var images = require('./images.json');
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
 		        .enter().append("rect")
-		      	.attr("id", function(d, i) { 
+		      	.attr("id", function(d) { 
 		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; 
                 })
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
-		        	return d.xpos * gridRegion.xpad;
+		        	return d.xpos * gridRegion.cellPad;
                 })
-		        .attr("width", gridRegion.cellwd)
-		        .attr("height", gridRegion.cellht) 
+		        .attr("width", gridRegion.cellSize)
+		        .attr("height", gridRegion.cellSize) 
 				.attr("data-tooltip", "tooltip")   					        
 		        .style("fill", function(d) { 
 					var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
@@ -1902,7 +2130,7 @@ var images = require('./images.json');
                     // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
                     // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
 		        	self._mouseover(this, d, self);})							
-		        .on("mouseout", function(d) {
+		        .on("mouseout", function() {
 		        	// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                     self._mouseout();
 		        });
@@ -1916,42 +2144,61 @@ var images = require('./images.json');
 	_updateGrid: function(newXPos, newYPos){
 		var xSize = this.state.xAxisRender.groupLength();
 		var ySize = this.state.yAxisRender.groupLength();
-		var newXEndPos, newYEndPos;
 
-		if (newXPos >= xSize){
-			this.state.currXIdx = xSize;
-		} else {
-			this.state.currXIdx = newXPos;
-		}
+		this.state.currXIdx = (newXPos >= xSize) ? xSize : newXPos;
 
-		if (newYPos >= ySize){
-			this.state.currYIdx = ySize;
-		} else {
-			this.state.currYIdx = newYPos;
-		}
+		this.state.currYIdx = (newYPos >= ySize) ? ySize : newYPos;
 
-	
 		// note: that the currXIdx accounts for the size of the hightlighted selection area
 		// so, the starting render position is this size minus the display limit
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
 
-		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx-this.state.yAxisRender.displayLength());
+		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx - this.state.yAxisRender.displayLength());
 		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
-		this._clearGrid();
-		this._createGrid();
-        
-        // this must be called here so the tooltip disappears when we mouseout the current element - Joe
-		this._relinkTooltip();
+		
+        this._recreateGrid();
 	},
+    
+    // used by vertical scrollbar 
+    _updateVerticalGrid: function(newYPos){
+		var ySize = this.state.yAxisRender.groupLength();
+
+		this.state.currYIdx = (newYPos >= ySize) ? ySize : newYPos;
+
+		this.state.yAxisRender.setRenderStartPos(this.state.currYIdx - this.state.yAxisRender.displayLength());
+		this.state.yAxisRender.setRenderEndPos(this.state.currYIdx);
+		
+        this._recreateGrid();
+	},
+    
+    // used by horizontal scrollbar 
+    _updateHorizontalGrid: function(newXPos){
+		var xSize = this.state.xAxisRender.groupLength();
+
+		this.state.currXIdx = (newXPos >= xSize) ? xSize : newXPos;
+
+		// note: that the currXIdx accounts for the size of the hightlighted selection area
+		// so, the starting render position is this size minus the display limit
+		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
+		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
+		
+        this._recreateGrid();
+	},
+    
+    _recreateGrid: function() {
+        this._clearGrid();
+		this._createGrid();
+        // this must be called  here so the tooltip disappears when we mouseout the current element - Joe
+		this._relinkTooltip();
+    },
 
 	_clearGrid: function() {
 		this.state.svg.selectAll("g.row").remove();
 		this.state.svg.selectAll("g.column").remove();
 		this.state.svg.selectAll("g.pg_score_text").remove();
 	},
-
-	
+    
 	_populateDialog: function(text) {
 		var SplitText = "Title";
 		var $dialog = $('<div></div>')
@@ -1974,7 +2221,7 @@ var images = require('./images.json');
 				title: 'Phenogrid Notes',
 				
 				// Replace default jquery-ui titlebar close icon with font awesome - Joe
-				open: function(event, ui) {
+				open: function() {
 					// remove default close icon
 					$('.ui-dialog-titlebar-close span').removeClass('ui-icon ui-icon-thickclose');
 					// Yuck they have close text let's remove that
@@ -2245,7 +2492,7 @@ var images = require('./images.json');
 		var pg_ctrl_options = $('#pg_controls_options');
 		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
-        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 20);
+        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 42); // create a 10px gap between the vertical scrollbar (12px wide) - Joe
     },	
 	
 	_createOrganismSelection: function() {
@@ -2374,7 +2621,7 @@ var images = require('./images.json');
 		var gridRegion = this.state.gridRegion; 
 		$('#pg_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
         $('#pg_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#pg_unmatched_btn').outerHeight() + + 17 + 10);
-        $('#pg_unmatched_list').css('width', gridRegion.x + this._gridWidth());
+        $('#pg_unmatched_list').css('width', gridRegion.x + this._gridWidth() - 20); // don't include the paddings 2*10px = 20 - Joe
     },	
     
     // ajax callback
