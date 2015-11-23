@@ -43,3 +43,10 @@ Feature: Generic features work when running Phenogrid as a standalone widget
     Scenario: Appearance of vertical scrollbar slider
         Given I go to page "/index.html"
             Then the document should contain id "pg_vertical_scrollbar_slider"
+            
+            
+    Scenario: Appearance of horizontal scrollbar slider after inverting axis
+        Given I go to page "/index.html"
+            And I click the "pg_slide_btn"
+            And I click the "pg_axisflip"
+            Then the document should contain id "pg_horizontal_scrollbar_slider"
