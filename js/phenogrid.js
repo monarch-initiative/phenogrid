@@ -1897,7 +1897,7 @@ var images = require('./images.json');
 			for (var i = 1; i < numOfTargetGroup; i++) {
 				if (this.state.invertAxis) {
 					// gridRegion.colLabelOffset: offset the line to reach the labels
-                    var y = gridRegion.y - gridRegion.colLabelOffset + gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                    var y = gridRegion.y + gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                     // render horizontal divider line
                     this.state.svg.append("line")				
