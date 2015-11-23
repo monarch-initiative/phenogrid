@@ -359,7 +359,7 @@ var images = require('./images.json');
 	},
 
     // Phenogrid container div
-	_createPhenogridContainer: function(msg) {
+	_createPhenogridContainer: function() {
 		this.state.pgContainer = $('<div id="pg_container"></div>');
 		this.element.append(this.state.pgContainer);
 	},
@@ -829,7 +829,7 @@ var images = require('./images.json');
 			.attr("x", function(d) { 
 				return self.state.smallXScale(d.target_id) + self.state.minimap.miniCellSize / 2; 
             })
-            .attr("y", function(d, i) { 
+            .attr("y", function(d) { 
 				return self.state.smallYScale(d.source_id) + self.state.minimap.miniCellSize / 2;
             })
 			.attr("width", this.state.minimap.miniCellSize) 
@@ -1153,7 +1153,7 @@ var images = require('./images.json');
         
         d3.select("#pg_svg")
             .attr('width', svgWidth + 100)
-            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100) // Add an extra 100 to height - Joe
+            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100); // Add an extra 100 to height - Joe
     },
     
 	// Click the setting button to open the control options
@@ -1394,12 +1394,12 @@ var images = require('./images.json');
 
 	    if (self.state.invertAxis) { // score are render vertically
 			scores
-				.attr("transform", function(d, i) { 
+				.attr("transform", function(d) { 
   					return "translate(" + (gridRegion.x - gridRegion.cellPad) +", " + (gridRegion.y+scale(d)*gridRegion.cellPad + 9) + ")"; 
                 });
 	    } else {
 	    	scores	      		
-                .attr("transform", function(d, i) { 
+                .attr("transform", function(d) { 
                     return "translate(" + (gridRegion.x + scale(d)*gridRegion.cellPad) + "," + (gridRegion.y - gridRegion.scoreOffset) +")";
                     });
 	    }
@@ -1417,7 +1417,7 @@ var images = require('./images.json');
 
 		this.state.svg.append("text")
 			.attr('font-family', 'FontAwesome')
-			.text(function(d) {
+			.text(function() {
 				return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 			})
 			.attr("id", "pg_scores_tip_icon")
@@ -1994,10 +1994,10 @@ var images = require('./images.json');
             })
 		    .attr("data-tooltip", "pg_tooltip")   			
 	      	.attr("text-anchor", "start")
-	      	.text(function(d, i) { 		
+	      	.text(function(d) { 		
 	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
             })
-		    .on("mouseover", function(d, i) { 				
+		    .on("mouseover", function(d) { 				
 		    	// self is the global widget this
                 // this passed to _mouseover refers to the current element
                 // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
@@ -2110,7 +2110,7 @@ var images = require('./images.json');
 		    var cell = d3.select(this).selectAll(".cell")
 		        .data(row)
 		        .enter().append("rect")
-		      	.attr("id", function(d, i) { 
+		      	.attr("id", function(d) { 
 		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; 
                 })
 		        .attr("class", "cell")
@@ -2130,7 +2130,7 @@ var images = require('./images.json');
                     // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
                     // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
 		        	self._mouseover(this, d, self);})							
-		        .on("mouseout", function(d) {
+		        .on("mouseout", function() {
 		        	// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                     self._mouseout();
 		        });
@@ -2221,7 +2221,7 @@ var images = require('./images.json');
 				title: 'Phenogrid Notes',
 				
 				// Replace default jquery-ui titlebar close icon with font awesome - Joe
-				open: function(event, ui) {
+				open: function() {
 					// remove default close icon
 					$('.ui-dialog-titlebar-close span').removeClass('ui-icon ui-icon-thickclose');
 					// Yuck they have close text let's remove that
