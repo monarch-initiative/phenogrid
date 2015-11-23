@@ -3599,44 +3599,48 @@ var images = require('./images.json');
 
 			for (var i = 1; i < numOfTargetGroup; i++) {
 				if (this.state.invertAxis) {
-					var y = gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
-                    y = y - gridRegion.colLabelOffset;  // offset the line to reach the labels
-                    
+					// gridRegion.colLabelOffset: offset the line to reach the labels
+                    var y = gridRegion.y - gridRegion.colLabelOffset + gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+
                     // render horizontal divider line
                     this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")				
-					.attr("x1", gridRegion.x + gridRegion.rowLabelOffset)
-					.attr("y1", gridRegion.y + y)
-					.attr("x2", gridRegion.x + this._gridWidth())   // adjust this for to go beyond the row label
-					.attr("y2", gridRegion.y + y)
-                    .style("stroke", this.state.targetGroupDividerLine.color)
-                    .style("stroke-width", this.state.targetGroupDividerLine.thickness)
-                    .style("shape-rendering", "crispEdges");
+                        .attr("class", "pg_target_grp_divider")				
+                        .attr("x1", gridRegion.x + gridRegion.rowLabelOffset)
+                        .attr("y1", y)
+                        .attr("x2", gridRegion.x + this._gridWidth())   // adjust this for to go beyond the row label
+                        .attr("y2", y)
+                        .style("stroke", this.state.targetGroupDividerLine.color)
+                        .style("stroke-width", this.state.targetGroupDividerLine.thickness)
+                        .style("shape-rendering", "crispEdges");
 				} else {
-					var x = gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+					// Perfectly center the first divider line between the 10th and 11th cell, same rule for the second line ...
+                    var x = gridRegion.x + gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                     // render vertical divider line
 					this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")					
-					.attr("x1", gridRegion.x + x)
-					.attr("y1", gridRegion.y - gridRegion.colLabelOffset)
-					.attr("x2", gridRegion.x + x)
-					.attr("y2", gridRegion.y + this._gridHeight())
-                    .style("stroke", this.state.targetGroupDividerLine.color)
-                    .style("stroke-width", this.state.targetGroupDividerLine.thickness)
-                    .style("shape-rendering", "crispEdges");
+                        .attr("class", "pg_target_grp_divider")					
+                        .attr("x1", x)
+                        .attr("y1", gridRegion.y - gridRegion.colLabelOffset)
+                        .attr("x2", x)
+                        .attr("y2", gridRegion.y + this._gridHeight())
+                        .style("stroke", this.state.targetGroupDividerLine.color)
+                        .style("stroke-width", this.state.targetGroupDividerLine.thickness)
+                        .style("shape-rendering", "crispEdges");
 
 					// render the slanted line between targetGroup (targetGroup) columns
 					this.state.svg.append("line")				
-					.attr("class", "pg_target_grp_divider")
-					.attr("transform", "rotate(-45 " + (gridRegion.x + x) + " " + (gridRegion.y - gridRegion.colLabelOffset) + ")")				
-					.attr("x1", gridRegion.x + x)
-					.attr("y1", gridRegion.y - gridRegion.colLabelOffset)
-					.attr("x2", gridRegion.x + x + 110)  // extend the line out to underline the labels					
-					.attr("y2", gridRegion.y - gridRegion.colLabelOffset)
-                    .style("stroke", this.state.targetGroupDividerLine.color)
-                    .style("stroke-width", this.state.targetGroupDividerLine.thickness)
-                    .style("shape-rendering", "crispEdges");
+                        .attr("class", "pg_target_grp_divider")
+                        // rotate(<rotate-angle> [<cx> <cy>])
+                        // The optional cx and cy values represent the unitless coordinates of the point used as a center of rotation. 
+                        // If cx and cy are not provided, the rotation is about the origin of the current user coordinate system. 
+                        .attr("transform", "rotate(-45 " + x + " " + (gridRegion.y - gridRegion.colLabelOffset) + ")")				
+                        .attr("x1", x)
+                        .attr("y1", gridRegion.y - gridRegion.colLabelOffset)
+                        .attr("x2", x + 110)  // extend the line out to underline the labels					
+                        .attr("y2", gridRegion.y - gridRegion.colLabelOffset)
+                        .style("stroke", this.state.targetGroupDividerLine.color)
+                        .style("stroke-width", this.state.targetGroupDividerLine.thickness)
+                        .style("shape-rendering", "crispEdges");
 				}
 			}
 		}
