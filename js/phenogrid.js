@@ -171,7 +171,8 @@ var images = require('./images.json');
             },
             targetGroupDividerLine: {
                 color: "#EA763B",
-                thickness: 1
+                thickness: 1,
+                rotatedDividerLength: 110 // the length of the divider line for the rotated labels
             },
             gridRegion: {
                 x:254, 
@@ -1933,7 +1934,7 @@ var images = require('./images.json');
                         .attr("transform", "rotate(-45 " + x + " " + (gridRegion.y - gridRegion.colLabelOffset) + ")")				
                         .attr("x1", x)
                         .attr("y1", gridRegion.y - gridRegion.colLabelOffset)
-                        .attr("x2", x + 110)  // extend the line out to underline the labels					
+                        .attr("x2", x + this.state.targetGroupDividerLine.rotatedDividerLength)  // extend the line out to underline the labels					
                         .attr("y2", gridRegion.y - gridRegion.colLabelOffset)
                         .style("stroke", this.state.targetGroupDividerLine.color)
                         .style("stroke-width", this.state.targetGroupDividerLine.thickness)
