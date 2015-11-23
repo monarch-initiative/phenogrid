@@ -1881,7 +1881,7 @@ var images = require('./images.json');
                 y:200, // origin coordinates for grid region (matrix)
                 cellPad:19, // distance from the first cell to the next cell, odd number(19 - 12 = 7) makes the divider line entered perfectly - Joe
                 cellSize:12, // grid cell width/height
-                rowLabelOffset:-25, // offset of the row label (left side)
+                rowLabelOffset:25, // offset of the row label (left side)
                 colLabelOffset:20,  // offset of column label (adjusted for text score) from the top of grid squares
                 scoreOffset:5  // score text offset from the top of grid squares
             },
@@ -3605,7 +3605,7 @@ var images = require('./images.json');
                     // render horizontal divider line
                     this.state.svg.append("line")				
                         .attr("class", "pg_target_grp_divider")				
-                        .attr("x1", gridRegion.x + gridRegion.rowLabelOffset)
+                        .attr("x1", gridRegion.x - gridRegion.rowLabelOffset)
                         .attr("y1", y)
                         .attr("x2", gridRegion.x + this._gridWidth())   // adjust this for to go beyond the row label
                         .attr("y2", y)
@@ -3679,7 +3679,7 @@ var images = require('./images.json');
 	        .attr("transform", function(d) { 
                 var offset = gridRegion.colLabelOffset;
                 var xs = xScale(d.id);
-                return "translate(" + (gridRegion.x + (xs*gridRegion.cellPad)) + "," + (gridRegion.y-offset) + ")rotate(-45)"; 
+                return "translate(" + (gridRegion.x + (xs*gridRegion.cellPad)) + "," + (gridRegion.y - offset) + ")rotate(-45)"; 
             }); //-45
 
 	    // create column labels
@@ -3739,18 +3739,18 @@ var images = require('./images.json');
 			.enter().append("g")			
 			.attr("class", "row")	 		
 			.attr("id", function(d, i) { 
-				return "pg_grid_row_"+i;
+				return "pg_grid_row_" + i;
             })
   			.attr("transform", function(d, i) { 
                 var y = self.state.gridRegion.y;
                 var ypad = self.state.gridRegion.cellPad;
 
-                return "translate(" + gridRegion.x +"," + (y+(i*ypad)) + ")"; 
+                return "translate(" + gridRegion.x +"," + (y + (i*ypad)) + ")"; 
             });
 
    		// create row labels
 	  	row.append("text")
-			.attr("x", gridRegion.rowLabelOffset)	  		
+			.attr("x", -gridRegion.rowLabelOffset) // shift a bit to the left to create some white spaces for inverting	  		
 	      	.attr("y",  function(d, i) {
 	      		var rb = yScale.rangeBand(i)/2;
 	      		return rb;
@@ -3758,7 +3758,6 @@ var images = require('./images.json');
 	      	.attr("dy", ".80em")  // this makes small adjustment in position	      	
 	      	.attr("text-anchor", "end")
             .style("font-size", "11px")
-            
             // the d.type is cell instead of genotype because the d refers to cell data
             // we'll need to get the genotype data from yAxisRender - Joe
             .style('fill', function(d, i) { // add different color to genotype labels
