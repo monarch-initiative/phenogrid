@@ -1898,7 +1898,7 @@ var images = require('./images.json');
 			for (var i = 1; i < numOfTargetGroup; i++) {
 				if (this.state.invertAxis) {
 					// gridRegion.colLabelOffset: offset the line to reach the labels
-                    var y = gridRegion.y + gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                    var y = gridRegion.y + gridRegion.cellPad * i * this.state.defaultCrossCompareTargetLimitPerTargetGroup - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                     // render horizontal divider line
                     this.state.svg.append("line")				
@@ -1912,7 +1912,7 @@ var images = require('./images.json');
                         .style("shape-rendering", "crispEdges");
 				} else {
 					// Perfectly center the first divider line between the 10th and 11th cell, same rule for the second line ...
-                    var x = gridRegion.x + gridRegion.cellPad * (i * this.state.defaultCrossCompareTargetLimitPerTargetGroup + (i - 1)) - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                    var x = gridRegion.x + gridRegion.cellPad * i * this.state.defaultCrossCompareTargetLimitPerTargetGroup - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                     // render vertical divider line
 					this.state.svg.append("line")				
