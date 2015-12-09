@@ -444,8 +444,6 @@ var images = require('./images.json');
                 targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[species_name];
             } else if (this.state.removedGenotypes[species_name]) {
                 // get the reordered target list in the format of a named array, has all added genotype data
-                //targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[species_name];
-                
                 targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
             } else if (this.state.reactivateGenotypes[species_name]) {
                 targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
@@ -2749,7 +2747,7 @@ var images = require('./images.json');
         var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
         
         var loaded = this.state.dataManager.checkGenotypesLoaded(species_name, id);
-        
+
         // when we can see the insert genotypes link in tooltip, 
         // the genotypes are either haven't been loaded or have already been loaded but then removed(invisible)
         if (loaded) {
@@ -2761,28 +2759,34 @@ var images = require('./images.json');
             for (var i = 0; i < associated_genotype_ids.length; i++) {
                 var genotype_id = associated_genotype_ids[i];
                 
-                if (typeof(this.state.dataLoader.targetData[species_name][genotype_id]) === 'undefined') {
-                    this.state.dataLoader.targetData[species_name][genotype_id] = {}; // object
-                }
+                //if (typeof(this.state.dataLoader.targetData[species_name][genotype_id]) === 'undefined') {
+                    //this.state.dataLoader.targetData[species_name][genotype_id] = {}; // object
+                //}
+                
+                // update the underlying data
                 this.state.dataLoader.targetData[species_name][genotype_id].visible = true; 
 
                 // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
-                if (typeof(this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id]) === 'undefined') {
-                    this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id] = {}; // object
-                }
-                this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = true;  
+                //if (typeof(this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id]) === 'undefined') {
+                    //this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id] = {}; // object
+                //}
+                //this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id] = this.state.dataLoader.targetData[species_name][genotype_id];
+                //this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = true;  
                 
-                // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
+
                 for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
-                    if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
-                    }
-                    
+                    //if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
+                        //this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
+                    //}
+                    console.log(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]);
                     if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
                         this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].visible = true; 
                         break;
                     }
-                }         
+                }  
+
+
+               
             }
             
             this.state.reactivateGenotypes[species_name] = true;
@@ -2890,6 +2894,7 @@ var images = require('./images.json');
         // change 'visible' to false 
         for (var i = 0; i < associated_genotype_ids.length; i++) {
             var genotype_id = associated_genotype_ids[i];
+            // update the underlying data
             this.state.dataLoader.targetData[species_name][genotype_id].visible = false; 
 
             // Now we update the reorderedTargetEntriesNamedArray in dataManager
