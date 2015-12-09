@@ -3789,7 +3789,7 @@ var images = require('./images.json');
         if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
             row.append("rect")
                 .attr('width', self._gridWidth())
-                .attr('height', gridRegion.cellht)
+                .attr('height', gridRegion.cellSize)
                 .style('fill', function(d, i) { // add different color to genotype labels
                     var el = self.state.yAxisRender.itemAt(i);
                     if (el.type === 'genotype') {
