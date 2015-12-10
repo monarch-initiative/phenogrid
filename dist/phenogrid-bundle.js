@@ -1923,23 +1923,28 @@ var images = require('./images.json');
         // it's possible that a species is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
 		this.state.selectedCompareTargetGroup = [];
 
-        // Genotype expansion flags - named/associative array
         // flag used for switching between single species and multi-species mode
-        // add new species names here once needed - Joe
-        var genotypeExpansionSpeciesFlagConfig = {
+        // named/associative array
+        this.state.expandedGenotypes = {
             "Mus musculus": false,
             "Danio rerio": false
         };
         
-        this.state.expandedGenotypes = genotypeExpansionSpeciesFlagConfig;
-        
         // genotype flags to mark every genotype expansion on/off in each species
-        this.state.newGenotypes = genotypeExpansionSpeciesFlagConfig;
+        this.state.newGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
         
-        this.state.removedGenotypes = genotypeExpansionSpeciesFlagConfig;
+        this.state.removedGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
         
-        // flag to mark if hidden genotypes need to be reactivated
-        this.state.reactivateGenotypes = genotypeExpansionSpeciesFlagConfig;
+        this.state.reactivateGenotypes = {
+            "Mus musculus": false,
+            "Danio rerio": false
+        };
 	},
 
 	
@@ -4461,39 +4466,17 @@ var images = require('./images.json');
             // reactivating by changing 'visible' to true
             for (var i = 0; i < associated_genotype_ids.length; i++) {
                 var genotype_id = associated_genotype_ids[i];
-                
-                //if (typeof(this.state.dataLoader.targetData[species_name][genotype_id]) === 'undefined') {
-                    //this.state.dataLoader.targetData[species_name][genotype_id] = {}; // object
-                //}
-                
+  
                 // update the underlying data
+                // In dataManager, reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray are also updated once we update the 
+                // underlying data in dataLoader, because variable reference in javascript, not actual copy/clone - Joe 
                 this.state.dataLoader.targetData[species_name][genotype_id].visible = true; 
-
-                // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
-                //if (typeof(this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id]) === 'undefined') {
-                    //this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id] = {}; // object
-                //}
-                //this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id] = this.state.dataLoader.targetData[species_name][genotype_id];
-                //this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = true;  
-                
-
-                for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
-                    //if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                        //this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
-                    //}
-                    console.log(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]);
-                    if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
-                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].visible = true; 
-                        break;
-                    }
-                }  
-
-
-               
             }
             
             this.state.reactivateGenotypes[species_name] = true;
+            
             this._updateTargetAxisRenderingGroup(species_name);
+            
             this.state.reactivateGenotypes[species_name] = false;
             
             this._updateDisplay();
@@ -4598,21 +4581,9 @@ var images = require('./images.json');
         for (var i = 0; i < associated_genotype_ids.length; i++) {
             var genotype_id = associated_genotype_ids[i];
             // update the underlying data
+            // In dataManager, reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray are also updated once we update the 
+            // underlying data in dataLoader, because variable reference in javascript, not actual copy/clone - Joe 
             this.state.dataLoader.targetData[species_name][genotype_id].visible = false; 
-
-            // Now we update the reorderedTargetEntriesNamedArray in dataManager
-            this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = false;   
-            // Also hide the corresponding genotypes in reorderedTargetEntriesIndexArray
-            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
-                if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
-                }
-                
-                if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
-                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].visible = false;
-                    break;
-                }
-            }         
         }
         
         // Tell dataManager that the loaded genotypes of this gene have been collapsed from display 
