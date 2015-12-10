@@ -610,8 +610,9 @@ DataLoader.prototype = {
                 self.getFetch(self, compare_url, id, cb, finalCallback, parent);
             } else {
                 var simsearchResults = {};
+                var errorMsg = 'This gene has no associated genotypes.';
                 // return empty JSON since we have an empty genotype_list - Joe
-                finalCallback(simsearchResults, id, parent);
+                finalCallback(simsearchResults, id, parent, errorMsg);
             }
         }
 	},
@@ -632,17 +633,26 @@ DataLoader.prototype = {
         // but genotype labels on x axis will have the encoded characters
         // we just need to encode the labels for tooltip use - Joe
         
-        // save the expanded gene id in for later
+        // save the expanded gene id for later
         var genotype_id_list = [];
-        for (var i = 0; i < results.b.length; i++) {
-            genotype_id_list.push(results.b[i].id.replace(':', '_'));
-        }
-
-        // for reactivation
-        self.loadedGenotypes[id] = genotype_id_list;
         
-        // this `results` is the simsearch resulting JSON
-        finalCallback(results, id, parent);
+        // there's no results.b is no matches found in the simsearch - Joe
+        if (typeof(results.b) !== 'undefined') {
+            for (var i = 0; i < results.b.length; i++) {
+                genotype_id_list.push(results.b[i].id.replace(':', '_'));
+            }
+
+            // for reactivation
+            self.loadedGenotypes[id] = genotype_id_list;
+            
+            // this `results` is the simsearch resulting JSON
+            finalCallback(results, id, parent);
+        } else {
+            var simsearchResults = {};
+            var errorMsg = 'No matches found between the provided phenotypes and expanded genotypes.';
+            // return empty JSON since we have no matches found - Joe
+            finalCallback(simsearchResults, id, parent, errorMsg);
+        }
     },
     
 	/*

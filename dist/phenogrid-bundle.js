@@ -923,8 +923,9 @@ DataLoader.prototype = {
                 self.getFetch(self, compare_url, id, cb, finalCallback, parent);
             } else {
                 var simsearchResults = {};
+                var errorMsg = 'This gene has no associated genotypes.';
                 // return empty JSON since we have an empty genotype_list - Joe
-                finalCallback(simsearchResults, id, parent);
+                finalCallback(simsearchResults, id, parent, errorMsg);
             }
         }
 	},
@@ -945,17 +946,26 @@ DataLoader.prototype = {
         // but genotype labels on x axis will have the encoded characters
         // we just need to encode the labels for tooltip use - Joe
         
-        // save the expanded gene id in for later
+        // save the expanded gene id for later
         var genotype_id_list = [];
-        for (var i = 0; i < results.b.length; i++) {
-            genotype_id_list.push(results.b[i].id.replace(':', '_'));
-        }
-
-        // for reactivation
-        self.loadedGenotypes[id] = genotype_id_list;
         
-        // this `results` is the simsearch resulting JSON
-        finalCallback(results, id, parent);
+        // there's no results.b is no matches found in the simsearch - Joe
+        if (typeof(results.b) !== 'undefined') {
+            for (var i = 0; i < results.b.length; i++) {
+                genotype_id_list.push(results.b[i].id.replace(':', '_'));
+            }
+
+            // for reactivation
+            self.loadedGenotypes[id] = genotype_id_list;
+            
+            // this `results` is the simsearch resulting JSON
+            finalCallback(results, id, parent);
+        } else {
+            var simsearchResults = {};
+            var errorMsg = 'No matches found between the provided phenotypes and expanded genotypes.';
+            // return empty JSON since we have no matches found - Joe
+            finalCallback(simsearchResults, id, parent, errorMsg);
+        }
     },
     
 	/*
@@ -4505,78 +4515,79 @@ var images = require('./images.json');
     // this cb has all the matches info returned from the compare
     // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
     // parent refers to the global `this` and we have to pass it
-    _insertGenotypesCb: function(results, id, parent) {
-        // it can be an empty JSON if there's no associated genotypes of this gene
-        // in this case, results.b is undefined - Joe
+    _insertGenotypesCb: function(results, id, parent, errorMsg) {
         console.log(results);
         
-        // add genotypes to data, and update target axis
-        if (typeof(results.b) !== 'undefined' && results.b.length > 0) {
-            var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-            // transform raw owlsims into simplified format
-            // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
-            parent.state.dataLoader.genotypeTransform(species_name, results, id); 
+        // When there's an error message specified, simsearch results must be empty - Joe
+        if (typeof(errorMsg) === 'undefined') {
+            // add genotypes to data, and update target axis
+            if (results.b.length > 0) {
+                var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+                // transform raw owlsims into simplified format
+                // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
+                parent.state.dataLoader.genotypeTransform(species_name, results, id); 
 
-            // call this before reordering the target list
-            // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
-            // when we call parent.state.targetAxis.groupEntries()
-            parent._updateTargetAxisRenderingGroup(species_name);
-            
-            if (typeof(parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name]) === 'undefined') {
-                parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name] = [];
-            }
-            
-            // for the first time, just get the unordered groupEntries()
-            // starting from second time, append the genotype data of following expansions to the already ordered target list
-            if (parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length === 0) {
-                var updatedTargetEntries = parent.state.targetAxis.groupEntries(); // numeric index array
-            } else {
-                var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(species_name, results.b);
-            }
-            
-            // Now we update the target list in dataManager
-            // and place those genotypes right after their parent gene
-            var genotypesData = {
-                    targetEntries: updatedTargetEntries, 
-                    genotypes: results.b, 
-                    parentGeneID: id,
-                    species: species_name
-                };
+                // call this before reordering the target list
+                // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
+                // when we call parent.state.targetAxis.groupEntries()
+                parent._updateTargetAxisRenderingGroup(species_name);
                 
-            // this will give us a reordered target list in two formats.
-            // one is associative/named array(reorderedTargetEntriesNamedArray), the other is number indexed array(reorderedTargetEntriesIndexArray)
-            parent.state.dataManager.updateTargetList(genotypesData);
+                if (typeof(parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name]) === 'undefined') {
+                    parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name] = [];
+                }
+                
+                // for the first time, just get the unordered groupEntries()
+                // starting from second time, append the genotype data of following expansions to the already ordered target list
+                if (parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length === 0) {
+                    var updatedTargetEntries = parent.state.targetAxis.groupEntries(); // numeric index array
+                } else {
+                    var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(species_name, results.b);
+                }
+                
+                // Now we update the target list in dataManager
+                // and place those genotypes right after their parent gene
+                var genotypesData = {
+                        targetEntries: updatedTargetEntries, 
+                        genotypes: results.b, 
+                        parentGeneID: id,
+                        species: species_name
+                    };
+                    
+                // this will give us a reordered target list in two formats.
+                // one is associative/named array(reorderedTargetEntriesNamedArray), the other is number indexed array(reorderedTargetEntriesIndexArray)
+                parent.state.dataManager.updateTargetList(genotypesData);
 
-            // we set the genotype flag before calling _updateTargetAxisRenderingGroup() again
-            // _updateTargetAxisRenderingGroup() uses this flag for creating this.state.targetAxis
-            parent.state.newGenotypes[species_name] = true;
-            
-            // call this again after the target list gets updated
-            // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
-            // as well as the new start position and end position
-            parent._updateTargetAxisRenderingGroup(species_name);
-            
-            // then reset the flag to false so it can still grab the newly added genotypes of another gene
-            // and add them to the unordered target list.
-            // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
-            // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
-            parent.state.newGenotypes[species_name] = false;
-            
-            // flag, indicates that we have expanded genotypes for this species, 
-            // so they show up when we switch from multi-species mode back to single species mode
-            parent.state.expandedGenotypes[species_name] = true;
+                // we set the genotype flag before calling _updateTargetAxisRenderingGroup() again
+                // _updateTargetAxisRenderingGroup() uses this flag for creating this.state.targetAxis
+                parent.state.newGenotypes[species_name] = true;
+                
+                // call this again after the target list gets updated
+                // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
+                // as well as the new start position and end position
+                parent._updateTargetAxisRenderingGroup(species_name);
+                
+                // then reset the flag to false so it can still grab the newly added genotypes of another gene
+                // and add them to the unordered target list.
+                // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
+                // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
+                parent.state.newGenotypes[species_name] = false;
+                
+                // flag, indicates that we have expanded genotypes for this species, 
+                // so they show up when we switch from multi-species mode back to single species mode
+                parent.state.expandedGenotypes[species_name] = true;
 
-            parent._updateDisplay();
-            
-            // Remove the spinner icon
-            $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
-            $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
-            
-            // Tell dataManager that the loaded genotypes of this gene have been expanded
-            parent.state.dataManager.expandedGenotypeList[id] = parent.state.dataLoader.loadedGenotypes[id];
+                parent._updateDisplay();
+                
+                // Remove the spinner icon
+                $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
+                $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
+                
+                // Tell dataManager that the loaded genotypes of this gene have been expanded
+                parent.state.dataManager.expandedGenotypeList[id] = parent.state.dataLoader.loadedGenotypes[id];
+            }
         } else {
-            // tell users there's no genotypes associated to this gene
-            parent._populateDialog('This gene has no associated genotypes.');
+            // pop up the error message in dialog
+            parent._populateDialog(errorMsg);
         }
 	},
 
