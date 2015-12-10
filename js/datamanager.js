@@ -32,6 +32,8 @@ var DataManager = function(dataLoader) {
 	this.matrix = [];
     
     // genotype expansion, named arrays of each single species
+    // these two arrays are referenced to the underlying data in dataLoader, not actual clone
+    // so changes made to the underlying data array will populate to these two - Joe
     this.reorderedTargetEntriesNamedArray = {};
     this.reorderedTargetEntriesIndexArray = {};
     
@@ -183,7 +185,7 @@ DataManager.prototype = {
             }
         }
         
-        // now t only contians all the genes and their visible genotypes in an ordered array
+        // now t only contains all the genes and their visible genotypes in an ordered array
         
         var reorderedVisibleTargetEntriesNamedArray = {}; // named array
         for (var k = 0; k < t.length; k++) {

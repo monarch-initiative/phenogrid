@@ -223,6 +223,7 @@ var images = require('./images.json');
         // Genotype expansion flags - named/associative array
         // flag used for switching between single species and multi-species mode
         // add new species names here once needed - Joe
+        // Add new species here when needed
         var genotypeExpansionSpeciesFlagConfig = {
             "Mus musculus": false,
             "Danio rerio": false
