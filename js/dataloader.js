@@ -591,21 +591,28 @@ DataLoader.prototype = {
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
         // some genes may don't have associated genotypes
         if (typeof(results.genotype_list) !== 'undefined') {
-            var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
-            var phenotype_id_list = self.origSourceList.join("+");
-            var genotype_id_list = '';
-            for (var i in genotype_list) {
-                genotype_id_list += genotype_list[i].id + ",";
+            // sometimes the results.genotype_list is an empty array based on the testing results - Joe
+            if (results.genotype_list.length > 0) {
+                var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
+                var phenotype_id_list = self.origSourceList.join("+");
+                var genotype_id_list = '';
+                for (var i in genotype_list) {
+                    genotype_id_list += genotype_list[i].id + ",";
+                }
+                // truncate the last ',' off
+                if (genotype_id_list.slice(-1) === ',') {
+                    genotype_id_list = genotype_id_list.slice(0, -1);
+                }
+                // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+                var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
+                // Now we need to get all the matches data
+                var cb = self.getGenotypesCbCb;
+                self.getFetch(self, compare_url, id, cb, finalCallback, parent);
+            } else {
+                var simsearchResults = {};
+                // return empty JSON since we have an empty genotype_list - Joe
+                finalCallback(simsearchResults, id, parent);
             }
-            // truncate the last ',' off
-            if (genotype_id_list.slice(-1) === ',') {
-                genotype_id_list = genotype_id_list.slice(0, -1);
-            }
-            // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
-            var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
-            // Now we need to get all the matches data
-            var cb = self.getGenotypesCbCb;
-            self.getFetch(self, compare_url, id, cb, finalCallback, parent);
         }
 	},
     
@@ -634,6 +641,7 @@ DataLoader.prototype = {
         // for reactivation
         self.loadedGenotypes[id] = genotype_id_list;
         
+        // this `results` is the simsearch resulting JSON
         finalCallback(results, id, parent);
     },
     

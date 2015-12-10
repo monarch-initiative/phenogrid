@@ -2793,10 +2793,12 @@ var images = require('./images.json');
     // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
     // parent refers to the global `this` and we have to pass it
     _insertGenotypesCb: function(results, id, parent) {
+        // it can be an empty JSON if there's no associated genotypes of this gene
+        // in this case, results.b is undefined - Joe
         console.log(results);
         
         // add genotypes to data, and update target axis
-        if (results.b.length > 0) {
+        if (typeof(results.b) !== 'undefined' && results.b.length > 0) {
             var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
             // transform raw owlsims into simplified format
             // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]

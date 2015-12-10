@@ -904,21 +904,28 @@ DataLoader.prototype = {
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
         // some genes may don't have associated genotypes
         if (typeof(results.genotype_list) !== 'undefined') {
-            var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
-            var phenotype_id_list = self.origSourceList.join("+");
-            var genotype_id_list = '';
-            for (var i in genotype_list) {
-                genotype_id_list += genotype_list[i].id + ",";
+            // sometimes the results.genotype_list is an empty array based on the testing results - Joe
+            if (results.genotype_list.length > 0) {
+                var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
+                var phenotype_id_list = self.origSourceList.join("+");
+                var genotype_id_list = '';
+                for (var i in genotype_list) {
+                    genotype_id_list += genotype_list[i].id + ",";
+                }
+                // truncate the last ',' off
+                if (genotype_id_list.slice(-1) === ',') {
+                    genotype_id_list = genotype_id_list.slice(0, -1);
+                }
+                // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+                var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
+                // Now we need to get all the matches data
+                var cb = self.getGenotypesCbCb;
+                self.getFetch(self, compare_url, id, cb, finalCallback, parent);
+            } else {
+                var simsearchResults = {};
+                // return empty JSON since we have an empty genotype_list - Joe
+                finalCallback(simsearchResults, id, parent);
             }
-            // truncate the last ',' off
-            if (genotype_id_list.slice(-1) === ',') {
-                genotype_id_list = genotype_id_list.slice(0, -1);
-            }
-            // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
-            var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
-            // Now we need to get all the matches data
-            var cb = self.getGenotypesCbCb;
-            self.getFetch(self, compare_url, id, cb, finalCallback, parent);
         }
 	},
     
@@ -947,6 +954,7 @@ DataLoader.prototype = {
         // for reactivation
         self.loadedGenotypes[id] = genotype_id_list;
         
+        // this `results` is the simsearch resulting JSON
         finalCallback(results, id, parent);
     },
     
@@ -1103,6 +1111,8 @@ var DataManager = function(dataLoader) {
 	this.matrix = [];
     
     // genotype expansion, named arrays of each single species
+    // these two arrays are referenced to the underlying data in dataLoader, not actual clone
+    // so changes made to the underlying data array will populate to these two - Joe
     this.reorderedTargetEntriesNamedArray = {};
     this.reorderedTargetEntriesIndexArray = {};
     
@@ -1254,7 +1264,7 @@ DataManager.prototype = {
             }
         }
         
-        // now t only contians all the genes and their visible genotypes in an ordered array
+        // now t only contains all the genes and their visible genotypes in an ordered array
         
         var reorderedVisibleTargetEntriesNamedArray = {}; // named array
         for (var k = 0; k < t.length; k++) {
@@ -1926,6 +1936,7 @@ var images = require('./images.json');
         // Genotype expansion flags - named/associative array
         // flag used for switching between single species and multi-species mode
         // add new species names here once needed - Joe
+        // Add new species here when needed
         var genotypeExpansionSpeciesFlagConfig = {
             "Mus musculus": false,
             "Danio rerio": false
@@ -4495,10 +4506,12 @@ var images = require('./images.json');
     // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
     // parent refers to the global `this` and we have to pass it
     _insertGenotypesCb: function(results, id, parent) {
+        // it can be an empty JSON if there's no associated genotypes of this gene
+        // in this case, results.b is undefined - Joe
         console.log(results);
         
         // add genotypes to data, and update target axis
-        if (results.b.length > 0) {
+        if (typeof(results.b) !== 'undefined' && results.b.length > 0) {
             var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
             // transform raw owlsims into simplified format
             // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
