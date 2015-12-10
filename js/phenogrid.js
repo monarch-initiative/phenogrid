@@ -123,7 +123,7 @@ var images = require('./images.json');
         internalOptions: {
             invertAxis: false,
             simSearchQuery: "/simsearch/phenotype",
-            compareQuery: "/compare", // used for owlSimFunction === 'compare' - Joe
+            compareQuery: "/compare", // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display

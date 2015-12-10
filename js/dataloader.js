@@ -591,7 +591,7 @@ DataLoader.prototype = {
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
         // some genes may don't have associated genotypes
         if (typeof(results.genotype_list) !== 'undefined') {
-            // sometimes the results.genotype_list is an empty array based on the testing results - Joe
+            // sometimes the results.genotype_list is an empty array (because some genes don't have associated genotypes) - Joe
             if (results.genotype_list.length > 0) {
                 var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
                 var phenotype_id_list = self.origSourceList.join("+");
@@ -604,7 +604,7 @@ DataLoader.prototype = {
                     genotype_id_list = genotype_id_list.slice(0, -1);
                 }
                 // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
-                var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
+                var compare_url = self.serverURL +  parent.state.compareQuery + '/' + phenotype_id_list + "/" + genotype_id_list;
                 // Now we need to get all the matches data
                 var cb = self.getGenotypesCbCb;
                 self.getFetch(self, compare_url, id, cb, finalCallback, parent);
