@@ -770,10 +770,12 @@ var images = require('./images.json');
     
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
 	_createMinimap: function(width, height) {
-		// set the display counts on each axis
-		var yCount = this.state.yAxisRender.displayLength();  
-	    var xCount = this.state.xAxisRender.displayLength();  
-
+		// display counts and total counts on each axis
+	    var xDisplayCount = this.state.xAxisRender.displayLength();  
+        var yDisplayCount = this.state.yAxisRender.displayLength();  
+        var xTotalCount = this.state.xAxisRender.groupLength(); 
+        var yTotalCount = this.state.yAxisRender.groupLength();  
+	    
 		// these translations from the top-left of the rectangular region give the absolute coordinates
 		var overviewX = this.state.minimap.x;
 		var overviewY = this.state.minimap.y;
@@ -839,20 +841,17 @@ var images = require('./images.json');
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
 			});
-	
-		var yRenderedSize = this.state.yAxisRender.displayLength();
-		var xRenderedSize = this.state.xAxisRender.displayLength();		
-     	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
-	    var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
-		var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  	
-
+		
         // start point (x, y) of the shaded draggable area
+        var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+        
 		var selectRectX = this.state.smallXScale(startXId);
 		var selectRectY = this.state.smallYScale(startYId);
-		// width and height of the shaded draggable area
-		var selectRectHeight = this.state.smallYScale(lastYId) - this.state.smallYScale(startYId);
-		var selectRectWidth = this.state.smallXScale(lastXId) - this.state.smallXScale(startXId);
+        
+		// Calculate the width and height of the shaded draggable area
+		var selectRectHeight = height * (yDisplayCount/yTotalCount);
+		var selectRectWidth = width * (xDisplayCount/xTotalCount);
 		
 		// Also add the shaded area in the pg_navigator group - Joe
 		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
@@ -932,8 +931,8 @@ var images = require('./images.json');
 					newY = newY - overviewY;
 
 					// invert newX and newY into positions in the model and phenotype lists.
-					var newXPos = self._invertDragPosition(self.state.smallXScale, newX) + xCount;
-					var newYPos = self._invertDragPosition(self.state.smallYScale, newY) + yCount;
+					var newXPos = self._invertDragPosition(self.state.smallXScale, newX) + xDisplayCount;
+					var newYPos = self._invertDragPosition(self.state.smallYScale, newY) + yDisplayCount;
 
                     // grid region needs to be updated accordingly
 					self._updateGrid(newXPos, newYPos);
@@ -971,22 +970,20 @@ var images = require('./images.json');
 		this._createScrollbarScales(this._gridWidth(), this._gridHeight());
         
         // variables for creating horizontal bar
-        var xCount = this.state.xAxisRender.displayLength();  
-        var xRenderedSize = this.state.xAxisRender.displayLength();
-        var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
+        var xDisplayCount = this.state.xAxisRender.displayLength();  
+        var xTotalCount = this.state.xAxisRender.groupLength();  
         var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
         var defaultX = this.state.gridRegion.x;
         var sliderRectX = this.state.horizontalScrollbarScale(startXId);
-        var sliderWidth = this.state.horizontalScrollbarScale(lastXId) - this.state.horizontalScrollbarScale(startXId);
+        var sliderWidth = this._gridWidth() * (xDisplayCount/xTotalCount);
         
         // variables for creating vertical scrollbar
-        var yCount = this.state.yAxisRender.displayLength();  
-        var yRenderedSize = this.state.yAxisRender.displayLength();
-        var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
+        var yDisplayCount = this.state.yAxisRender.displayLength();  
+        var yTotalCount = this.state.yAxisRender.groupLength();  
         var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
         var defaultY = this.state.gridRegion.y;
         var sliderRectY = this.state.verticalScrollbarScale(startYId);
-        var sliderHeight = this.state.verticalScrollbarScale(lastYId) - this.state.verticalScrollbarScale(startYId);
+        var sliderHeight = this._gridHeight() * (yDisplayCount/yTotalCount);
     
         // horizontal scrollbar
         if (horizontal === true) {
@@ -1047,7 +1044,7 @@ var images = require('./images.json');
                         // adjust
                         newX = newX - defaultX;
                         
-                        var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
+                        var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xDisplayCount;
                         
                         // Horizontal grid region needs to be updated accordingly
                         self._updateHorizontalGrid(newXPos);
@@ -1117,7 +1114,7 @@ var images = require('./images.json');
                         // adjust
                         newY = newY - defaultY;
 
-                        var newYPos = self._invertDragPosition(self.state.verticalScrollbarScale, newY) + yCount;
+                        var newYPos = self._invertDragPosition(self.state.verticalScrollbarScale, newY) + yDisplayCount;
                         
                         // Vertical grid region needs to be updated accordingly
                         self._updateVerticalGrid(newYPos);
