@@ -906,6 +906,20 @@ DataLoader.prototype = {
         if (typeof(results.genotype_list) !== 'undefined') {
             // sometimes the results.genotype_list is an empty array (because some genes don't have associated genotypes) - Joe
             if (results.genotype_list.length > 0) {
+                // First filter out genotype IDs with unstable prefix
+                // https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
+                // According to Kent, IDs starting with an underscore or prefixed with MONARCH: do not persist across different scigraph loads
+                var unstablePrefix = ['MONARCH:', '_:'];
+                for (var i in results.genotype_list) {
+                    for (var k in unstablePrefix) {
+                        if (results.genotype_list[i].id.indexOf(unstablePrefix[k]) === 0) {
+                            // remove that genotype with unstable prefix
+                            results.genotype_list.splice(i, 1);
+                        }
+                    }  
+                }
+                
+                // Now only get the first parent.state.genotypeExpandLimit genotypes in the list
                 var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
                 var phenotype_id_list = self.origSourceList.join("+");
                 var genotype_id_list = '';
