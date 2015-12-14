@@ -25,9 +25,9 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.owlsimsData = [];
 	this.origSourceList = [];
 	this.maxMaxIC = 0;
-	this.targetData = [];
-	this.sourceData = [];
-	this.cellData = [];
+	this.targetData = {};
+	this.sourceData = {};
+	this.cellData = {};
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
@@ -215,13 +215,13 @@ DataLoader.prototype = {
             // Here we don't reset the cellData, targetData, and sourceData every time,
             // because we want to append the genotype expansion data - Joe
 			if (typeof(this.cellData[targetGroup]) === 'undefined') {
-                this.cellData[targetGroup] = [];
+                this.cellData[targetGroup] = {};
             }
             if (typeof(this.targetData[targetGroup]) === 'undefined') {
-                this.targetData[targetGroup] = [];
+                this.targetData[targetGroup] = {};
             }
             if (typeof(this.sourceData[targetGroup]) === 'undefined') {
-                this.sourceData[targetGroup] = [];
+                this.sourceData[targetGroup] = {};
             }
 
  
@@ -240,12 +240,6 @@ DataLoader.prototype = {
                          "score": item.score.score
                     }; 
 
-                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
-                // when we call genotypeTransform() - Joe
-                if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    this.targetData[targetGroup] = {};
-                }
-        
                 this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
@@ -295,13 +289,15 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'
                                     };
-							    
+							 
+                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                               
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
 					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a][targetID] = {};
 					    } 
+                        
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
@@ -345,7 +341,7 @@ DataLoader.prototype = {
                 // we need to define this here, otherwise will get 'cannot set property of undefined' error 
                 // when we call genotypeTransform() - Joe
                 if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    this.targetData[targetGroup] = {};
+                    //this.targetData[targetGroup] = {};
                 }
                 
 				this.targetData[targetGroup][targetID] = t;

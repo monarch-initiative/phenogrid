@@ -1959,10 +1959,7 @@ var images = require('./images.json');
         } else {
             var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
         }
-	    
-        
-        console.log(xvalues);
-        
+
         // create column labels first, so the added genotype cells will overwrite the background color - Joe
         // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -2149,7 +2146,7 @@ var images = require('./images.json');
 
 		this.state.currYIdx = (newYPos >= ySize) ? ySize : newYPos;
 
-		// note: that the currXIdx accounts for the size of the hightlighted selection area
+		// note: that the currXIdx accounts for the size of the highlighted selection area
 		// so, the starting render position is this size minus the display limit
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
@@ -2801,10 +2798,15 @@ var images = require('./images.json');
             // add genotypes to data, and update target axis
             if (results.b.length > 0) {
                 var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+                
+                console.log(parent.state.dataLoader.targetData[species_name]);
+                
                 // transform raw owlsims into simplified format
                 // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
                 parent.state.dataLoader.genotypeTransform(species_name, results, id); 
 
+                
+                
                 // call this before reordering the target list
                 // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
                 // when we call parent.state.targetAxis.groupEntries()

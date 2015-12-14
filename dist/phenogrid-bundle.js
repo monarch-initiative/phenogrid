@@ -338,9 +338,9 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.owlsimsData = [];
 	this.origSourceList = [];
 	this.maxMaxIC = 0;
-	this.targetData = [];
-	this.sourceData = [];
-	this.cellData = [];
+	this.targetData = {};
+	this.sourceData = {};
+	this.cellData = {};
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
@@ -528,13 +528,13 @@ DataLoader.prototype = {
             // Here we don't reset the cellData, targetData, and sourceData every time,
             // because we want to append the genotype expansion data - Joe
 			if (typeof(this.cellData[targetGroup]) === 'undefined') {
-                this.cellData[targetGroup] = [];
+                this.cellData[targetGroup] = {};
             }
             if (typeof(this.targetData[targetGroup]) === 'undefined') {
-                this.targetData[targetGroup] = [];
+                this.targetData[targetGroup] = {};
             }
             if (typeof(this.sourceData[targetGroup]) === 'undefined') {
-                this.sourceData[targetGroup] = [];
+                this.sourceData[targetGroup] = {};
             }
 
  
@@ -553,12 +553,6 @@ DataLoader.prototype = {
                          "score": item.score.score
                     }; 
 
-                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
-                // when we call genotypeTransform() - Joe
-                if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    this.targetData[targetGroup] = {};
-                }
-        
                 this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
@@ -608,13 +602,15 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'
                                     };
-							    
+							 
+                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                               
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
 					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a][targetID] = {};
 					    } 
+                        
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
@@ -658,7 +654,7 @@ DataLoader.prototype = {
                 // we need to define this here, otherwise will get 'cannot set property of undefined' error 
                 // when we call genotypeTransform() - Joe
                 if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    this.targetData[targetGroup] = {};
+                    //this.targetData[targetGroup] = {};
                 }
                 
 				this.targetData[targetGroup][targetID] = t;
@@ -3696,10 +3692,7 @@ var images = require('./images.json');
         } else {
             var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
         }
-	    
-        
-        console.log(xvalues);
-        
+
         // create column labels first, so the added genotype cells will overwrite the background color - Joe
         // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
@@ -3886,7 +3879,7 @@ var images = require('./images.json');
 
 		this.state.currYIdx = (newYPos >= ySize) ? ySize : newYPos;
 
-		// note: that the currXIdx accounts for the size of the hightlighted selection area
+		// note: that the currXIdx accounts for the size of the highlighted selection area
 		// so, the starting render position is this size minus the display limit
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
@@ -4538,10 +4531,15 @@ var images = require('./images.json');
             // add genotypes to data, and update target axis
             if (results.b.length > 0) {
                 var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
+                
+                console.log(parent.state.dataLoader.targetData[species_name]);
+                
                 // transform raw owlsims into simplified format
                 // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
                 parent.state.dataLoader.genotypeTransform(species_name, results, id); 
 
+                
+                
                 // call this before reordering the target list
                 // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
                 // when we call parent.state.targetAxis.groupEntries()
