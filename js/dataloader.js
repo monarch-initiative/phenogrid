@@ -294,10 +294,7 @@ DataLoader.prototype = {
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
-							this.cellData[targetGroup][sourceID_a][targetID] = {};
-					    } 
-                        
+
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
@@ -337,13 +334,7 @@ DataLoader.prototype = {
                         "score": item.score.score,
                         "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
                     };  
-                
-                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
-                // when we call genotypeTransform() - Joe
-                if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    //this.targetData[targetGroup] = {};
-                }
-                
+
 				this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
@@ -360,10 +351,6 @@ DataLoader.prototype = {
 						// get the normalized IC
 						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
-                        if(typeof(this.sourceData[targetGroup]) === 'undefined') {
-                            this.sourceData[targetGroup] = {};
-                        }
-                        
 						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
@@ -397,17 +384,11 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'
                                     };
-					    
-                        if(typeof(this.cellData[targetGroup]) === 'undefined') {
-                            this.cellData[targetGroup] = {};
-                        }
-                        
+
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
-							this.cellData[targetGroup][sourceID_a][targetID] = {};
-					    } 
+
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if

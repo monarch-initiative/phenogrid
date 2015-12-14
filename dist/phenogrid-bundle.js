@@ -607,10 +607,7 @@ DataLoader.prototype = {
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
-							this.cellData[targetGroup][sourceID_a][targetID] = {};
-					    } 
-                        
+
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
@@ -650,13 +647,7 @@ DataLoader.prototype = {
                         "score": item.score.score,
                         "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
                     };  
-                
-                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
-                // when we call genotypeTransform() - Joe
-                if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    //this.targetData[targetGroup] = {};
-                }
-                
+
 				this.targetData[targetGroup][targetID] = t;
 
 				var matches = data.b[idx].matches;
@@ -673,10 +664,6 @@ DataLoader.prototype = {
 						// get the normalized IC
 						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
-                        if(typeof(this.sourceData[targetGroup]) === 'undefined') {
-                            this.sourceData[targetGroup] = {};
-                        }
-                        
 						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
@@ -710,17 +697,11 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'
                                     };
-					    
-                        if(typeof(this.cellData[targetGroup]) === 'undefined') {
-                            this.cellData[targetGroup] = {};
-                        }
-                        
+
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
-							this.cellData[targetGroup][sourceID_a][targetID] = {};
-					    } 
+
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
@@ -4479,7 +4460,7 @@ var images = require('./images.json');
         $('.pg_expand_genotype_icon').addClass('fa-spinner fa-pulse');
         
         var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-        
+ 
         var loaded = this.state.dataManager.checkGenotypesLoaded(species_name, id);
 
         // when we can see the insert genotypes link in tooltip, 
@@ -4516,6 +4497,7 @@ var images = require('./images.json');
         } else {
             // Load the genotypes only once
             var cb = this._insertGenotypesCb;
+            // Pass `this` to dataLoader as parent for callback use - Joe
             this.state.dataLoader.getGenotypes(id, cb, this);
         }
 	},
@@ -4531,8 +4513,8 @@ var images = require('./images.json');
             // add genotypes to data, and update target axis
             if (results.b.length > 0) {
                 var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-                
-                console.log(parent.state.dataLoader.targetData[species_name]);
+console.log(parent.state.dataManager.target);
+                //console.log(parent.state.dataLoader.targetData[species_name]);
                 
                 // transform raw owlsims into simplified format
                 // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]

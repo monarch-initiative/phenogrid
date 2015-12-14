@@ -2746,7 +2746,7 @@ var images = require('./images.json');
         $('.pg_expand_genotype_icon').addClass('fa-spinner fa-pulse');
         
         var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-        
+ 
         var loaded = this.state.dataManager.checkGenotypesLoaded(species_name, id);
 
         // when we can see the insert genotypes link in tooltip, 
@@ -2783,6 +2783,7 @@ var images = require('./images.json');
         } else {
             // Load the genotypes only once
             var cb = this._insertGenotypesCb;
+            // Pass `this` to dataLoader as parent for callback use - Joe
             this.state.dataLoader.getGenotypes(id, cb, this);
         }
 	},
@@ -2798,8 +2799,8 @@ var images = require('./images.json');
             // add genotypes to data, and update target axis
             if (results.b.length > 0) {
                 var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-                
-                console.log(parent.state.dataLoader.targetData[species_name]);
+console.log(parent.state.dataManager.target);
+                //console.log(parent.state.dataLoader.targetData[species_name]);
                 
                 // transform raw owlsims into simplified format
                 // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
