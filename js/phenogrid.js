@@ -1960,20 +1960,24 @@ var images = require('./images.json');
             var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
         }
 	    
-        // create column lables first, so the added genotype cells will overwrite the background color - Joe
+        
+        console.log(xvalues);
+        
+        // create column labels first, so the added genotype cells will overwrite the background color - Joe
         // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
 	        .data(xvalues)
-	        .enter().append("g")
+	        .enter()
+            .append("g")
             .attr("class", 'column')
             .style("font-size", '11px')            
 			.attr("id", function(d, i) { 
-				return "pg_grid_col_"+i;
+				return "pg_grid_col_" + i;
             })	      	
-	        .attr("transform", function(d) { 
+	        .attr("transform", function(d, i) { 
                 var offset = gridRegion.colLabelOffset;
-                var xs = xScale(d.id);
-                return "translate(" + (gridRegion.x + (xs*gridRegion.cellPad)) + "," + (gridRegion.y - offset) + ")rotate(-45)"; 
+                // i starts from 0
+                return "translate(" + (gridRegion.x + (i*gridRegion.cellPad)) + "," + (gridRegion.y - offset) + ")rotate(-45)"; 
             }); //-45
 
 	    // create column labels

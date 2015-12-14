@@ -332,9 +332,9 @@ DataLoader.prototype = {
 				var t = {
                         "id":targetID, 
                         "label": item.label, 
-                        //"targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
-                        "targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
-                        //"taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
+                        "targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
+                        //"targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
+                        "taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
                         "type": item.type, 
                         'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
                         "rank": parseInt(idx)+1,  // start with 1 not zero
