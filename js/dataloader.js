@@ -75,7 +75,6 @@ DataLoader.prototype = {
 
 		// begin processing
 		this.process(targetGroupList, this.qryString);
-
 	},
 
     /*
@@ -344,12 +343,6 @@ DataLoader.prototype = {
                         "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
                     };  
 
-                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
-                // when we call genotypeTransform() - Joe
-                if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    this.targetData[targetGroup] = {};
-                }
-                
                 // We need to define this again here since the targetID is newly added here, doesn't exist before - Joe
                 if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
                     this.targetData[targetGroup][targetID] = {};
@@ -409,10 +402,6 @@ DataLoader.prototype = {
 									"type": 'cell'
                                     };
 
-                        if(typeof(this.cellData[targetGroup]) === 'undefined') {
-                            this.cellData[targetGroup] = {};
-                        }
-                        
                         // We need to define this here since we may have new matches for existing phenotypes which wasn't in the cellData before - Joe
                         if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};

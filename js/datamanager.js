@@ -175,7 +175,7 @@ DataManager.prototype = {
         // have the same order and number of elements, just two different formats
         var t = []
         for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
-            // only genotypes have that 'visible' property
+            // only added genotypes have that 'visible' property
             if (typeof(this.reorderedTargetEntriesIndexArray[species][i].visible) === 'undefined') {
                 t.push(this.reorderedTargetEntriesIndexArray[species][i]);
             } else {
