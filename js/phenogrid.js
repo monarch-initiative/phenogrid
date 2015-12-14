@@ -2793,14 +2793,14 @@ var images = require('./images.json');
     // parent refers to the global `this` and we have to pass it
     _insertGenotypesCb: function(results, id, parent, errorMsg) {
         console.log(results);
-        
+
         // When there's an error message specified, simsearch results must be empty - Joe
         if (typeof(errorMsg) === 'undefined') {
             // add genotypes to data, and update target axis
             if (results.b.length > 0) {
                 var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-console.log(parent.state.dataManager.target);
-                //console.log(parent.state.dataLoader.targetData[species_name]);
+
+                console.log(parent.state.dataLoader.targetData);
                 
                 // transform raw owlsims into simplified format
                 // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]

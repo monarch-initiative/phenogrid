@@ -527,6 +527,7 @@ DataLoader.prototype = {
             
             // Here we don't reset the cellData, targetData, and sourceData every time,
             // because we want to append the genotype expansion data - Joe
+            // No need to redefine this in genotypeTransform() - Joe   
 			if (typeof(this.cellData[targetGroup]) === 'undefined') {
                 this.cellData[targetGroup] = {};
             }
@@ -538,12 +539,13 @@ DataLoader.prototype = {
             }
 
  
+            var targetVal;
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
-				var t = {
+				targetVal = {
                         "id":targetID, 
                          "label": item.label, 
                          "targetGroup": item.taxon.label, 
@@ -552,8 +554,13 @@ DataLoader.prototype = {
                          "rank": parseInt(idx)+1,  // start with 1 not zero
                          "score": item.score.score
                     }; 
-
-                this.targetData[targetGroup][targetID] = t;
+  
+                // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
+                if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
+                    this.targetData[targetGroup][targetID] = {};
+                }
+                
+                this.targetData[targetGroup][targetID] = targetVal;
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -603,7 +610,8 @@ DataLoader.prototype = {
 									"type": 'cell'
                                     };
 							 
-                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                               
+                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error   
+                        // No need to redefine this in genotypeTransform() - Joe                     
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
@@ -620,7 +628,8 @@ DataLoader.prototype = {
     genotypeTransform: function(targetGroup, data, parentGeneID) {      		
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
-			console.log("transforming genotype data...");
+			
+            console.log("transforming genotype data...");
 
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
@@ -629,13 +638,13 @@ DataLoader.prototype = {
 
             // no need to initialize the specific targetGroup
             // since they should've been set
-
+            var targetVal;
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
-				var t = {
+				targetVal = {
                         "id":targetID, 
                         "label": item.label, 
                         "targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
@@ -648,7 +657,18 @@ DataLoader.prototype = {
                         "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
                     };  
 
-				this.targetData[targetGroup][targetID] = t;
+                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
+                // when we call genotypeTransform() - Joe
+                if(typeof(this.targetData[targetGroup]) === 'undefined') {
+                    this.targetData[targetGroup] = {};
+                }
+                
+                // We need to define this again here since the targetID is newly added here, doesn't exist before - Joe
+                if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
+                    this.targetData[targetGroup][targetID] = {};
+                }
+                
+				this.targetData[targetGroup][targetID] = targetVal;
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -664,6 +684,10 @@ DataLoader.prototype = {
 						// get the normalized IC
 						lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
 
+                        if(typeof(this.sourceData[targetGroup]) === 'undefined') {
+                            this.sourceData[targetGroup] = {};
+                        }
+                        
 						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
 
 						// build a unique list of sources
@@ -684,8 +708,8 @@ DataLoader.prototype = {
 						dataVals = {"source_id": sourceID_a, 
 									"target_id": targetID, 
                                     "target_type": 'genotype', // to mark this cell is generated for genotype expansion - Joe
-									//"targetGroup": item.taxon.label,									
-									"targetGroup": targetGroup,
+									"targetGroup": item.taxon.label,									
+									//"targetGroup": targetGroup,
                                     "value": lcs, 
 									"a_IC" : curr_row.a.IC,  
 									"a_label" : curr_row.a.label,
@@ -698,10 +722,15 @@ DataLoader.prototype = {
 									"type": 'cell'
                                     };
 
-					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
+                        if(typeof(this.cellData[targetGroup]) === 'undefined') {
+                            this.cellData[targetGroup] = {};
+                        }
+                        
+                        // We need to define this here since we may have new matches for existing phenotypes which wasn't in the cellData before - Joe
+                        if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-
+                        
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
@@ -4507,14 +4536,14 @@ var images = require('./images.json');
     // parent refers to the global `this` and we have to pass it
     _insertGenotypesCb: function(results, id, parent, errorMsg) {
         console.log(results);
-        
+
         // When there's an error message specified, simsearch results must be empty - Joe
         if (typeof(errorMsg) === 'undefined') {
             // add genotypes to data, and update target axis
             if (results.b.length > 0) {
                 var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-console.log(parent.state.dataManager.target);
-                //console.log(parent.state.dataLoader.targetData[species_name]);
+
+                console.log(parent.state.dataLoader.targetData);
                 
                 // transform raw owlsims into simplified format
                 // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
