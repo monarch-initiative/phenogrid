@@ -25,9 +25,9 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.owlsimsData = [];
 	this.origSourceList = [];
 	this.maxMaxIC = 0;
-	this.targetData = [];
-	this.sourceData = [];
-	this.cellData = [];
+	this.targetData = {};
+	this.sourceData = {};
+	this.cellData = {};
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
@@ -75,7 +75,6 @@ DataLoader.prototype = {
 
 		// begin processing
 		this.process(targetGroupList, this.qryString);
-
 	},
 
     /*
@@ -214,23 +213,25 @@ DataLoader.prototype = {
             
             // Here we don't reset the cellData, targetData, and sourceData every time,
             // because we want to append the genotype expansion data - Joe
+            // No need to redefine this in genotypeTransform() - Joe   
 			if (typeof(this.cellData[targetGroup]) === 'undefined') {
-                this.cellData[targetGroup] = [];
+                this.cellData[targetGroup] = {};
             }
             if (typeof(this.targetData[targetGroup]) === 'undefined') {
-                this.targetData[targetGroup] = [];
+                this.targetData[targetGroup] = {};
             }
             if (typeof(this.sourceData[targetGroup]) === 'undefined') {
-                this.sourceData[targetGroup] = [];
+                this.sourceData[targetGroup] = {};
             }
 
  
+            var targetVal;
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
-				var t = {
+				targetVal = {
                         "id":targetID, 
                          "label": item.label, 
                          "targetGroup": item.taxon.label, 
@@ -239,14 +240,13 @@ DataLoader.prototype = {
                          "rank": parseInt(idx)+1,  // start with 1 not zero
                          "score": item.score.score
                     }; 
-
-                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
-                // when we call genotypeTransform() - Joe
-                if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    this.targetData[targetGroup] = {};
+  
+                // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
+                if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
+                    this.targetData[targetGroup][targetID] = {};
                 }
-        
-                this.targetData[targetGroup][targetID] = t;
+                
+                this.targetData[targetGroup][targetID] = targetVal;
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -295,13 +295,13 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'
                                     };
-							    
+							 
+                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error   
+                        // No need to redefine this in genotypeTransform() - Joe                     
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
-							this.cellData[targetGroup][sourceID_a][targetID] = {};
-					    } 
+
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
@@ -314,7 +314,8 @@ DataLoader.prototype = {
     genotypeTransform: function(targetGroup, data, parentGeneID) {      		
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
-			console.log("transforming genotype data...");
+			
+            console.log("transforming genotype data...");
 
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
@@ -323,32 +324,31 @@ DataLoader.prototype = {
 
             // no need to initialize the specific targetGroup
             // since they should've been set
-
+            var targetVal;
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
-				var t = {
+				targetVal = {
                         "id":targetID, 
                         "label": item.label, 
-                        //"targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
-                        "targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
-                        //"taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
+                        "targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
+                        //"targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
+                        "taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
                         "type": item.type, 
                         'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
                         "rank": parseInt(idx)+1,  // start with 1 not zero
                         "score": item.score.score,
                         "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
                     };  
-                
-                // we need to define this here, otherwise will get 'cannot set property of undefined' error 
-                // when we call genotypeTransform() - Joe
-                if(typeof(this.targetData[targetGroup]) === 'undefined') {
-                    this.targetData[targetGroup] = {};
+
+                // We need to define this again here since the targetID is newly added here, doesn't exist before - Joe
+                if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
+                    this.targetData[targetGroup][targetID] = {};
                 }
                 
-				this.targetData[targetGroup][targetID] = t;
+				this.targetData[targetGroup][targetID] = targetVal;
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -388,8 +388,8 @@ DataLoader.prototype = {
 						dataVals = {"source_id": sourceID_a, 
 									"target_id": targetID, 
                                     "target_type": 'genotype', // to mark this cell is generated for genotype expansion - Joe
-									//"targetGroup": item.taxon.label,									
-									"targetGroup": targetGroup,
+									"targetGroup": item.taxon.label,									
+									//"targetGroup": targetGroup,
                                     "value": lcs, 
 									"a_IC" : curr_row.a.IC,  
 									"a_label" : curr_row.a.label,
@@ -401,17 +401,12 @@ DataLoader.prototype = {
 									"b_IC": parseFloat(curr_row.b.IC),
 									"type": 'cell'
                                     };
-					    
-                        if(typeof(this.cellData[targetGroup]) === 'undefined') {
-                            this.cellData[targetGroup] = {};
-                        }
-                        
-					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
+
+                        // We need to define this here since we may have new matches for existing phenotypes which wasn't in the cellData before - Joe
+                        if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
-					    if(typeof(this.cellData[targetGroup][sourceID_a][targetID]) === 'undefined') {
-							this.cellData[targetGroup][sourceID_a][targetID] = {};
-					    } 
+                        
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
 				}  //if
@@ -591,21 +586,43 @@ DataLoader.prototype = {
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
         // some genes may don't have associated genotypes
         if (typeof(results.genotype_list) !== 'undefined') {
-            var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
-            var phenotype_id_list = self.origSourceList.join("+");
-            var genotype_id_list = '';
-            for (var i in genotype_list) {
-                genotype_id_list += genotype_list[i].id + ",";
+            // sometimes the results.genotype_list is an empty array (because some genes don't have associated genotypes) - Joe
+            if (results.genotype_list.length > 0) {
+                // First filter out genotype IDs with unstable prefix
+                // https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
+                // According to Kent, IDs starting with an underscore or prefixed with MONARCH: do not persist across different scigraph loads
+                var unstablePrefix = ['MONARCH:', '_:'];
+                for (var i in results.genotype_list) {
+                    for (var k in unstablePrefix) {
+                        if (results.genotype_list[i].id.indexOf(unstablePrefix[k]) === 0) {
+                            // remove that genotype with unstable prefix
+                            results.genotype_list.splice(i, 1);
+                        }
+                    }  
+                }
+                
+                // Now only get the first parent.state.genotypeExpandLimit genotypes in the list
+                var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
+                var phenotype_id_list = self.origSourceList.join("+");
+                var genotype_id_list = '';
+                for (var i in genotype_list) {
+                    genotype_id_list += genotype_list[i].id + ",";
+                }
+                // truncate the last ',' off
+                if (genotype_id_list.slice(-1) === ',') {
+                    genotype_id_list = genotype_id_list.slice(0, -1);
+                }
+                // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+                var compare_url = self.serverURL +  parent.state.compareQuery + '/' + phenotype_id_list + "/" + genotype_id_list;
+                // Now we need to get all the matches data
+                var cb = self.getGenotypesCbCb;
+                self.getFetch(self, compare_url, id, cb, finalCallback, parent);
+            } else {
+                var simsearchResults = {};
+                var errorMsg = 'This gene has no associated genotypes.';
+                // return empty JSON since we have an empty genotype_list - Joe
+                finalCallback(simsearchResults, id, parent, errorMsg);
             }
-            // truncate the last ',' off
-            if (genotype_id_list.slice(-1) === ',') {
-                genotype_id_list = genotype_id_list.slice(0, -1);
-            }
-            // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
-            var compare_url = self.serverURL +  "/compare/" + phenotype_id_list + "/" + genotype_id_list;
-            // Now we need to get all the matches data
-            var cb = self.getGenotypesCbCb;
-            self.getFetch(self, compare_url, id, cb, finalCallback, parent);
         }
 	},
     
@@ -625,16 +642,26 @@ DataLoader.prototype = {
         // but genotype labels on x axis will have the encoded characters
         // we just need to encode the labels for tooltip use - Joe
         
-        // save the expanded gene id in for later
+        // save the expanded gene id for later
         var genotype_id_list = [];
-        for (var i = 0; i < results.b.length; i++) {
-            genotype_id_list.push(results.b[i].id.replace(':', '_'));
-        }
-
-        // for reactivation
-        self.loadedGenotypes[id] = genotype_id_list;
         
-        finalCallback(results, id, parent);
+        // there's no results.b is no matches found in the simsearch - Joe
+        if (typeof(results.b) !== 'undefined') {
+            for (var i = 0; i < results.b.length; i++) {
+                genotype_id_list.push(results.b[i].id.replace(':', '_'));
+            }
+
+            // for reactivation
+            self.loadedGenotypes[id] = genotype_id_list;
+            
+            // this `results` is the simsearch resulting JSON
+            finalCallback(results, id, parent);
+        } else {
+            var simsearchResults = {};
+            var errorMsg = 'No matches found between the provided phenotypes and expanded genotypes.';
+            // return empty JSON since we have no matches found - Joe
+            finalCallback(simsearchResults, id, parent, errorMsg);
+        }
     },
     
 	/*

@@ -123,7 +123,7 @@ var images = require('./images.json');
         internalOptions: {
             invertAxis: false,
             simSearchQuery: "/simsearch/phenotype",
-            compareQuery: "/compare", // used for owlSimFunction === 'compare' - Joe
+            compareQuery: "/compare", // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
@@ -223,20 +223,23 @@ var images = require('./images.json');
         // Genotype expansion flags - named/associative array
         // flag used for switching between single species and multi-species mode
         // add new species names here once needed - Joe
+        // Add new species here when needed
         var genotypeExpansionSpeciesFlagConfig = {
             "Mus musculus": false,
             "Danio rerio": false
         };
         
-        this.state.expandedGenotypes = genotypeExpansionSpeciesFlagConfig;
+        // NOTE: without using jquery's extend(), all the new flags are referenced 
+        // to the config object, not actual copy - Joe
+        this.state.expandedGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
         
         // genotype flags to mark every genotype expansion on/off in each species
-        this.state.newGenotypes = genotypeExpansionSpeciesFlagConfig;
+        this.state.newGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
         
-        this.state.removedGenotypes = genotypeExpansionSpeciesFlagConfig;
+        this.state.removedGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
         
         // flag to mark if hidden genotypes need to be reactivated
-        this.state.reactivateGenotypes = genotypeExpansionSpeciesFlagConfig;
+        this.state.reactivateGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
 	},
 
 	
@@ -437,24 +440,22 @@ var images = require('./images.json');
     _updateTargetAxisRenderingGroup: function(species_name) {
     	var targetList = [];
 
-		if (this.state.selectedCompareTargetGroup.length === 1) {
-            // get targetList based on the newGenotypes flag
-            if (this.state.newGenotypes[species_name]) {
-                // get the reordered target list in the format of a named array, has all added genotype data
-                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[species_name];
-            } else if (this.state.removedGenotypes[species_name]) {
-                // get the reordered target list in the format of a named array, has all added genotype data
-                //targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[species_name];
-                
-                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
-            } else if (this.state.reactivateGenotypes[species_name]) {
-                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
-            } else {
-                // unordered target list in the format of a named array, has all added genotype data
-                targetList = this.state.dataManager.getData("target", species_name);
-            }	  
-		}
+        // get targetList based on the newGenotypes flag
+        if (this.state.newGenotypes[species_name]) {
+            // get the reordered target list in the format of a named array, has all added genotype data
+            targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[species_name];
+        } else if (this.state.removedGenotypes[species_name]) {
+            // get the reordered target list in the format of a named array, has all added genotype data
+            targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
+        } else if (this.state.reactivateGenotypes[species_name]) {
+            targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
+        } else {
+            // unordered target list in the format of a named array, has all added genotype data
+            targetList = this.state.dataManager.getData("target", species_name);
+        }	  
 
+        console.log(targetList);
+        
 		// update target axis group
         var targetAxisRenderStartPos = this.state.targetAxis.getRenderStartPos();
         var targetAxisRenderEndPos = this.state.targetAxis.getRenderEndPos();
@@ -769,10 +770,12 @@ var images = require('./images.json');
     
 	// For the selection area, see if you can convert the selection to the idx of the x and y then redraw the bigger grid 
 	_createMinimap: function(width, height) {
-		// set the display counts on each axis
-		var yCount = this.state.yAxisRender.displayLength();  
-	    var xCount = this.state.xAxisRender.displayLength();  
-
+		// display counts and total counts on each axis
+	    var xDisplayCount = this.state.xAxisRender.displayLength();  
+        var yDisplayCount = this.state.yAxisRender.displayLength();  
+        var xTotalCount = this.state.xAxisRender.groupLength(); 
+        var yTotalCount = this.state.yAxisRender.groupLength();  
+	    
 		// these translations from the top-left of the rectangular region give the absolute coordinates
 		var overviewX = this.state.minimap.x;
 		var overviewY = this.state.minimap.y;
@@ -838,20 +841,17 @@ var images = require('./images.json');
 				var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
 				return self._getCellColor(el.value[self.state.selectedCalculation]);			 
 			});
-	
-		var yRenderedSize = this.state.yAxisRender.displayLength();
-		var xRenderedSize = this.state.xAxisRender.displayLength();		
-     	var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
-	    var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
-		var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
-	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  	
-
+		
         // start point (x, y) of the shaded draggable area
+        var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+	    var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
+        
 		var selectRectX = this.state.smallXScale(startXId);
 		var selectRectY = this.state.smallYScale(startYId);
-		// width and height of the shaded draggable area
-		var selectRectHeight = this.state.smallYScale(lastYId) - this.state.smallYScale(startYId);
-		var selectRectWidth = this.state.smallXScale(lastXId) - this.state.smallXScale(startXId);
+        
+		// Calculate the width and height of the shaded draggable area
+		var selectRectHeight = height * (yDisplayCount/yTotalCount);
+		var selectRectWidth = width * (xDisplayCount/xTotalCount);
 		
 		// Also add the shaded area in the pg_navigator group - Joe
 		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
@@ -931,8 +931,8 @@ var images = require('./images.json');
 					newY = newY - overviewY;
 
 					// invert newX and newY into positions in the model and phenotype lists.
-					var newXPos = self._invertDragPosition(self.state.smallXScale, newX) + xCount;
-					var newYPos = self._invertDragPosition(self.state.smallYScale, newY) + yCount;
+					var newXPos = self._invertDragPosition(self.state.smallXScale, newX) + xDisplayCount;
+					var newYPos = self._invertDragPosition(self.state.smallYScale, newY) + yDisplayCount;
 
                     // grid region needs to be updated accordingly
 					self._updateGrid(newXPos, newYPos);
@@ -970,22 +970,20 @@ var images = require('./images.json');
 		this._createScrollbarScales(this._gridWidth(), this._gridHeight());
         
         // variables for creating horizontal bar
-        var xCount = this.state.xAxisRender.displayLength();  
-        var xRenderedSize = this.state.xAxisRender.displayLength();
-        var lastXId = this.state.xAxisRender.itemAt(xRenderedSize - 1).id; 
+        var xDisplayCount = this.state.xAxisRender.displayLength();  
+        var xTotalCount = this.state.xAxisRender.groupLength();  
         var startXId = this.state.xAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
         var defaultX = this.state.gridRegion.x;
         var sliderRectX = this.state.horizontalScrollbarScale(startXId);
-        var sliderWidth = this.state.horizontalScrollbarScale(lastXId) - this.state.horizontalScrollbarScale(startXId);
+        var sliderWidth = this._gridWidth() * (xDisplayCount/xTotalCount);
         
         // variables for creating vertical scrollbar
-        var yCount = this.state.yAxisRender.displayLength();  
-        var yRenderedSize = this.state.yAxisRender.displayLength();
-        var lastYId = this.state.yAxisRender.itemAt(yRenderedSize - 1).id; 
+        var yDisplayCount = this.state.yAxisRender.displayLength();  
+        var yTotalCount = this.state.yAxisRender.groupLength();  
         var startYId = this.state.yAxisRender.itemAt(0).id; // start point should always be 0 - Joe  
         var defaultY = this.state.gridRegion.y;
         var sliderRectY = this.state.verticalScrollbarScale(startYId);
-        var sliderHeight = this.state.verticalScrollbarScale(lastYId) - this.state.verticalScrollbarScale(startYId);
+        var sliderHeight = this._gridHeight() * (yDisplayCount/yTotalCount);
     
         // horizontal scrollbar
         if (horizontal === true) {
@@ -1046,7 +1044,7 @@ var images = require('./images.json');
                         // adjust
                         newX = newX - defaultX;
                         
-                        var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xCount;
+                        var newXPos = self._invertDragPosition(self.state.horizontalScrollbarScale, newX) + xDisplayCount;
                         
                         // Horizontal grid region needs to be updated accordingly
                         self._updateHorizontalGrid(newXPos);
@@ -1116,7 +1114,7 @@ var images = require('./images.json');
                         // adjust
                         newY = newY - defaultY;
 
-                        var newYPos = self._invertDragPosition(self.state.verticalScrollbarScale, newY) + yCount;
+                        var newYPos = self._invertDragPosition(self.state.verticalScrollbarScale, newY) + yDisplayCount;
                         
                         // Vertical grid region needs to be updated accordingly
                         self._updateVerticalGrid(newYPos);
@@ -1810,19 +1808,17 @@ var images = require('./images.json');
             // genotype expansion won't work with owlSimFunction === 'compare' since we use
             // 'compare' as the key of the named array, while the added genotypes are named based on their species - Joe
             if (data.type === 'gene') {
-                // DISABLED for now, just uncomment to ENABLE genotype expansion - Joe
+                // ENABLED for now, just comment to DISABLE genotype expansion - Joe
                 // for gene and single species mode only, add genotype expansion link
-                /*
                 if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
                     var expanded = this.state.dataManager.isExpanded(id); // gene id
 
                     if (expanded){
-                        htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_remove_genotypes_" + id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
+                        htmlContent += "<br><div class=\"pg_expand_genotype\" id=\"pg_remove_genotypes_" + id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
                     } else {
-                        htmlContent += "<br><div class=\"pg_expand_genotype\" data-species=\"" + data.targetGroup + "\" id=\"pg_insert_genotypes_" + id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+                        htmlContent += "<br><div class=\"pg_expand_genotype\" id=\"pg_insert_genotypes_" + id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
                     }
                 }
-                */
             }
         }
         
@@ -1963,21 +1959,22 @@ var images = require('./images.json');
         } else {
             var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
         }
-	    
-        // create column lables first, so the added genotype cells will overwrite the background color - Joe
+
+        // create column labels first, so the added genotype cells will overwrite the background color - Joe
         // create columns using the xvalues (targets)
 	  	var column = this.state.svg.selectAll(".column")
 	        .data(xvalues)
-	        .enter().append("g")
+	        .enter()
+            .append("g")
             .attr("class", 'column')
             .style("font-size", '11px')            
 			.attr("id", function(d, i) { 
-				return "pg_grid_col_"+i;
+				return "pg_grid_col_" + i;
             })	      	
-	        .attr("transform", function(d) { 
+	        .attr("transform", function(d, i) { 
                 var offset = gridRegion.colLabelOffset;
-                var xs = xScale(d.id);
-                return "translate(" + (gridRegion.x + (xs*gridRegion.cellPad)) + "," + (gridRegion.y - offset) + ")rotate(-45)"; 
+                // i starts from 0
+                return "translate(" + (gridRegion.x + (i*gridRegion.cellPad)) + "," + (gridRegion.y - offset) + ")rotate(-45)"; 
             }); //-45
 
 	    // create column labels
@@ -2088,7 +2085,7 @@ var images = require('./images.json');
         if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
             row.append("rect")
                 .attr('width', self._gridWidth())
-                .attr('height', gridRegion.cellht)
+                .attr('height', gridRegion.cellSize)
                 .style('fill', function(d, i) { // add different color to genotype labels
                     var el = self.state.yAxisRender.itemAt(i);
                     if (el.type === 'genotype') {
@@ -2149,7 +2146,7 @@ var images = require('./images.json');
 
 		this.state.currYIdx = (newYPos >= ySize) ? ySize : newYPos;
 
-		// note: that the currXIdx accounts for the size of the hightlighted selection area
+		// note: that the currXIdx accounts for the size of the highlighted selection area
 		// so, the starting render position is this size minus the display limit
 		this.state.xAxisRender.setRenderStartPos(this.state.currXIdx - this.state.xAxisRender.displayLength());
 		this.state.xAxisRender.setRenderEndPos(this.state.currXIdx);
@@ -2748,10 +2745,12 @@ var images = require('./images.json');
         $('.pg_expand_genotype_icon').removeClass('fa-plus-circle');
         $('.pg_expand_genotype_icon').addClass('fa-spinner fa-pulse');
         
-        var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-        
+        // When we can expand a gene, we must be in the single species mode,
+        // and there must be only one species in this.state.selectedCompareTargetGroup - Joe
+        var species_name = this.state.selectedCompareTargetGroup[0].name;
+
         var loaded = this.state.dataManager.checkGenotypesLoaded(species_name, id);
-        
+
         // when we can see the insert genotypes link in tooltip, 
         // the genotypes are either haven't been loaded or have already been loaded but then removed(invisible)
         if (loaded) {
@@ -2762,33 +2761,17 @@ var images = require('./images.json');
             // reactivating by changing 'visible' to true
             for (var i = 0; i < associated_genotype_ids.length; i++) {
                 var genotype_id = associated_genotype_ids[i];
-                
-                if (typeof(this.state.dataLoader.targetData[species_name][genotype_id]) === 'undefined') {
-                    this.state.dataLoader.targetData[species_name][genotype_id] = {}; // object
-                }
+  
+                // update the underlying data (not ordered) in dataLoader
+                // In dataManager, reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray are also updated once we update the 
+                // underlying data in dataLoader, because variable reference in javascript, not actual copy/clone - Joe 
                 this.state.dataLoader.targetData[species_name][genotype_id].visible = true; 
-
-                // Now we update the reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray in dataManager
-                if (typeof(this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id]) === 'undefined') {
-                    this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id] = {}; // object
-                }
-                this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = true;  
-                
-                // delete the corresponding genotypes from reorderedTargetEntriesIndexArray
-                for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
-                    if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
-                    }
-                    
-                    if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
-                        this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].visible = true; 
-                        break;
-                    }
-                }         
             }
             
             this.state.reactivateGenotypes[species_name] = true;
+            
             this._updateTargetAxisRenderingGroup(species_name);
+            
             this.state.reactivateGenotypes[species_name] = false;
             
             this._updateDisplay();
@@ -2802,6 +2785,7 @@ var images = require('./images.json');
         } else {
             // Load the genotypes only once
             var cb = this._insertGenotypesCb;
+            // Pass `this` to dataLoader as parent for callback use - Joe
             this.state.dataLoader.getGenotypes(id, cb, this);
         }
 	},
@@ -2809,104 +2793,102 @@ var images = require('./images.json');
     // this cb has all the matches info returned from the compare
     // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
     // parent refers to the global `this` and we have to pass it
-    _insertGenotypesCb: function(results, id, parent) {
+    _insertGenotypesCb: function(results, id, parent, errorMsg) {
         console.log(results);
-        
-        // add genotypes to data, and update target axis
-        if (results.b.length > 0) {
-            var species_name = $('#pg_insert_genotypes_' + id).attr('data-species');
-            // transform raw owlsims into simplified format
-            // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
-            parent.state.dataLoader.genotypeTransform(species_name, results, id); 
 
-            // call this before reordering the target list
-            // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
-            // when we call parent.state.targetAxis.groupEntries()
-            parent._updateTargetAxisRenderingGroup(species_name);
-            
-            if (typeof(parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name]) === 'undefined') {
-                parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name] = [];
-            }
-            
-            // for the first time, just get the unordered groupEntries()
-            // starting from second time, append the genotype data of following expansions to the already ordered target list
-            if (parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length === 0) {
-                var updatedTargetEntries = parent.state.targetAxis.groupEntries(); // numeric index array
-            } else {
-                var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(species_name, results.b);
-            }
-            
-            // Now we update the target list in dataManager
-            // and place those genotypes right after their parent gene
-            var genotypesData = {
-                    targetEntries: updatedTargetEntries, 
-                    genotypes: results.b, 
-                    parentGeneID: id,
-                    species: species_name
-                };
+        // When there's an error message specified, simsearch results must be empty - Joe
+        if (typeof(errorMsg) === 'undefined') {
+            // add genotypes to data, and update target axis
+            if (results.b.length > 0) {
+                // When we can expand a gene, we must be in the single species mode,
+                // and there must be only one species in this.state.selectedCompareTargetGroup - Joe
+                var species_name = parent.state.selectedCompareTargetGroup[0].name;
+
+                // transform raw owlsims into simplified format
+                // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
+                parent.state.dataLoader.genotypeTransform(species_name, results, id); 
+ 
+                // call this before reordering the target list
+                // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
+                // when we call parent.state.targetAxis.groupEntries()
+                parent._updateTargetAxisRenderingGroup(species_name);
                 
-            // this will give us a reordered target list in two formats.
-            // one is associative/named array(reorderedTargetEntriesNamedArray), the other is number indexed array(reorderedTargetEntriesIndexArray)
-            parent.state.dataManager.updateTargetList(genotypesData);
+                if (typeof(parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name]) === 'undefined') {
+                    parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name] = [];
+                }
+                
+                // for the first time, just get the unordered groupEntries()
+                // starting from second time, append the genotype data of following expansions to the already ordered target list
+                if (parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length === 0) {
+                    var updatedTargetEntries = parent.state.targetAxis.groupEntries(); // numeric index array
+                } else {
+                    var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(species_name, results.b);
+                }
+                
+                // Now we update the target list in dataManager
+                // and place those genotypes right after their parent gene
+                var genotypesData = {
+                        targetEntries: updatedTargetEntries, 
+                        genotypes: results.b, 
+                        parentGeneID: id,
+                        species: species_name
+                    };
+                    
+                // this will give us a reordered target list in two formats.
+                // one is associative/named array(reorderedTargetEntriesNamedArray), the other is number indexed array(reorderedTargetEntriesIndexArray)
+                parent.state.dataManager.updateTargetList(genotypesData);
 
-            // we set the genotype flag before calling _updateTargetAxisRenderingGroup() again
-            // _updateTargetAxisRenderingGroup() uses this flag for creating this.state.targetAxis
-            parent.state.newGenotypes[species_name] = true;
-            
-            // call this again after the target list gets updated
-            // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
-            // as well as the new start position and end position
-            parent._updateTargetAxisRenderingGroup(species_name);
-            
-            // then reset the flag to false so it can still grab the newly added genotypes of another gene
-            // and add them to the unordered target list.
-            // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
-            // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
-            parent.state.newGenotypes[species_name] = false;
-            
-            // flag, indicates that we have expanded genotypes for this species, 
-            // so they show up when we switch from multi-species mode back to single species mode
-            parent.state.expandedGenotypes[species_name] = true;
+                // we set the genotype flag before calling _updateTargetAxisRenderingGroup() again
+                // _updateTargetAxisRenderingGroup() uses this flag for creating this.state.targetAxis
+                parent.state.newGenotypes[species_name] = true;
+                
+                // call this again after the target list gets updated
+                // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
+                // as well as the new start position and end position
+                parent._updateTargetAxisRenderingGroup(species_name);
+                
+                // then reset the flag to false so it can still grab the newly added genotypes of another gene
+                // and add them to the unordered target list.
+                // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
+                // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
+                parent.state.newGenotypes[species_name] = false;
+                
+                // flag, indicates that we have expanded genotypes for this species, 
+                // so they show up when we switch from multi-species mode back to single species mode
+                parent.state.expandedGenotypes[species_name] = true;
 
-            parent._updateDisplay();
-            
-            // Remove the spinner icon
-            $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
-            $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
-            
-            // Tell dataManager that the loaded genotypes of this gene have been expanded
-            parent.state.dataManager.expandedGenotypeList[id] = parent.state.dataLoader.loadedGenotypes[id];
+                parent._updateDisplay();
+                
+                // Remove the spinner icon
+                $('.pg_expand_genotype_icon').removeClass('fa-spinner fa-pulse');
+                $('.pg_expand_genotype_icon').addClass('fa-plus-circle');
+                
+                // Tell dataManager that the loaded genotypes of this gene have been expanded
+                parent.state.dataManager.expandedGenotypeList[id] = parent.state.dataLoader.loadedGenotypes[id];
+            }
         } else {
-            // tell users there's no genotypes associated to this gene
-            parent._populateDialog('This gene has no associated genotypes.');
+            // pop up the error message in dialog
+            parent._populateDialog(errorMsg);
         }
 	},
 
     // Genotypes expansion for gene (single species mode)
     // hide expanded genotypes
     _removeGenotypes: function(id) {
-        var species_name = $('#pg_remove_genotypes_' + id).attr('data-species');
+        // When we can expand a gene, we must be in the single species mode,
+        // and there must be only one species in this.state.selectedCompareTargetGroup - Joe
+        var species_name = this.state.selectedCompareTargetGroup[0].name;
+        
         // array of genotype id list
         var associated_genotype_ids = this.state.dataLoader.loadedGenotypes[id];
         
         // change 'visible' to false 
         for (var i = 0; i < associated_genotype_ids.length; i++) {
             var genotype_id = associated_genotype_ids[i];
+            // update the underlying data
+            // In dataManager, reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray are also updated once we update the 
+            // underlying data in dataLoader, because variable reference in javascript, not actual copy/clone - Joe 
             this.state.dataLoader.targetData[species_name][genotype_id].visible = false; 
-
-            // Now we update the reorderedTargetEntriesNamedArray in dataManager
-            this.state.dataManager.reorderedTargetEntriesNamedArray[species_name][genotype_id].visible = false;   
-            // Also hide the corresponding genotypes in reorderedTargetEntriesIndexArray
-            for (var j = 0; j < this.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length; j++) {
-                if (typeof(this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j]) === 'undefined') {
-                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j] = {}; // object
-                }
-                
-                if (this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].id === genotype_id) {
-                    this.state.dataManager.reorderedTargetEntriesIndexArray[species_name][j].visible = false;
-                    break;
-                }
-            }         
         }
         
         // Tell dataManager that the loaded genotypes of this gene have been collapsed from display 
