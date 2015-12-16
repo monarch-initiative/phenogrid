@@ -76,6 +76,7 @@ var images = require('./images.json');
 (function($, window, document, __undefined__) {
 	var createPhenogridForElement = function(element, options) {
 		var jqElement = $(element); // element is a jQuery object containing the element used to instantiate the widget - Joe
+        console.log('jqElement.attr(id):', jqElement.attr('id'));
 		jqElement.phenogrid(options);
 	};
 
@@ -363,7 +364,26 @@ var images = require('./images.json');
 
     // Phenogrid container div
 	_createPhenogridContainer: function() {
-		this.state.pgContainer = $('<div id="pg_container"></div>');
+        this.pgBaseId = this.element.attr('id');
+        this.pgContainerId = this.pgBaseId + '_container';
+        this.pgControlsId = this.pgBaseId + '_controls';
+        this.pgControlsOptionsId = this.pgBaseId + '_controls_options';
+        this.pgAboutPhenogridId = this.pgBaseId + '_about_phenogrid';
+        this.pgTooltipId = this.pgBaseId + '_tooltip';
+        this.pgTooltipInnerId = this.pgBaseId + '_tooltip_inner';
+        this.pgAxisFlipId = this.pgBaseId + '_axisflip';
+        this.pgSVGId = this.pgBaseId + '_svg';
+        this.pgSVGGroupId = this.pgBaseId + '_svg_group';
+
+        console.log('_createPhenogridContainer this.pgBaseId:', this.pgBaseId);
+        console.log('_createPhenogridContainer this.pgContainerId:', this.pgContainerId);
+        console.log('_createPhenogridContainer this.pgControlsId:', this.pgControlsId);
+        console.log('_createPhenogridContainer this.pgControlsOptionsId:', this.pgControlsOptionsId);
+        console.log('_createPhenogridContainer this.pgAboutPhenogridId:', this.pgAboutPhenogridId);
+        console.log('_createPhenogridContainer this.pgAxisFlipId:', this.pgAxisFlipId);
+        console.log('_createPhenogridContainer this.pgSVGId:', this.pgSVGId);
+        console.log('_createPhenogridContainer this.pgSVGGroupId:', this.pgSVGGroupId);
+		this.state.pgContainer = $('<div id="' + this.pgContainerId + '" class="pg_container"></div>');
 		this.element.append(this.state.pgContainer);
 	},
     
@@ -576,7 +596,7 @@ var images = require('./images.json');
 	_updateDisplay: function() {
         // Only remove the #pg_svg node and leave #pg_controls and #pg_unmatched there
         // since #pg_controls and #pg_unmatched are HTML not SVG - Joe
-        this.element.find('#pg_svg').remove();
+        this.element.find('#' + this.pgSVGId).remove();
         
         if (this.state.dataManager.isInitialized()) {
 			this._createSvgComponents();
@@ -609,11 +629,11 @@ var images = require('./images.json');
     
     // the svg container
 	_createSvgContainer: function() {
-        this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
+        this.state.pgContainer.append('<svg id="' + this.pgSVGId + '"><g id="' + this.pgSVGGroupId + '"></g></svg>');
 	
         // Define a font-family for all SVG texts 
         // so we don't have to apply font-family separately for each SVG text - Joe
-        this.state.svg = d3.select("#pg_svg_group")
+        this.state.svg = d3.select("#" + this.pgSVGGroupId)
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
     
@@ -1149,7 +1169,7 @@ var images = require('./images.json');
         var calculatedSvgWidth = this.state.gridRegion.x + this._gridWidth();
         var svgWidth = (toptitleWidth >= calculatedSvgWidth) ? toptitleWidth : calculatedSvgWidth;
         
-        d3.select("#pg_svg")
+        d3.select("#" + this.pgSVGId)
             .attr('width', svgWidth + 100)
             .attr('height', this.state.gridRegion.y + this._gridHeight() + 100); // Add an extra 100 to height - Joe
     },
@@ -1157,19 +1177,20 @@ var images = require('./images.json');
 	// Click the setting button to open the control options
 	// Click the cross mark to close when it's open
 	_togglePhenogridControls: function() {
+        var that = this;
 		// Toggle the options panel by clicking the button
 		$("#pg_slide_btn").click(function() {
 			// $(this) refers to $("#pg_slide_btn")
 			if ( ! $(this).hasClass("pg_slide_open")) {
 				// Show the phenogrid controls
-				$("#pg_controls_options").fadeIn();
+				$("#" + that.pgControlsOptionsId).fadeIn();
 				// Remove the top border of the button by adding .pg_slide_open CSS class
 				$(this).addClass("pg_slide_open");
 			}
 		});
         
         $("#pg_controls_close").click(function() {
-			$("#pg_controls_options").fadeOut();
+			$("#" + that.pgControlsOptionsId).fadeOut();
             $("#pg_slide_btn").removeClass("pg_slide_open");
 		});
 	},
@@ -1257,7 +1278,7 @@ var images = require('./images.json');
         
         // show tooltip
         // elem is a native DOM element
-		this._showTooltip($('#pg_tooltip'), elem, d);
+		this._showTooltip($('#' + this.pgTooltipId), elem, d);
 	},
 
     // _mouseout() removes the matching highlighting as well as the crosshairs - Joe
@@ -1543,10 +1564,12 @@ var images = require('./images.json');
 	// add a tooltip div stub, this is used to dynamically set a tooltip info 
 	_createTooltipStub: function() {
 		var pg_tooltip = $("<div>")
-						.attr("id", "pg_tooltip");
+                        .attr("class", "pg_tooltip")
+                        .attr("id", this.pgTooltipId);
 
         var pg_tooltip_inner = $("<div>")
-						.attr("id", "pg_tooltip_inner");
+                        .attr("class", "pg_tooltip_inner")
+						.attr("id", this.pgTooltipInnerId);
 
         pg_tooltip.append(pg_tooltip_inner);
 		// Append to #pg_container
@@ -1562,7 +1585,7 @@ var images = require('./images.json');
 
         $(document).ready(function($){
 			var $targets = $("*[data-tooltip]");
-			var $tooltip = $('#pg_tooltip');
+			var $tooltip = $('#' + self.pgTooltipId);
 			if ($targets.length === 0) {
 				return;
 			}
@@ -1573,7 +1596,7 @@ var images = require('./images.json');
 			$targets.mouseout(function(e){  
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				if (typeof(elem) !== 'undefined' ) {
-					if (elem.id !== 'pg_tooltip' && elem.id !== "") {					    
+					if (elem.id !== self.pgTooltipId && elem.id !== "") {					    
 				 		self._hideTooltip($tooltip);
 					}
 				}
@@ -1686,8 +1709,8 @@ var images = require('./images.json');
 		var retData = this._renderTooltip(id, data);   
 
 		// update the stub pg_tooltip div dynamically to display
-		$("#pg_tooltip_inner").empty();
-		$("#pg_tooltip_inner").html(retData);
+		$("#" + this.pgTooltipInnerId).empty();
+		$("#" + this.pgTooltipInnerId).html(retData);
 
 		// For phenotype ontology tree 
 		if (data.type === 'phenotype') {
@@ -1989,7 +2012,7 @@ var images = require('./images.json');
                     return '';
                 }
             })
-		    .attr("data-tooltip", "pg_tooltip")   			
+		    .attr("data-tooltip", this.pgTooltipId)   			
 	      	.attr("text-anchor", "start")
 	      	.text(function(d) { 		
 	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
@@ -2063,7 +2086,7 @@ var images = require('./images.json');
                     return '';
                 }
             })
-			.attr("data-tooltip", "pg_tooltip")   				      
+			.attr("data-tooltip", this.pgTooltipId)   				      
 		    .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); 
@@ -2213,7 +2236,7 @@ var images = require('./images.json');
 				position: {
 			 		my: "top", 
 					at: "top+25%",
-					of: "#pg_container"
+					of: this.pgContainerId
 				},
 				title: 'Phenogrid Notes',
 				
@@ -2340,14 +2363,16 @@ var images = require('./images.json');
 	// Phengrid controls/options
 	_createPhenogridControls: function() {
 		var self = this; // Use self inside anonymous functions 
-		
-		var phenogridControls = $('<div id="pg_controls"></div>');
+        var pgContainerId = this.pgContainerId;     // "#pg_container";
+
+		var phenogridControls = $('<div id="' + this.pgControlsId + '" class="pg_controls"></div>');  // pg_controls
+        console.log('_createPhenogridControls:', phenogridControls);
 
 		// Not in the #pg_svg_group div since it's HTML - Joe
 		this.state.pgContainer.append(phenogridControls);
 		
 		// Need to put .pg_controls_options_arrow_border span before .pg_controls_options_arrow span - Joe
-		var optionhtml = '<div id="pg_controls_options"><i id="pg_controls_close"class="fa fa-times"></i><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
+		var optionhtml = '<div id="' + this.pgControlsOptionsId + '" class="pg_controls_options"><i id="pg_controls_close" class="fa fa-times"></i><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
 		var slideBtn = '<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
@@ -2379,7 +2404,7 @@ var images = require('./images.json');
 		phenogridControls.append(slideBtn);
 		
         // Hide options menu by default
-        $("#pg_controls_options").hide(); 
+        $("#" + this.pgControlsOptionsId).hide(); 
         
 		// add the handler for the checkboxes control
 		$("#pg_organism").change(function(d) {
@@ -2424,7 +2449,7 @@ var images = require('./images.json');
             self._updateDisplay();
 		});
 
-		$("#pg_axisflip").click(function() {	
+		$("#" + this.pgAxisFlipId).click(function() {	
 			var $this = $(this);
 			// $this will contain a reference to the checkbox 
 			if ($this.is(':checked')) {
@@ -2439,7 +2464,7 @@ var images = require('./images.json');
         // Click save button to export the current phenogrid view as a SVG file - Joe
         $("#pg_export").click(function() {	
             // SVG styles are applied with D3, not in CSS for this exporting purpose
-            var svgElementClone = $('#pg_svg').clone(); // clone the svg to manipulate
+            var svgElementClone = $('#' + this.pgSVGId).clone(); // clone the svg to manipulate
             // Use data uri for svg logo
             svgElementClone.find('#pg_logo').attr('href',images.logo);
             svgElementClone.find('#pg_scores_tip_icon').remove(); // remove fontawesome icon
@@ -2461,7 +2486,7 @@ var images = require('./images.json');
 			self._populateDialog(htmlnotes.calcs);
 		});
 		
-		$("#pg_about_phenogrid").click(function() {	
+		$("#" + this.pgAboutPhenogridId).click(function() {	
 			self._populateDialog(htmlnotes.faq);
 		});
 	},
@@ -2486,7 +2511,7 @@ var images = require('./images.json');
 		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
         $('#pg_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
 		// The height of #pg_controls_options defined in phenogrid.css - Joe
-		var pg_ctrl_options = $('#pg_controls_options');
+		var pg_ctrl_options = $('#' + this.pgControlsOptionsId);
 		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
         pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 42); // create a 10px gap between the vertical scrollbar (12px wide) - Joe
@@ -2571,13 +2596,14 @@ var images = require('./images.json');
 		if (this.state.invertAxis) {
 			checked = "checked";
 		}
-		var optionhtml = '<div class="pg_select_item"><input type="checkbox" id="pg_axisflip"' + checked + '>Invert Axis</div><div class="pg_hr"></div>'; 
+		var optionhtml = '<div class="pg_select_item"><input type="checkbox" id="' +
+            this.pgAxisFlipId + '" ' + checked + '>Invert Axis</div><div class="pg_hr"></div>'; 
 		return $(optionhtml);
 	},
 
 	// create about phenogrid FAQ inside the controls/options - Joe
 	_createAboutPhenogrid: function () {
-		var html = '<div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
+		var html = '<div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="' + this.pgAboutPhenogridId + '" class="pg_about_phenogrid"></i></div>'; 
 		return $(html);
 	},
 	
@@ -2736,7 +2762,7 @@ var images = require('./images.json');
 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 		}
 
-		$("#pg_tooltip_inner").html(ontologyData);
+		$("#" + this.pgTooltipInnerId).html(ontologyData);
 	},
 
     // Genotypes expansion for gene (single species mode) - Joe
