@@ -81,13 +81,40 @@ var phenotypes = [
 
 
 window.onload = function() {
-    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
-        serverURL : "http://beta.monarchinitiative.org",
+    // instance 1
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
+        serverURL : "http://monarchinitiative.org",
         phenotypeData: phenotypes,
         targetGroupList: [
             {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
             {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
             {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
+            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
+            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+       ]
+    });
+    
+    // instance 2 - same config as instance 1
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
+        serverURL : "http://monarchinitiative.org",
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
+            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
+            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
+            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+       ]
+    });
+    
+    // instance 3
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
+        serverURL : "http://monarchinitiative.org",
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
+            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": false},
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": false, "active": false},
             {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
             {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
        ]
@@ -101,14 +128,11 @@ window.onload = function() {
 
 <div class="pg_index">
 
-<div id="phenogrid_container" class="clearfix"></div>
+<div id="phenogrid_container1" class="clearfix"></div>
 
-<link rel="stylesheet" property="stylesheet" href="node_modules/gfm.css/gfm.css">
-<div style="padding:1%;margin:1%;border:1px solid lightgray;">
-<article class="markdown-body">
-@@include(marked('../README.md'))
-</article>
-<div/>
+<div id="phenogrid_container2" class="clearfix"></div>
+
+<div id="phenogrid_container3" class="clearfix"></div>
 
 </body>
 </html>
