@@ -1040,7 +1040,7 @@ var images = require('./images.json');
                             .attr("x", function() {
                                 // NOTE: d3 returns string so we need to use parseFloat()
                                 var factor = (newX - defaultX) / self._gridWidth();
-                                var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.minimap.borderThickness;
+                                var minimap_width = parseFloat(d3.select('#' + self.state.pgInstanceId + '_globalview').attr("width"))  - 2*self.state.minimap.borderThickness;
                                 return self.state.minimap.x + minimap_width*factor;
                             });
                             
@@ -1468,7 +1468,7 @@ var images = require('./images.json');
     // Add the unmatched data to #pg_unmatched_list
     _addUnmatchedData: function(self) {
         // Reset/empty the list
-        $('#' + this.state.pgInstanceId + '_unmatched_list_data').html('');
+        $('#' + self.state.pgInstanceId + '_unmatched_list_data').html('');
             
         // Get unmatched sources, add labels via async ajax calls if not found
         // Must be called after _createUnmatchedSources()
@@ -1480,7 +1480,7 @@ var images = require('./images.json');
             self._formatUnmatchedSources(self.state.unmatchedSources);
         } else {
             // Show no unmatched message
-            $('#' + this.state.pgInstanceId + '_unmatched_list_data').html('<div class="pg_unmatched_list_item">No ' + self.state.unmatchedButtonLabel + '</div>');
+            $('#' + self.state.pgInstanceId + '_unmatched_list_data').html('<div class="pg_unmatched_list_item">No ' + self.state.unmatchedButtonLabel + '</div>');
         }
     },
     
@@ -1701,7 +1701,7 @@ var images = require('./images.json');
 		if (data.type === 'phenotype') {
 			// https://api.jqueryui.com/jquery.widget/#method-_on
 			// Binds click event to the ontology tree expand icon - Joe
-			// _renderTooltip(), the font awesome icon <i> element follows the form of id="pg_expandOntology_HP_0001300" - Joe
+			// _renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_expandOntology_HP_0001300" - Joe
 			var expandOntol_icon = $('#' + this.state.pgInstanceId + '_expandOntology_' + id);
 			this._on(expandOntol_icon, {
 				"click": function(event) {
@@ -1712,7 +1712,7 @@ var images = require('./images.json');
         
         // For genotype expansion
 		if (data.type === 'gene') {
-			// In renderTooltip(), the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
+			// In renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_insert_genotypes_MGI_98297" - Joe
 			var insert = $('#' + this.state.pgInstanceId + '_insert_genotypes_' + id);
             this._on(insert, {
 				"click": function(event) {
@@ -1753,7 +1753,7 @@ var images = require('./images.json');
                 //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
                 this.state.ontologyTreesDone = 0;
                 this.state.ontologyTreeHeight = 0;
-                var tree = '<div id="' + this.state.pgInstanceId + 'hpoDiv">' + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + '</div>';
+                var tree = '<div id="' + this.state.pgInstanceId + '_hpoDiv">' + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + '</div>';
                 if (tree === "<br>"){
                     ontologyData += "<em>No Classification hierarchy Found</em>";
                 } else {
@@ -1764,7 +1764,7 @@ var images = require('./images.json');
             if (expanded){
                 htmlContent += ontologyData;
             } else {
-                htmlContent += '<br><div class="pg_expand_ontology" id="' + this.state.pgInstanceId + '"_expandOntology_"' + id + '>Expand classification hierarchy<i class="pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer"></i></div>';
+                htmlContent += '<br><div class="pg_expand_ontology" id="' + this.state.pgInstanceId + '_expandOntology_' + id + '">Expand classification hierarchy<i class="pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer"></i></div>';
             }	
         } else if (data.type === 'cell') {
             var suffix = "";
@@ -1822,9 +1822,9 @@ var images = require('./images.json');
                     var expanded = this.state.dataManager.isExpanded(id); // gene id
 
                     if (expanded){
-                        htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_remove_genotypes_"' + id + '">Remove associated genotypes<i class="pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer"></i></div>'; 
+                        htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_remove_genotypes_' + id + '">Remove associated genotypes<i class="pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer"></i></div>'; 
                     } else {
-                        htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_insert_genotypes_"' + id + '">Insert associated genotypes<i class="pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer"></i></div>'; 
+                        htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_insert_genotypes_' + id + '">Insert associated genotypes<i class="pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer"></i></div>'; 
                     }
                 }
             }
@@ -1836,7 +1836,7 @@ var images = require('./images.json');
     
     // also encode the labels into html entities, otherwise they will mess up the tooltip content format
 	_encodeTooltipHref: function(type, id, label) {
-		return "<a href=\"" + this.state.serverURL +"/" +  type +"/" + id + "\" target=\"_blank\">" + Utils.encodeHtmlEntity(label) + "</a>";
+		return '<a href="' + this.state.serverURL + '/' +  type + '/' + id + '" target="_blank">' + Utils.encodeHtmlEntity(label) + '</a>';
 	},
     
 	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
@@ -1875,14 +1875,14 @@ var images = require('./images.json');
 	},
 
 	_buildIndentMark: function (treeHeight){
-		var indent = "<em class='pg_ontology_tree_indent'></em>";
+		var indent = '<em class="pg_ontology_tree_indent"></em>';
 
 		if (treeHeight === 0) {
 			return indent;
 		}
 
 		for (var i = 1; i < treeHeight; i++){
-			indent += "<em class='pg_ontology_tree_indent'></em>";
+			indent += '<em class="pg_ontology_tree_indent"></em>';
 		}
 			 
 		return indent + '&#8627'; // HTML entity - Joe
@@ -1890,7 +1890,7 @@ var images = require('./images.json');
 
 	// Based on the ID, it pulls the label from CacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 	_buildOntologyHyperLink: function(id){
-		return "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + this.state.dataManager.getOntologyLabel(id) + "</a>";
+		return '<a href="' + this.state.serverURL + '/phenotype/' + id + '" target="_blank">' + this.state.dataManager.getOntologyLabel(id) + '</a>';
 	},
 
 	_createTargetGroupDividerLines: function() {
@@ -2205,7 +2205,7 @@ var images = require('./images.json');
 	},
     
 	_populateDialog: function(text) {
-		var SplitText = "Title";
+        var SplitText = "Title";
 		var $dialog = $('<div></div>')
 			.html(SplitText )
 			.dialog({
@@ -2221,7 +2221,7 @@ var images = require('./images.json');
 				position: {
 			 		my: "top", 
 					at: "top+25%",
-					of: this.state.pgContainerId
+					of: '#' + this.state.pgContainerId
 				},
 				title: 'Phenogrid Notes',
 				
@@ -2730,11 +2730,11 @@ var images = require('./images.json');
 		parent.state.ontologyTreesDone = 0;
 		parent.state.ontologyTreeHeight = 0;		
 		var info = parent._getAxisData(id);
-		var hrefLink = "<a href=\"" + parent.state.serverURL+"/phenotype/"+ id + "\" target=\"_blank\">" + info.label + "</a>";
-		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
-		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/>";
-        ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br/>";
-        ontologyData += "<strong>Frequency:</strong> " + info.count + "<br/><br/>";
+		var hrefLink = '<a href="' + parent.state.serverURL + '/phenotype/' + id + '" target="_blank">' + info.label + '</a>';
+		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br>";
+		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br>";
+        ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br>";
+        ontologyData += "<strong>Frequency:</strong> " + info.count + "<br><br>";
 
 		var classTree = parent._buildOntologyTree(id.replace("_", ":"), d.edges, 0);
 
@@ -2744,7 +2744,7 @@ var images = require('./images.json');
 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 		}
 
-		$('#' + this.state.pgInstanceId + '_tooltip_inner').html(ontologyData);
+		$('#' + parent.state.pgInstanceId + '_tooltip_inner').html(ontologyData);
 	},
 
     // Genotypes expansion for gene (single species mode) - Joe
