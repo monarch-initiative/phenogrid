@@ -236,6 +236,11 @@ font-family: arial;
 color:#000;
 }
 
+/* Background color of jquery-ui dialog */
+.pg_faq_dialog_bg_color {
+background-color: #fff !important;
+}
+
 .pg_container  .cursor_pointer {
 cursor:pointer;
 }
@@ -267,11 +272,6 @@ visibility: hidden;
 display: block;
 height: 0;
 clear: both;
-}
-
-/* Background color of jquery-ui dialog */
-.faqdialog_bg_color {
-background-color: #fff !important;
 }
 
 .pg_container  .pg_active {

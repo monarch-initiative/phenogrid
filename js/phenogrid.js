@@ -2188,23 +2188,13 @@ var images = require('./images.json');
 				minWidth: 400,
 				resizable: false,
 				draggable: true,
-				dialogClass: "faqdialog_bg_color",
+				dialogClass: "pg_faq_dialog_bg_color",
 				position: {
 			 		my: "top", 
 					at: "top+25%",
 					of: '#' + this.state.pgContainerId
 				},
-				title: 'Phenogrid Notes',
-				
-				// Replace default jquery-ui titlebar close icon with font awesome - Joe
-				open: function() {
-					// remove default close icon
-					$('.ui-dialog-titlebar-close span').removeClass('ui-icon ui-icon-thickclose');
-					// Yuck they have close text let's remove that
-					$('.ui-dialog-titlebar-close span').text('');
-					// Lets add font awesome close icon
-					$('.ui-dialog-titlebar-close span').addClass('fa fa-times');
-				}
+				title: 'Phenogrid Notes'
 			});
 
 		$dialog.html(text);
