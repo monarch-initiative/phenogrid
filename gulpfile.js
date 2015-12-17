@@ -42,11 +42,11 @@ var paths = {
 };
 
 // The default task is to build the different distributions.
-gulp.task('bundle', ['create-index', 'js-bundle', 'css-bundle']);
+gulp.task('bundle', ['create-index', 'js-bundle', 'css-bundle', 'copy-font-awesome-fonts', 'copy-jquery-ui-images']);
 
 
 // an alternate task that won't uglify. useful for debugging
-gulp.task('dev-bundle', ['lint', 'create-index', 'js-dev-bundle', 'css-bundle']);
+gulp.task('dev-bundle', ['lint', 'create-index', 'js-dev-bundle', 'css-dev-bundle', 'copy-font-awesome-fonts', 'copy-jquery-ui-images']);
 
 // JSHint
 gulp.task("lint", function() {
@@ -84,7 +84,7 @@ gulp.task('js-bundle', function(cb) {
 });
 
 
-// Bundle JS together with browserify
+// No minify for dev bundle
 gulp.task('js-dev-bundle', function(cb) {
     var bundleStream = browserify('./js/phenogrid.js').bundle();
     
@@ -97,10 +97,29 @@ gulp.task('js-dev-bundle', function(cb) {
 
 // Bundle CSS together with gulp concat
 gulp.task('css-bundle', function(cb) {
-  return gulp.src(['./node_modules/normalize.css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css' , './css/sumoselect.css'])
+  return gulp.src(['./node_modules/normalize.css/normalize.css', './node_modules/font-awesome/css/font-awesome.css', './node_modules/jquery-ui/themes/base/jquery-ui.css', './css/phenogrid.css'])
     .pipe(concat('phenogrid-bundle.css'))
     .pipe(minifyCSS()) //Minify CSS
     .pipe(gulp.dest('./dist/'));
+});
+
+// No minify for dev bundle
+gulp.task('css-dev-bundle', function(cb) {
+  return gulp.src(['./node_modules/normalize.css/normalize.css', './node_modules/font-awesome/css/font-awesome.css', './node_modules/jquery-ui/themes/base/jquery-ui.css', './css/phenogrid.css'])
+    .pipe(concat('phenogrid-bundle.css'))
+    .pipe(gulp.dest('./dist/'));
+});
+
+// Copy font-awesome fonts used in font-awesome.css
+gulp.task('copy-font-awesome-fonts', function(cb) {
+  return gulp.src('./node_modules/font-awesome/fonts/*')
+    .pipe(gulp.dest('./fonts/'));
+});
+
+// Copy jquery-ui images used in jquery-ui.css
+gulp.task('copy-jquery-ui-images', function(cb) {
+  return gulp.src('./node_modules/jquery-ui/themes/base/images/*')
+    .pipe(gulp.dest('./dist/images/'));
 });
 
 // Testing with mocha/chai
