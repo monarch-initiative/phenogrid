@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/monarch-initiative/phenogrid.svg)](https://travis-ci.org/monarch-initiative/phenogrid)
-[![NPM](https://nodei.co/npm/browserify-css.png?downloads=true&stars=true)](https://nodei.co/npm/phenogrid/)
+[![NPM](https://nodei.co/npm/phenogrid.png?downloads=true&stars=true)](https://nodei.co/npm/phenogrid/)
 
 # About Phenogrid
 
