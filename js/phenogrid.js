@@ -2545,7 +2545,7 @@ var images = require('./images.json');
 				checked = "checked";
 			}
 			// We need the name attr for radio inputs so only one is checked - Joe
-			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
+			optionhtml += '<div class="pg_select_item"><input type="radio" name="' + this.state.pgInstanceId + '_calc_method" value="' + this.state.similarityCalculation[idx].calc + '" ' + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
 		}
 		optionhtml += "</div><div class='pg_hr'></div>";
 		return $(optionhtml);
@@ -2554,8 +2554,8 @@ var images = require('./images.json');
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
 		var optionhtml ="<div class='pg_ctrl_label'>Sort Phenotypes" + 
-				" <i class='fa fa-info-circle cursor_pointer' id='" + this.state.pgInstanceId + "_sorts_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<div id='" + this.state.pgInstanceId + "_sortphenotypes'>";
+				' <i class="fa fa-info-circle cursor_pointer" id="' + this.state.pgInstanceId + '_sorts_faq"></i></div>' + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+				'<div id="' + this.state.pgInstanceId + '_sortphenotypes">';
 
 		for (var idx in this.state.phenotypeSort) {
 			if ( ! this.state.phenotypeSort.hasOwnProperty(idx)) {
@@ -2567,7 +2567,7 @@ var images = require('./images.json');
 				checked = "checked";
 			}
 			// We need the name attr for radio inputs so only one is checked - Joe
-			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + this.state.phenotypeSort[idx] + "' " + checked + ">" + this.state.phenotypeSort[idx] + '</div>';
+			optionhtml += '<div class="pg_select_item"><input type="radio" name="' + this.state.pgInstanceId + '_sort" value="' + this.state.phenotypeSort[idx] + '" ' + checked + '>' + this.state.phenotypeSort[idx] + '</div>';
 		}
 		optionhtml += "</div><div class='pg_hr'></div>";
 		return $(optionhtml);
