@@ -1,18 +1,20 @@
+# Phenogrid
+
 [![Build Status](https://travis-ci.org/monarch-initiative/phenogrid.svg)](https://travis-ci.org/monarch-initiative/phenogrid)
 
 [![NPM](https://nodei.co/npm/phenogrid.png?downloads=true&stars=true)](https://nodei.co/npm/phenogrid/)
 
-# About Phenogrid
+## About Phenogrid
 
 Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by [OWLSim](https://github.com/owlcollab/owltools), as provided through APIs from the [Monarch Initiative](http://monarchinitiative.org/).
 
 Given an input list of phenotypes (you will see the sample input below) and parameters specified in config/phenogrid_config.js indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.
 
-# Installation Instructions
+## Installation Instructions
 
 Phenogrid is published as a npm package, so you will need to have npm (npm is bundled and installed automatically with node.js) installed before you can install Phenogrid.
 
-## 1. Install npm
+### 1. Install npm
 
 If you have not installed node.js, try:
 
@@ -39,7 +41,7 @@ Then create a symbolic link for "node" as many Node.js tools use this name to ex
 sudo ln -s /usr/bin/nodejs /usr/bin/node
 ````
 
-## 2. Install Phenogrid package
+### 2. Install Phenogrid package
 
 To download and install the phenogrid widget, simply run
 
@@ -56,7 +58,7 @@ sudo npm install phenogrid
 This will create a local `/node_modules` folder in your current working directory, and download/install Phenogrid package and all its dependencies (except the devDepencies) into the local `/node_modules` folder.
 
 
-# Add phenogrid in your target page
+## Add phenogrid in your target page
 
 In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the `<meta charset="UTF-8">` tag in your HTML head.
 
@@ -169,9 +171,9 @@ window.onload = function() {
 </html>
 ```
 
-# Configuration Parameters
+## Configuration Parameters
 
-## `serverURL`  string | required
+### `serverURL`  string | required
 
 This URL should be pointed to the OWLSim URL server associated with your installation containing the Monarch web services. You have three options:
 - Use http://beta.monarchinitiative.org to connect to the development/test web services. This server is less stable than the production server.
@@ -179,18 +181,18 @@ This URL should be pointed to the OWLSim URL server associated with your install
 - If you are running the complete monarch-app, you can point it to http://localhost:8080, or whichever server/port you are using in your local installation.
 
 
-## `phenotypeData`  array | required
+### `phenotypeData`  array | required
 
 It is a Javascript array of objects listing the phenotypes to be rendered in the widget.
 
-## `selectedSort`  string | optional
+### `selectedSort`  string | optional
 
 The different ways that the sources (e.g., phenotypes) can be sorted. The sources that are shown on the left side of the grid may be sorted using one of three methods. 
 - Alphabetical - A-Z
 - Frequency and Rarity - sources, e.g., phenotypes are sorted by the sum of the phenotype values across all models/genes
 - Frequency - Default, sources, e.g., phenotypes are sorted by the count of the number of model/gene matches per phenotype
 
-## `selectedCalculation`  string | optional
+### `selectedCalculation`  string | optional
 
 For each pairwise comparison of phenotypes from the query (q) and target (t), we can assess their individual similarities in a number of ways. 
 - 0 - Similarity
@@ -199,7 +201,7 @@ For each pairwise comparison of phenotypes from the query (q) and target (t), we
 - 3- Ratio (t)
 
 
-## `targetGroupList`  array | optional
+### `targetGroupList`  array | optional
 
 This option allows you to specify the set of target groups (i.e., species) that will be visible throughout Phenogrid. There are two parameters which allow you to control whether a target group is displayed as a default in the multi-target comparison view, `crossComparisonView` and whether it should be active, `active = true`,  and thus fully visible within phenogrid. If `crossComparisonView = true`, for example, the target group will be visible as a default within the multi-target comparison view. For example, by default the following targets will be visible upon loading phenogrid (active must be set to true):
 
@@ -216,11 +218,11 @@ The `active` parameter can override other parameters, but activating or deactiva
 {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
 ```
 
-# Web Browser Support
+## Web Browser Support
 
 Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.
 
-# For developers
+## For developers
 
 If you would like to poke around Phenogrid and make changes to the source code, you will also need to have all the devDepencies downloaded by running the following code in the Phenogrid package root directory:
 
@@ -244,6 +246,6 @@ gulp dev-bundle
 
 This will also show you all the JSHint messages for debugging or improving the code.
 
-# License
+## License
 
 Phenogrid is released under [GPL-2.0 license](https://opensource.org/licenses/GPL-2.0).
