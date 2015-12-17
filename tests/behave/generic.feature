@@ -2,7 +2,7 @@ Feature: Generic features work when running Phenogrid as a standalone widget
 
 
     Scenario: Loading the phenogrid widget
-        Given I go to slow page "/index.html" and wait for id "pg_slide_btn"
+        Given I go to slow page "/index.html" and wait for id "phenogrid_container1_slide_btn"
             Then the document should contain "About Phenogrid"
 
 
@@ -10,8 +10,8 @@ Feature: Generic features work when running Phenogrid as a standalone widget
         Given I go to page "/index.html"
     	    Then the id "<id>" should contain "<text>"
             Examples: <id> - <text> list
-            | id                       | text                         |
-            | pg_slide_btn             | OPTIONS                      |
+            | id                                         | text                         |
+            | phenogrid_container1_slide_btn             | OPTIONS                      |
 
 
     Scenario Outline: Visible items after open options panel
@@ -19,34 +19,34 @@ Feature: Generic features work when running Phenogrid as a standalone widget
             And I click the "pg_slide_btn"
             Then the id "<id>" should contain "<text>"
             Examples: <id> - <text> list
-            | id                       | text                         |
-            | pg_organism              | Homo sapiens                 |
-            | pg_organism              | Mus musculus                 |
-            | pg_organism              | Danio rerio                  |
-            | pg_sortphenotypes        | Alphabetic                   |
-            | pg_sortphenotypes        | Frequency and Rarity         |
-            | pg_sortphenotypes        | Frequency                    |
-            | pg_calculation           | Similarity                   |
-            | pg_calculation           | Ratio (q)                    |
-            | pg_calculation           | Ratio (t)                    |
-            | pg_calculation           | Uniqueness                   |
-            | pg_controls_options      | Invert Axis                  |
-            | pg_controls_options      | About Phenogrid              |
+            | id                                         | text                         |
+            | phenogrid_container1_organism              | Homo sapiens                 |
+            | phenogrid_container1_organism              | Mus musculus                 |
+            | phenogrid_container1_organism              | Danio rerio                  |
+            | phenogrid_container1_sortphenotypes        | Alphabetic                   |
+            | phenogrid_container1_sortphenotypes        | Frequency and Rarity         |
+            | phenogrid_container1_sortphenotypes        | Frequency                    |
+            | phenogrid_container1_calculation           | Similarity                   |
+            | phenogrid_container1_calculation           | Ratio (q)                    |
+            | phenogrid_container1_calculation           | Ratio (t)                    |
+            | phenogrid_container1_calculation           | Uniqueness                   |
+            | phenogrid_container1_controls_options      | Invert Axis                  |
+            | phenogrid_container1_controls_options      | About Phenogrid              |
 
 
     Scenario: Model scores popup dialog
         Given I go to page "/index.html"
-            And I click the "pg_scores_tip_icon"
+            And I click the "phenogrid_container1_scores_tip_icon"
             Then the document should contain "What is the score shown at the top of the grid?"
 
     
     Scenario: Appearance of vertical scrollbar slider
         Given I go to page "/index.html"
-            Then the document should contain id "pg_vertical_scrollbar_slider"
+            Then the document should contain id "phenogrid_container1_vertical_scrollbar_slider"
             
             
     Scenario: Appearance of horizontal scrollbar slider after inverting axis
         Given I go to page "/index.html"
-            And I click the "pg_slide_btn"
-            And I click the "pg_axisflip"
-            Then the document should contain id "pg_horizontal_scrollbar_slider"
+            And I click the "phenogrid_container1_slide_btn"
+            And I click the "phenogrid_container1_axisflip"
+            Then the document should contain id "phenogrid_container1_horizontal_scrollbar_slider"
