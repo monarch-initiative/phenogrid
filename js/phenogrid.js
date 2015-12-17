@@ -559,10 +559,6 @@ var images = require('./images.json');
             
             // Unmatched sources
             this._createUnmatchedSources();
-            this._positionUnmatchedSources();
-            this._toggleUnmatchedSources();
-            
-            this._addUnmatchedData(this);
             
             // Options menu
             this._createPhenogridControls();
@@ -577,15 +573,14 @@ var images = require('./images.json');
     
     // Recreates the SVG content and leave the HTML sections unchanged
 	_updateDisplay: function() {
-        // Only remove the #pg_svg node and leave #pg_controls and #pg_unmatched there
-        // since #pg_controls and #pg_unmatched are HTML not SVG - Joe
+        // Only remove the #pg_svg node and leave #this.state.pgInstanceId_controls there
+        // since #this.state.pgInstanceId_controls is HTML not SVG - Joe
         this.element.find('#' + this.state.pgInstanceId + '_svg').remove();
         
         if (this.state.dataManager.isInitialized()) {
 			this._createSvgComponents();
 
             // Reposition HTML sections
-            this._positionUnmatchedSources();
 			this._positionPhenogridControls();
 		} else {
 			this._showNoResults();
@@ -1462,30 +1457,6 @@ var images = require('./images.json');
 		return j;
 	},
 
-    
-    
-    
-    // Add the unmatched data to #pg_unmatched_list
-    _addUnmatchedData: function(self) {
-        // Reset/empty the list
-        $('#' + self.state.pgInstanceId + '_unmatched_list_data').html('');
-            
-        // Get unmatched sources, add labels via async ajax calls if not found
-        // Must be called after _createUnmatchedSources()
-        self.state.unmatchedSources = self._getUnmatchedSources();
-        // Proceed if there's any unmatched
-        if (self.state.unmatchedSources.length > 0) {
-            // Fetch labels for unmatched sources via async ajax calls
-            // then format and append them to the pg_unmatched_list div - Joe
-            self._formatUnmatchedSources(self.state.unmatchedSources);
-        } else {
-            // Show no unmatched message
-            $('#' + self.state.pgInstanceId + '_unmatched_list_data').html('<div class="pg_unmatched_list_item">No ' + self.state.unmatchedButtonLabel + '</div>');
-        }
-    },
-    
-    
-
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
 	 	key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
@@ -2328,21 +2299,36 @@ var images = require('./images.json');
 
 
     _createUnmatchedSources: function() {
-        var pg_unmatched = $('<div id="' + this.state.pgInstanceId + '_unmatched" class="pg_unmatched"></div>');
+        // First to check if there's any unmatched sources
+        this.state.unmatchedSources = this._getUnmatchedSources();
+        console.log(this.state.pgInstanceId + ' Unmatched: ' + this.state.unmatchedSources);
+        // Proceed if there's any unmatched
+        if (this.state.unmatchedSources.length > 0) {
+            // create the container div
+            var pg_unmatched = $('<div id="' + this.state.pgInstanceId + '_unmatched" class="pg_unmatched"></div>');
 
-        // Not in the #pg_svg_group div since it's HTML - Joe
-		this.state.pgContainer.append(pg_unmatched);
-        
-        // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
-		var pg_unmatched_list = '<div id="' + this.state.pgInstanceId + '_unmatched_list"  class="pg_unmatched_list"><i id="' + this.state.pgInstanceId + '_unmatched_close" class="fa fa-times pg_unmatched_close"></i><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span><div id="pg_unmatched_list_data"></div></div>';
-		
-		// Hide/show unmatched - button - Joe
-		var pg_unmatched_btn ='<div id="' + this.state.pgInstanceId + '_unmatched_btn" class="pg_unmatched_btn"><i class="fa fa-exclamation-triangle"></i> ' + this.state.unmatchedButtonLabel + ' </div>';
- 
-        pg_unmatched.append(pg_unmatched_list);
-		pg_unmatched.append(pg_unmatched_btn);
+            // Not in the #this.state.pgInstanceId_svg_group div since it's HTML - Joe
+            this.state.pgContainer.append(pg_unmatched);
+            
+            // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
+            var pg_unmatched_list = '<div id="' + this.state.pgInstanceId + '_unmatched_list" class="pg_unmatched_list"><i id="' + this.state.pgInstanceId + '_unmatched_close" class="fa fa-times pg_unmatched_close"></i><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span><div id="' + this.state.pgInstanceId + '_unmatched_list_data"></div></div>';
+            
+            // Hide/show unmatched - button - Joe
+            var pg_unmatched_btn ='<div id="' + this.state.pgInstanceId + '_unmatched_btn" class="pg_unmatched_btn"><i class="fa fa-exclamation-triangle"></i> ' + this.state.unmatchedButtonLabel + ' </div>';
+     
+            pg_unmatched.append(pg_unmatched_list);
+            pg_unmatched.append(pg_unmatched_btn);
 
-        $('#' + this.state.pgInstanceId + '_unmatched_list').hide(); // Hide by default
+            $('#' + this.state.pgInstanceId + '_unmatched_list').hide(); // Hide by default
+                
+            // Fetch labels for unmatched sources via async ajax calls
+            // then format and append them to the pg_unmatched_list div - Joe
+            this._formatUnmatchedSources(this.state.unmatchedSources);
+            
+            // Position and toggle
+            this._positionUnmatchedSources();
+            this._toggleUnmatchedSources();
+        }
     },
 
 	// Phengrid controls/options
@@ -2403,7 +2389,7 @@ var images = require('./images.json');
 			if (temp.length > 0) {
 				self.state.selectedCompareTargetGroup = temp;				
 			} else {
-				alert("You must have at least 1 targetGroup selected.");
+				alert("You must have at least 1 species selected.");
 			}
 
 			self._createAxisRenderingGroups();
@@ -2412,7 +2398,10 @@ var images = require('./images.json');
             
             // Update unmatched sources due to changes of species
             // No need to call this for other control actions - Joe
-            self._addUnmatchedData(self);
+            // Unmatched sources
+            // Remove the HTML if created from the former load
+            $('#' + self.state.pgInstanceId + '_unmatched').remove();
+            self._createUnmatchedSources();
 		});
 
 		$('#' + this.state.pgInstanceId + '_calculation').change(function(d) {
