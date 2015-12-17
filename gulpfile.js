@@ -97,7 +97,7 @@ gulp.task('js-dev-bundle', function(cb) {
 
 // Bundle CSS together with gulp concat
 gulp.task('css-bundle', function(cb) {
-  return gulp.src(['./css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css' , './css/sumoselect.css'])
+  return gulp.src(['./node_modules/normalize.css/normalize.css', './css/font-awesome-modified.css', './css/jquery-ui-modified.css', './css/phenogrid.css' , './css/sumoselect.css'])
     .pipe(concat('phenogrid-bundle.css'))
     .pipe(minifyCSS()) //Minify CSS
     .pipe(gulp.dest('./dist/'));

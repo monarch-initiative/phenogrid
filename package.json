@@ -23,7 +23,8 @@
     "filesaver.js": "^0.2.0",
     "gfm.css": "^1.1.1",
     "jquery": "^2.1.4",
-    "jquery-ui": "^1.10.5"
+    "jquery-ui": "^1.10.5",
+    "normalize.css": "^3.0.3"
   },
   "devDependencies": {
     "browserify": "^10.2.1",
