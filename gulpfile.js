@@ -4,7 +4,8 @@
 ////
 //// Usage: node ./node_modules/.bin/gulp <TARGET>
 //// Current top targets:
-////  - bundle: create the distribution files
+////  - bundle: create the distribution files in production mode
+////  - dev-bundle: create the distribution files in development mode
 ////  - tests: run the unit tests
 ////
 
@@ -131,26 +132,13 @@ gulp.task('css-dev-bundle', function(cb) {
     .pipe(gulp.dest(config.dist));
 });
 
-// helper function of marked
-function markdownHelper(text) {
-    marked.setOptions({
-        gfm: true,
-        tables: true,
-        breaks: true,
-        pedantic: true,
-        sanitize: true,
-        smartLists: true,
-        smartypants: true
-    });
-    return marked.parse(text);
-}
 
 // create index.html from template and README
 gulp.task('create-index', ['clean'], function(cb) {
   gulp.src(config.html.source)
     .pipe(fileinclude({
       filters: {
-        marked: markdownHelper
+        marked: marked.parse
       }
     }))
     .pipe(gulp.dest(config.html.target));
