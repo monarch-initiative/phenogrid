@@ -2,7 +2,7 @@
 *  Phenogrid related styling
 */
 /* #pg_container contains SVG (#pg_svg) and HTML (#pg_controls, #pg_unmatched) */
-#pg_container {
+.pg_container {
 margin:20px 10px;
 position:relative;
 font-family:Verdana, Geneva, sans-serif;
@@ -10,13 +10,13 @@ font-size:12px;
 }
 
 /* HTML options popup */
-#pg_container  #pg_controls {
+.pg_container  .pg_controls {
 position:absolute;
 left:0;
 top:0;
 }
 
-#pg_container  #pg_controls_options {
+.pg_container  .pg_controls_options {
 position:absolute;
 width:200px;
 height:434px;
@@ -27,7 +27,7 @@ border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 }
 
-#pg_container  .pg_controls_options_arrow_border{
+.pg_container  .pg_controls_options_arrow_border{
 display: block;
 position: absolute;
 left: 27px;
@@ -39,7 +39,7 @@ height: 0;
 width: 0;
 }
 
-#pg_container  .pg_controls_options_arrow{
+.pg_container  .pg_controls_options_arrow{
 display: block;
 position: absolute;
 left: 27px;
@@ -51,7 +51,7 @@ height: 0;
 width: 0;
 }
 
-#pg_container #pg_controls_close {
+.pg_container .pg_controls_close {
 float:right;
 margin-top:-20px;
 margin-right:-20px;
@@ -64,39 +64,39 @@ display: inline-block;
 padding:2px 5px;       
 }
 
-#pg_container #pg_controls_close:hover,
-#pg_container #pg_unmatched_close:hover{
+.pg_container .pg_controls_close:hover,
+.pg_container .pg_unmatched_close:hover{
 cursor:pointer;
 background:#EA763B;
 }
 
-#pg_container  #pg_slide_btn{
+.pg_container  .pg_slide_btn{
 position:absolute;
 width:90px;
 font-size:14px;
 color:#44A293;
 }
 
-#pg_container  #pg_slide_btn:hover,
-#pg_container  #pg_unmatched_btn:hover{
+.pg_container  .pg_slide_btn:hover,
+.pg_container  .pg_unmatched_btn:hover{
 cursor:pointer;
 color:#EA763B;
 }
 
-#pg_container  .pg_slide_open:hover,
-#pg_container  .pg_unmatched_open:hover{
+.pg_container  .pg_slide_open:hover,
+.pg_container  .pg_unmatched_open:hover{
 cursor:default !important;
 color:#44A293 !important;
 }
 
 
-#pg_container  .pg_ctrl_label{
+.pg_container  .pg_ctrl_label{
 font-weight:700;
 font-size:12px;
 margin-bottom:3px;
 }
 
-#pg_container  #pg_controls input[type="checkbox"] {
+.pg_container  .pg_controls input[type="checkbox"] {
 display:inline-block;
 width:11px;
 height:11px;
@@ -104,7 +104,7 @@ margin:-2px 4px 0 0;
 vertical-align:middle;
 }
 
-#pg_container  #pg_controls input[type="radio"] {
+.pg_container  .pg_controls input[type="radio"] {
 display:inline-block;
 width:11px;
 height:11px;
@@ -112,25 +112,25 @@ margin:-2px 4px 0 0;
 vertical-align:middle;
 }
 
-#pg_container  .pg_hr{
+.pg_container  .pg_hr{
 clear:both;
 margin:10px 0;
 border-bottom:1px solid #cbcbcb;
 }
 
-#pg_container  .pg_select_item{
+.pg_container  .pg_select_item{
 margin:2px 0;
 padding:0;
 }
 
 /* HTML unmatched sources popup */
-#pg_container  #pg_unmatched {
+.pg_container  .pg_unmatched {
 position:absolute;
 left:0;
 top:0;
 }
 
-#pg_container  #pg_unmatched_list {
+.pg_container  .pg_unmatched_list {
 position:absolute;
 left:30px;
 background:#F1F3F8;
@@ -141,7 +141,7 @@ border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
 }
 
-#pg_container #pg_unmatched_close{
+.pg_container .pg_unmatched_close{
 float:right;
 margin-top:-10px;
 margin-right:-10px;
@@ -154,14 +154,14 @@ display: inline-block;
 padding:2px 5px;       
 }
 
-#pg_container  .pg_unmatched_list_item  a{
+.pg_container  .pg_unmatched_list_item  a{
 padding:5px;
 width:155px;
 float:left;
 font-size:11px;
 }
 
-#pg_container  .pg_unmatched_list_arrow_border{
+.pg_container  .pg_unmatched_list_arrow_border{
 display: block;
 position: absolute;
 left: 80px;
@@ -173,7 +173,7 @@ height: 0;
 width: 0;
 }
 
-#pg_container  .pg_unmatched_list_arrow{
+.pg_container  .pg_unmatched_list_arrow{
 display: block;
 position: absolute;
 left: 80px;
@@ -185,7 +185,7 @@ height: 0;
 width: 0;
 }
 
-#pg_container  #pg_unmatched_btn{
+.pg_container  .pg_unmatched_btn{
 position:absolute;
 left:13px;
 width:216px;
@@ -194,31 +194,31 @@ font-size:14px;
 color:#44A293;
 }
 
-#pg_container  .pg_row_accent,
-#pg_container  .pg_col_accent {
+.pg_container  .pg_row_accent,
+.pg_container  .pg_col_accent {
 stroke:#4CA092;
 stroke-width: 2;
 fill: #4CA092;
 fill-opacity: 0.1;
 }
 
-#pg_container  .pg_tip {
+.pg_container  .pg_tip {
 width: 80px;
 height:10px;
 font-size:11px;
 }
 
-#pg_container  #pg_scores_tip_icon{
+.pg_container  .pg_scores_tip_icon{
 cursor:pointer;
 }
 
-#pg_container #pg_tooltip {
+.pg_container .pg_tooltip {
 position: absolute;
 padding:5px;
 z-index:99;
 }
 
-#pg_container #pg_tooltip_inner {
+.pg_container .pg_tooltip_inner {
 box-shadow: 5px 5px 8px #818181; /*shadow for CSS3 capable browsers.*/
 -webkit-box-shadow: 5px 5px 8px #818181;
 -moz-box-shadow: 5px 5px 8px #818181;
@@ -236,21 +236,26 @@ font-family: arial;
 color:#000;
 }
 
-#pg_container  .cursor_pointer {
+/* Background color of jquery-ui dialog */
+.pg_faq_dialog_bg_color {
+background-color: #fff !important;
+}
+
+.pg_container  .cursor_pointer {
 cursor:pointer;
 }
 
 /* Used for disabled species checkbox */
-#pg_container  .pg_linethrough {
+.pg_container  .pg_linethrough {
 text-decoration: line-through;
 }
 
 /* Cursor for mini map */
-#pg_container  .pg_draggable{
+.pg_container  .pg_draggable{
 cursor:move;
 }
 
-#pg_container  .pg_dragging {
+.pg_container  .pg_dragging {
 fill: #EA763B !important;
 }
 
@@ -269,68 +274,59 @@ height: 0;
 clear: both;
 }
 
-/* Background color of jquery-ui dialog */
-.faqdialog_bg_color {
-background-color: #fff !important;
-}
-
-#pg_container  .pg_active {
+.pg_container  .pg_active {
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 font-weight: bold;
 fill: blue;
 }
 
-#pg_container  .pg_related_active {
+.pg_container  .pg_related_active {
 font-family: Verdana, Geneva, sans-serif;              
 font-size: 11px;
 fill: blue;
 }
 
-#pg_container  .pg_expand_ontology,
-#pg_container  .pg_expand_genotype{
+.pg_container  .pg_expand_ontology,
+.pg_container  .pg_expand_genotype{
 text-decoration: underline;
 color:#DC4945;
 cursor:pointer;
 }
 
-#pg_container  .pg_expand_ontology_icon,
-#pg_container  .pg_expand_genotype_icon{
+.pg_container  .pg_expand_ontology_icon,
+.pg_container  .pg_expand_genotype_icon{
 margin-left:2px;
 }
 
-#pg_container  em.pg_ontology_tree_indent{
+.pg_container  em.pg_ontology_tree_indent{
 width:12px;
 float:left;
 display:inline-block;
 height:1px;
 }
 
-#pg_container  .pg_cursor_pointer {
+.pg_container  .pg_cursor_pointer {
 cursor:pointer;
 }
 
-#pg_container  #pg_org_sel {
-margin-right: 5px;
-}
-
-#pg_container  .pg_focusLine {
+.pg_container  .pg_focusLine {
 fill: none;
 stroke: red;
 shape-rendering: crispEdges;
 }
 
-#pg_container  .pg_rowcolmatch {
+.pg_container  .pg_rowcolmatch {
 fill: red !important;
 border-style: solid;
 border-width: medium;
 }
 
-#pg_container  .pg_hide {
+.pg_container  .pg_hide {
 display:none;
 }
 
-#pg_container  #pg_export:hover{
+.pg_container  .pg_export:hover{
 cursor:pointer;
 color:#EA763B;
 }

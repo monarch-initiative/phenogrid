@@ -363,10 +363,13 @@ var images = require('./images.json');
 
     // Phenogrid container div
 	_createPhenogridContainer: function() {
-		this.state.pgContainer = $('<div id="pg_container"></div>');
+		// ID of base containing div of each instance
+        this.state.pgInstanceId = this.element.attr('id');
+        this.state.pgContainerId = this.state.pgInstanceId + '_container';
+        this.state.pgContainer = $('<div id="' + this.state.pgContainerId + '" class="pg_container"></div>');
 		this.element.append(this.state.pgContainer);
 	},
-    
+
     // Loading spinner image from font awesome - Joe
 	_showLoadingSpinner: function() {
 		var element = $('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
@@ -556,10 +559,6 @@ var images = require('./images.json');
             
             // Unmatched sources
             this._createUnmatchedSources();
-            this._positionUnmatchedSources();
-            this._toggleUnmatchedSources();
-            
-            this._addUnmatchedData(this);
             
             // Options menu
             this._createPhenogridControls();
@@ -574,15 +573,14 @@ var images = require('./images.json');
     
     // Recreates the SVG content and leave the HTML sections unchanged
 	_updateDisplay: function() {
-        // Only remove the #pg_svg node and leave #pg_controls and #pg_unmatched there
-        // since #pg_controls and #pg_unmatched are HTML not SVG - Joe
-        this.element.find('#pg_svg').remove();
+        // Only remove the #pg_svg node and leave #this.state.pgInstanceId_controls there
+        // since #this.state.pgInstanceId_controls is HTML not SVG - Joe
+        this.element.find('#' + this.state.pgInstanceId + '_svg').remove();
         
         if (this.state.dataManager.isInitialized()) {
 			this._createSvgComponents();
 
             // Reposition HTML sections
-            this._positionUnmatchedSources();
 			this._positionPhenogridControls();
 		} else {
 			this._showNoResults();
@@ -609,11 +607,11 @@ var images = require('./images.json');
     
     // the svg container
 	_createSvgContainer: function() {
-        this.state.pgContainer.append("<svg id='pg_svg'><g id='pg_svg_group'></g></svg>");
+        this.state.pgContainer.append('<svg id="' + this.state.pgInstanceId + '_svg"><g id="' + this.state.pgInstanceId + '_svg_group"></g></svg>');
 	
         // Define a font-family for all SVG texts 
         // so we don't have to apply font-family separately for each SVG text - Joe
-        this.state.svg = d3.select("#pg_svg_group")
+        this.state.svg = d3.select('#' + this.state.pgInstanceId + '_svg_group')
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
     
@@ -624,7 +622,7 @@ var images = require('./images.json');
 			.attr("xlink:href", images.logo)
 			.attr("x", this.state.logo.x)
 			.attr("y", this.state.logo.y)
-			.attr("id", "pg_logo")
+			.attr("id", this.state.pgInstanceId + "_logo")
 			.attr('class', 'pg_cursor_pointer')
 			.attr("width", this.state.logo.width)
 			.attr("height", this.state.logo.height)
@@ -783,14 +781,14 @@ var images = require('./images.json');
 		// create the main box
         // Group the overview region and text together - Joe
 		var globalviewGrp = this.state.svg.append("g")
-			.attr("id", "pg_navigator");
+			.attr("id", this.state.pgInstanceId + "_navigator");
 		
 		// rectangular border for overview map
 		// border color and thickness are defined inline so it can be used by exported svg - Joe
 		globalviewGrp.append("rect")
 			.attr("x", overviewX)
 			.attr("y", overviewY)
-			.attr("id", "pg_globalview")
+			.attr("id", this.state.pgInstanceId + "_globalview")
 			.attr("width", width + this.state.minimap.borderThickness*2) // include the border thickness - Joe
             .attr("height", height + this.state.minimap.borderThickness*2)
             .style("fill", this.state.minimap.bgColor)
@@ -815,8 +813,8 @@ var images = require('./images.json');
 
 		// Group all mini cells in g element
         // apply the translate to the #pg_mini_cells_container instead of each cell - Joe
-		var miniCellsGrp = this.state.svg.select("#pg_navigator").append('g')
-							.attr("id", "pg_mini_cells_container")
+		var miniCellsGrp = this.state.svg.select('#' + this.state.pgInstanceId + '_navigator').append('g')
+							.attr("id", this.state.pgInstanceId + "_mini_cells_container")
                             .attr("transform", "translate(" + overviewX + "," + overviewY + ")");
 						
         var self = this; // to be used in callback
@@ -854,10 +852,10 @@ var images = require('./images.json');
 		var selectRectWidth = width * (xDisplayCount/xTotalCount);
 		
 		// Also add the shaded area in the pg_navigator group - Joe
-		this.state.highlightRect = this.state.svg.select("#pg_navigator").append("rect")
+		this.state.highlightRect = this.state.svg.select('#' + this.state.pgInstanceId + '_navigator').append("rect")
 			.attr("x", overviewX + selectRectX)
 			.attr("y", overviewY + selectRectY)
-			.attr("id", "pg_navigator_shaded_area")
+			.attr("id", this.state.pgInstanceId + "_navigator_shaded_area")
 			.attr("height", selectRectHeight + this.state.minimap.borderThickness*2)
 			.attr("width", selectRectWidth + this.state.minimap.borderThickness*2)
 			.attr("class", "pg_draggable")
@@ -905,19 +903,19 @@ var images = require('./images.json');
 					}
 
                     // Update the position of the shaded area
-                    self.state.svg.select("#pg_navigator_shaded_area")
+                    self.state.svg.select("#" + self.state.pgInstanceId + "_navigator_shaded_area")
                         .attr("x", newX)
                         .attr("y", newY);
 
                     // update the position of slider in each scrollbar accordingly   
-                    self.state.svg.select("#pg_horizontal_scrollbar_slider")
+                    self.state.svg.select('#' + self.state.pgInstanceId + '_horizontal_scrollbar_slider')
                         .attr("x", function() {
                             var factor = (newX - overviewX) / width;
                             var horizontal_scrollbar_width = self._gridWidth();
                             return self.state.gridRegion.x + horizontal_scrollbar_width*factor;
                         });
                     
-                    self.state.svg.select("#pg_vertical_scrollbar_slider")
+                    self.state.svg.select('#' + self.state.pgInstanceId + '_vertical_scrollbar_slider')
                         .attr("y", function() {
                             var factor = (newY - overviewY) / height;
                             var vertical_scrollbar_height = self._gridHeight();
@@ -988,7 +986,7 @@ var images = require('./images.json');
         // horizontal scrollbar
         if (horizontal === true) {
             var horizontalScrollbarGrp = this.state.svg.append("g")
-                .attr("id", "pg_horizontal_scrollbar_group");
+                .attr("id", this.state.pgInstanceId + "_horizontal_scrollbar_group");
             
             // scrollbar line
             horizontalScrollbarGrp.append("line")
@@ -996,7 +994,7 @@ var images = require('./images.json');
                 .attr("y1", this.state.gridRegion.y + this._gridHeight() + barToGridMargin)
                 .attr("x2", this.state.gridRegion.x + this._gridWidth())
                 .attr("y2", this.state.gridRegion.y + this._gridHeight() + barToGridMargin)
-                .attr("id", "pg_horizontal_scrollbar")
+                .attr("id", this.state.pgInstanceId + "_horizontal_scrollbar")
                 .style("stroke", barColor)
                 .style("stroke-width", barThickness);
 
@@ -1004,7 +1002,7 @@ var images = require('./images.json');
             horizontalScrollbarGrp.append("rect")
                 .attr("x", defaultX + sliderRectX) // sets the slider to the desired position after inverting axis - Joe
                 .attr("y", this.state.gridRegion.y + this._gridHeight() + barToGridMargin - sliderThickness/2)
-                .attr("id", "pg_horizontal_scrollbar_slider")
+                .attr("id", this.state.pgInstanceId + "_horizontal_scrollbar_slider")
                 .attr("height", sliderThickness)
                 .attr("width", sliderWidth)
                 .style("fill", sliderColor)
@@ -1029,15 +1027,15 @@ var images = require('./images.json');
                         }
                         
                         // update the position of slider
-                        self.state.svg.select("#pg_horizontal_scrollbar_slider")
+                        self.state.svg.select('#' + self.state.pgInstanceId + '_horizontal_scrollbar_slider')
                             .attr("x", newX);
                         
                         // update the shaded area in mini map accordingly  
-                        self.state.svg.select("#pg_navigator_shaded_area")
+                        self.state.svg.select('#' + self.state.pgInstanceId + '_navigator_shaded_area')
                             .attr("x", function() {
                                 // NOTE: d3 returns string so we need to use parseFloat()
                                 var factor = (newX - defaultX) / self._gridWidth();
-                                var minimap_width = parseFloat(d3.select("#pg_globalview").attr("width"))  - 2*self.state.minimap.borderThickness;
+                                var minimap_width = parseFloat(d3.select('#' + self.state.pgInstanceId + '_globalview').attr("width"))  - 2*self.state.minimap.borderThickness;
                                 return self.state.minimap.x + minimap_width*factor;
                             });
                             
@@ -1056,7 +1054,7 @@ var images = require('./images.json');
         // vertical scrollbar
         if (vertical === true) {
             var verticalScrollbarGrp = this.state.svg.append("g")
-                .attr("id", "pg_vertical_scrollbar_group");
+                .attr("id", this.state.pgInstanceId + "_vertical_scrollbar_group");
             
             // scrollbar rect
             verticalScrollbarGrp.append("line")
@@ -1064,7 +1062,7 @@ var images = require('./images.json');
                 .attr("y1", this.state.gridRegion.y)
                 .attr("x2", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
                 .attr("y2", this.state.gridRegion.y + this._gridHeight())
-                .attr("id", "pg_vertical_scrollbar")
+                .attr("id", this.state.pgInstanceId + "_vertical_scrollbar")
                 .style("stroke", barColor)
                 .style("stroke-width", barThickness);
 
@@ -1072,7 +1070,7 @@ var images = require('./images.json');
             verticalScrollbarGrp.append("rect")
                 .attr("x", this.state.gridRegion.x + this._gridWidth() + barToGridMargin - sliderThickness/2) 
                 .attr("y", defaultY + sliderRectY) // sets the slider to the desired position after inverting axis - Joe
-                .attr("id", "pg_vertical_scrollbar_slider")
+                .attr("id", this.state.pgInstanceId + "_vertical_scrollbar_slider")
                 .attr("height", sliderHeight)
                 .attr("width", sliderThickness)
                 .style("fill", sliderColor)
@@ -1098,15 +1096,15 @@ var images = require('./images.json');
                         }
                         
                         // update the position of slider
-                        self.state.svg.select("#pg_vertical_scrollbar_slider")
+                        self.state.svg.select('#' + self.state.pgInstanceId + '_vertical_scrollbar_slider')
                             .attr("y", newY);
                             
                         // update the shaded area in mini map accordingly  
-                        self.state.svg.select("#pg_navigator_shaded_area")
+                        self.state.svg.select('#' + self.state.pgInstanceId + '_navigator_shaded_area')
                             .attr("y", function() {
                                 // NOTE: d3 returns string so we need to use parseFloat()
                                 var factor = (newY - defaultY) / self._gridHeight();
-                                var minimap_height = parseFloat(d3.select("#pg_globalview").attr("height")) - 2*self.state.minimap.borderThickness; 
+                                var minimap_height = parseFloat(d3.select('#' + self.state.pgInstanceId + '_globalview').attr("height")) - 2*self.state.minimap.borderThickness; 
                                 return self.state.minimap.y + minimap_height*factor;
                             });
                             
@@ -1145,11 +1143,11 @@ var images = require('./images.json');
     
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
-        var toptitleWidth = parseInt($('#pg_toptitle').attr('x')) + $('#pg_toptitle')[0].getBoundingClientRect().width/2;
+        var toptitleWidth = parseInt($('#' + this.state.pgInstanceId + '_toptitle').attr('x')) + $('#' + this.state.pgInstanceId + '_toptitle')[0].getBoundingClientRect().width/2;
         var calculatedSvgWidth = this.state.gridRegion.x + this._gridWidth();
         var svgWidth = (toptitleWidth >= calculatedSvgWidth) ? toptitleWidth : calculatedSvgWidth;
         
-        d3.select("#pg_svg")
+        d3.select('#' + this.state.pgInstanceId + '_svg')
             .attr('width', svgWidth + 100)
             .attr('height', this.state.gridRegion.y + this._gridHeight() + 100); // Add an extra 100 to height - Joe
     },
@@ -1157,39 +1155,41 @@ var images = require('./images.json');
 	// Click the setting button to open the control options
 	// Click the cross mark to close when it's open
 	_togglePhenogridControls: function() {
-		// Toggle the options panel by clicking the button
-		$("#pg_slide_btn").click(function() {
+		var self = this;
+        // Toggle the options panel by clicking the button
+		$('#' + this.state.pgInstanceId + '_slide_btn').click(function() {
 			// $(this) refers to $("#pg_slide_btn")
 			if ( ! $(this).hasClass("pg_slide_open")) {
 				// Show the phenogrid controls
-				$("#pg_controls_options").fadeIn();
+				$("#" + self.state.pgInstanceId + "_controls_options").fadeIn();
 				// Remove the top border of the button by adding .pg_slide_open CSS class
 				$(this).addClass("pg_slide_open");
 			}
 		});
         
-        $("#pg_controls_close").click(function() {
-			$("#pg_controls_options").fadeOut();
-            $("#pg_slide_btn").removeClass("pg_slide_open");
+        $('#' + this.state.pgInstanceId + '_controls_close').click(function() {
+			$('#' + self.state.pgInstanceId + '_controls_options').fadeOut();
+            $('#' + self.state.pgInstanceId + '_slide_btn').removeClass("pg_slide_open");
 		});
 	},
 	
     // Click the setting button to open unmatched sources
 	// Click the cross mark to close when it's open
 	_toggleUnmatchedSources: function() {
-        $("#pg_unmatched_btn").click(function() {
+        var self = this;
+        $('#' + this.state.pgInstanceId + '_unmatched_btn').click(function() {
 			// $(this) refers to $("#pg_unmatched_btn")
 			if ( ! $(this).hasClass("pg_unmatched_open")) {
 				// Show the phenogrid controls
-				$("#pg_unmatched_list").fadeIn();
+				$('#' + self.state.pgInstanceId + '_unmatched_list').fadeIn();
 				// Remove the top border of the button by adding .pg_unmatched_open CSS class
 				$(this).addClass("pg_unmatched_open");
 			}
 		});
         
-        $("#pg_unmatched_close").click(function() {
-			$("#pg_unmatched_list").fadeOut();
-            $("#pg_unmatched_btn").removeClass("pg_unmatched_open");
+        $('#' + this.state.pgInstanceId + '_unmatched_close').click(function() {
+			$('#' + self.state.pgInstanceId + '_unmatched_list').fadeOut();
+            $('#' + self.state.pgInstanceId + '_unmatched_btn').removeClass("pg_unmatched_open");
 		});
 	},
     
@@ -1257,7 +1257,7 @@ var images = require('./images.json');
         
         // show tooltip
         // elem is a native DOM element
-		this._showTooltip($('#pg_tooltip'), elem, d);
+		this._showTooltip($('#' + this.state.pgInstanceId + '_tooltip'), elem, d);
 	},
 
     // _mouseout() removes the matching highlighting as well as the crosshairs - Joe
@@ -1272,13 +1272,13 @@ var images = require('./images.json');
         // d.xpos and d.ypos only appear for cell - Joe
 		if (d.type === 'cell') {  
 			// hightlight row/col labels
-		  	d3.select("#pg_grid_row_" + d.ypos +" text")
+		  	d3.select("#" + this.state.pgInstanceId + "_grid_row_" + d.ypos +" text")
 				  .classed("pg_active", true);
-	  		d3.select("#pg_grid_col_" + d.xpos +" text")
+	  		d3.select("#" + this.state.pgInstanceId + "_grid_col_" + d.xpos +" text")
 				  .classed("pg_active", true);
 			
 			// hightlight the cell
-	 		d3.select("#pg_cell_" + d.ypos +"_" + d.xpos)
+	 		d3.select("#" + this.state.pgInstanceId + "_cell_" + d.ypos +"_" + d.xpos)
 				  .classed("pg_rowcolmatch", true);		
 
 		    // show crosshairs
@@ -1332,20 +1332,20 @@ var images = require('./images.json');
 
 			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
-					d3.select("#pg_grid_row_" + matches[k].ypos +" text").classed("pg_related_active", true);
+					d3.select("#" + this.state.pgInstanceId + "_grid_row_" + matches[k].ypos +" text").classed("pg_related_active", true);
 				}
 			}	
-	  		d3.select("#pg_grid_col_" + currenPos +" text").classed("pg_active", true);	
+	  		d3.select("#" + this.state.pgInstanceId + "_grid_col_" + currenPos +" text").classed("pg_active", true);	
 		} else {  // hovered over a row
 			hightlightSources = false;
 			var matches = this.state.dataManager.getMatrixSourceTargetMatches(currenPos, hightlightSources);
 
 			if (typeof(matches) !== 'undefined') {
 				for (var k=0; k < matches.length; k++) {
-					d3.select("#pg_grid_col_" + matches[k].xpos +" text").classed("pg_related_active", true);
+					d3.select("#" + this.state.pgInstanceId + "_grid_col_" + matches[k].xpos +" text").classed("pg_related_active", true);
 				}
 			}		
-			d3.select("#pg_grid_row_" + currenPos +" text").classed("pg_active", true);
+			d3.select("#" + this.state.pgInstanceId + "_grid_row_" + currenPos +" text").classed("pg_active", true);
 		}				
 
 	},
@@ -1418,7 +1418,8 @@ var images = require('./images.json');
 			.text(function() {
 				return '\uF05A\n'; // Need to convert HTML/CSS unicode to javascript unicode - Joe
 			})
-			.attr("id", "pg_scores_tip_icon")
+			.attr("id", this.state.pgInstanceId + "_scores_tip_icon")
+            .attr("class", "pg_scores_tip_icon")
 			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
 			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
 			.on("click", function() {
@@ -1455,30 +1456,6 @@ var images = require('./images.json');
 		// iterate until leftEdges[j]+size is past value
 		return j;
 	},
-
-    
-    
-    
-    // Add the unmatched data to #pg_unmatched_list
-    _addUnmatchedData: function(self) {
-        // Reset/empty the list
-        $('#pg_unmatched_list_data').html('');
-            
-        // Get unmatched sources, add labels via async ajax calls if not found
-        // Must be called after _createUnmatchedSources()
-        self.state.unmatchedSources = self._getUnmatchedSources();
-        // Proceed if there's any unmatched
-        if (self.state.unmatchedSources.length > 0) {
-            // Fetch labels for unmatched sources via async ajax calls
-            // then format and append them to the pg_unmatched_list div - Joe
-            self._formatUnmatchedSources(self.state.unmatchedSources);
-        } else {
-            // Show no unmatched message
-            $('#pg_unmatched_list_data').html('<div class="pg_unmatched_list_item">No ' + self.state.unmatchedButtonLabel + '</div>');
-        }
-    },
-    
-    
 
 	// Returns axis data from a ID of models or phenotypes
 	_getAxisData: function(key) {
@@ -1543,10 +1520,12 @@ var images = require('./images.json');
 	// add a tooltip div stub, this is used to dynamically set a tooltip info 
 	_createTooltipStub: function() {
 		var pg_tooltip = $("<div>")
-						.attr("id", "pg_tooltip");
+						.attr("id", this.state.pgInstanceId + '_tooltip')
+                        .attr("class", 'pg_tooltip');
 
         var pg_tooltip_inner = $("<div>")
-						.attr("id", "pg_tooltip_inner");
+						.attr("id", this.state.pgInstanceId + "_tooltip_inner")
+                        .attr("class", 'pg_tooltip_inner');
 
         pg_tooltip.append(pg_tooltip_inner);
 		// Append to #pg_container
@@ -1562,7 +1541,7 @@ var images = require('./images.json');
 
         $(document).ready(function($){
 			var $targets = $("*[data-tooltip]");
-			var $tooltip = $('#pg_tooltip');
+			var $tooltip = $('#' + self.state.pgInstanceId + '_tooltip');
 			if ($targets.length === 0) {
 				return;
 			}
@@ -1573,7 +1552,7 @@ var images = require('./images.json');
 			$targets.mouseout(function(e){  
 				var elem = e.relatedTarget ||  e.toElement || e.fromElement;
 				if (typeof(elem) !== 'undefined' ) {
-					if (elem.id !== 'pg_tooltip' && elem.id !== "") {					    
+					if (elem.id !== (self.state.pgInstanceId + '_tooltip') && elem.id !== "") {					    
 				 		self._hideTooltip($tooltip);
 					}
 				}
@@ -1655,7 +1634,7 @@ var images = require('./images.json');
 	_addGridTitle: function() {
 		// Add the top main title to pg_svg_group
 		this.state.svg.append("svg:text")
-			.attr("id", "pg_toptitle")
+			.attr("id", this.state.pgInstanceId + "_toptitle")
 			.attr("x", this.state.gridRegion.x + this._gridWidth()/2) // Calculated based on the gridRegion - Joe
 			.attr("y", 40) // Fixed y position - Joe
 			.style('text-anchor', 'middle') // Center the main title - Joe
@@ -1686,15 +1665,15 @@ var images = require('./images.json');
 		var retData = this._renderTooltip(id, data);   
 
 		// update the stub pg_tooltip div dynamically to display
-		$("#pg_tooltip_inner").empty();
-		$("#pg_tooltip_inner").html(retData);
+		$("#" + this.state.pgInstanceId + "_tooltip_inner").empty();
+		$("#" + this.state.pgInstanceId + "_tooltip_inner").html(retData);
 
 		// For phenotype ontology tree 
 		if (data.type === 'phenotype') {
 			// https://api.jqueryui.com/jquery.widget/#method-_on
 			// Binds click event to the ontology tree expand icon - Joe
-			// _renderTooltip(), the font awesome icon <i> element follows the form of id="pg_expandOntology_HP_0001300" - Joe
-			var expandOntol_icon = $('#pg_expandOntology_' + id);
+			// _renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_expandOntology_HP_0001300" - Joe
+			var expandOntol_icon = $('#' + this.state.pgInstanceId + '_expandOntology_' + id);
 			this._on(expandOntol_icon, {
 				"click": function(event) {
 					this._expandOntology(id);
@@ -1704,15 +1683,15 @@ var images = require('./images.json');
         
         // For genotype expansion
 		if (data.type === 'gene') {
-			// In renderTooltip(), the font awesome icon <i> element follows the form of id="pg_insert_genotypes_MGI_98297" - Joe
-			var insert = $('#pg_insert_genotypes_' + id);
+			// In renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_insert_genotypes_MGI_98297" - Joe
+			var insert = $('#' + this.state.pgInstanceId + '_insert_genotypes_' + id);
             this._on(insert, {
 				"click": function(event) {
 					this._insertGenotypes(id);
 				}
 			});
             
-            var remove = $('#pg_remove_genotypes_' + id);
+            var remove = $('#' + this.state.pgInstanceId + '_remove_genotypes_' + id);
 			this._on(remove, {
 				"click": function(event) {
 					this._removeGenotypes(id);
@@ -1745,7 +1724,7 @@ var images = require('./images.json');
                 //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
                 this.state.ontologyTreesDone = 0;
                 this.state.ontologyTreeHeight = 0;
-                var tree = "<div id='hpoDiv'>" + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + "</div>";
+                var tree = '<div id="' + this.state.pgInstanceId + '_hpoDiv">' + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + '</div>';
                 if (tree === "<br>"){
                     ontologyData += "<em>No Classification hierarchy Found</em>";
                 } else {
@@ -1756,7 +1735,7 @@ var images = require('./images.json');
             if (expanded){
                 htmlContent += ontologyData;
             } else {
-                htmlContent += "<br><div class=\"pg_expand_ontology\" id=\"pg_expandOntology_" + id + "\">Expand classification hierarchy<i class=\"pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>";
+                htmlContent += '<br><div class="pg_expand_ontology" id="' + this.state.pgInstanceId + '_expandOntology_' + id + '">Expand classification hierarchy<i class="pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer"></i></div>';
             }	
         } else if (data.type === 'cell') {
             var suffix = "";
@@ -1814,9 +1793,9 @@ var images = require('./images.json');
                     var expanded = this.state.dataManager.isExpanded(id); // gene id
 
                     if (expanded){
-                        htmlContent += "<br><div class=\"pg_expand_genotype\" id=\"pg_remove_genotypes_" + id + "\">Remove associated genotypes<i class=\"pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer\"></i></div>"; 
+                        htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_remove_genotypes_' + id + '">Remove associated genotypes<i class="pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer"></i></div>'; 
                     } else {
-                        htmlContent += "<br><div class=\"pg_expand_genotype\" id=\"pg_insert_genotypes_" + id + "\">Insert associated genotypes<i class=\"pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer\"></i></div>"; 
+                        htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_insert_genotypes_' + id + '">Insert associated genotypes<i class="pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer"></i></div>'; 
                     }
                 }
             }
@@ -1828,7 +1807,7 @@ var images = require('./images.json');
     
     // also encode the labels into html entities, otherwise they will mess up the tooltip content format
 	_encodeTooltipHref: function(type, id, label) {
-		return "<a href=\"" + this.state.serverURL +"/" +  type +"/" + id + "\" target=\"_blank\">" + Utils.encodeHtmlEntity(label) + "</a>";
+		return '<a href="' + this.state.serverURL + '/' +  type + '/' + id + '" target="_blank">' + Utils.encodeHtmlEntity(label) + '</a>';
 	},
     
 	// This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
@@ -1867,14 +1846,14 @@ var images = require('./images.json');
 	},
 
 	_buildIndentMark: function (treeHeight){
-		var indent = "<em class='pg_ontology_tree_indent'></em>";
+		var indent = '<em class="pg_ontology_tree_indent"></em>';
 
 		if (treeHeight === 0) {
 			return indent;
 		}
 
 		for (var i = 1; i < treeHeight; i++){
-			indent += "<em class='pg_ontology_tree_indent'></em>";
+			indent += '<em class="pg_ontology_tree_indent"></em>';
 		}
 			 
 		return indent + '&#8627'; // HTML entity - Joe
@@ -1882,7 +1861,7 @@ var images = require('./images.json');
 
 	// Based on the ID, it pulls the label from CacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
 	_buildOntologyHyperLink: function(id){
-		return "<a href=\"" + this.state.serverURL + "/phenotype/" + id + "\" target=\"_blank\">" + this.state.dataManager.getOntologyLabel(id) + "</a>";
+		return '<a href="' + this.state.serverURL + '/phenotype/' + id + '" target="_blank">' + this.state.dataManager.getOntologyLabel(id) + '</a>';
 	},
 
 	_createTargetGroupDividerLines: function() {
@@ -1969,7 +1948,7 @@ var images = require('./images.json');
             .attr("class", 'column')
             .style("font-size", '11px')            
 			.attr("id", function(d, i) { 
-				return "pg_grid_col_" + i;
+				return self.state.pgInstanceId + "_grid_col_" + i;
             })	      	
 	        .attr("transform", function(d, i) { 
                 var offset = gridRegion.colLabelOffset;
@@ -1989,7 +1968,7 @@ var images = require('./images.json');
                     return '';
                 }
             })
-		    .attr("data-tooltip", "pg_tooltip")   			
+		    .attr("data-tooltip", this.state.pgInstanceId + "_tooltip")   			
 	      	.attr("text-anchor", "start")
 	      	.text(function(d) { 		
 	      		return Utils.getShortLabel(d.label, self.state.labelCharDisplayCount); 
@@ -2034,7 +2013,7 @@ var images = require('./images.json');
 			.enter().append("g")			
 			.attr("class", "row")	 		
 			.attr("id", function(d, i) { 
-				return "pg_grid_row_" + i;
+				return self.state.pgInstanceId + "_grid_row_" + i;
             })
   			.attr("transform", function(d, i) { 
                 var y = self.state.gridRegion.y;
@@ -2063,7 +2042,7 @@ var images = require('./images.json');
                     return '';
                 }
             })
-			.attr("data-tooltip", "pg_tooltip")   				      
+			.attr("data-tooltip", this.state.pgInstanceId + "_tooltip")   				      
 		    .text(function(d, i) { 
 	      		var el = self.state.yAxisRender.itemAt(i);
 	      		return Utils.getShortLabel(el.label); 
@@ -2108,7 +2087,7 @@ var images = require('./images.json');
 		        .data(row)
 		        .enter().append("rect")
 		      	.attr("id", function(d) { 
-		      		return "pg_cell_"+ d.ypos + "_" + d.xpos; 
+		      		return self.state.pgInstanceId + "_cell_"+ d.ypos + "_" + d.xpos; 
                 })
 		        .attr("class", "cell")
 		        .attr("x", function(d) { 
@@ -2197,7 +2176,7 @@ var images = require('./images.json');
 	},
     
 	_populateDialog: function(text) {
-		var SplitText = "Title";
+        var SplitText = "Title";
 		var $dialog = $('<div></div>')
 			.html(SplitText )
 			.dialog({
@@ -2209,23 +2188,13 @@ var images = require('./images.json');
 				minWidth: 400,
 				resizable: false,
 				draggable: true,
-				dialogClass: "faqdialog_bg_color",
+				dialogClass: "pg_faq_dialog_bg_color",
 				position: {
 			 		my: "top", 
 					at: "top+25%",
-					of: "#pg_container"
+					of: '#' + this.state.pgContainerId
 				},
-				title: 'Phenogrid Notes',
-				
-				// Replace default jquery-ui titlebar close icon with font awesome - Joe
-				open: function() {
-					// remove default close icon
-					$('.ui-dialog-titlebar-close span').removeClass('ui-icon ui-icon-thickclose');
-					// Yuck they have close text let's remove that
-					$('.ui-dialog-titlebar-close span').text('');
-					// Lets add font awesome close icon
-					$('.ui-dialog-titlebar-close span').addClass('fa fa-times');
-				}
+				title: 'Phenogrid Notes'
 			});
 
 		$dialog.html(text);
@@ -2238,7 +2207,7 @@ var images = require('./images.json');
 	_createGradientLegend: function(){
 		// Create a group for gradient bar and legend texts - Joe
 		var gradientGrp = this.state.svg.append("g")
-			.attr('id', 'pg_gradient_legend');
+			.attr('id', this.state.pgInstanceId + '_gradient_legend');
 			
 		var gridRegion = this.state.gridRegion;
 
@@ -2246,7 +2215,7 @@ var images = require('./images.json');
 		// The <linearGradient> element must be nested within a <defs> tag. 
 		// The <defs> tag is short for definitions and contains definition of special elements (such as gradients)
 		var gradient = gradientGrp.append("svg:defs").append("svg:linearGradient") 
-			.attr("id", "pg_gradient_legend_fill") // this id is used for the fill attribute - Joe
+			.attr("id", this.state.pgInstanceId + "_gradient_legend_fill") // this id is used for the fill attribute - Joe
 			.attr("x1", "0")
 			.attr("x2", "100%")
 			.attr("y1", "0%")
@@ -2267,10 +2236,10 @@ var images = require('./images.json');
 		gradientGrp.append("rect")
 			.attr("x", gridRegion.x)
 			.attr("y", gridRegion.y + this._gridHeight() + 60) // use x and y instead of transform since rect has x and y, 60 is margin - Joe
-			.attr("id", "pg_gradient_legend_rect")
+			.attr("id", this.state.pgInstanceId + "_gradient_legend_rect")
 			.attr("width", this.state.gradientRegion.width)
 			.attr("height", this.state.gradientRegion.height) 
-			.attr("fill", "url(#pg_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
+			.attr("fill", "url(#" + this.state.pgInstanceId + "_gradient_legend_fill)"); // The fill attribute links the element to the gradient defined in svg:linearGradient - Joe
 		
 		// Now create the label texts
 	    var lowText, highText, labelText;
@@ -2289,8 +2258,8 @@ var images = require('./images.json');
 		}
 
 		// Create a group for gradient bar and legends - Joe
-		var gradientTextGrp = this.state.svg.select('#pg_gradient_legend').append("g")
-			.attr('id', 'pg_gradient_legend_texts')
+		var gradientTextGrp = this.state.svg.select('#' + this.state.pgInstanceId + '_gradient_legend').append("g")
+			.attr('id', this.state.pgInstanceId + '_gradient_legend_texts')
             .style('font-size', '11px');
 		
 		// Dynamicly change, relative to grid region - Joe
@@ -2320,37 +2289,52 @@ var images = require('./images.json');
 
 
     _createUnmatchedSources: function() {
-        var pg_unmatched = $('<div id="pg_unmatched"></div>');
+        // First to check if there's any unmatched sources
+        this.state.unmatchedSources = this._getUnmatchedSources();
+        console.log(this.state.pgInstanceId + ' Unmatched: ' + this.state.unmatchedSources);
+        // Proceed if there's any unmatched
+        if (this.state.unmatchedSources.length > 0) {
+            // create the container div
+            var pg_unmatched = $('<div id="' + this.state.pgInstanceId + '_unmatched" class="pg_unmatched"></div>');
 
-        // Not in the #pg_svg_group div since it's HTML - Joe
-		this.state.pgContainer.append(pg_unmatched);
-        
-        // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
-		var pg_unmatched_list = '<div id="pg_unmatched_list"><i id="pg_unmatched_close" class="fa fa-times"></i><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span><div id="pg_unmatched_list_data"></div></div>';
-		
-		// Hide/show unmatched - button - Joe
-		var pg_unmatched_btn ='<div id="pg_unmatched_btn"><i class="fa fa-exclamation-triangle"></i> ' + this.state.unmatchedButtonLabel + ' </div>';
- 
-        pg_unmatched.append(pg_unmatched_list);
-		pg_unmatched.append(pg_unmatched_btn);
+            // Not in the #this.state.pgInstanceId_svg_group div since it's HTML - Joe
+            this.state.pgContainer.append(pg_unmatched);
+            
+            // Need to put .pg_unmatched_list_arrow_border span before .pg_unmatched_list_arrow span - Joe
+            var pg_unmatched_list = '<div id="' + this.state.pgInstanceId + '_unmatched_list" class="pg_unmatched_list"><i id="' + this.state.pgInstanceId + '_unmatched_close" class="fa fa-times pg_unmatched_close"></i><span class="pg_unmatched_list_arrow_border"></span><span class="pg_unmatched_list_arrow"></span><div id="' + this.state.pgInstanceId + '_unmatched_list_data"></div></div>';
+            
+            // Hide/show unmatched - button - Joe
+            var pg_unmatched_btn ='<div id="' + this.state.pgInstanceId + '_unmatched_btn" class="pg_unmatched_btn"><i class="fa fa-exclamation-triangle"></i> ' + this.state.unmatchedButtonLabel + ' </div>';
+     
+            pg_unmatched.append(pg_unmatched_list);
+            pg_unmatched.append(pg_unmatched_btn);
 
-        $("#pg_unmatched_list").hide(); // Hide by default
+            $('#' + this.state.pgInstanceId + '_unmatched_list').hide(); // Hide by default
+                
+            // Fetch labels for unmatched sources via async ajax calls
+            // then format and append them to the pg_unmatched_list div - Joe
+            this._formatUnmatchedSources(this.state.unmatchedSources);
+            
+            // Position and toggle
+            this._positionUnmatchedSources();
+            this._toggleUnmatchedSources();
+        }
     },
 
 	// Phengrid controls/options
 	_createPhenogridControls: function() {
 		var self = this; // Use self inside anonymous functions 
 		
-		var phenogridControls = $('<div id="pg_controls"></div>');
+		var phenogridControls = $('<div id="' + this.state.pgInstanceId + '_controls" class="pg_controls"></div>');
 
 		// Not in the #pg_svg_group div since it's HTML - Joe
 		this.state.pgContainer.append(phenogridControls);
 		
 		// Need to put .pg_controls_options_arrow_border span before .pg_controls_options_arrow span - Joe
-		var optionhtml = '<div id="pg_controls_options"><i id="pg_controls_close"class="fa fa-times"></i><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
+		var optionhtml = '<div id="' + this.state.pgInstanceId + '_controls_options" class="pg_controls_options"><i id="' + this.state.pgInstanceId + '_controls_close" class="fa fa-times pg_controls_close"></i><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
-		var slideBtn = '<div id="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
+		var slideBtn = '<div id="' + this.state.pgInstanceId + '_slide_btn" class="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
 		
 		var options = $(optionhtml);
         
@@ -2379,10 +2363,10 @@ var images = require('./images.json');
 		phenogridControls.append(slideBtn);
 		
         // Hide options menu by default
-        $("#pg_controls_options").hide(); 
+        $('#' + this.state.pgInstanceId + '_controls_options').hide(); 
         
 		// add the handler for the checkboxes control
-		$("#pg_organism").change(function(d) {
+		$('#' + this.state.pgInstanceId + '_organism').change(function(d) {
 			var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
 			var temp = [];
 			for (var idx = 0; idx < items.length; idx++) {
@@ -2395,7 +2379,7 @@ var images = require('./images.json');
 			if (temp.length > 0) {
 				self.state.selectedCompareTargetGroup = temp;				
 			} else {
-				alert("You must have at least 1 targetGroup selected.");
+				alert("You must have at least 1 species selected.");
 			}
 
 			self._createAxisRenderingGroups();
@@ -2404,16 +2388,19 @@ var images = require('./images.json');
             
             // Update unmatched sources due to changes of species
             // No need to call this for other control actions - Joe
-            self._addUnmatchedData(self);
+            // Unmatched sources
+            // Remove the HTML if created from the former load
+            $('#' + self.state.pgInstanceId + '_unmatched').remove();
+            self._createUnmatchedSources();
 		});
 
-		$("#pg_calculation").change(function(d) {
+		$('#' + this.state.pgInstanceId + '_calculation').change(function(d) {
 			self.state.selectedCalculation = parseInt(d.target.value); // d.target.value returns quoted number - Joe
             self._updateDisplay();
 		});
 
 		// add the handler for the select control
-		$("#pg_sortphenotypes").change(function(d) {
+		$('#' + this.state.pgInstanceId + '_sortphenotypes').change(function(d) {
 			self.state.selectedSort = d.target.value;
 			// sort source with default sorting type
 			if (self.state.invertAxis){
@@ -2424,7 +2411,7 @@ var images = require('./images.json');
             self._updateDisplay();
 		});
 
-		$("#pg_axisflip").click(function() {	
+		$("#" + this.state.pgInstanceId + "_axisflip").click(function() {	
 			var $this = $(this);
 			// $this will contain a reference to the checkbox 
 			if ($this.is(':checked')) {
@@ -2437,13 +2424,13 @@ var images = require('./images.json');
 		});
 
         // Click save button to export the current phenogrid view as a SVG file - Joe
-        $("#pg_export").click(function() {	
+        $("#" + this.state.pgInstanceId + "_export").click(function() {	
             // SVG styles are applied with D3, not in CSS for this exporting purpose
-            var svgElementClone = $('#pg_svg').clone(); // clone the svg to manipulate
+            var svgElementClone = $('#' + self.state.pgInstanceId + '_svg').clone(); // clone the svg to manipulate
             // Use data uri for svg logo
-            svgElementClone.find('#pg_logo').attr('href',images.logo);
-            svgElementClone.find('#pg_scores_tip_icon').remove(); // remove fontawesome icon
-            svgElementClone.find('#pg_monarchinitiative_text').removeClass('pg_hide'); // Show text in exported SVG
+            svgElementClone.find('#' + self.state.pgInstanceId + '_logo').attr('href',images.logo);
+            svgElementClone.find('#' + self.state.pgInstanceId + '_scores_tip_icon').remove(); // remove fontawesome icon
+            svgElementClone.find('#' + self.state.pgInstanceId + '_monarchinitiative_text').removeClass('pg_hide'); // Show text in exported SVG
             
             var svgStr = '<svg xmlns="http://www.w3.org/2000/svg">' + svgElementClone.html() + '</svg>';
             // The standard W3C File API Blob interface is not available in all browsers. 
@@ -2453,15 +2440,15 @@ var images = require('./images.json');
 		});
         
 		// FAQ popups
-		$("#pg_sorts_faq").click("click", function() {
+		$('#' + this.state.pgInstanceId + '_sorts_faq').click("click", function() {
 			self._populateDialog(htmlnotes.sorts);
 		});
 
-		$("#pg_calcs_faq").click(function(){
+		$('#' + this.state.pgInstanceId + '_calcs_faq').click(function(){
 			self._populateDialog(htmlnotes.calcs);
 		});
 		
-		$("#pg_about_phenogrid").click(function() {	
+		$('#' + this.state.pgInstanceId + '_about_phenogrid').click(function() {	
 			self._populateDialog(htmlnotes.faq);
 		});
 	},
@@ -2471,7 +2458,7 @@ var images = require('./images.json');
         this.state.svg.append("text")
 			.attr("x", this.state.gridRegion.x)
 			.attr("y", this.state.gridRegion.y + this._gridHeight() + 90) // 90 is margin
-			.attr("id", "pg_monarchinitiative_text")
+			.attr("id", this.state.pgInstanceId + "_monarchinitiative_text")
 			.attr('class', 'pg_hide') // Only show this text in exported SVG of Phenogrid 
             .style('font-size', '11px')
 			.text(this.state.serverURL);
@@ -2483,10 +2470,10 @@ var images = require('./images.json');
 		// we won't have the _gridHeight() by that time - Joe
 		var gridRegion = this.state.gridRegion; 
 		var marginTop = 17; // Create some whitespace between the button and the y labels 
-		$('#pg_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
-        $('#pg_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
+		$('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+        $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
 		// The height of #pg_controls_options defined in phenogrid.css - Joe
-		var pg_ctrl_options = $('#pg_controls_options');
+		var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
 		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
         pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 42); // create a 10px gap between the vertical scrollbar (12px wide) - Joe
@@ -2494,7 +2481,7 @@ var images = require('./images.json');
 	
 	_createOrganismSelection: function() {
 		var optionhtml = "<div class='pg_ctrl_label'>Organism(s)</div>" + 
-			"<div id='pg_organism'>";
+			"<div id='" + this.state.pgInstanceId + "_organism'>";
 		for (var idx in this.state.targetGroupList) {
 			if ( ! this.state.targetGroupList.hasOwnProperty(idx)) {
 				break;
@@ -2525,8 +2512,8 @@ var images = require('./images.json');
 	// create the html necessary for selecting the calculation
 	_createCalculationSelection: function () {
 		var optionhtml = "<div class='pg_ctrl_label'>Calculation Method"+
-				" <i class='fa fa-info-circle cursor_pointer' id='pg_calcs_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<div id='pg_calculation'>";
+				" <i class='fa fa-info-circle cursor_pointer' id='" + this.state.pgInstanceId + "_calcs_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+				"<div id='" + this.state.pgInstanceId + "_calculation'>";
 
 		for (var idx in this.state.similarityCalculation) {
 			if ( ! this.state.similarityCalculation.hasOwnProperty(idx)) {
@@ -2537,7 +2524,7 @@ var images = require('./images.json');
 				checked = "checked";
 			}
 			// We need the name attr for radio inputs so only one is checked - Joe
-			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_calc_method' value='" + this.state.similarityCalculation[idx].calc + "' " + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
+			optionhtml += '<div class="pg_select_item"><input type="radio" name="' + this.state.pgInstanceId + '_calc_method" value="' + this.state.similarityCalculation[idx].calc + '" ' + checked + ">" + this.state.similarityCalculation[idx].label + '</div>';
 		}
 		optionhtml += "</div><div class='pg_hr'></div>";
 		return $(optionhtml);
@@ -2546,8 +2533,8 @@ var images = require('./images.json');
 	// create the html necessary for selecting the sort
 	_createSortPhenotypeSelection: function () {
 		var optionhtml ="<div class='pg_ctrl_label'>Sort Phenotypes" + 
-				" <i class='fa fa-info-circle cursor_pointer' id='pg_sorts_faq'></i></div>" + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
-				"<div id='pg_sortphenotypes'>";
+				' <i class="fa fa-info-circle cursor_pointer" id="' + this.state.pgInstanceId + '_sorts_faq"></i></div>' + // <i class='fa fa-info-circle'></i> FontAwesome - Joe
+				'<div id="' + this.state.pgInstanceId + '_sortphenotypes">';
 
 		for (var idx in this.state.phenotypeSort) {
 			if ( ! this.state.phenotypeSort.hasOwnProperty(idx)) {
@@ -2559,7 +2546,7 @@ var images = require('./images.json');
 				checked = "checked";
 			}
 			// We need the name attr for radio inputs so only one is checked - Joe
-			optionhtml += "<div class='pg_select_item'><input type='radio' name='pg_sort' value='" + this.state.phenotypeSort[idx] + "' " + checked + ">" + this.state.phenotypeSort[idx] + '</div>';
+			optionhtml += '<div class="pg_select_item"><input type="radio" name="' + this.state.pgInstanceId + '_sort" value="' + this.state.phenotypeSort[idx] + '" ' + checked + '>' + this.state.phenotypeSort[idx] + '</div>';
 		}
 		optionhtml += "</div><div class='pg_hr'></div>";
 		return $(optionhtml);
@@ -2571,19 +2558,19 @@ var images = require('./images.json');
 		if (this.state.invertAxis) {
 			checked = "checked";
 		}
-		var optionhtml = '<div class="pg_select_item"><input type="checkbox" id="pg_axisflip"' + checked + '>Invert Axis</div><div class="pg_hr"></div>'; 
+		var optionhtml = '<div class="pg_select_item"><input type="checkbox" id="' + this.state.pgInstanceId + '_axisflip"' + checked + '>Invert Axis</div><div class="pg_hr"></div>'; 
 		return $(optionhtml);
 	},
 
 	// create about phenogrid FAQ inside the controls/options - Joe
 	_createAboutPhenogrid: function () {
-		var html = '<div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="pg_about_phenogrid"></i></div>'; 
+		var html = '<div class="pg_select_item">About Phenogrid <i class="fa fa-info-circle cursor_pointer" id="' + this.state.pgInstanceId + '_about_phenogrid"></i></div>'; 
 		return $(html);
 	},
 	
     // Export current state of phenogrid as SVG file to be used in publications
     _createExportPhenogridButton: function() {
-        var btn = '<div id="pg_export">Save as SVG...</div><div class="pg_hr"></div>';
+        var btn = '<div id="' + this.state.pgInstanceId + '_export" class="pg_export">Save as SVG...</div><div class="pg_hr"></div>';
         return $(btn);
     },
     
@@ -2616,9 +2603,9 @@ var images = require('./images.json');
     // Position the unmatched sources when the gridRegion changes
 	_positionUnmatchedSources: function(){
 		var gridRegion = this.state.gridRegion; 
-		$('#pg_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
-        $('#pg_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#pg_unmatched_btn').outerHeight() + + 17 + 10);
-        $('#pg_unmatched_list').css('width', gridRegion.x + this._gridWidth() - 20); // don't include the paddings 2*10px = 20 - Joe
+		$('#' + this.state.pgInstanceId + '_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
+        $('#' + this.state.pgInstanceId + '_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#' + this.state.pgInstanceId + '_unmatched_btn').outerHeight() + + 17 + 10);
+        $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this._gridWidth() - 20); // don't include the paddings 2*10px = 20 - Joe
     },	
     
     // ajax callback
@@ -2632,7 +2619,7 @@ var images = require('./images.json');
         }
 
         var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + '</a></div>';
-        $('#pg_unmatched_list_data').append(pg_unmatched_list_item);
+        $('#' + self.state.pgInstanceId + '_unmatched_list_data').append(pg_unmatched_list_item);
         
         // iterative back to process to make sure we processed all the targets
         self._formatUnmatchedSources(targets);
@@ -2722,11 +2709,11 @@ var images = require('./images.json');
 		parent.state.ontologyTreesDone = 0;
 		parent.state.ontologyTreeHeight = 0;		
 		var info = parent._getAxisData(id);
-		var hrefLink = "<a href=\"" + parent.state.serverURL+"/phenotype/"+ id + "\" target=\"_blank\">" + info.label + "</a>";
-		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br/>";
-		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br/>";
-        ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br/>";
-        ontologyData += "<strong>Frequency:</strong> " + info.count + "<br/><br/>";
+		var hrefLink = '<a href="' + parent.state.serverURL + '/phenotype/' + id + '" target="_blank">' + info.label + '</a>';
+		var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br>";
+		ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br>";
+        ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br>";
+        ontologyData += "<strong>Frequency:</strong> " + info.count + "<br><br>";
 
 		var classTree = parent._buildOntologyTree(id.replace("_", ":"), d.edges, 0);
 
@@ -2736,7 +2723,7 @@ var images = require('./images.json');
 			ontologyData += "<strong>Classification hierarchy:</strong>" + classTree;
 		}
 
-		$("#pg_tooltip_inner").html(ontologyData);
+		$('#' + parent.state.pgInstanceId + '_tooltip_inner').html(ontologyData);
 	},
 
     // Genotypes expansion for gene (single species mode) - Joe
