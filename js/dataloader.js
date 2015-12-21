@@ -16,11 +16,13 @@ var Utils = require('./utils.js');
  	 	parent - reference to parent calling object
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
+        limit - cutoff number
  */
 var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.serverURL = serverURL;	
     this.simSearchQuery = simSearchQuery; // object
 	this.qryString = '';
+    this.errorMsg = []; // error messages for each species
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
@@ -140,14 +142,12 @@ DataLoader.prototype = {
 			qryString - query list url parameters, which includes list of sources
 	*/
 	process: function(targetGrpList, qryString) {
-		var postData = '';
-
 		if (targetGrpList.length > 0) {
 			var target = targetGrpList[0];  // pull off the first to start processing
 			targetGrpList = targetGrpList.slice(1);
 	    	
 	    	// need to add on target targetGroup id
-	    	postData = qryString + this.simSearchQuery.targetSpeciesString + target.taxon;
+	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.taxon;
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
@@ -157,19 +157,76 @@ DataLoader.prototype = {
 		}
 	},
 
+    /*
+		Function: postFetch		
+	 		generic ajax call for all POST queries
+
+	 	Parameters:
+	 		url - server url
+	 		target - some target e.g., id
+	 		targets - target list
+	 		callback
+	 		postData - data to be posted
+	*/ 
+	postFetch: function (url, target, targets, callback, postData) {
+		var self = this;
+
+        console.log('POST:' + url);
+        
+        jQuery.ajax({
+            url: url,
+            method: 'POST', 
+            data: postData,
+            async : true,
+            timeout: 60000,
+            dataType : 'json',
+            success : function(data) {
+                callback(self, target, targets, data);
+            },
+            error: function (xhr, errorType, exception) { 
+            // Triggered if an error communicating with server
+                switch(xhr.status) {
+                    case 0:
+                        if (exception === 'timeout') {
+                            callback(self, target, targets, null);
+                        }
+                    case 404:
+                    case 500:
+                    case 501:
+                    case 502:
+                    case 503:
+                    case 504:
+                    case 505:
+                    default:
+                        console.log("exception: " + xhr.status + " " + exception);
+                        console.log("We're having some problems. Please check your network connection.");
+                        break;
+                }
+            } 
+        });
+	},
+
+    
 	/*
 		Function: postSimsFetchCb
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
 		if (data !== null || typeof(data) !== 'undefined') {
-		// save the original owlsim data
-			self.owlsimsData[target.name] = data;
+		    if (typeof(data.b) === 'undefined') {
+                var simsearchResults = {};
+                self.errorMsg[target.name] = 'No matches found based on the provided phenotypes.';
+                // return empty JSON since we have no matches found - Joe
+                
+            } else {
+                // save the original owlsim data
+                self.owlsimsData[target.name] = data;
 
-			if (typeof (data) !=='undefined' && data !== null) {
-				// now transform data to there basic data structures
-				self.transform(target.name, data);  
-			}
+                if (typeof (data) !=='undefined' && data !== null) {
+                    // now transform data to there basic data structures
+                    self.transform(target.name, data);  
+                }
+            }
 		}
 		// iterative back to process to make sure we processed all the targetGrpList
 		self.process(targetGrpList, self.qryString);
@@ -433,60 +490,11 @@ DataLoader.prototype = {
 		return reloaded;
 	},
 
-	/*
-		Function: postFetch		
-	 		generic ajax call for all POST queries
-
-	 	Parameters:
-	 		url - server url
-	 		target - some target e.g., id
-	 		targets - target list
-	 		callback
-	 		postData - data to be posted
-	 */ 
-	postFetch: function (url, target, targets, callback, postData) {
-		var self = this;
-
-		if (typeof(postData) != 'undefined') {
-			console.log('POST:' + url);
-			jQuery.ajax({
-				url: url,
-				method: 'POST', 
-				data: postData,
-				async : true,
-				timeout: 60000,
-				dataType : 'json',
-				success : function(data) {
-					callback(self, target, targets, data);
-				},
-				error: function (xhr, errorType, exception) { 
-				// Triggered if an error communicating with server
-
-				switch(xhr.status) {
-					case 0:
-						if (exception == 'timeout') {
-							callback(self, target, targets, null);
-						}
-					case 404:
-					case 500:
-					case 501:
-					case 502:
-					case 503:
-					case 504:
-					case 505:
-					default:
-						console.log("exception: " + xhr.status + " " + exception);
-						console.log("We're having some problems. Please check your network connection.");
-						break;
-					}
-				} 
-			});
-		}
-	},
-
+	
 	getFetch: function (self, url, target, callback, finalCallback, parent) {
 
 			console.log('GET:' + url);
+            
 			jQuery.ajax({
 				url: url,
 				method: 'GET', 

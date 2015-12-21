@@ -372,7 +372,7 @@ DataLoader.prototype = {
         // limit is used in analyze/phenotypes search mode
         // can also be used in general simsearch query - Joe
 		if (typeof(limit) !== 'undefined') {
-	    	this.qryString += "&limit=" + limit;
+	    	this.qryString += this.simSearchQuery.limitString + limit;
 		}
 
 		this.postDataLoadCallback = asyncDataLoadingCallback;
@@ -453,14 +453,12 @@ DataLoader.prototype = {
 			qryString - query list url parameters, which includes list of sources
 	*/
 	process: function(targetGrpList, qryString) {
-		var postData = '';
-
 		if (targetGrpList.length > 0) {
 			var target = targetGrpList[0];  // pull off the first to start processing
 			targetGrpList = targetGrpList.slice(1);
 	    	
 	    	// need to add on target targetGroup id
-	    	postData = qryString + this.simSearchQuery.targetSpeciesString + target.taxon;
+	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.taxon;
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
@@ -760,41 +758,39 @@ DataLoader.prototype = {
 	postFetch: function (url, target, targets, callback, postData) {
 		var self = this;
 
-		if (typeof(postData) != 'undefined') {
-			console.log('POST:' + url);
-			jQuery.ajax({
-				url: url,
-				method: 'POST', 
-				data: postData,
-				async : true,
-				timeout: 60000,
-				dataType : 'json',
-				success : function(data) {
-					callback(self, target, targets, data);
-				},
-				error: function (xhr, errorType, exception) { 
-				// Triggered if an error communicating with server
-
-				switch(xhr.status) {
-					case 0:
-						if (exception == 'timeout') {
-							callback(self, target, targets, null);
-						}
-					case 404:
-					case 500:
-					case 501:
-					case 502:
-					case 503:
-					case 504:
-					case 505:
-					default:
-						console.log("exception: " + xhr.status + " " + exception);
-						console.log("We're having some problems. Please check your network connection.");
-						break;
-					}
-				} 
-			});
-		}
+        console.log('POST:' + url);
+        
+        jQuery.ajax({
+            url: url,
+            method: 'POST', 
+            data: postData,
+            async : true,
+            timeout: 60000,
+            dataType : 'json',
+            success : function(data) {
+                callback(self, target, targets, data);
+            },
+            error: function (xhr, errorType, exception) { 
+            // Triggered if an error communicating with server
+                switch(xhr.status) {
+                    case 0:
+                        if (exception === 'timeout') {
+                            callback(self, target, targets, null);
+                        }
+                    case 404:
+                    case 500:
+                    case 501:
+                    case 502:
+                    case 503:
+                    case 504:
+                    case 505:
+                    default:
+                        console.log("exception: " + xhr.status + " " + exception);
+                        console.log("We're having some problems. Please check your network connection.");
+                        break;
+                }
+            } 
+        });
 	},
 
 	getFetch: function (self, url, target, callback, finalCallback, parent) {
@@ -1847,9 +1843,10 @@ var images = require('./images.json');
             simSearchQuery: { // HTTP POST
                 URL: '/simsearch/phenotype',
                 inputItemsString: 'input_items=', // HTTP POST, body parameter
-                targetSpeciesString: '&target_species=' // HTTP POST, body parameter
+                targetSpeciesString: '&target_species=', // HTTP POST, body parameter
+                limitString: '&limit'
             },
-            compareQuery: { // compare API takes HTTP GET
+            compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
