@@ -378,7 +378,7 @@ var images = require('./images.json');
     
     // if no owlsim data returned
     _showNoResults: function() {
-        this.state.pgContainer.html('No results returned.');
+        this.state.pgContainer.html('No matches found.');
     },
     
     // callback to handle the loaded owlsim data
@@ -564,11 +564,11 @@ var images = require('./images.json');
             this._createPhenogridControls();
             this._positionPhenogridControls();
             this._togglePhenogridControls();
+            
+            this._setSvgSize();
         } else {
             this._showNoResults();
         }
-        
-        this._setSvgSize();
     },
     
     // Recreates the SVG content and leave the HTML sections unchanged
@@ -582,11 +582,11 @@ var images = require('./images.json');
 
             // Reposition HTML sections
 			this._positionPhenogridControls();
+            
+            this._setSvgSize();
 		} else {
 			this._showNoResults();
 		}
-        
-        this._setSvgSize();
 	},
 
     _createSvgComponents: function() {
@@ -2291,7 +2291,7 @@ var images = require('./images.json');
     _createUnmatchedSources: function() {
         // First to check if there's any unmatched sources
         this.state.unmatchedSources = this._getUnmatchedSources();
-        console.log(this.state.pgInstanceId + ' Unmatched: ' + this.state.unmatchedSources);
+        //console.log(this.state.pgInstanceId + ' Unmatched: ' + this.state.unmatchedSources);
         // Proceed if there's any unmatched
         if (this.state.unmatchedSources.length > 0) {
             // create the container div

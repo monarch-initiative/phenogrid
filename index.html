@@ -81,6 +81,9 @@ var phenotypes = [
 
 
 window.onload = function() {
+    
+    /*
+    
     // instance 1
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL : "http://beta.monarchinitiative.org",
@@ -120,6 +123,23 @@ window.onload = function() {
        ]
     });
 
+    */
+    
+    // instance 4
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
+        serverURL : "http://beta.monarchinitiative.org",
+        phenotypeData: [{id:"WBPhenotype:0001331", observed:"positive"},
+    {id:"WBPhenotype:0000679", observed:"positive"},
+    {id:"WBPhenotype:0002001", observed:"positive"},
+    {id:"WBPhenotype:0000050", observed:"positive"}],
+        targetGroupList: [
+            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": false, "active": false},
+            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": false},
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": false, "active": false},
+            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
+            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+       ]
+    });
 }
 </script>
 
@@ -134,6 +154,8 @@ window.onload = function() {
 <div id="phenogrid_container2" class="clearfix"></div>
 
 <div id="phenogrid_container3" class="clearfix"></div>
+
+<div id="phenogrid_container4" class="clearfix"></div>
 
 <link rel="stylesheet" property="stylesheet" href="node_modules/gfm.css/gfm.css">
 <div style="padding:1%;margin:1%;border:1px solid lightgray;">

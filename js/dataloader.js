@@ -171,8 +171,8 @@ DataLoader.prototype = {
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
-
-		if (data != null || typeof(data) != 'undefined') {
+console.log('postSimsFetchCb======' + data);
+		if (data !== null || typeof(data) !== 'undefined') {
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
 
