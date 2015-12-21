@@ -59,7 +59,7 @@ DataLoader.prototype = {
         // limit is used in analyze/phenotypes search mode
         // can also be used in general simsearch query - Joe
 		if (typeof(limit) !== 'undefined') {
-	    	this.qryString += "&limit=" + limit;
+	    	this.qryString += this.simSearchQuery.limitString + limit;
 		}
 
 		this.postDataLoadCallback = asyncDataLoadingCallback;

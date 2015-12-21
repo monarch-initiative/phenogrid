@@ -125,9 +125,10 @@ var images = require('./images.json');
             simSearchQuery: { // HTTP POST
                 URL: '/simsearch/phenotype',
                 inputItemsString: 'input_items=', // HTTP POST, body parameter
-                targetSpeciesString: '&target_species=' // HTTP POST, body parameter
+                targetSpeciesString: '&target_species=', // HTTP POST, body parameter
+                limitString: '&limit'
             },
-            compareQuery: { // compare API takes HTTP GET
+            compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
