@@ -122,8 +122,14 @@ var images = require('./images.json');
         // can not be overwritten from constructor
         internalOptions: {
             invertAxis: false,
-            simSearchQuery: "/simsearch/phenotype",
-            compareQuery: "/compare", // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
+            simSearchQuery: { // HTTP POST
+                URL: '/simsearch/phenotype',
+                inputItemsString: 'input_items=', // HTTP POST, body parameter
+                targetSpeciesString: '&target_species=' // HTTP POST, body parameter
+            },
+            compareQuery: { // compare API takes HTTP GET
+                URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
+            },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
@@ -213,7 +219,7 @@ var images = require('./images.json');
 		this.state = $.extend({}, this.internalOptions, this.config, this.configoptions, this.options);
 
         // Create new arrays for later use
-        // initialTargetGroupLoadList is used for loading the simsearch data
+        // initialTargetGroupLoadList is used for loading the simsearch data for the first time
 		this.state.initialTargetGroupLoadList = [];
         
         // selectedCompareTargetGroup is used to control what species are loaded
@@ -340,6 +346,7 @@ var images = require('./images.json');
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
         } else {
             // when not work with monarch's analyze/phenotypes page
+            // this can be single species mode or cross comparison mode depends on the config
             // load the default selected target targetGroup list based on the active flag in config, 
             // has nothing to do with the monarch's analyze phenotypes page - Joe
 			for (var idx in this.state.targetGroupList) {
@@ -357,7 +364,8 @@ var images = require('./images.json');
 		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
             
             // starting loading the data from simsearch
-		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);  //optional parm:   this.limit);
+            //optional parm: this.limit
+		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);
         }
 	},
 

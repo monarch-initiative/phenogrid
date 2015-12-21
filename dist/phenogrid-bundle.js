@@ -330,9 +330,9 @@ var Utils = require('./utils.js');
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
  */
-var DataLoader = function(serverUrl, simSearchQuery, limit) {
-	this.serverURL = serverUrl;	
-	this.simSearchURL = serverUrl + simSearchQuery;
+var DataLoader = function(serverURL, simSearchQuery, limit) {
+	this.serverURL = serverURL;	
+    this.simSearchQuery = simSearchQuery; // object
 	this.qryString = '';
 	this.limit = limit;
 	this.owlsimsData = [];
@@ -359,24 +359,15 @@ DataLoader.prototype = {
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			targetGroup - list of targetGroup
+			targetGroupList - list of targetGroups, array
 			limit - value to limit targets returned
 	*/
-	load: function(qrySourceList, targetGroup, asyncDataLoadingCallback, limit) {
-        var targetGroupList = [];
-
+	load: function(qrySourceList, targetGroupList, asyncDataLoadingCallback, limit) {
 		// save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-		if (typeof(targetGroup) === 'object') {
-			targetGroupList = targetGroup;
-		}
-		else if (typeof(targetGroup) === 'string') { // for just string passed place it into an array
-			targetGroupList = [targetGroup];
-		}
-
-	    this.qryString = 'input_items=' + qrySourceList.join("+");
+	    this.qryString = this.simSearchQuery.inputItemsString + qrySourceList.join("+");
 
         // limit is used in analyze/phenotypes search mode
         // can also be used in general simsearch query - Joe
@@ -408,7 +399,7 @@ DataLoader.prototype = {
 		this.origSourceList = qrySourceList;
 
         // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
-	    this.qryString = this.simSearchURL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
+	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
 
         var self = this;
         
@@ -469,11 +460,11 @@ DataLoader.prototype = {
 			targetGrpList = targetGrpList.slice(1);
 	    	
 	    	// need to add on target targetGroup id
-	    	postData = qryString + "&target_species=" + target.taxon;
+	    	postData = qryString + this.simSearchQuery.targetSpeciesString + target.taxon;
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
-			this.postFetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
+			this.postFetch(this.serverURL + this.simSearchQuery.URL, target, targetGrpList, postFetchCallback, postData);
 		} else {
 			this.postDataLoadCallback();  // make a call back to post data init function
 		}
@@ -484,7 +475,6 @@ DataLoader.prototype = {
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
-console.log('postSimsFetchCb======' + data);
 		if (data !== null || typeof(data) !== 'undefined') {
 		// save the original owlsim data
 			self.owlsimsData[target.name] = data;
@@ -1854,8 +1844,14 @@ var images = require('./images.json');
         // can not be overwritten from constructor
         internalOptions: {
             invertAxis: false,
-            simSearchQuery: "/simsearch/phenotype",
-            compareQuery: "/compare", // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
+            simSearchQuery: { // HTTP POST
+                URL: '/simsearch/phenotype',
+                inputItemsString: 'input_items=', // HTTP POST, body parameter
+                targetSpeciesString: '&target_species=' // HTTP POST, body parameter
+            },
+            compareQuery: { // compare API takes HTTP GET
+                URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
+            },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
@@ -1945,7 +1941,7 @@ var images = require('./images.json');
 		this.state = $.extend({}, this.internalOptions, this.config, this.configoptions, this.options);
 
         // Create new arrays for later use
-        // initialTargetGroupLoadList is used for loading the simsearch data
+        // initialTargetGroupLoadList is used for loading the simsearch data for the first time
 		this.state.initialTargetGroupLoadList = [];
         
         // selectedCompareTargetGroup is used to control what species are loaded
@@ -2072,6 +2068,7 @@ var images = require('./images.json');
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
         } else {
             // when not work with monarch's analyze/phenotypes page
+            // this can be single species mode or cross comparison mode depends on the config
             // load the default selected target targetGroup list based on the active flag in config, 
             // has nothing to do with the monarch's analyze phenotypes page - Joe
 			for (var idx in this.state.targetGroupList) {
@@ -2089,7 +2086,8 @@ var images = require('./images.json');
 		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
             
             // starting loading the data from simsearch
-		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);  //optional parm:   this.limit);
+            //optional parm: this.limit
+		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);
         }
 	},
 
