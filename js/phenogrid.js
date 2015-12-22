@@ -544,9 +544,7 @@ var images = require('./images.json');
         if (this.state.initialTargetGroupLoadList.length === 1) {
             // in this case, speciesNoMatch.length can only be 1 or 0
             if (this.state.dataLoader.speciesNoMatch.length === 0) {
-                // initialize axis groups
-                this._createAxisRenderingGroups();
-                // then create UI components
+                // create UI components
                 this._createDisplayComponents();
             } else {
                 // no need to show other SVG UI elements if no matched data
@@ -560,11 +558,9 @@ var images = require('./images.json');
                 } else {
                     // show error message and display grid for the rest of the species
                     this._showSpeciesNoMatch();
-                    this._createAxisRenderingGroups();
                     this._createDisplayComponents();
                 }
             } else {
-                this._createAxisRenderingGroups();
                 this._createDisplayComponents();
             }
         } else {
@@ -578,6 +574,9 @@ var images = require('./images.json');
     },
     
     _createDisplayComponents: function() {
+        // initialize axis groups
+        this._createAxisRenderingGroups();
+        
         // create the display as usual if there's 'b' and 'metadata' fields found - Joe
         this._createColorScalePerSimilarityCalculation();
         
