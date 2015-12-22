@@ -133,7 +133,7 @@ var images = require('./images.json');
             },
             messaging: {
                 misconfig: 'Please fix your config to show at least one species.',
-                noSimSearchMatch: 'No simsearch matches found based on the provided phenotypes.'
+                noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
@@ -642,7 +642,8 @@ var images = require('./images.json');
     _showSpeciesNoMatch: function() {
         var output = '';
         for (var i = 0; i < this.state.dataLoader.speciesNoMatch.length; i++) {
-            output += this.state.dataLoader.speciesNoMatch[i] + ': ' + this.state.messaging.noSimSearchMatch + '<br>';
+            // replace the placeholder with species name
+            output +=  this.state.messaging.noSimSearchMatch.replace(/{%speciesName%}/, this.state.dataLoader.speciesNoMatch[i]) + '<br>';
         }
         this.state.pgContainer.append(output);
     },
