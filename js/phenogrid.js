@@ -131,6 +131,10 @@ var images = require('./images.json');
             compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             },
+            messaging: {
+                misconfig: 'Please fix your config to show at least one species.',
+                noSimSearchMatch: 'No simsearch matches found based on the provided phenotypes.'
+            },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
@@ -550,25 +554,22 @@ var images = require('./images.json');
 
     // Being called only for the first time the widget is being loaded
 	_createDisplay: function() {
-        console.log('initialTargetGroupLoadList: ' + this.state.initialTargetGroupLoadList);
-        console.log('errorMsg: ' + this.state.dataLoader.errorMsg);
-        
         if (this.state.initialTargetGroupLoadList.length === 1) {
-            // in this case, errorMsg.length can only be 1 or 0
-            if (this.state.dataLoader.errorMsg.length === 0) {
+            // in this case, speciesNoMatch.length can only be 1 or 0
+            if (this.state.dataLoader.speciesNoMatch.length === 0) {
                 this._createDisplayComponents();
             } else {
                 // no need to show other SVG UI elements if no matched data
-                this._showNoResults();
+                this._showSpeciesNoMatch();
             }
         } else if (this.state.initialTargetGroupLoadList.length > 1) {
-            if (this.state.dataLoader.errorMsg.length > 0) {
-                if (this.state.dataLoader.errorMsg.length === this.state.initialTargetGroupLoadList.length) {
+            if (this.state.dataLoader.speciesNoMatch.length > 0) {
+                if (this.state.dataLoader.speciesNoMatch.length === this.state.initialTargetGroupLoadList.length) {
                     // in this case all species have no matches
-                    this._showNoResults();
+                    this._showSpeciesNoMatch();
                 } else {
                     // show error message and display grid for the rest of the species
-                    this._showNoResults();
+                    this._showSpeciesNoMatch();
                     this._createDisplayComponents();
                 }
             } else {
@@ -581,7 +582,7 @@ var images = require('./images.json');
     },
     
     _showConfigErrorMsg: function() {
-        this.state.pgContainer.html('Please fix your config to show at least one species.');
+        this.state.pgContainer.html(this.state.messaging.misconfig);
     },
     
     _createDisplayComponents: function() {
@@ -647,12 +648,11 @@ var images = require('./images.json');
 	},
     
     // if no owlsim data returned for that species
-    _showNoResults: function() {
-        var output = '<ul>';
-        for (var i = 0; i < this.state.dataLoader.errorMsg.length; i++) {
-            output += '<li>' + this.state.dataLoader.errorMsg[i].species + ': ' + this.state.dataLoader.errorMsg[i].msg + '</li>'
+    _showSpeciesNoMatch: function() {
+        var output = '';
+        for (var i = 0; i < this.state.dataLoader.speciesNoMatch.length; i++) {
+            output += this.state.dataLoader.speciesNoMatch[i] + ': ' + this.state.messaging.noSimSearchMatch + '<br>';
         }
-        output += '</ul>';
         this.state.pgContainer.append(output);
     },
     

@@ -22,7 +22,7 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.serverURL = serverURL;	
     this.simSearchQuery = simSearchQuery; // object
 	this.qryString = '';
-    this.errorMsg = []; // error messages for each species
+    this.speciesNoMatch = []; // contains species names that don't have simsearch matches
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
@@ -215,14 +215,8 @@ DataLoader.prototype = {
 		if (data !== null || typeof(data) !== 'undefined') {
 		    // data.b contains all the matches, if not present, then no matches - Joe
             if (typeof(data.b) === 'undefined') {
-                var simsearchResults = {};
-                var errMsg = {
-                    species: target.name,
-                    msg: 'No matches found based on the provided phenotypes.'
-                };
-                self.errorMsg.push(errMsg);
-                // return empty JSON since we have no matches found - Joe
-                
+                // Add the species name to the speciesNoMatch array
+                self.speciesNoMatch.push(target.name);
             } else {
                 // save the original owlsim data
                 self.owlsimsData[target.name] = data;
