@@ -424,22 +424,8 @@ DataLoader.prototype = {
                 
                 self.postDataLoadCallback(); 
             },
-            error: function (xhr, errorType, exception) { 
-            // Triggered if an error communicating with server
-
-            switch(xhr.status){
-                case 404:
-                case 500:
-                case 501:
-                case 502:
-                case 503:
-                case 504:
-                case 505:
-                default:
-                    console.log("exception: " + xhr.status + " " + exception);
-                    console.log("We're having some problems. Please check your network connection.");
-                    break;
-                }
+            error: function () { 
+                console.log('Ajax error.')
             } 
         });
 	},
@@ -495,26 +481,9 @@ DataLoader.prototype = {
             success : function(data) {
                 callback(self, target, targets, data);
             },
-            error: function (xhr, errorType, exception) { 
-            // Triggered if an error communicating with server
-                switch(xhr.status) {
-                    case 0:
-                        if (exception === 'timeout') {
-                            callback(self, target, targets, null);
-                        }
-                    case 404:
-                    case 500:
-                    case 501:
-                    case 502:
-                    case 503:
-                    case 504:
-                    case 505:
-                    default:
-                        console.log("exception: " + xhr.status + " " + exception);
-                        console.log("We're having some problems. Please check your network connection.");
-                        break;
-                }
-            } 
+            error: function () { 
+                console.log('Ajax error.');
+            }
         });
 	},
 
@@ -800,35 +769,20 @@ DataLoader.prototype = {
 
 	
 	getFetch: function (self, url, target, callback, finalCallback, parent) {
-
-			console.log('GET:' + url);
-            
-			jQuery.ajax({
-				url: url,
-				method: 'GET', 
-				async : true,
-				dataType : 'json',
-				success : function(data) {
-					callback(self, target, data, finalCallback, parent);					
-				},
-				error: function (xhr, errorType, exception) { 
-				// Triggered if an error communicating with server
-
-				switch(xhr.status){
-					case 404:
-					case 500:
-					case 501:
-					case 502:
-					case 503:
-					case 504:
-					case 505:
-					default:
-						console.log("exception: " + xhr.status + " " + exception);
-						console.log("We're having some problems. Please check your network connection.");
-						break;
-					}
-				} 
-			});
+        console.log('GET:' + url);
+        
+        jQuery.ajax({
+            url: url,
+            method: 'GET', 
+            async : true,
+            dataType : 'json',
+            success : function(data) {
+                callback(self, target, data, finalCallback, parent);					
+            },
+            error: function () { 
+                console.log('Ajax error.')
+            } 
+        });
 	},
 
 	/*
