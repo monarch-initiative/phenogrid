@@ -873,7 +873,7 @@ DataLoader.prototype = {
                     genotype_id_list = genotype_id_list.slice(0, -1);
                 }
                 // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
-                var compare_url = self.serverURL +  parent.state.compareQuery + '/' + phenotype_id_list + "/" + genotype_id_list;
+                var compare_url = self.serverURL +  parent.state.compareQuery.URL + '/' + phenotype_id_list + "/" + genotype_id_list;
                 // Now we need to get all the matches data
                 var cb = self.getGenotypesCbCb;
                 self.getFetch(self, compare_url, id, cb, finalCallback, parent);
