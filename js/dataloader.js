@@ -213,19 +213,21 @@ DataLoader.prototype = {
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
 		if (data !== null || typeof(data) !== 'undefined') {
-		    if (typeof(data.b) === 'undefined') {
+		    // data.b contains all the matches, if not present, then no matches - Joe
+            if (typeof(data.b) === 'undefined') {
                 var simsearchResults = {};
-                self.errorMsg[target.name] = 'No matches found based on the provided phenotypes.';
+                var errMsg = {
+                    species: target.name,
+                    msg: 'No matches found based on the provided phenotypes.'
+                };
+                self.errorMsg.push(errMsg);
                 // return empty JSON since we have no matches found - Joe
                 
             } else {
                 // save the original owlsim data
                 self.owlsimsData[target.name] = data;
-
-                if (typeof (data) !=='undefined' && data !== null) {
-                    // now transform data to there basic data structures
-                    self.transform(target.name, data);  
-                }
+                // now transform data to there basic data structures
+                self.transform(target.name, data);  
             }
 		}
 		// iterative back to process to make sure we processed all the targetGrpList

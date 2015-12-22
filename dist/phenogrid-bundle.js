@@ -329,11 +329,13 @@ var Utils = require('./utils.js');
  	 	parent - reference to parent calling object
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
+        limit - cutoff number
  */
 var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.serverURL = serverURL;	
     this.simSearchQuery = simSearchQuery; // object
 	this.qryString = '';
+    this.errorMsg = []; // error messages for each species
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
@@ -468,19 +470,78 @@ DataLoader.prototype = {
 		}
 	},
 
+    /*
+		Function: postFetch		
+	 		generic ajax call for all POST queries
+
+	 	Parameters:
+	 		url - server url
+	 		target - some target e.g., id
+	 		targets - target list
+	 		callback
+	 		postData - data to be posted
+	*/ 
+	postFetch: function (url, target, targets, callback, postData) {
+		var self = this;
+
+        console.log('POST:' + url);
+        
+        jQuery.ajax({
+            url: url,
+            method: 'POST', 
+            data: postData,
+            async : true,
+            timeout: 60000,
+            dataType : 'json',
+            success : function(data) {
+                callback(self, target, targets, data);
+            },
+            error: function (xhr, errorType, exception) { 
+            // Triggered if an error communicating with server
+                switch(xhr.status) {
+                    case 0:
+                        if (exception === 'timeout') {
+                            callback(self, target, targets, null);
+                        }
+                    case 404:
+                    case 500:
+                    case 501:
+                    case 502:
+                    case 503:
+                    case 504:
+                    case 505:
+                    default:
+                        console.log("exception: " + xhr.status + " " + exception);
+                        console.log("We're having some problems. Please check your network connection.");
+                        break;
+                }
+            } 
+        });
+	},
+
+    
 	/*
 		Function: postSimsFetchCb
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
 		if (data !== null || typeof(data) !== 'undefined') {
-		// save the original owlsim data
-			self.owlsimsData[target.name] = data;
-
-			if (typeof (data) !=='undefined' && data !== null) {
-				// now transform data to there basic data structures
-				self.transform(target.name, data);  
-			}
+		    // data.b contains all the matches, if not present, then no matches - Joe
+            if (typeof(data.b) === 'undefined') {
+                var simsearchResults = {};
+                var errMsg = {
+                    species: target.name,
+                    msg: 'No matches found based on the provided phenotypes.'
+                };
+                self.errorMsg.push(errMsg);
+                // return empty JSON since we have no matches found - Joe
+                
+            } else {
+                // save the original owlsim data
+                self.owlsimsData[target.name] = data;
+                // now transform data to there basic data structures
+                self.transform(target.name, data);  
+            }
 		}
 		// iterative back to process to make sure we processed all the targetGrpList
 		self.process(targetGrpList, self.qryString);
@@ -744,58 +805,11 @@ DataLoader.prototype = {
 		return reloaded;
 	},
 
-	/*
-		Function: postFetch		
-	 		generic ajax call for all POST queries
-
-	 	Parameters:
-	 		url - server url
-	 		target - some target e.g., id
-	 		targets - target list
-	 		callback
-	 		postData - data to be posted
-	 */ 
-	postFetch: function (url, target, targets, callback, postData) {
-		var self = this;
-
-        console.log('POST:' + url);
-        
-        jQuery.ajax({
-            url: url,
-            method: 'POST', 
-            data: postData,
-            async : true,
-            timeout: 60000,
-            dataType : 'json',
-            success : function(data) {
-                callback(self, target, targets, data);
-            },
-            error: function (xhr, errorType, exception) { 
-            // Triggered if an error communicating with server
-                switch(xhr.status) {
-                    case 0:
-                        if (exception === 'timeout') {
-                            callback(self, target, targets, null);
-                        }
-                    case 404:
-                    case 500:
-                    case 501:
-                    case 502:
-                    case 503:
-                    case 504:
-                    case 505:
-                    default:
-                        console.log("exception: " + xhr.status + " " + exception);
-                        console.log("We're having some problems. Please check your network connection.");
-                        break;
-                }
-            } 
-        });
-	},
-
+	
 	getFetch: function (self, url, target, callback, finalCallback, parent) {
 
 			console.log('GET:' + url);
+            
 			jQuery.ajax({
 				url: url,
 				method: 'GET', 
@@ -2103,11 +2117,6 @@ var images = require('./images.json');
 		element.appendTo(this.state.pgContainer);
 	},
     
-    // if no owlsim data returned
-    _showNoResults: function() {
-        this.state.pgContainer.html('No matches found.');
-    },
-    
     // callback to handle the loaded owlsim data
 	_asyncDataLoadingCB: function(self) {
 		// add dataManager to this.state
@@ -2273,29 +2282,60 @@ var images = require('./images.json');
 
     // Being called only for the first time the widget is being loaded
 	_createDisplay: function() {
-        // create the display as usual if there's 'b' and 'metadata' fields found - Joe
-        if (this.state.dataManager.isInitialized()) {
-            this._createColorScalePerSimilarityCalculation();
-            
-            // No need to recreate this tooltip on _updateDisplay() - Joe
-            this._createTooltipStub();
+        console.log('initialTargetGroupLoadList: ' + this.state.initialTargetGroupLoadList);
+        console.log('errorMsg: ' + this.state.dataLoader.errorMsg);
         
-            this._createSvgComponents();
-
-            // Create and postion HTML sections
-            
-            // Unmatched sources
-            this._createUnmatchedSources();
-            
-            // Options menu
-            this._createPhenogridControls();
-            this._positionPhenogridControls();
-            this._togglePhenogridControls();
-            
-            this._setSvgSize();
+        if (this.state.initialTargetGroupLoadList.length === 1) {
+            // in this case, errorMsg.length can only be 1 or 0
+            if (this.state.dataLoader.errorMsg.length === 0) {
+                this._createDisplayComponents();
+            } else {
+                // no need to show other SVG UI elements if no matched data
+                this._showNoResults();
+            }
+        } else if (this.state.initialTargetGroupLoadList.length > 1) {
+            if (this.state.dataLoader.errorMsg.length > 0) {
+                if (this.state.dataLoader.errorMsg.length === this.state.initialTargetGroupLoadList.length) {
+                    // in this case all species have no matches
+                    this._showNoResults();
+                } else {
+                    // show error message and display grid for the rest of the species
+                    this._showNoResults();
+                    this._createDisplayComponents();
+                }
+            } else {
+                this._createDisplayComponents();
+            }
         } else {
-            this._showNoResults();
+            // no active species in config
+            this._showConfigErrorMsg();
         }
+    },
+    
+    _showConfigErrorMsg: function() {
+        this.state.pgContainer.html('Please fix your config to show at least one species.');
+    },
+    
+    _createDisplayComponents: function() {
+        // create the display as usual if there's 'b' and 'metadata' fields found - Joe
+        this._createColorScalePerSimilarityCalculation();
+        
+        // No need to recreate this tooltip on _updateDisplay() - Joe
+        this._createTooltipStub();
+    
+        this._createSvgComponents();
+
+        // Create and postion HTML sections
+        
+        // Unmatched sources
+        this._createUnmatchedSources();
+        
+        // Options menu
+        this._createPhenogridControls();
+        this._positionPhenogridControls();
+        this._togglePhenogridControls();
+        
+        this._setSvgSize();
     },
     
     // Recreates the SVG content and leave the HTML sections unchanged
@@ -2303,17 +2343,13 @@ var images = require('./images.json');
         // Only remove the #pg_svg node and leave #this.state.pgInstanceId_controls there
         // since #this.state.pgInstanceId_controls is HTML not SVG - Joe
         this.element.find('#' + this.state.pgInstanceId + '_svg').remove();
-        
-        if (this.state.dataManager.isInitialized()) {
-			this._createSvgComponents();
+    
+        this._createSvgComponents();
 
-            // Reposition HTML sections
-			this._positionPhenogridControls();
-            
-            this._setSvgSize();
-		} else {
-			this._showNoResults();
-		}
+        // Reposition HTML sections
+        this._positionPhenogridControls();
+        
+        this._setSvgSize();
 	},
 
     _createSvgComponents: function() {
@@ -2341,6 +2377,16 @@ var images = require('./images.json');
         this.state.svg = d3.select('#' + this.state.pgInstanceId + '_svg_group')
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
+    
+    // if no owlsim data returned for that species
+    _showNoResults: function() {
+        var output = '<ul>';
+        for (var i = 0; i < this.state.dataLoader.errorMsg.length; i++) {
+            output += '<li>' + this.state.dataLoader.errorMsg[i].species + ': ' + this.state.dataLoader.errorMsg[i].msg + '</li>'
+        }
+        output += '</ul>';
+        this.state.pgContainer.append(output);
+    },
     
     // Positioned next to the grid region bottom
 	_addLogoImage: function() { 
