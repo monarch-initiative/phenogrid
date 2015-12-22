@@ -406,11 +406,8 @@ var images = require('./images.json');
 
         // check owlsim data integrity - Joe
         if (self.state.owlSimFunction === 'compare') {
-            // noMatchesFound and noMetadataFound are compare api flags
-            // they are only available in compare mode
-            // check the flags to see if there's matches data found - Joe
-            if (self.state.dataManager.noMatchesFound) {
-                self._showNoResults();
+            if (this.state.dataLoader.speciesNoMatch.length > 0) {
+                self._showSpeciesNoMatch();
             } else {
                 // initialize axis groups
 	            self._createAxisRenderingGroups();

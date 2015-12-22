@@ -24,9 +24,6 @@ var DataManager = function(dataLoader) {
 	this.cellData = this.dataLoader.getCellData();
 
     this.maxMaxIC = this.dataLoader.maxMaxIC;
-    
-    // compare api flag - Joe
-    this.noMatchesFound = this.dataLoader.noMatchesFound;
 
 	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];

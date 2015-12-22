@@ -34,8 +34,6 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
-    // compare api flags
-    this.noMatchesFound = false; // flag to mark if there's matches in the returned JSON
 };
 
 DataLoader.prototype = {
@@ -99,12 +97,13 @@ DataLoader.prototype = {
             async : true,
             dataType : 'json',
             success : function(data) {
-                console.log('compare data loaded:');
+                //console.log('compare data loaded:');
                 //console.log(data);
                 
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
-                    self.noMatchesFound = true; // set the noMatchesFound flag
+                    // Add the 'compare' name to the speciesNoMatch array
+                    self.speciesNoMatch.push('compare');
                 } else {
                     // use 'compare' as the key of the named array
                     self.transform("compare", data);  

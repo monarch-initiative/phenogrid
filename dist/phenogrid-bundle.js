@@ -347,8 +347,6 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
-    // compare api flags
-    this.noMatchesFound = false; // flag to mark if there's matches in the returned JSON
 };
 
 DataLoader.prototype = {
@@ -412,12 +410,13 @@ DataLoader.prototype = {
             async : true,
             dataType : 'json',
             success : function(data) {
-                console.log('compare data loaded:');
+                //console.log('compare data loaded:');
                 //console.log(data);
                 
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
-                    self.noMatchesFound = true; // set the noMatchesFound flag
+                    // Add the 'compare' name to the speciesNoMatch array
+                    self.speciesNoMatch.push('compare');
                 } else {
                     // use 'compare' as the key of the named array
                     self.transform("compare", data);  
@@ -1116,9 +1115,6 @@ var DataManager = function(dataLoader) {
 	this.cellData = this.dataLoader.getCellData();
 
     this.maxMaxIC = this.dataLoader.maxMaxIC;
-    
-    // compare api flag - Joe
-    this.noMatchesFound = this.dataLoader.noMatchesFound;
 
 	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];
@@ -2113,11 +2109,8 @@ var images = require('./images.json');
 
         // check owlsim data integrity - Joe
         if (self.state.owlSimFunction === 'compare') {
-            // noMatchesFound and noMetadataFound are compare api flags
-            // they are only available in compare mode
-            // check the flags to see if there's matches data found - Joe
-            if (self.state.dataManager.noMatchesFound) {
-                self._showNoResults();
+            if (this.state.dataLoader.speciesNoMatch.length > 0) {
+                self._showSpeciesNoMatch();
             } else {
                 // initialize axis groups
 	            self._createAxisRenderingGroups();
