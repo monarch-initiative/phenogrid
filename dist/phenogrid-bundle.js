@@ -1136,25 +1136,6 @@ DataManager.prototype = {
 	constructor: DataManager,
 
 	/*
-		Function: isInitialized
-			check to see if datasets have been initialized 
-
-		Returns:
-			boolean
-	*/	
-	isInitialized: function() {
-		var targetSize = Object.keys(this.target).length;
-		var sourceSize = Object.keys(this.source).length;
-
-		if (sourceSize > 0 && targetSize > 0) {
-			this.initialized = true;
-		} else {
-			this.initialized = false;
-		}
-		return this.initialized;
-	},
-
-	/*
 		Function: getData
 			gets a list of entries from specified dataset
 
