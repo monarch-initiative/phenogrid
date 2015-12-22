@@ -566,7 +566,7 @@ DataLoader.prototype = {
                 self.getFetch(self, compare_url, id, cb, finalCallback, parent);
             } else {
                 var simsearchResults = {};
-                var errorMsg = 'This gene has no associated genotypes.';
+                var errorMsg = parent.state.messaging.noAssociatedGenotype;
                 // return empty JSON since we have an empty genotype_list - Joe
                 finalCallback(simsearchResults, id, parent, errorMsg);
             }
@@ -605,7 +605,7 @@ DataLoader.prototype = {
             finalCallback(results, id, parent);
         } else {
             var simsearchResults = {};
-            var errorMsg = 'No matches found between the provided phenotypes and expanded genotypes.';
+            var errorMsg = parent.state.messaging.noSimSearchMatchForExpandedGenotype;
             // return empty JSON since we have no matches found - Joe
             finalCallback(simsearchResults, id, parent, errorMsg);
         }

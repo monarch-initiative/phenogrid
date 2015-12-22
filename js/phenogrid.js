@@ -133,6 +133,8 @@ var images = require('./images.json');
             },
             messaging: {
                 misconfig: 'Please fix your config to show at least one species.',
+                noAssociatedGenotype: 'This gene has no associated genotypes.',
+                noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
                 noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
