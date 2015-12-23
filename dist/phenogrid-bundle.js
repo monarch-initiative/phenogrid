@@ -1768,6 +1768,12 @@ var images = require('./images.json');
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
                 {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false} // Undiagnosed Diseases Program Integrated Collaboration System(UDPICS)
             ],
+            messaging: {
+                misconfig: 'Please fix your config to enable at least one species.',
+                noAssociatedGenotype: 'This gene has no associated genotypes.',
+                noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
+                noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
+            },
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
@@ -1787,12 +1793,6 @@ var images = require('./images.json');
             },
             compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
-            },
-            messaging: {
-                misconfig: 'Please fix your config to enable at least one species.',
-                noAssociatedGenotype: 'This gene has no associated genotypes.',
-                noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
-                noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
