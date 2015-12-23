@@ -132,7 +132,7 @@ var images = require('./images.json');
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             },
             messaging: {
-                misconfig: 'Please fix your config to show at least one species.',
+                misconfig: 'Please fix your config to enable at least one species.',
                 noAssociatedGenotype: 'This gene has no associated genotypes.',
                 noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
                 noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
@@ -294,7 +294,8 @@ var images = require('./images.json');
                     this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
                 }	
                 // should they be shown in the comparison view
-                if (this.state.targetGroupList[idx].crossComparisonView) {
+                // crossComparisonView matters only when active = true - Joe
+                if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
                     this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                 }			
             }	
@@ -326,7 +327,8 @@ var images = require('./images.json');
                         this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
                     }	
                     // should they be shown in the comparison view
-                    if (this.state.targetGroupList[idx].crossComparisonView) {
+                    // crossComparisonView matters only when active = true - Joe
+                    if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
                         this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                     }			
                 }
@@ -362,9 +364,10 @@ var images = require('./images.json');
 					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
 				}	
 				// should they be shown in the comparison view
-				if (this.state.targetGroupList[idx].crossComparisonView) {
-					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-				}			
+				// crossComparisonView matters only when active = true - Joe
+                if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
+                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                }			
 			}
             
             // initialize data processing class for simsearch query

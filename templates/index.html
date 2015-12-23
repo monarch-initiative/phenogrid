@@ -104,13 +104,13 @@ window.onload = function() {
        ]
     });
     
-    // instance 3, only human, has matches
+    // instance 3, only human shows up by defaul, mouse can be turned on, both have matches
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
         targetGroupList: [
             {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
-            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": false},
+            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": true},
             {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": false, "active": false}
        ]
     });
@@ -119,10 +119,12 @@ window.onload = function() {
     // instance 4, only fish but no matches
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
         serverURL : "http://beta.monarchinitiative.org",
-        phenotypeData: [{id:"WBPhenotype:0001331", observed:"positive"},
-    {id:"WBPhenotype:0000679", observed:"positive"},
-    {id:"WBPhenotype:0002001", observed:"positive"},
-    {id:"WBPhenotype:0000050", observed:"positive"}],
+        phenotypeData: [
+            {id:"WBPhenotype:0001331", observed:"positive"},
+            {id:"WBPhenotype:0000679", observed:"positive"},
+            {id:"WBPhenotype:0002001", observed:"positive"},
+            {id:"WBPhenotype:0000050", observed:"positive"}
+        ],
         targetGroupList: [
             {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": false, "active": true},
             {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": true},
