@@ -149,6 +149,14 @@ var images = require('./images.json');
             ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
                                 // [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
             genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
+            // Genotype expansion flags - named/associative array
+            // flag used for switching between single species and multi-species mode
+            // add new species names here once needed - Joe
+            // Add new species here when needed
+            genotypeExpansionSpeciesFlag: {
+                "Mus musculus": false,
+                "Danio rerio": false
+            },
             colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
             colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
                 'rgb(237,248,177)',
@@ -234,26 +242,17 @@ var images = require('./images.json');
         // it's possible that a species is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
 		this.state.selectedCompareTargetGroup = [];
 
-        // Genotype expansion flags - named/associative array
-        // flag used for switching between single species and multi-species mode
-        // add new species names here once needed - Joe
-        // Add new species here when needed
-        var genotypeExpansionSpeciesFlagConfig = {
-            "Mus musculus": false,
-            "Danio rerio": false
-        };
-        
         // NOTE: without using jquery's extend(), all the new flags are referenced 
         // to the config object, not actual copy - Joe
-        this.state.expandedGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
+        this.state.expandedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
         
         // genotype flags to mark every genotype expansion on/off in each species
-        this.state.newGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
+        this.state.newGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
         
-        this.state.removedGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
+        this.state.removedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
         
         // flag to mark if hidden genotypes need to be reactivated
-        this.state.reactivateGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
+        this.state.reactivateGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
 	},
 
 	
