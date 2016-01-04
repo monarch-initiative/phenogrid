@@ -116,7 +116,7 @@ window.onload = function() {
     });
 
 
-    // instance 4, only fish but no matches
+    // instance 4, three species but no matches
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: [
@@ -155,26 +155,41 @@ window.onload = function() {
 <div style="padding:1%;margin:1%;border:1px solid lightgray;">
 
 <h1>Example 1</h1>
+<p>
+In this example, there are three species that are loaded and each of them has simsearch matches.
+</p>
 <div id="phenogrid_container1" class="clearfix"></div>
 
 <hr>
 
 <h1>Example 2</h1>
+<p>
+Same as Example 1.
+</p>
 <div id="phenogrid_container2" class="clearfix"></div>
 
 <hr>
 
 <h1>Example 3</h1>
+<p>
+In this example, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
+</p>
 <div id="phenogrid_container3" class="clearfix"></div>
 
 <hr>
 
 <h1>Example 4</h1>
+<p>
+In this example, we wanted to show matches for all the three species but none of them has simsearch matches. Friendly messages show instead.
+</p>
 <div id="phenogrid_container4" class="clearfix"></div>
 
 <hr>
 
 <h1>Example 5</h1>
+<p>
+In this example, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
+</p>
 <div id="phenogrid_container5" class="clearfix"></div>
 
 </div>
