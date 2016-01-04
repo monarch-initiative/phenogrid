@@ -109,6 +109,7 @@ var images = require('./images.json');
                 {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
                 {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
                 {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false} // Undiagnosed Diseases Program Integrated Collaboration System(UDPICS)
             ],
             messaging: {
@@ -317,6 +318,7 @@ var images = require('./images.json');
                     {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
                     // Disabled species
                     {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                    {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
                     {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
                 ];
                 
