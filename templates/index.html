@@ -82,7 +82,7 @@ var phenotypes = [
 
 window.onload = function() {
 
-    // instance 1, three species, and all have matches
+    // Example 1, there are three species that are loaded and each of them has simsearch matches.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
@@ -93,7 +93,7 @@ window.onload = function() {
        ]
     });
     
-    // instance 2, same config as instance 1
+    // Example 2, Same as Example 1
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
@@ -104,7 +104,7 @@ window.onload = function() {
        ]
     });
     
-    // instance 3, only human shows up by defaul, mouse can be turned on, both have matches
+    // Example 3, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
@@ -116,7 +116,7 @@ window.onload = function() {
     });
 
 
-    // instance 4, three species but no matches
+    // Example 4, we wanted to show matches for all the three species but none of them has simsearch matches. Friendly messages show instead.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: [
@@ -132,7 +132,7 @@ window.onload = function() {
        ]
     });
     
-    // instance 5, misconfig
+    // Example 5, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container5'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,

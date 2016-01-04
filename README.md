@@ -145,43 +145,66 @@ var phenotypes = [
 ];
 
 window.onload = function() {
+
+    // Example 1, there are three species that are loaded and each of them has simsearch matches.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
-        selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
-        selectedCalculation: 0, // 0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t)
         targetGroupList: [
             {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
             {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
-            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
-            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
-            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true}
        ]
     });
     
-    // instance 2 - same config as instance 1
+    // Example 2, Same as Example 1
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
         targetGroupList: [
             {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
             {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
-            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
-            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
-            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true}
        ]
     });
     
-    // instance 3
+    // Example 3, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
         targetGroupList: [
             {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
-            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": false},
-            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": false, "active": false},
-            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
-            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": true},
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": false, "active": false}
+       ]
+    });
+
+
+    // Example 4, we wanted to show matches for all the three species but none of them has simsearch matches. Friendly messages show instead.
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
+        serverURL : "http://beta.monarchinitiative.org",
+        phenotypeData: [
+            {id:"WBPhenotype:0001331", observed:"positive"},
+            {id:"WBPhenotype:0000679", observed:"positive"},
+            {id:"WBPhenotype:0002001", observed:"positive"},
+            {id:"WBPhenotype:0000050", observed:"positive"}
+        ],
+        targetGroupList: [
+            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": false, "active": true},
+            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": true},
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": false, "active": true}
+       ]
+    });
+    
+    // Example 5, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container5'), {
+        serverURL : "http://beta.monarchinitiative.org",
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
+            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
+            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": false, "active": true},
+            {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: true, "active": true}
        ]
     });
 }
