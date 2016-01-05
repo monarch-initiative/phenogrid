@@ -1809,10 +1809,12 @@ var images = require('./images.json');
             // Genotype expansion flags - named/associative array
             // flag used for switching between single species and multi-species mode
             // add new species names here once needed - Joe
-            // Add new species here when needed
+            // Add new species here when needed, human disease doesn't have genotype expansion - Joe
             genotypeExpansionSpeciesFlag: {
                 "Mus musculus": false,
-                "Danio rerio": false
+                "Danio rerio": false,
+                "Drosophila melanogaster": false,
+                "Caenorhabditis elegans": false
             },
             colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
             colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
