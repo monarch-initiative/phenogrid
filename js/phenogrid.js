@@ -109,8 +109,15 @@ var images = require('./images.json');
                 {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
                 {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
                 {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
                 {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false} // Undiagnosed Diseases Program Integrated Collaboration System(UDPICS)
             ],
+            messaging: {
+                misconfig: 'Please fix your config to enable at least one species.',
+                noAssociatedGenotype: 'This gene has no associated genotypes.',
+                noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
+                noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
+            },
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
@@ -122,8 +129,15 @@ var images = require('./images.json');
         // can not be overwritten from constructor
         internalOptions: {
             invertAxis: false,
-            simSearchQuery: "/simsearch/phenotype",
-            compareQuery: "/compare", // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
+            simSearchQuery: { // HTTP POST
+                URL: '/simsearch/phenotype',
+                inputItemsString: 'input_items=', // HTTP POST, body parameter
+                targetSpeciesString: '&target_species=', // HTTP POST, body parameter
+                limitString: '&limit'
+            },
+            compareQuery: { // compare API takes HTTP GET, so no body parameters
+                URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
+            },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
@@ -135,6 +149,16 @@ var images = require('./images.json');
             ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
                                 // [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
             genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
+            // Genotype expansion flags - named/associative array
+            // flag used for switching between single species and multi-species mode
+            // add new species names here once needed - Joe
+            // Add new species here when needed, human disease doesn't have genotype expansion - Joe
+            genotypeExpansionSpeciesFlag: {
+                "Mus musculus": false,
+                "Danio rerio": false,
+                "Drosophila melanogaster": false,
+                "Caenorhabditis elegans": false
+            },
             colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
             colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
                 'rgb(237,248,177)',
@@ -213,33 +237,24 @@ var images = require('./images.json');
 		this.state = $.extend({}, this.internalOptions, this.config, this.configoptions, this.options);
 
         // Create new arrays for later use
-        // initialTargetGroupLoadList is used for loading the simsearch data
+        // initialTargetGroupLoadList is used for loading the simsearch data for the first time
 		this.state.initialTargetGroupLoadList = [];
         
         // selectedCompareTargetGroup is used to control what species are loaded
         // it's possible that a species is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
 		this.state.selectedCompareTargetGroup = [];
 
-        // Genotype expansion flags - named/associative array
-        // flag used for switching between single species and multi-species mode
-        // add new species names here once needed - Joe
-        // Add new species here when needed
-        var genotypeExpansionSpeciesFlagConfig = {
-            "Mus musculus": false,
-            "Danio rerio": false
-        };
-        
         // NOTE: without using jquery's extend(), all the new flags are referenced 
         // to the config object, not actual copy - Joe
-        this.state.expandedGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
+        this.state.expandedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
         
         // genotype flags to mark every genotype expansion on/off in each species
-        this.state.newGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
+        this.state.newGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
         
-        this.state.removedGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
+        this.state.removedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
         
         // flag to mark if hidden genotypes need to be reactivated
-        this.state.reactivateGenotypes = $.extend({}, genotypeExpansionSpeciesFlagConfig);
+        this.state.reactivateGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
 	},
 
 	
@@ -281,7 +296,8 @@ var images = require('./images.json');
                     this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
                 }	
                 // should they be shown in the comparison view
-                if (this.state.targetGroupList[idx].crossComparisonView) {
+                // crossComparisonView matters only when active = true - Joe
+                if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
                     this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                 }			
             }	
@@ -303,6 +319,7 @@ var images = require('./images.json');
                     {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
                     // Disabled species
                     {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                    {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
                     {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
                 ];
                 
@@ -313,7 +330,8 @@ var images = require('./images.json');
                         this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
                     }	
                     // should they be shown in the comparison view
-                    if (this.state.targetGroupList[idx].crossComparisonView) {
+                    // crossComparisonView matters only when active = true - Joe
+                    if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
                         this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                     }			
                 }
@@ -340,6 +358,7 @@ var images = require('./images.json');
 			this.state.selectedCalculation = 2; // Force the color to Uniqueness
         } else {
             // when not work with monarch's analyze/phenotypes page
+            // this can be single species mode or cross comparison mode depends on the config
             // load the default selected target targetGroup list based on the active flag in config, 
             // has nothing to do with the monarch's analyze phenotypes page - Joe
 			for (var idx in this.state.targetGroupList) {
@@ -348,16 +367,18 @@ var images = require('./images.json');
 					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
 				}	
 				// should they be shown in the comparison view
-				if (this.state.targetGroupList[idx].crossComparisonView) {
-					this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-				}			
+				// crossComparisonView matters only when active = true - Joe
+                if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
+                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                }			
 			}
             
             // initialize data processing class for simsearch query
 		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
             
             // starting loading the data from simsearch
-		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);  //optional parm:   this.limit);
+            //optional parm: this.limit
+		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);
         }
 	},
 
@@ -376,11 +397,6 @@ var images = require('./images.json');
 		element.appendTo(this.state.pgContainer);
 	},
     
-    // if no owlsim data returned
-    _showNoResults: function() {
-        this.state.pgContainer.html('No results returned.');
-    },
-    
     // callback to handle the loaded owlsim data
 	_asyncDataLoadingCB: function(self) {
 		// add dataManager to this.state
@@ -398,25 +414,14 @@ var images = require('./images.json');
 
         // check owlsim data integrity - Joe
         if (self.state.owlSimFunction === 'compare') {
-            // noMatchesFound and noMetadataFound are compare api flags
-            // they are only available in compare mode
-            // check the flags to see if there's matches data found - Joe
-            if (self.state.dataManager.noMatchesFound) {
-                self._showNoResults();
+            if (this.state.dataLoader.speciesNoMatch.length > 0) {
+                self._showSpeciesNoMatch();
             } else {
-                // initialize axis groups
-	            self._createAxisRenderingGroups();
-        
                 // Create all UI components
                 // create the display as usual if there's 'b' and 'metadata' fields found - Joe
                 self._createDisplay();
             }
         } else {
-	        // initialize axis groups
-            self._createAxisRenderingGroups();
-    
-            // Create all UI components
-            // create the display as usual if there's 'b' and 'metadata' fields found - Joe
             self._createDisplay();
         }
 	},
@@ -456,9 +461,7 @@ var images = require('./images.json');
             // unordered target list in the format of a named array, has all added genotype data
             targetList = this.state.dataManager.getData("target", species_name);
         }	  
-
-        console.log(targetList);
-        
+  
 		// update target axis group
         var targetAxisRenderStartPos = this.state.targetAxis.getRenderStartPos();
         var targetAxisRenderEndPos = this.state.targetAxis.getRenderEndPos();
@@ -546,27 +549,59 @@ var images = require('./images.json');
 
     // Being called only for the first time the widget is being loaded
 	_createDisplay: function() {
-        // create the display as usual if there's 'b' and 'metadata' fields found - Joe
-        if (this.state.dataManager.isInitialized()) {
-            this._createColorScalePerSimilarityCalculation();
-            
-            // No need to recreate this tooltip on _updateDisplay() - Joe
-            this._createTooltipStub();
-        
-            this._createSvgComponents();
-
-            // Create and postion HTML sections
-            
-            // Unmatched sources
-            this._createUnmatchedSources();
-            
-            // Options menu
-            this._createPhenogridControls();
-            this._positionPhenogridControls();
-            this._togglePhenogridControls();
+        if (this.state.initialTargetGroupLoadList.length === 1) {
+            // in this case, speciesNoMatch.length can only be 1 or 0
+            if (this.state.dataLoader.speciesNoMatch.length === 0) {
+                // create UI components
+                this._createDisplayComponents();
+            } else {
+                // no need to show other SVG UI elements if no matched data
+                this._showSpeciesNoMatch();
+            }
+        } else if (this.state.initialTargetGroupLoadList.length > 1) {
+            if (this.state.dataLoader.speciesNoMatch.length > 0) {
+                if (this.state.dataLoader.speciesNoMatch.length === this.state.initialTargetGroupLoadList.length) {
+                    // in this case all species have no matches
+                    this._showSpeciesNoMatch();
+                } else {
+                    // show error message and display grid for the rest of the species
+                    this._showSpeciesNoMatch();
+                    this._createDisplayComponents();
+                }
+            } else {
+                this._createDisplayComponents();
+            }
         } else {
-            this._showNoResults();
+            // no active species in config
+            this._showConfigErrorMsg();
         }
+    },
+    
+    _showConfigErrorMsg: function() {
+        this.state.pgContainer.html(this.state.messaging.misconfig);
+    },
+    
+    _createDisplayComponents: function() {
+        // initialize axis groups
+        this._createAxisRenderingGroups();
+        
+        // create the display as usual if there's 'b' and 'metadata' fields found - Joe
+        this._createColorScalePerSimilarityCalculation();
+        
+        // No need to recreate this tooltip on _updateDisplay() - Joe
+        this._createTooltipStub();
+    
+        this._createSvgComponents();
+
+        // Create and postion HTML sections
+        
+        // Unmatched sources
+        this._createUnmatchedSources();
+        
+        // Options menu
+        this._createPhenogridControls();
+        this._positionPhenogridControls();
+        this._togglePhenogridControls();
         
         this._setSvgSize();
     },
@@ -576,15 +611,11 @@ var images = require('./images.json');
         // Only remove the #pg_svg node and leave #this.state.pgInstanceId_controls there
         // since #this.state.pgInstanceId_controls is HTML not SVG - Joe
         this.element.find('#' + this.state.pgInstanceId + '_svg').remove();
-        
-        if (this.state.dataManager.isInitialized()) {
-			this._createSvgComponents();
+    
+        this._createSvgComponents();
 
-            // Reposition HTML sections
-			this._positionPhenogridControls();
-		} else {
-			this._showNoResults();
-		}
+        // Reposition HTML sections
+        this._positionPhenogridControls();
         
         this._setSvgSize();
 	},
@@ -614,6 +645,16 @@ var images = require('./images.json');
         this.state.svg = d3.select('#' + this.state.pgInstanceId + '_svg_group')
             .style("font-family", "Verdana, Geneva, sans-serif");
 	},
+    
+    // if no owlsim data returned for that species
+    _showSpeciesNoMatch: function() {
+        var output = '';
+        for (var i = 0; i < this.state.dataLoader.speciesNoMatch.length; i++) {
+            // replace the placeholder with species name
+            output +=  this.state.messaging.noSimSearchMatch.replace(/{%speciesName%}/, this.state.dataLoader.speciesNoMatch[i]) + '<br>';
+        }
+        this.state.pgContainer.append(output);
+    },
     
     // Positioned next to the grid region bottom
 	_addLogoImage: function() { 
@@ -2291,7 +2332,7 @@ var images = require('./images.json');
     _createUnmatchedSources: function() {
         // First to check if there's any unmatched sources
         this.state.unmatchedSources = this._getUnmatchedSources();
-        console.log(this.state.pgInstanceId + ' Unmatched: ' + this.state.unmatchedSources);
+        //console.log(this.state.pgInstanceId + ' Unmatched: ' + this.state.unmatchedSources);
         // Proceed if there's any unmatched
         if (this.state.unmatchedSources.length > 0) {
             // create the container div

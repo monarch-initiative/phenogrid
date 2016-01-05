@@ -24,9 +24,6 @@ var DataManager = function(dataLoader) {
 	this.cellData = this.dataLoader.getCellData();
 
     this.maxMaxIC = this.dataLoader.maxMaxIC;
-    
-    // compare api flag - Joe
-    this.noMatchesFound = this.dataLoader.noMatchesFound;
 
 	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];
@@ -42,25 +39,6 @@ var DataManager = function(dataLoader) {
 
 DataManager.prototype = {
 	constructor: DataManager,
-
-	/*
-		Function: isInitialized
-			check to see if datasets have been initialized 
-
-		Returns:
-			boolean
-	*/	
-	isInitialized: function() {
-		var targetSize = Object.keys(this.target).length;
-		var sourceSize = Object.keys(this.source).length;
-
-		if (sourceSize > 0 && targetSize > 0) {
-			this.initialized = true;
-		} else {
-			this.initialized = false;
-		}
-		return this.initialized;
-	},
 
 	/*
 		Function: getData

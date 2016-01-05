@@ -16,11 +16,13 @@ var Utils = require('./utils.js');
  	 	parent - reference to parent calling object
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
+        limit - cutoff number
  */
-var DataLoader = function(serverUrl, simSearchQuery, limit) {
-	this.serverURL = serverUrl;	
-	this.simSearchURL = serverUrl + simSearchQuery;
+var DataLoader = function(serverURL, simSearchQuery, limit) {
+	this.serverURL = serverURL;	
+    this.simSearchQuery = simSearchQuery; // object
 	this.qryString = '';
+    this.speciesNoMatch = []; // contains species names that don't have simsearch matches
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
@@ -32,8 +34,6 @@ var DataLoader = function(serverUrl, simSearchQuery, limit) {
 	this.ontologyCache = [];
     this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
 	this.postDataLoadCallback = '';
-    // compare api flags
-    this.noMatchesFound = false; // flag to mark if there's matches in the returned JSON
 };
 
 DataLoader.prototype = {
@@ -46,29 +46,20 @@ DataLoader.prototype = {
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			targetGroup - list of targetGroup
+			targetGroupList - list of targetGroups, array
 			limit - value to limit targets returned
 	*/
-	load: function(qrySourceList, targetGroup, asyncDataLoadingCallback, limit) {
-        var targetGroupList = [];
-
+	load: function(qrySourceList, targetGroupList, asyncDataLoadingCallback, limit) {
 		// save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-		if (typeof(targetGroup) === 'object') {
-			targetGroupList = targetGroup;
-		}
-		else if (typeof(targetGroup) === 'string') { // for just string passed place it into an array
-			targetGroupList = [targetGroup];
-		}
-
-	    this.qryString = 'input_items=' + qrySourceList.join("+");
+	    this.qryString = this.simSearchQuery.inputItemsString + qrySourceList.join("+");
 
         // limit is used in analyze/phenotypes search mode
         // can also be used in general simsearch query - Joe
 		if (typeof(limit) !== 'undefined') {
-	    	this.qryString += "&limit=" + limit;
+	    	this.qryString += this.simSearchQuery.limitString + limit;
 		}
 
 		this.postDataLoadCallback = asyncDataLoadingCallback;
@@ -95,7 +86,7 @@ DataLoader.prototype = {
 		this.origSourceList = qrySourceList;
 
         // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
-	    this.qryString = this.simSearchURL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
+	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
 
         var self = this;
         
@@ -106,12 +97,13 @@ DataLoader.prototype = {
             async : true,
             dataType : 'json',
             success : function(data) {
-                console.log('compare data loaded:');
+                //console.log('compare data loaded:');
                 //console.log(data);
                 
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
-                    self.noMatchesFound = true; // set the noMatchesFound flag
+                    // Add the 'compare' name to the speciesNoMatch array
+                    self.speciesNoMatch.push('compare');
                 } else {
                     // use 'compare' as the key of the named array
                     self.transform("compare", data);  
@@ -119,22 +111,8 @@ DataLoader.prototype = {
                 
                 self.postDataLoadCallback(); 
             },
-            error: function (xhr, errorType, exception) { 
-            // Triggered if an error communicating with server
-
-            switch(xhr.status){
-                case 404:
-                case 500:
-                case 501:
-                case 502:
-                case 503:
-                case 504:
-                case 505:
-                default:
-                    console.log("exception: " + xhr.status + " " + exception);
-                    console.log("We're having some problems. Please check your network connection.");
-                    break;
-                }
+            error: function () { 
+                console.log('Ajax error.')
             } 
         });
 	},
@@ -149,37 +127,70 @@ DataLoader.prototype = {
 			qryString - query list url parameters, which includes list of sources
 	*/
 	process: function(targetGrpList, qryString) {
-		var postData = '';
-
 		if (targetGrpList.length > 0) {
 			var target = targetGrpList[0];  // pull off the first to start processing
 			targetGrpList = targetGrpList.slice(1);
 	    	
 	    	// need to add on target targetGroup id
-	    	postData = qryString + "&target_species=" + target.taxon;
+	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.taxon;
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
-			this.postFetch(this.simSearchURL, target, targetGrpList, postFetchCallback, postData);
+			this.postFetch(this.serverURL + this.simSearchQuery.URL, target, targetGrpList, postFetchCallback, postData);
 		} else {
 			this.postDataLoadCallback();  // make a call back to post data init function
 		}
 	},
 
+    /*
+		Function: postFetch		
+	 		generic ajax call for all POST queries
+
+	 	Parameters:
+	 		url - server url
+	 		target - some target e.g., id
+	 		targets - target list
+	 		callback
+	 		postData - data to be posted
+	*/ 
+	postFetch: function (url, target, targets, callback, postData) {
+		var self = this;
+
+        console.log('POST:' + url);
+        
+        jQuery.ajax({
+            url: url,
+            method: 'POST', 
+            data: postData,
+            async : true,
+            timeout: 60000,
+            dataType : 'json',
+            success : function(data) {
+                callback(self, target, targets, data);
+            },
+            error: function () { 
+                console.log('Ajax error.');
+            }
+        });
+	},
+
+    
 	/*
 		Function: postSimsFetchCb
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
-
-		if (data != null || typeof(data) != 'undefined') {
-		// save the original owlsim data
-			self.owlsimsData[target.name] = data;
-
-			if (typeof (data) !=='undefined' && data !== null) {
-				// now transform data to there basic data structures
-				self.transform(target.name, data);  
-			}
+		if (data !== null || typeof(data) !== 'undefined') {
+		    // data.b contains all the matches, if not present, then no matches - Joe
+            if (typeof(data.b) === 'undefined') {
+                // Add the species name to the speciesNoMatch array
+                self.speciesNoMatch.push(target.name);
+            } else {
+                // save the original owlsim data
+                self.owlsimsData[target.name] = data;
+                // now transform data to there basic data structures
+                self.transform(target.name, data);  
+            }
 		}
 		// iterative back to process to make sure we processed all the targetGrpList
 		self.process(targetGrpList, self.qryString);
@@ -443,86 +454,22 @@ DataLoader.prototype = {
 		return reloaded;
 	},
 
-	/*
-		Function: postFetch		
-	 		generic ajax call for all POST queries
-
-	 	Parameters:
-	 		url - server url
-	 		target - some target e.g., id
-	 		targets - target list
-	 		callback
-	 		postData - data to be posted
-	 */ 
-	postFetch: function (url, target, targets, callback, postData) {
-		var self = this;
-
-		if (typeof(postData) != 'undefined') {
-			console.log('POST:' + url);
-			jQuery.ajax({
-				url: url,
-				method: 'POST', 
-				data: postData,
-				async : true,
-				timeout: 60000,
-				dataType : 'json',
-				success : function(data) {
-					callback(self, target, targets, data);
-				},
-				error: function (xhr, errorType, exception) { 
-				// Triggered if an error communicating with server
-
-				switch(xhr.status) {
-					case 0:
-						if (exception == 'timeout') {
-							callback(self, target, targets, null);
-						}
-					case 404:
-					case 500:
-					case 501:
-					case 502:
-					case 503:
-					case 504:
-					case 505:
-					default:
-						console.log("exception: " + xhr.status + " " + exception);
-						console.log("We're having some problems. Please check your network connection.");
-						break;
-					}
-				} 
-			});
-		}
-	},
-
+	
 	getFetch: function (self, url, target, callback, finalCallback, parent) {
-
-			console.log('GET:' + url);
-			jQuery.ajax({
-				url: url,
-				method: 'GET', 
-				async : true,
-				dataType : 'json',
-				success : function(data) {
-					callback(self, target, data, finalCallback, parent);					
-				},
-				error: function (xhr, errorType, exception) { 
-				// Triggered if an error communicating with server
-
-				switch(xhr.status){
-					case 404:
-					case 500:
-					case 501:
-					case 502:
-					case 503:
-					case 504:
-					case 505:
-					default:
-						console.log("exception: " + xhr.status + " " + exception);
-						console.log("We're having some problems. Please check your network connection.");
-						break;
-					}
-				} 
-			});
+        console.log('GET:' + url);
+        
+        jQuery.ajax({
+            url: url,
+            method: 'GET', 
+            async : true,
+            dataType : 'json',
+            success : function(data) {
+                callback(self, target, data, finalCallback, parent);					
+            },
+            error: function () { 
+                console.log('Ajax error.')
+            } 
+        });
 	},
 
 	/*
@@ -613,13 +560,13 @@ DataLoader.prototype = {
                     genotype_id_list = genotype_id_list.slice(0, -1);
                 }
                 // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
-                var compare_url = self.serverURL +  parent.state.compareQuery + '/' + phenotype_id_list + "/" + genotype_id_list;
+                var compare_url = self.serverURL +  parent.state.compareQuery.URL + '/' + phenotype_id_list + "/" + genotype_id_list;
                 // Now we need to get all the matches data
                 var cb = self.getGenotypesCbCb;
                 self.getFetch(self, compare_url, id, cb, finalCallback, parent);
             } else {
                 var simsearchResults = {};
-                var errorMsg = 'This gene has no associated genotypes.';
+                var errorMsg = parent.state.messaging.noAssociatedGenotype;
                 // return empty JSON since we have an empty genotype_list - Joe
                 finalCallback(simsearchResults, id, parent, errorMsg);
             }
@@ -658,7 +605,7 @@ DataLoader.prototype = {
             finalCallback(results, id, parent);
         } else {
             var simsearchResults = {};
-            var errorMsg = 'No matches found between the provided phenotypes and expanded genotypes.';
+            var errorMsg = parent.state.messaging.noSimSearchMatchForExpandedGenotype;
             // return empty JSON since we have no matches found - Joe
             finalCallback(simsearchResults, id, parent, errorMsg);
         }

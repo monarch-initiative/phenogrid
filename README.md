@@ -145,43 +145,66 @@ var phenotypes = [
 ];
 
 window.onload = function() {
+
+    // Example 1, there are three species that are loaded and each of them has simsearch matches.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
-        selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
-        selectedCalculation: 0, // 0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t)
         targetGroupList: [
-            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
-            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
-            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
-            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
-            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+            {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+            {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+            {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true}
        ]
     });
     
-    // instance 2 - same config as instance 1
+    // Example 2, Same as Example 1
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
         targetGroupList: [
-            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
-            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
-            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true},
-            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
-            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+            {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+            {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+            {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true}
        ]
     });
     
-    // instance 3
+    // Example 3, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
         serverURL : "http://beta.monarchinitiative.org",
         phenotypeData: phenotypes,
         targetGroupList: [
-            {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
-            {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": false, "active": false},
-            {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": false, "active": false},
-            {"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
-            {"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+            {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+            {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: true},
+            {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: false}
+       ]
+    });
+
+
+    // Example 4, we wanted to show matches for all the three species but none of them has simsearch matches. Friendly messages show instead.
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
+        serverURL : "http://beta.monarchinitiative.org",
+        phenotypeData: [
+            {id:"WBPhenotype:0001331", observed:"positive"},
+            {id:"WBPhenotype:0000679", observed:"positive"},
+            {id:"WBPhenotype:0002001", observed:"positive"},
+            {id:"WBPhenotype:0000050", observed:"positive"}
+        ],
+        targetGroupList: [
+            {name: "Homo sapiens", taxon: "9606", crossComparisonView: false, active: true},
+            {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: true},
+            {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: true}
+       ]
+    });
+    
+    // Example 5, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container5'), {
+        serverURL : "http://beta.monarchinitiative.org",
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+            {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+            {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: true},
+            {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: true, active: true}
        ]
     });
 }
@@ -196,6 +219,10 @@ window.onload = function() {
 <div id="phenogrid_container2" class="clearfix"></div>
 
 <div id="phenogrid_container3" class="clearfix"></div>
+
+<div id="phenogrid_container4" class="clearfix"></div>
+
+<div id="phenogrid_container5" class="clearfix"></div>
 
 </body>
 </html>
@@ -236,16 +263,20 @@ For each pairwise comparison of phenotypes from the query (q) and target (t), we
 This option allows you to specify the set of target groups (i.e., species) that will be visible throughout Phenogrid. There are two parameters which allow you to control whether a target group is displayed as a default in the multi-target comparison view, `crossComparisonView` and whether it should be active, `active = true`,  and thus fully visible within phenogrid. If `crossComparisonView = true`, for example, the target group will be visible as a default within the multi-target comparison view. For example, by default the following targets will be visible upon loading phenogrid (active must be set to true):
 
 ```
-{"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
-{"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
-{"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true}
+{name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+{name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+{name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+{name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+{name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false}
 ```
+
+At this point, only species in the above list are supported.
 
 The `active` parameter can override other parameters, but activating or deactivating a target group. For example, if the `active = false`, then the target group is not active within phenogrid and is not shown in comparison nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be displayed within phenogrid and would like to retain the target group reference within the list. For example, the following are not active and will not be visible within phenogrid:
 
 ```
-{"name": "Drosophila melanogaster", "taxon": "7227", "crossComparisonView": false, "active": false},
-{"name": "UDPICS", "taxon": "UDPICS", "crossComparisonView": false, "active": false}
+{name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+{name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false}
 ```
 
 ## Web Browser Support
