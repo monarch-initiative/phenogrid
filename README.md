@@ -220,6 +220,10 @@ window.onload = function() {
 
 <div id="phenogrid_container3" class="clearfix"></div>
 
+<div id="phenogrid_container4" class="clearfix"></div>
+
+<div id="phenogrid_container5" class="clearfix"></div>
+
 </body>
 </html>
 ```
@@ -266,7 +270,7 @@ This option allows you to specify the set of target groups (i.e., species) that 
 {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false}
 ```
 
-
+At this point, only species in the above list are supported.
 
 The `active` parameter can override other parameters, but activating or deactivating a target group. For example, if the `active = false`, then the target group is not active within phenogrid and is not shown in comparison nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be displayed within phenogrid and would like to retain the target group reference within the list. For example, the following are not active and will not be visible within phenogrid:
 
