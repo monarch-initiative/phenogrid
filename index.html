@@ -81,7 +81,7 @@ var phenotypes = [
 
 
 window.onload = function() {
-
+    /*
     // Example 1, there are three species that are loaded and each of them has simsearch matches.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL : "http://beta.monarchinitiative.org",
@@ -142,6 +142,12 @@ window.onload = function() {
             {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: true},
             {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: true, active: true}
        ]
+    });
+    */
+    
+    // IMPC testing
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
+        IMPC : true
     });
 }
 </script>

@@ -61,6 +61,12 @@ var htmlnotes = require('./htmlnotes.json');
 // images in data uri format, only monarch logo so far
 var images = require('./images.json');
 
+
+
+// IMPC JSON: http://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease&geneId=MGI:95523&diseaseId=OMIM:101600
+var impcData = require('./impc.json');
+
+
 (function(factory) {
 	// If there is a variable named module and it has an exports property,
 	// then we're working in a Node-like environment. Use require to load
@@ -118,6 +124,8 @@ var images = require('./images.json');
                 noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
                 noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
             },
+            // For IMPC integration
+            IMPC: true, // true or false
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
@@ -137,6 +145,11 @@ var images = require('./images.json');
             },
             compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
+            },
+            IMPCQuery: {
+                URL: 'https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease',
+                geneIdString: '&geneId=', // MGI:95523
+                diseaseIdString: '&diseaseId=' // OMIM:101600
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
@@ -271,6 +284,41 @@ var images = require('./images.json');
 		// show loading spinner - Joe
 		this._showLoadingSpinner();		
 
+        // IMPC integration, IMPC returns its own list of mouse phenotypes
+        if (this.state.IMPC) {
+            // Load the IMPC JSON
+            
+            /*
+            XMLHttpRequest cannot load https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease&geneId=MGI:95523&diseaseId=OMIM:101600. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:8000' is therefore not allowed access.
+            
+            $.ajax({
+                url: this.state.IMPCQuery.URL + this.state.IMPCQuery.geneIdString + 'MGI:95523' + this.state.IMPCQuery.diseaseIdString + 'OMIM:101600',
+                method: 'GET', 
+                async : false, // wait until we load all the data
+                dataType : 'json',
+                success : function(data) {
+                    console.log('IMPC data loaded:');
+                    console.log(data);
+                    
+                    
+                },
+                error: function () { 
+                    console.log('Ajax error.')
+                } 
+            });
+            */
+            
+            console.log(impcData);
+            
+        }
+        
+        
+        
+        
+        
+        
+        
+        
         // Remove duplicated source IDs - Joe
 		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
