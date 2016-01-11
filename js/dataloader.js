@@ -320,6 +320,151 @@ DataLoader.prototype = {
 		} // if
 	}, 
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	transformIMPCData: function(targetGroup, data) {      		
+		if (typeof(data) !== 'undefined' &&
+		    typeof (data.b) !== 'undefined') {
+			console.log("transforming IMPC data...");
+
+            // sometimes the 'metadata' field might be missing from the JSON - Joe
+			// extract the maxIC score; ugh!
+			if (typeof (data.metadata) !== 'undefined') {
+				this.maxMaxIC = data.metadata.maxMaxIC;
+			}
+			
+            // just initialize the specific targetGroup
+            
+            // Here we don't reset the cellData, targetData, and sourceData every time,
+            // because we want to append the genotype expansion data - Joe
+            // No need to redefine this in genotypeTransform() - Joe   
+			if (typeof(this.cellData[targetGroup]) === 'undefined') {
+                this.cellData[targetGroup] = {};
+            }
+            if (typeof(this.targetData[targetGroup]) === 'undefined') {
+                this.targetData[targetGroup] = {};
+            }
+            if (typeof(this.sourceData[targetGroup]) === 'undefined') {
+                this.sourceData[targetGroup] = {};
+            }
+
+ 
+            var targetVal;
+			for (var idx in data.xAxis) {
+				var item = data.xAxis[idx];
+				var targetID = Utils.getConceptId('MGI:95523');
+
+				// build the target list
+				targetVal = {
+                        "id":targetID, 
+                         "label": item.label, 
+                         "targetGroup": item.taxon.label, 
+                         "taxon": item.taxon.id, 
+                         "type": 'genotype', 
+                         "rank": parseInt(idx)+1,  // start with 1 not zero
+                         "score": item.score.score
+                    }; 
+  
+                // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
+                if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
+                    this.targetData[targetGroup][targetID] = {};
+                }
+                
+                this.targetData[targetGroup][targetID] = targetVal;
+
+				var matches = data.xAxis[idx].phenotypes; // array, a list of matched mouse phenotypes
+				var curr_row, lcs, dataVals;
+				var sourceID_a, currID_b, currID_lcs;
+				if (typeof(matches) !== 'undefined' && matches.length > 0) {
+					for (var matchIdx in matches) {
+						// E.g., matches[i].b is one of the input phenotypes, witch matches to matches[i].a in the mouse 
+                        // via the least common subumser (lcs) match[i].lcs. - Joe
+                        var sum = 0, count = 0;						
+						//curr_row = matches[matchIdx];
+						sourceID_a = Utils.getConceptId(matches[matchIdx]);
+						currID_b = Utils.getConceptId('ZP:0001041');
+						currID_lcs = Utils.getConceptId('MP:0004540');
+
+						// get the normalized IC
+						lcs = 3.77;
+
+						var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
+
+						// build a unique list of sources
+						if (typeof(srcElement) === 'undefined') {
+							count++;
+							sum += parseFloat(7.3592450252115755);
+
+							// create a new source object
+							dataVals = {"id":sourceID_a, "label": sourceID_a, "IC": parseFloat(7.3592450252115755),
+											"count": count, "sum": sum, "type": "phenotype"};
+							this.sourceData[targetGroup][sourceID_a] = dataVals;
+						} else {
+							this.sourceData[targetGroup][sourceID_a].count += 1;
+							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(7.3592450252115755);							
+						}
+                        
+                        var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
+
+	
+						// building cell data points
+						dataVals = {"source_id": sourceID_a, 
+									"target_id": targetID, 
+									"targetGroup": item.taxon.label,									
+									"value": lcs, 
+									"a_IC" : 7.3592450252115755,  
+									"a_label" : sourceID_a,
+									"subsumer_id": currID_lcs, 
+									"subsumer_label": 'small maxilla', 
+									"subsumer_IC": parseFloat(7.3592450252115755), 
+									"b_id": currID_b,
+									"b_label": 'abnormal(ly) decreased size maxilla', 
+									"b_IC": parseFloat(12.085903273382044),
+									"type": 'cell'
+                                    };
+							 
+                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error   
+                        // No need to redefine this in genotypeTransform() - Joe                     
+					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
+							this.cellData[targetGroup][sourceID_a] = {};
+					    }
+
+					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
+                        
+                        console.log(this.sourceData, this.targetData, this.cellData)
+					}
+				}  //if
+			} // for
+		} // if
+	}, 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     // used to transform genotype/phenotype matches 
     // modified based on transform() - Joe
     genotypeTransform: function(targetGroup, data, parentGeneID) {      		

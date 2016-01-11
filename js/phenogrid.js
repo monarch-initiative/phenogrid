@@ -309,32 +309,17 @@ var impcData = require('./impc.json');
             */
             
             console.log(impcData);
+         
+            // use the mouse phenotypes from the input JSON
+            this.state.phenotypeData = impcData.yAxis[0].phenotypes;
+         
+            console.log(this.state.phenotypeData);
+             
+             // Remove duplicated source IDs - Joe
+            var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
             
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        // Remove duplicated source IDs - Joe
-		var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
-
-		var self = this;
-        // no change to the callback - Joe
-        var asyncDataLoadingCallback = function() {
-            self._asyncDataLoadingCB(self); 
-        };
-
-        // Load data from compare API for geneList
-        // in compare mode, there's no crossComparisonView - Joe
-        if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
-            // overwrite the this.state.targetGroupList with only 'compare'
-            // this 'compare' is hard coded in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
             this.state.targetGroupList = [
-                {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
+                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true}
             ];
             
             // load the target targetGroup list based on the active flag
@@ -348,27 +333,42 @@ var impcData = require('./impc.json');
                 if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
                     this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                 }			
-            }	
-
-            // initialize data processing class for compare query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+            }
+            
+            // No data loading since we've already had the JSON
+            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
 
             // starting loading the data from compare api
             // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
-		    this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
-        } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
-            // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
-            if (this.state.targetSpecies === 'all') {
-                // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
+            this.state.dataLoader.transformIMPCData();
+
+            // add dataManager to this.state
+            this.state.dataManager = new DataManager(this.state.dataLoader);
+
+            this._updateSelectedCompareTargetGroup();
+            
+            // This removes the loading spinner, otherwise the spinner will be always there - Joe
+            this.state.pgContainer.html('');
+
+            this._createDisplay();
+
+        } else {
+            // Remove duplicated source IDs - Joe
+            var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
+
+            var self = this;
+            // no change to the callback - Joe
+            var asyncDataLoadingCallback = function() {
+                self._asyncDataLoadingCB(self); 
+            };
+
+            // Load data from compare API for geneList
+            // in compare mode, there's no crossComparisonView - Joe
+            if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
+                // overwrite the this.state.targetGroupList with only 'compare'
+                // this 'compare' is hard coded in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
                 this.state.targetGroupList = [
-                    // Because only the three species are supported in monarch analyze/phenotypes page at this point - Joe
-                    {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
-                    {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
-                    {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
-                    // Disabled species
-                    {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                    {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
-                    {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+                    {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
                 ];
                 
                 // load the target targetGroup list based on the active flag
@@ -382,52 +382,89 @@ var impcData = require('./impc.json');
                     if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
                         this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                     }			
+                }	
+
+                // initialize data processing class for compare query
+                this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+
+                // starting loading the data from compare api
+                // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
+                this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
+            } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
+                // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
+                if (this.state.targetSpecies === 'all') {
+                    // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
+                    this.state.targetGroupList = [
+                        // Because only the three species are supported in monarch analyze/phenotypes page at this point - Joe
+                        {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+                        {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+                        {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                        // Disabled species
+                        {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                        {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
+                        {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+                    ];
+                    
+                    // load the target targetGroup list based on the active flag
+                    for (var idx in this.state.targetGroupList) {
+                        // for active targetGroup pre-load them
+                        if (this.state.targetGroupList[idx].active) {
+                            this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                        }	
+                        // should they be shown in the comparison view
+                        // crossComparisonView matters only when active = true - Joe
+                        if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
+                            this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                        }			
+                    }
+                } else { // when single species is selected (taxon is passed in)
+                    // load just the one selected from the dropdown menu - Joe
+                    for (var idx in this.state.targetGroupList) {
+                        // for active targetGroup pre-load them
+                        // The phenogrid constructor settings will overwrite the one in phenogrid_config.js - Joe
+                        if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
+                            this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                            this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                        }	
+                    }
                 }
-            } else { // when single species is selected (taxon is passed in)
-                // load just the one selected from the dropdown menu - Joe
+                
+                // initialize data processing class for simsearch query
+                this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+                
+                // starting loading the data from simsearch
+                this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback, this.state.searchResultLimit);
+            } else if (this.state.owlSimFunction === 'exomiser') {
+                // hook for exomiser, PENDING - Joe
+                // from the old code
+                this.state.selectedCalculation = 2; // Force the color to Uniqueness
+            } else {
+                // when not work with monarch's analyze/phenotypes page
+                // this can be single species mode or cross comparison mode depends on the config
+                // load the default selected target targetGroup list based on the active flag in config, 
+                // has nothing to do with the monarch's analyze phenotypes page - Joe
                 for (var idx in this.state.targetGroupList) {
                     // for active targetGroup pre-load them
-                    // The phenogrid constructor settings will overwrite the one in phenogrid_config.js - Joe
-                    if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
+                    if (this.state.targetGroupList[idx].active) {
                         this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                     }	
+                    // should they be shown in the comparison view
+                    // crossComparisonView matters only when active = true - Joe
+                    if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
+                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                    }			
                 }
+                
+                // initialize data processing class for simsearch query
+                this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+                
+                // starting loading the data from simsearch
+                //optional parm: this.limit
+                this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);
             }
-            
-            // initialize data processing class for simsearch query
-		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
-            
-            // starting loading the data from simsearch
-		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback, this.state.searchResultLimit);
-        } else if (this.state.owlSimFunction === 'exomiser') {
-            // hook for exomiser, PENDING - Joe
-            // from the old code
-			this.state.selectedCalculation = 2; // Force the color to Uniqueness
-        } else {
-            // when not work with monarch's analyze/phenotypes page
-            // this can be single species mode or cross comparison mode depends on the config
-            // load the default selected target targetGroup list based on the active flag in config, 
-            // has nothing to do with the monarch's analyze phenotypes page - Joe
-			for (var idx in this.state.targetGroupList) {
-				// for active targetGroup pre-load them
-				if (this.state.targetGroupList[idx].active) {
-					this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-				}	
-				// should they be shown in the comparison view
-				// crossComparisonView matters only when active = true - Joe
-                if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
-                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-                }			
-			}
-            
-            // initialize data processing class for simsearch query
-		    this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
-            
-            // starting loading the data from simsearch
-            //optional parm: this.limit
-		    this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);
+
         }
+
 	},
 
     // Phenogrid container div
@@ -473,6 +510,7 @@ var impcData = require('./impc.json');
             self._createDisplay();
         }
 	},
+
 
     // If owlSimFunction === 'compare', we do not have comparison mode
 	_updateSelectedCompareTargetGroup: function() {
