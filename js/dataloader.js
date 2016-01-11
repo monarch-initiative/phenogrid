@@ -331,8 +331,7 @@ DataLoader.prototype = {
     
     
     	transformIMPCData: function(targetGroup, data) {      		
-		if (typeof(data) !== 'undefined' &&
-		    typeof (data.b) !== 'undefined') {
+		if (typeof(data) !== 'undefined') {
 			console.log("transforming IMPC data...");
 
             // sometimes the 'metadata' field might be missing from the JSON - Joe
@@ -437,12 +436,13 @@ DataLoader.prototype = {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
 
-					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
-                        
-                        console.log(this.sourceData, this.targetData, this.cellData)
 					}
 				}  //if
 			} // for
+            
+            
+            console.log(this.sourceData, this.targetData, this.cellData)
+            
 		} // if
 	}, 
     

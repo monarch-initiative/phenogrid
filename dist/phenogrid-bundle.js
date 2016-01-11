@@ -644,8 +644,7 @@ DataLoader.prototype = {
     
     
     	transformIMPCData: function(targetGroup, data) {      		
-		if (typeof(data) !== 'undefined' &&
-		    typeof (data.b) !== 'undefined') {
+		if (typeof(data) !== 'undefined') {
 			console.log("transforming IMPC data...");
 
             // sometimes the 'metadata' field might be missing from the JSON - Joe
@@ -750,12 +749,13 @@ DataLoader.prototype = {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
 
-					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
-                        
-                        console.log(this.sourceData, this.targetData, this.cellData)
 					}
 				}  //if
 			} // for
+            
+            
+            console.log(this.sourceData, this.targetData, this.cellData)
+            
 		} // if
 	}, 
     
@@ -2144,11 +2144,15 @@ var impcData = require('./impc.json');
 
             // starting loading the data from compare api
             // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
-            this.state.dataLoader.transformIMPCData();
+            this.state.dataLoader.transformIMPCData("Mus musculus", impcData);
 
             // add dataManager to this.state
             this.state.dataManager = new DataManager(this.state.dataLoader);
 
+            console.log(this.state.dataManager.source, this.state.dataManager.target, this.state.dataManager.cellData)
+            
+            
+            
             this._updateSelectedCompareTargetGroup();
             
             // This removes the loading spinner, otherwise the spinner will be always there - Joe
