@@ -318,6 +318,12 @@ var impcData = require('./impc.json');
              // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
             
+            var self = this;
+            // no change to the callback - Joe
+            var asyncDataLoadingCallback = function() {
+                self._asyncDataLoadingCB(self); 
+            };
+            
             this.state.targetGroupList = [
                 {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true}
             ];
@@ -335,27 +341,22 @@ var impcData = require('./impc.json');
                 }			
             }
             
-            // No data loading since we've already had the JSON
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+            // combine all the mouse phenotype IDs into one list, then send out one ajax compare call - Joe
+            var mousePhenotypeList = [];
+            
+            for (var idx in impcData.xAxis) {
+                mousePhenotypeList = mousePhenotypeList.concat(impcData.xAxis[idx].phenotypes);
+            }
+            
+            // now we need to remove the duplicates
+            var filteredMousePhenotypeList = this._parseCombinedMousePhenotypeList(mousePhenotypeList);
+            
+            
+            // initialize data processing class for compare query
+            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
-            this.state.dataLoader.transformIMPCData("Mus musculus", impcData);
-
-            // add dataManager to this.state
-            this.state.dataManager = new DataManager(this.state.dataLoader);
-
-            console.log(this.state.dataManager.source, this.state.dataManager.target, this.state.dataManager.cellData)
-            
-            
-            
-            this._updateSelectedCompareTargetGroup();
-            
-            // This removes the loading spinner, otherwise the spinner will be always there - Joe
-            this.state.pgContainer.html('');
-
-            this._createDisplay();
-
+            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, filteredMousePhenotypeList, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -2822,6 +2823,31 @@ var impcData = require('./impc.json');
 		return newlist;
 	},
 
+
+	_parseCombinedMousePhenotypeList: function(phenotypelist) {
+		var filteredList = {};
+		var newlist = [];
+		var pheno;
+		for (var i in phenotypelist) {
+			pheno = phenotypelist[i];
+			if (typeof pheno === 'string') {
+				newlist.push(pheno);
+			}
+		}
+
+		// Now we have all the phenotype IDs ('MP:23451' like strings) in array,
+		// since JavaScript Array push() doesn't remove duplicates,
+		// we need to get rid of the duplicates. There are many duplicates from the monarch-app returned json - Joe
+		// Based on "Smart" but naïve way - http://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array - Joe
+		// filter() calls a provided callback function once for each element in an array, 
+		// and constructs a new array of all the values for which callback returns a true value or a value that coerces to true.
+		newlist = newlist.filter(function(item) {
+			return filteredList.hasOwnProperty(item) ? false : (filteredList[item] = true);
+		});
+
+		return newlist;
+	},
+    
 	_expandOntology: function(id) {
 		// check to see if id has been cached
 		var cache = this.state.dataLoader.checkOntologyCache(id);
