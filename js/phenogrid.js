@@ -763,55 +763,64 @@ var impcData = require('./impc.json');
 	},
     
     _createOverviewTargetGroupLabels: function () {
-		if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
-            var self = this;
-            // targetGroupList is an array that contains all the selected targetGroup names
-            var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
+		if (this.state.IMPC) {
+            this.state.svg.append("text")
+                .attr("x", this.state.gridRegion.x + this._gridWidth() + 25) // 25 is margin - Joe
+                .attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+                .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                .attr("text-anchor", "middle")
+                .text(impcData.title);
+        } else {
+            if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
+                var self = this;
+                // targetGroupList is an array that contains all the selected targetGroup names
+                var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
 
-            // Inverted and multi targetGroup
-            if (self.state.invertAxis) { 
-                var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
+                // Inverted and multi targetGroup
+                if (self.state.invertAxis) { 
+                    var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
 
-                this.state.svg.selectAll(".pg_targetGroup_name")
-                    .data(targetGroupList)
-                    .enter()
-                    .append("text")
-                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
-                    .attr("y", function(d, i) { 
-                            return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                    this.state.svg.selectAll(".pg_targetGroup_name")
+                        .data(targetGroupList)
+                        .enter()
+                        .append("text")
+                        .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
+                        .attr("y", function(d, i) { 
+                                return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                            })
+                        .attr('transform', function(d, i) {
+                            var currX = self.state.gridRegion.x + self._gridWidth() + 25;
+                            var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                            return 'rotate(90 ' + currX + ' ' + currY + ')';
+                        }) // rotate by 90 degrees 
+                        .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                        .text(function (d, i){
+                            return targetGroupList[i];
                         })
-                    .attr('transform', function(d, i) {
-                        var currX = self.state.gridRegion.x + self._gridWidth() + 25;
-                        var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-                        return 'rotate(90 ' + currX + ' ' + currY + ')';
-                    }) // rotate by 90 degrees 
-                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                    .text(function (d, i){
-                        return targetGroupList[i];
-                    })
-                    .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
-            } else {
-            	var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
+                        .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
+                } else {
+                    var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
 
-                this.state.svg.selectAll(".pg_targetGroup_name")
-                    .data(targetGroupList)
-                    .enter()
-                    .append("text")
-                    .attr("x", function(d, i){ 
-                            return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
-                        })
-                    .attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
-                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                    .text(function(d, i){return targetGroupList[i];})
-                    .attr("text-anchor", function() {
-                        if (self._isCrossComparisonView()) {
-                            return 'start'; // Try to align with the rotated divider lines for cross-target comparison
-                        } else {
-                            return 'middle'; // Position the label in middle for single species
-                        }
-                    }); 
-            }
-        } 
+                    this.state.svg.selectAll(".pg_targetGroup_name")
+                        .data(targetGroupList)
+                        .enter()
+                        .append("text")
+                        .attr("x", function(d, i){ 
+                                return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
+                            })
+                        .attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+                        .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                        .text(function(d, i){return targetGroupList[i];})
+                        .attr("text-anchor", function() {
+                            if (self._isCrossComparisonView()) {
+                                return 'start'; // Try to align with the rotated divider lines for cross-target comparison
+                            } else {
+                                return 'middle'; // Position the label in middle for single species
+                            }
+                        }); 
+                }
+            } 
+        }
 	},
 
     // Create minimap and scrollbars based on needs
