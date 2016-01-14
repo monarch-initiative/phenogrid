@@ -318,6 +318,8 @@ var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 
 var Utils = require('./utils.js');
 
+var impcData = require('./impc.json');
+
 /*
  	Package: dataloader.js
 
@@ -438,18 +440,18 @@ DataLoader.prototype = {
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			mousePhenotypeList - combined list of mouse genes
+			genotypeList - combined list of mouse genes
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForIMPC: function(qrySourceList, mousePhenotypeList, asyncDataLoadingCallback) {
+    loadCompareDataForIMPC: function(qrySourceList, genotypeList, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP:0000074,MP:0000081
-	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + mousePhenotypeList.join(",");
+        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MGI:3844310,MGI:2176484
+	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + genotypeList.join(",");
 
         var self = this;
         
@@ -469,7 +471,7 @@ DataLoader.prototype = {
                     self.speciesNoMatch.push('Mus musculus');
                 } else {
                     // use 'Mus musculus' as the key of the named array
-                    self.transformIMPC("Mus musculus", data);  
+                    self.transform("Mus musculus", data);  
                 }
                 
                 self.postDataLoadCallback(); 
@@ -683,8 +685,10 @@ DataLoader.prototype = {
 			} // for
 		} // if
 	}, 
+    
+    
 
-    transformIMPC: function(targetGroup, data) {      		
+    transformIMPC222: function(targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
@@ -712,9 +716,34 @@ DataLoader.prototype = {
 
  
             var targetVal;
+            // Target items are genotypes from the IMPC data xAxis
+            for (var i in impcData.xAxis) {
+                // since we only have genotype label, no id
+                var targetID = impcData.xAxis[i].label;
+                // build the target list
+				targetVal = {
+                        "id": targetID,  
+                        "label": impcData.xAxis[i].label, 
+                        "targetGroup": targetGroup, // Mouse
+                        "taxon": '10090', // Mouse taxon
+                        "type": 'genotype', 
+                        "rank": impcData.xAxis[i].score.rank + 1,  // start with 1 not zero
+                        "score": impcData.xAxis[i].score.score
+                    };
+                
+                // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
+                if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
+                    this.targetData[targetGroup][targetID] = {};
+                }
+                
+                this.targetData[targetGroup][targetID] = targetVal;
+            }
+            
+            
+            
+            // build the cellData based on the simsearch/compare result
 			for (var idx in data.b) {
 				var item = data.b[idx];
-				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
 				targetVal = {
@@ -722,7 +751,7 @@ DataLoader.prototype = {
                          "label": item.label, 
                          "targetGroup": targetGroup, // Mouse
                          "taxon": '10090', // Mouse taxon
-                         "type": item.type, 
+                         "type": 'genotype', 
                          "rank": parseInt(idx)+1,  // start with 1 not zero
                          "score": item.score.score
                     }; 
@@ -790,9 +819,19 @@ DataLoader.prototype = {
 
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
-				}  //if
-			} // for
-		} // if
+				}  // end if
+			} // end for
+            
+            // Now we have all the MP as x-axis items and all HP on y-axis with their matches as grid cells
+            // In order to group all the MP back to model (the genotype that they are associated with),
+            // we'll need to modify the targetData and cellData
+            for (var i in this.targetData[targetGroup]) {
+                
+            }
+            
+            
+            
+		} // end if
 	}, 
     
     // used to transform genotype/phenotype matches 
@@ -1204,7 +1243,7 @@ DataLoader.prototype = {
 module.exports = DataLoader;
 
 }());
-},{"./utils.js":8,"jquery":12}],3:[function(require,module,exports){
+},{"./impc.json":6,"./utils.js":8,"jquery":12}],3:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -1817,7 +1856,288 @@ module.exports={
 "logo": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjIwMC40NjNweCIgaGVpZ2h0PSIxMzMuMDY1cHgiIHZpZXdCb3g9IjAgMCAyMDAuNDYzIDEzMy4wNjUiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDIwMC40NjMgMTMzLjA2NSIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PGcgaWQ9ImFubm90YXRpb25zIiBkaXNwbGF5PSJub25lIj48ZyBkaXNwbGF5PSJpbmxpbmUiPjxkZWZzPjxsaW5lIGlkPSJTVkdJRF8xXyIgeDE9IjEwMy44MDMiIHkxPSI1OS41MzIiIHgyPSIxMDMuODEyIiB5Mj0iNTkuNTQxIi8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfMl8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzFfIiAgb3ZlcmZsb3c9InZpc2libGUiLz48L2NsaXBQYXRoPjxnIGNsaXAtcGF0aD0idXJsKCNTVkdJRF8yXykiPjxkZWZzPjxsaW5lIGlkPSJTVkdJRF8zXyIgeDE9IjEwMy4zMjMiIHkxPSI2MC4xNjkiIHgyPSIxMDMuMzIzIiB5Mj0iNDguMjY1Ii8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfNF8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzNfIiAgb3ZlcmZsb3c9InZpc2libGUiLz48L2NsaXBQYXRoPjwvZz48L2c+PGcgZGlzcGxheT0iaW5saW5lIj48ZGVmcz48cmVjdCBpZD0iU1ZHSURfNV8iIHg9Ii0wLjI0NSIgeT0iLTEyLjg3OSIgd2lkdGg9IjIwMS4zMjkiIGhlaWdodD0iMTYyLjE3NSIvPjwvZGVmcz48Y2xpcFBhdGggaWQ9IlNWR0lEXzZfIj48dXNlIHhsaW5rOmhyZWY9IiNTVkdJRF81XyIgIG92ZXJmbG93PSJ2aXNpYmxlIi8+PC9jbGlwUGF0aD48cGF0aCBjbGlwLXBhdGg9InVybCgjU1ZHSURfNl8pIiBmaWxsPSIjRTZFN0U4IiBkPSJNMTQ2Ljk1OSwxMzIuOTczdi0yLjM5NWgtMTkuNzg1Yy0zLjkyOCwwLTYuMzcxLTEuNDg1LTYuMzcxLTYuNzA3YzAtNS4yNywyLjc3OC02LjQxOSw4LTYuNDE5aDE4LjE1NnYtMi4zOTZoLTE4Ljg3NWMtNC4wMjIsMC03LjI4MS0xLjUzNC03LjI4MS02Ljc1NWMwLTUuMjcsMi4wNi02LjQxOSw4LTYuNDE5aDE4LjE1NnYtMi4zOTZoLTE4LjEwOGMtNi42MTEsMC0xMC4yNSwxLjcyNi0xMC4yNSw4LjU3NWMwLDMuMDY2LDAuNjIxLDUuNzQ5LDQuMTE4LDguMDQ5Yy0yLjM5NiwxLjAwNi00LjExOCwzLjQtNC4xMTgsNy41MjFjMCwzLjA2NiwwLjc2Niw1LjQxMywyLjc3Nyw2Ljg5OGwtMi4yNTIsMC4yMzh2Mi4yMDRIMTQ2Ljk1OXoiLz48cGF0aCBjbGlwLXBhdGg9InVybCgjU1ZHSURfNl8pIiBmaWxsPSIjRTZFN0U4IiBkPSJNMTQ2Ljk1OSwzMy44OHYtMi4zOTZoLTE5Ljc4NWMtMy45MjgsMC02LjM3MS0xLjQ4NC02LjM3MS02LjcwN2MwLTUuMjY5LDIuNzc4LTYuNDE5LDgtNi40MTloMTguMTU2di0yLjM5NWgtMTguODc1Yy00LjAyMiwwLTcuMjgxLTEuNTM0LTcuMjgxLTYuNzU1YzAtNS4yNzEsMi4wNi02LjQxOSw4LTYuNDE5aDE4LjE1NlYwLjM5NGgtMTguMTA4Yy02LjYxMSwwLTEwLjI1LDEuNzI2LTEwLjI1LDguNTc1YzAsMy4wNjYsMC42MjEsNS43NDksNC4xMTgsOC4wNDljLTIuMzk2LDEuMDA1LTQuMTE4LDMuNC00LjExOCw3LjUyMWMwLDMuMDY1LDAuNzY2LDUuNDEzLDIuNzc3LDYuODk3bC0yLjI1MiwwLjIzOXYyLjIwNEgxNDYuOTU5eiIvPjxwYXRoIGNsaXAtcGF0aD0idXJsKCNTVkdJRF82XykiIGZpbGw9IiNFNkU3RTgiIGQ9Ik0xNjcuNTk5LDgwLjU0NGgyLjM5NVY2MC43NmMwLTMuOTI5LDEuNDg1LTYuMzcxLDYuNzA3LTYuMzcxYzUuMjcsMCw2LjQxOSwyLjc3Nyw2LjQxOSw4djE4LjE1NWgyLjM5NlY2MS42NjljMC00LjAyMiwxLjUzMy03LjI4LDYuNzU0LTcuMjhjNS4yNzEsMCw2LjQyLDIuMDYsNi40Miw4djE4LjE1NWgyLjM5NlY2Mi40MzZjMC02LjYxMS0xLjcyNi0xMC4yNS04LjU3Ni0xMC4yNWMtMy4wNjUsMC01Ljc0OCwwLjYyMi04LjA0OSw0LjExOWMtMS4wMDUtMi4zOTYtMy40LTQuMTE5LTcuNTIxLTQuMTE5Yy0zLjA2NiwwLTUuNDEzLDAuNzY2LTYuODk3LDIuNzc3bC0wLjI0LTIuMjUyaC0yLjIwM1Y4MC41NDR6Ii8+PHBhdGggY2xpcC1wYXRoPSJ1cmwoI1NWR0lEXzZfKSIgZmlsbD0iI0U2RTdFOCIgZD0iTS0wLjI0NSw4MC41NDRIMi4xNVY2MC43NmMwLTMuOTI5LDEuNDg1LTYuMzcxLDYuNzA3LTYuMzcxYzUuMjY5LDAsNi40MTksMi43NzcsNi40MTksOHYxOC4xNTVoMi4zOTVWNjEuNjY5YzAtNC4wMjIsMS41MzQtNy4yOCw2Ljc1NS03LjI4YzUuMjcsMCw2LjQxOSwyLjA2LDYuNDE5LDh2MTguMTU1aDIuMzk2VjYyLjQzNmMwLTYuNjExLTEuNzI1LTEwLjI1LTguNTc1LTEwLjI1Yy0zLjA2NiwwLTUuNzQ5LDAuNjIyLTguMDQ5LDQuMTE5Yy0xLjAwNS0yLjM5Ni0zLjQtNC4xMTktNy41MjEtNC4xMTljLTMuMDY2LDAtNS40MTMsMC43NjYtNi44OTgsMi43NzdsLTAuMjM5LTIuMjUyaC0yLjIwNFY4MC41NDR6Ii8+PGxpbmUgY2xpcC1wYXRoPSJ1cmwoI1NWR0lEXzZfKSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTg1OTVCIiBzdHJva2Utd2lkdGg9IjAuNSIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHN0cm9rZS1kYXNoYXJyYXk9IjIuOTI0LDUuOTI0IiB4MT0iMTAwLjA0IiB5MT0iMTQ5LjI5NiIgeDI9IjEwMC4wNCIgeTI9Ii0xMi44NzkiLz48L2c+PC9nPjxnIGlkPSJGdWxsX0NvbG9yIj48Zz48cGF0aCBmaWxsPSIjNDZBNTk3IiBkPSJNMTQxLjc5MiwzNC43ODVjLTIuMDg4LTAuNDI5LTQuMjUtMC42NTQtNi40NjMtMC42NTRjLTguNTE0LDAtMTYuMjU4LDMuMzMyLTIyLjAwOCw4Ljc2Yy0wLjQ1MSwwLjQyNy0wLjg5LDAuODY1LTEuMzE2LDEuMzE3bC0xMS43NzEsMTEuNzcxTDg4LjQ2Miw0NC4yMDhjLTAuNDI2LTAuNDUyLTAuODY0LTAuODkxLTEuMzE2LTEuMzE3Yy01Ljc1LTUuNDI4LTEzLjQ5Ni04Ljc2LTIyLjAwNy04Ljc2Yy0yLjIxNSwwLTQuMzc2LDAuMjI2LTYuNDY0LDAuNjU0Yy0xNC42MDQsMy0yNS42MjEsMTUuOTUyLTI1LjYyMSwzMS40M2gwLjAxN2MwLDE1LjQ1OCwxMC45ODksMjguMzk3LDI1LjU2NSwzMS40MThjMi4xMDYsMC40MzgsNC4yODUsMC42NjgsNi41MTcsMC42NjhjOC4wMDksMCwxNS4zMzctMi45NTEsMjAuOTY0LTcuODJsMi42Ny0yLjY3bDAuMTU3LTAuMTU2YzAuMzktMC40MjYsMC42MjktMC45OTQsMC42MjktMS42MTljMC0xLjMzLTEuMDc3LTIuNDA2LTIuNDA3LTIuNDA2Yy0wLjYwNywwLTEuMTYyLDAuMjI3LTEuNTg0LDAuNkw4NS4zNiw4NC40NWwtMi41MTEsMi41MWMtNC45MzYsNC4yMTktMTEuMjE0LDYuNTQxLTE3LjY5Niw2LjU0MWMtMS44NjQsMC0zLjcyOS0wLjE5MS01LjU0My0wLjU2OGMtMTIuNTk1LTIuNjA5LTIxLjczOS0xMy44NDYtMjEuNzM5LTI2LjcxN2gwLjA3M2MwLTEyLjg5NSw5LjE2My0yNC4xMzUsMjEuNzg2LTI2LjcyOGwtMC4wMDQtMC4wMTdjMS43NzEtMC4zNTcsMy41OTEtMC41MzksNS40MTMtMC41MzljNi45NzYsMCwxMy42MjMsMi42NDYsMTguNzExLDcuNDQ5YzAuMzgzLDAuMzYyLDIzLjA2MiwyMy4yNTUsMjMuMDYyLDIzLjI1NWwwLjAwNC0wLjAwNGwwLjAxMywwLjAxMmwxNi41MjgtMTYuNTI1YzMuMTQyLTIuODQ4LDcuMzA2LTQuNTg3LDExLjg2OS00LjU4N2M5Ljc1MiwwLDE3LjY4NSw3LjkzMywxNy42ODUsMTcuNjg0YzAsOS43NS03LjkzMywxNy42ODQtMTcuNjg1LDE3LjY4NGMtNC4zMjYsMC04LjI5My0xLjU2Ni0xMS4zNjktNC4xNTRsLTIuMDE3LTIuMDE2bC0wLjM5LTAuMzkzYy0wLjQxMS0wLjMyNC0wLjkzLTAuNTIxLTEuNDk0LTAuNTIxYy0xLjMyOSwwLTIuNDA3LDEuMDgtMi40MDcsMi40MDhjMCwwLjcxMSwwLjMxMiwxLjM0OCwwLjgwMiwxLjc4OWwtMC4wOC0wLjA3MmwyLjMzNiwyLjM0NGwwLjE1OCwwLjEzM2M0LjA0NywzLjQwNiw5LjE4NCw1LjI4MywxNC40NjEsNS4yODNjMTIuMzk5LDAsMjIuNDg1LTEwLjA4NiwyMi40ODUtMjIuNDg1YzAtMTIuMzk4LTEwLjA4Ni0yMi40ODQtMjIuNDg1LTIyLjQ4NGMtNS41ODYsMC0xMC45NDcsMi4wNzEtMTUuMDk0LDUuODMybC0wLjA4NiwwLjA3OEwxMDYuOTQsNjIuODQ2bC0zLjM5NS0zLjM5MWwxMS44NTMtMTEuODUzbDAuMDk3LTAuMWMwLjM1OS0wLjM4MiwwLjczNy0wLjc2LDEuMTIxLTEuMTIyYzUuMDktNC44MDQsMTEuNzM0LTcuNDQ5LDE4LjcxMy03LjQ0OWMxLjg1MSwwLDMuNywwLjE4Nyw1LjQ5OCwwLjU1NmMxMi42MjMsMi41OTMsMjEuNzg1LDEzLjgzMywyMS43ODUsMjYuNzI4YzAsMTIuODcyLTkuMTQ1LDI0LjEwOC0yMS43MzgsMjYuNzE3Yy0xLjgxNCwwLjM3Ny0zLjY4LDAuNTY4LTUuNTQ1LDAuNTY4Yy02LjQ4MSwwLTEyLjc1OS0yLjMyMi0xNy42OTUtNi41NDFsLTIuNTEtMi41MWwtMC4yMjItMC4yMjFjLTAuNDIzLTAuMzczLTAuOTc4LTAuNi0xLjU4NS0wLjZjLTEuMzMsMC0yLjQwNiwxLjA3Ni0yLjQwNiwyLjQwNmMwLDAuNjI1LDAuMjM5LDEuMTkzLDAuNjI5LDEuNjE5bDAuMTU3LDAuMTU2bDIuNjY5LDIuNjdjNS42MjcsNC44NjksMTIuOTU1LDcuODIsMjAuOTYzLDcuODJjMi4yMzMsMCw0LjQxMi0wLjIzLDYuNTE5LTAuNjY4YzE0LjU3NS0zLjAyMSwyNS41NjUtMTUuOTYxLDI1LjU2NS0zMS40MThDMTY3LjQxMyw1MC43MzcsMTU2LjM5NSwzNy43ODUsMTQxLjc5MiwzNC43ODUiLz48cGF0aCBmaWxsPSIjNDZBNTk3IiBkPSJNODAuMjMyLDQ5LjU2M2MtNC4xMjQtMy43NDEtOS40NDgtNS44MDgtMTUuMDA0LTUuODN2LTAuMDAybC0wLjA1OCwwLjAwMWwtMC4wMzItMC4wMDFjLTEyLjM5OCwwLTIyLjQ4NCwxMC4wODYtMjIuNDg0LDIyLjQ4NGgwLjAxN2MwLDEyLjM5OSwxMC4wODYsMjIuNDg1LDIyLjQ4NCwyMi40ODVjNS4yNzgsMCwxMC40MTUtMS44NzUsMTQuNDYzLTUuMjgzbDAuMTU2LTAuMTMzbDIuMzM3LTIuMzQybC0wLjA4LDAuMDdjMC40ODktMC40MzksMC44MDEtMS4wNzgsMC44MDEtMS43OTFjMC0xLjMyOC0xLjA3OC0yLjQwNi0yLjQwNy0yLjQwNmMtMC41NjQsMC0xLjA4MywwLjE5Ny0xLjQ5MywwLjUyM2wtMC4zOTEsMC4zOTFsLTIuMDE3LDIuMDE2Yy0zLjA3NiwyLjU5LTcuMDQyLDQuMTU0LTExLjM2OSw0LjE1NGMtOS43NTEsMC0xNy42ODMtNy45MzQtMTcuNjgzLTE3LjY4NGgwLjA3M2MwLTkuNzM2LDcuOTA5LTE3LjY2LDE3LjYzOS0xNy42ODJjNC41NDYsMC4wMTEsOC42OTQsMS43NDcsMTEuODIzLDQuNTg1bDIzLjIyMiwyMy4yMjVsMy40MS0zLjQxTDgwLjQwMSw0OS43MjRMODAuMjMyLDQ5LjU2M3oiLz48L2c+PGc+PGRlZnM+PHBhdGggaWQ9IlNWR0lEXzdfIiBkPSJNMTEwLjM5Miw2Ni4xODJsMC4wMDQsMC4wMDRsMC45NzktMC45ODhMMTEwLjM5Miw2Ni4xODJ6IE0xMDYuOTc5LDYyLjc2OGwwLjAyLDAuMDJsMTAuMzY3LTEwLjM2N2wtMC4wMDctMC4wMDlMMTA2Ljk3OSw2Mi43Njh6Ii8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfOF8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzdfIiAgb3ZlcmZsb3c9InZpc2libGUiLz48L2NsaXBQYXRoPjxnIGNsaXAtcGF0aD0idXJsKCNTVkdJRF84XykiPjxkZWZzPjxyZWN0IGlkPSJTVkdJRF85XyIgeD0iMTA2LjU5MiIgeT0iNTEuOTU2IiB3aWR0aD0iMTEuNTIxIiBoZWlnaHQ9IjE0Ljk3NiIvPjwvZGVmcz48Y2xpcFBhdGggaWQ9IlNWR0lEXzEwXyI+PHVzZSB4bGluazpocmVmPSIjU1ZHSURfOV8iICBvdmVyZmxvdz0idmlzaWJsZSIvPjwvY2xpcFBhdGg+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSAwIDAgMSA3LjYyOTM5NWUtMDYgMCkiIGNsaXAtcGF0aD0idXJsKCNTVkdJRF8xMF8pIj48aW1hZ2Ugb3ZlcmZsb3c9InZpc2libGUiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzOSIgeGxpbms6aHJlZj0iZGF0YTppbWFnZS9qcGVnO2Jhc2U2NCwvOWovNEFBUVNrWkpSZ0FCQWdFQXV3QzdBQUQvN0FBUlJIVmphM2tBQVFBRUFBQUFIZ0FBLys0QUlVRmtiMkpsQUdUQUFBQUFBUU1BRUFNQ0F3WUFBQUdjQUFBQjNBQUFBaWYvMndDRUFCQUxDd3NNQ3hBTURCQVhEdzBQRnhzVUVCQVVHeDhYRnhjWEZ4OGVGeG9hR2hvWEhoNGpKU2NsSXg0dkx6TXpMeTlBUUVCQVFFQkFRRUJBUUVCQVFFQUJFUThQRVJNUkZSSVNGUlFSRkJFVUdoUVdGaFFhSmhvYUhCb2FKakFqSGg0ZUhpTXdLeTRuSnljdUt6VTFNREExTlVCQVAwQkFRRUJBUUVCQVFFQkFRUC9DQUJFSUFDb0FJZ01CSWdBQ0VRRURFUUgveEFCOUFBRUFBd0VCQVFBQUFBQUFBQUFBQUFBQUFnTUVBUVVHQVFFQkFBQUFBQUFBQUFBQUFBQUFBQUFBQVJBQUFRUUJCUUVBQUFBQUFBQUFBQUFBQXdBQkFnUUZFQ0F3RVJKQkVRQUJBZ1FIQVFFQUFBQUFBQUFBQUFBQkFBSWdZWUVERVNGQmNaR3gwY0V6RWdFQUFBQUFBQUFBQUFBQUFBQUFBQUF3LzlvQURBTUJBQUlSQXhFQUFBRDZMSk9tdGV1amRHeEllRjNUYU5pWUJtdTdJQUEvLzlvQUNBRUNBQUVGQU9ILzJnQUlBUU1BQVFVQTRmL2FBQWdCQVFBQkJRREs1QzRDNjJWeUx1Szlma2hXTGNsMjZ6TE8rUkNGQkNnaFhTeVkvVjhJVUVLaEJvc3JZL1ZzSVZDRFJiUWd2Um9RYUxhL2RuLy8yZ0FJQVFJQ0JqOEFILy9hQUFnQkF3SUdQd0FmLzlvQUNBRUJBUVkvQUgyN1YwdFlBM0FZRFVUQy9ZOE44V2Q0OER4WjNDYUR4VVZ6WnZRZ29ubVRlaEM0eUhVSk8wT24ySC8vMlE9PSIgdHJhbnNmb3JtPSJtYXRyaXgoMC4zODQgMCAwIC0wLjM4NCAxMDYuNTkyMyA2Ni45MzIxKSI+PC9pbWFnZT48L2c+PC9nPjwvZz48Zz48ZGVmcz48cmVjdCBpZD0iU1ZHSURfMTFfIiB4PSIxMDguOTA4IiB5PSI0Ni42MDciIHRyYW5zZm9ybT0ibWF0cml4KC0wLjY2OSAtMC43NDMzIDAuNzQzMyAtMC42NjkgMTQxLjU2NzggMTcxLjIzNjUpIiB3aWR0aD0iMC4wMTMiIGhlaWdodD0iMTQuOTc0Ii8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfMTJfIj48dXNlIHhsaW5rOmhyZWY9IiNTVkdJRF8xMV8iICBvdmVyZmxvdz0idmlzaWJsZSIvPjwvY2xpcFBhdGg+PGcgY2xpcC1wYXRoPSJ1cmwoI1NWR0lEXzEyXykiPjxkZWZzPjxyZWN0IGlkPSJTVkdJRF8xM18iIHg9IjEwMy4xMzYiIHk9IjQ4LjExNiIgd2lkdGg9IjExLjUyMSIgaGVpZ2h0PSIxMS45MDQiLz48L2RlZnM+PGNsaXBQYXRoIGlkPSJTVkdJRF8xNF8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzEzXyIgIG92ZXJmbG93PSJ2aXNpYmxlIi8+PC9jbGlwUGF0aD48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAxIDAgMy44MTQ2OTdlLTA2KSIgY2xpcC1wYXRoPSJ1cmwoI1NWR0lEXzE0XykiPjxpbWFnZSBvdmVyZmxvdz0idmlzaWJsZSIgd2lkdGg9IjMwIiBoZWlnaHQ9IjMxIiB4bGluazpocmVmPSJkYXRhOmltYWdlL2pwZWc7YmFzZTY0LC85ai80QUFRU2taSlJnQUJBZ0VBdXdDN0FBRC83QUFSUkhWamEza0FBUUFFQUFBQUhnQUEvKzRBSVVGa2IySmxBR1RBQUFBQUFRTUFFQU1DQXdZQUFBR1dBQUFCdndBQUFnei8yd0NFQUJBTEN3c01DeEFNREJBWER3MFBGeHNVRUJBVUd4OFhGeGNYRng4ZUZ4b2FHaG9YSGg0akpTY2xJeDR2THpNekx5OUFRRUJBUUVCQVFFQkFRRUJBUUVBQkVROFBFUk1SRlJJU0ZSUVJGQkVVR2hRV0ZoUWFKaG9hSEJvYUpqQWpIaDRlSGlNd0t5NG5KeWN1S3pVMU1EQTFOVUJBUDBCQVFFQkFRRUJBUUVCQVFQL0NBQkVJQUNJQUh3TUJJZ0FDRVFFREVRSC94QUIvQUFFQUF3RUJBQUFBQUFBQUFBQUFBQUFBQVFNRUJRSUJBUUVBQUFBQUFBQUFBQUFBQUFBQUFBQUJFQUFDQWdJQ0F3QUFBQUFBQUFBQUFBQUJBd0lFQUNBUkJSQVNFeEVBQVFJREJRa0FBQUFBQUFBQUFBQUFBUUFDRVNFREVEQlJZZEV4UVlHeEVpSkNncklTQVFBQUFBQUFBQUFBQUFBQUFBQUFBQ0QvMmdBTUF3RUFBaEVERVFBQUFPL2ZUc3EvVkZrYzdiUHNBQUEvLzlvQUNBRUNBQUVGQU52LzJnQUlBUU1BQVFVQTIvL2FBQWdCQVFBQkJRQi9aZGhHMHE3ZmxpVzJaWUJQMVlubTBoR0xXSURQank5YXhBZUl3QU8vLzlvQUNBRUNBZ1kvQUYvLzJnQUlBUU1DQmo4QVgvL2FBQWdCQVFFR1B3Q3RUWlZneGxSeldqcGJzQklIaXU2ckgxYm9wdmp3R2lNVE9FbFdPTlIzMFVKTE94NXhjZWF6dEoza3h1UC8yUT09IiB0cmFuc2Zvcm09Im1hdHJpeCgwLjM4NCAwIDAgLTAuMzg0IDEwMy4xMzYyIDYwLjAyKSI+PC9pbWFnZT48L2c+PC9nPjwvZz48bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzE1XyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxMDguNjk1OCIgeTE9IjY0LjQ4NjMiIHgyPSIxMTguODg1OSIgeTI9IjU0LjI5NjIiPjxzdG9wICBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDAiLz48c3RvcCAgb2Zmc2V0PSIwLjA4OTYiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAuOTEwNCIvPjxzdG9wICBvZmZzZXQ9IjEiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAiLz48L2xpbmVhckdyYWRpZW50Pjxwb2x5Z29uIG9wYWNpdHk9IjAuNSIgZmlsbD0idXJsKCNTVkdJRF8xNV8pIiBwb2ludHM9IjEwNi45OTksNjIuNzg4IDExMC4zOTIsNjYuMTgyIDExMS4zNzUsNjUuMTk4IDEyMC40MzMsNTYuMDY2IDExNy4zNjYsNTIuNDIxICIvPjxsaW5lYXJHcmFkaWVudCBpZD0iU1ZHSURfMTZfIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjEwMS45MTk0IiB5MT0iNTcuNzE0NCIgeDI9IjExMi4xMDk5IiB5Mj0iNDcuNTIzOSI+PHN0b3AgIG9mZnNldD0iMCIgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMCIvPjxzdG9wICBvZmZzZXQ9IjAuMDg5NiIgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMDtzdG9wLW9wYWNpdHk6MC45MTA0Ii8+PHN0b3AgIG9mZnNldD0iMSIgc3R5bGU9InN0b3AtY29sb3I6IzAwMDAwMDtzdG9wLW9wYWNpdHk6MCIvPjwvbGluZWFyR3JhZGllbnQ+PHBvbHlnb24gb3BhY2l0eT0iMC41IiBmaWxsPSJ1cmwoI1NWR0lEXzE2XykiIHBvaW50cz0iMTAwLjI1LDU2LjAxNyAxMDMuNjE3LDU5LjM4MyAxMTQuMjA2LDQ4Ljc5NSAxMTAuOTcxLDQ1LjI5NSAiLz48L2c+PGcgaWQ9IkJXIiBkaXNwbGF5PSJub25lIj48ZyBkaXNwbGF5PSJpbmxpbmUiPjxwYXRoIGZpbGw9IiM5Mzk1OTgiIGQ9Ik0xNDEuNjc3LDM0Ljg5Yy0yLjA4OC0wLjQyOS00LjI1LTAuNjU0LTYuNDYzLTAuNjU0Yy04LjUxNCwwLTE2LjI1OCwzLjMzMi0yMi4wMDgsOC43NmMtMC40NTEsMC40MjctMC44OSwwLjg2NS0xLjMxNiwxLjMxN2wtMTEuNzcxLDExLjc3MWwtMTEuNzctMTEuNzcxYy0wLjQyNi0wLjQ1Mi0wLjg2NS0wLjg5MS0xLjMxNy0xLjMxN2MtNS43NS01LjQyOC0xMy40OTYtOC43Ni0yMi4wMDctOC43NmMtMi4yMTUsMC00LjM3NiwwLjIyNi02LjQ2NCwwLjY1NGMtMTQuNjA0LDMtMjUuNjIxLDE1Ljk1Mi0yNS42MjEsMzEuNDMxaDAuMDE3YzAsMTUuNDU3LDEwLjk4OSwyOC4zOTYsMjUuNTY1LDMxLjQxOGMyLjEwNiwwLjQzOCw0LjI4NSwwLjY2OCw2LjUxNywwLjY2OGM4LjAwOSwwLDE1LjMzNy0yLjk1MywyMC45NjQtNy44MmwyLjY2OS0yLjY3bDAuMTU4LTAuMTU2YzAuMzg5LTAuNDI4LDAuNjI5LTAuOTk2LDAuNjI5LTEuNjIxYzAtMS4zMjgtMS4wNzctMi40MDQtMi40MDctMi40MDRjLTAuNjA4LDAtMS4xNjMsMC4yMjctMS41ODUsMC42bC0wLjIyMSwwLjIxOWwtMi41MTEsMi41MWMtNC45MzYsNC4yMjEtMTEuMjE0LDYuNTQxLTE3LjY5Niw2LjU0MWMtMS44NjQsMC0zLjcyOS0wLjE4OS01LjU0My0wLjU2NkM0Ni45MDEsOTAuNDI2LDM3Ljc1Nyw3OS4xODksMzcuNzU3LDY2LjMyaDAuMDczYzAtMTIuODk2LDkuMTYzLTI0LjEzNiwyMS43ODYtMjYuNzI5bC0wLjAwNC0wLjAxN2MxLjc3MS0wLjM1NywzLjU5MS0wLjUzOSw1LjQxMy0wLjUzOWM2Ljk3NiwwLDEzLjYyMywyLjY0NiwxOC43MTEsNy40NDljMC4zODMsMC4zNjIsMjMuMDYyLDIzLjI1NSwyMy4wNjIsMjMuMjU1bDAuMDA0LTAuMDA0bDAuMDEzLDAuMDEzbDE2LjUyOC0xNi41MjZjMy4xNDItMi44NDgsNy4zMDYtNC41ODcsMTEuODY5LTQuNTg3YzkuNzUyLDAsMTcuNjg1LDcuOTMzLDE3LjY4NSwxNy42ODVjMCw5Ljc1LTcuOTMzLDE3LjY4Mi0xNy42ODUsMTcuNjgyYy00LjMyNiwwLTguMjkzLTEuNTY0LTExLjM2OS00LjE1MmwtMi4wMTctMi4wMThsLTAuMzktMC4zOTFjLTAuNDExLTAuMzI0LTAuOTMtMC41MjEtMS40OTQtMC41MjFjLTEuMzI5LDAtMi40MDcsMS4wNzgtMi40MDcsMi40MDZjMCwwLjcxMywwLjMxMiwxLjM1LDAuODAyLDEuNzkxbC0wLjA4LTAuMDcybDIuMzM2LDIuMzQybDAuMTU4LDAuMTM1YzQuMDQ3LDMuNDA2LDkuMTg0LDUuMjgxLDE0LjQ2MSw1LjI4MWMxMi4zOTksMCwyMi40ODUtMTAuMDg2LDIyLjQ4NS0yMi40ODJjMC0xMi4zOTgtMTAuMDg2LTIyLjQ4NC0yMi40ODUtMjIuNDg0Yy01LjU4NiwwLTEwLjk0NywyLjA3MS0xNS4wOTQsNS44MzJsLTAuMDg2LDAuMDc4bC0xMy4yMDcsMTMuMjA1bC0zLjM5NS0zLjM5MmwxMS44NTMtMTEuODUzbDAuMDk3LTAuMWMwLjM1OS0wLjM4MiwwLjczNy0wLjc2LDEuMTIxLTEuMTIyYzUuMDktNC44MDQsMTEuNzM0LTcuNDQ5LDE4LjcxMy03LjQ0OWMxLjg1MSwwLDMuNywwLjE4Nyw1LjQ5OCwwLjU1NmMxMi42MjMsMi41OTMsMjEuNzg1LDEzLjgzMywyMS43ODUsMjYuNzI5YzAsMTIuODY5LTkuMTQ1LDI0LjEwNS0yMS43MzgsMjYuNzE3Yy0xLjgxNCwwLjM3Ny0zLjY4LDAuNTY2LTUuNTQ1LDAuNTY2Yy02LjQ4MSwwLTEyLjc1OS0yLjMyLTE3LjY5NS02LjU0MWwtMi41MS0yLjUxbC0wLjIyMi0wLjIxOWMtMC40MjMtMC4zNzMtMC45NzgtMC42LTEuNTg1LTAuNmMtMS4zMywwLTIuNDA2LDEuMDc2LTIuNDA2LDIuNDA0YzAsMC42MjUsMC4yMzksMS4xOTMsMC42MjksMS42MjFsMC4xNTcsMC4xNTZsMi42NjksMi42N2M1LjYyNyw0Ljg2NywxMi45NTUsNy44MiwyMC45NjMsNy44MmMyLjIzMywwLDQuNDEyLTAuMjMsNi41MTktMC42NjhjMTQuNTc1LTMuMDIxLDI1LjU2NS0xNS45NjEsMjUuNTY1LTMxLjQxOEMxNjcuMjk4LDUwLjg0MiwxNTYuMjgxLDM3Ljg5LDE0MS42NzcsMzQuODkiLz48cGF0aCBmaWxsPSIjOTM5NTk4IiBkPSJNODAuMTE4LDQ5LjY2OGMtNC4xMjQtMy43NDEtOS40NDgtNS44MDgtMTUuMDA0LTUuODN2LTAuMDAybC0wLjA1OCwwLjAwMWwtMC4wMzItMC4wMDFjLTEyLjM5OCwwLTIyLjQ4NCwxMC4wODYtMjIuNDg0LDIyLjQ4M2gwLjAxN2MwLDEyLjM5OSwxMC4wODYsMjIuNDg1LDIyLjQ4NCwyMi40ODVjNS4yNzgsMCwxMC40MTUtMS44NzcsMTQuNDYzLTUuMjgzbDAuMTU2LTAuMTMzbDIuMzM3LTIuMzQ0bC0wLjA4LDAuMDdjMC40OS0wLjQzOSwwLjgwMS0xLjA3OCwwLjgwMS0xLjc4OWMwLTEuMzI4LTEuMDc4LTIuNDA2LTIuNDA3LTIuNDA2Yy0wLjU2NCwwLTEuMDgzLDAuMTk1LTEuNDkzLDAuNTIxbC0wLjM5MSwwLjM5M0w3Ni40MSw3OS44NWMtMy4wNzYsMi41ODgtNy4wNDIsNC4xNTQtMTEuMzY5LDQuMTU0Yy05Ljc1MSwwLTE3LjY4My03LjkzNi0xNy42ODMtMTcuNjg1aDAuMDczYzAtOS43MzUsNy45MDktMTcuNjU5LDE3LjYzOS0xNy42ODJjNC41NDYsMC4wMTEsOC42OTQsMS43NDcsMTEuODIzLDQuNTg1bDIzLjIyMiwyMy4yMjVsMy40MS0zLjQxTDgwLjI4Nyw0OS44MjhMODAuMTE4LDQ5LjY2OHoiLz48L2c+PGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF8xN18iIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iMTA4LjU4MDYiIHkxPSI2NC4zODg3IiB4Mj0iMTE4Ljc3MDYiIHkyPSI1NC4xOTg2Ij48c3RvcCAgb2Zmc2V0PSIwIiBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwIi8+PHN0b3AgIG9mZnNldD0iMC4wODk2IiBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwO3N0b3Atb3BhY2l0eTowLjkxMDQiLz48c3RvcCAgb2Zmc2V0PSIxIiBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwO3N0b3Atb3BhY2l0eTowIi8+PC9saW5lYXJHcmFkaWVudD48cG9seWdvbiBkaXNwbGF5PSJpbmxpbmUiIG9wYWNpdHk9IjAuNSIgZmlsbD0idXJsKCNTVkdJRF8xN18pIiBwb2ludHM9IjEwNi44ODQsNjIuNjkgMTEwLjI3OCw2Ni4wODYgMTExLjI2MSw2NS4xMDIgMTIwLjMxOSw1NS45NyAxMTcuMjUxLDUyLjMyNCAiLz48bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzE4XyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxMDEuODA1MiIgeTE9IjU3LjYxODIiIHgyPSIxMTEuOTk1NiIgeTI9IjQ3LjQyNzciPjxzdG9wICBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDAiLz48c3RvcCAgb2Zmc2V0PSIwLjA4OTYiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAuOTEwNCIvPjxzdG9wICBvZmZzZXQ9IjEiIHN0eWxlPSJzdG9wLWNvbG9yOiMwMDAwMDA7c3RvcC1vcGFjaXR5OjAiLz48L2xpbmVhckdyYWRpZW50Pjxwb2x5Z29uIGRpc3BsYXk9ImlubGluZSIgb3BhY2l0eT0iMC41IiBmaWxsPSJ1cmwoI1NWR0lEXzE4XykiIHBvaW50cz0iMTAwLjEzNiw1NS45MiAxMDMuNTAyLDU5LjI4NiAxMTQuMDkxLDQ4LjY5OCAxMTAuODU3LDQ1LjE5OCAiLz48L2c+PGcgaWQ9InJldmVyc2UiIGRpc3BsYXk9Im5vbmUiPjxwYXRoIGRpc3BsYXk9ImlubGluZSIgZmlsbD0iIzkzOTU5OCIgZD0iTTAsMHYxMzMuMDY1aDIwMC40NjNWMEgweiBNMTAwLjExNSw3Ni40NDdMNzYuODkzLDUzLjIyM2MtMy4xMjktMi44MzgtNy4yNzctNC41NzQtMTEuODIzLTQuNTg1Yy05LjczLDAuMDIyLTE3LjYzOSw3Ljk0Ni0xNy42MzksMTcuNjgyaC0wLjA3M2MwLDkuNzQ5LDcuOTMyLDE3LjY4NSwxNy42ODMsMTcuNjg1YzQuMzI3LDAsOC4yOTMtMS41NjYsMTEuMzY5LTQuMTU0bDIuMDE3LTIuMDE2bDAuMzkxLTAuMzkzYzAuNDEtMC4zMjYsMC45MjktMC41MjEsMS40OTMtMC41MjFjMS4zMjksMCwyLjQwNywxLjA3OCwyLjQwNywyLjQwNmMwLDAuNzExLTAuMzExLDEuMzUtMC44MDEsMS43ODlsMC4wOC0wLjA3bC0yLjMzNywyLjM0NGwtMC4xNTYsMC4xMzNjLTQuMDQ4LDMuNDA2LTkuMTg1LDUuMjgzLTE0LjQ2Myw1LjI4M2MtMTIuMzk4LDAtMjIuNDg0LTEwLjA4Ni0yMi40ODQtMjIuNDg1SDQyLjU0YzAtMTIuMzk3LDEwLjA4Ni0yMi40ODMsMjIuNDg0LTIyLjQ4M2wwLjAzMiwwLjAwMWwwLjA1OC0wLjAwMXYwLjAwMmM1LjU1NiwwLjAyMiwxMC44OCwyLjA4OSwxNS4wMDQsNS44M2wwLjE2OSwwLjE2bDIzLjIzOCwyMy4yMDlMMTAwLjExNSw3Ni40NDd6IE0xNDEuNzMzLDk3LjczOGMtMi4xMDYsMC40MzgtNC4yODUsMC42NjgtNi41MTksMC42NjhjLTguMDA4LDAtMTUuMzM2LTIuOTUzLTIwLjk2My03LjgybC0yLjY2OS0yLjY3bC0wLjE1Ny0wLjE1NmMtMC4zOS0wLjQyOC0wLjYyOS0wLjk5Ni0wLjYyOS0xLjYyMWMwLTEuMzI4LDEuMDc2LTIuNDA0LDIuNDA2LTIuNDA0YzAuNjA3LDAsMS4xNjIsMC4yMjcsMS41ODUsMC42bDAuMjIyLDAuMjE5bDIuNTEsMi41MWM0LjkzNyw0LjIyMSwxMS4yMTQsNi41NDEsMTcuNjk1LDYuNTQxYzEuODY1LDAsMy43My0wLjE4OSw1LjU0NS0wLjU2NmMxMi41OTQtMi42MTEsMjEuNzM4LTEzLjg0OCwyMS43MzgtMjYuNzE3YzAtMTIuODk2LTkuMTYyLTI0LjEzNi0yMS43ODUtMjYuNzI5Yy0xLjc5OC0wLjM2OS0zLjY0Ny0wLjU1Ni01LjQ5OC0wLjU1NmMtNi45NzksMC0xMy42MjMsMi42NDYtMTguNzEzLDcuNDQ5Yy0wLjM4NCwwLjM2Mi0wLjc2MiwwLjc0LTEuMTIxLDEuMTIybC0wLjA5NywwLjFMMTAzLjQzMSw1OS41NmwzLjM5NSwzLjM5MmwxMy4yMDctMTMuMjA1bDAuMDg2LTAuMDc4YzQuMTQ2LTMuNzYxLDkuNTA4LTUuODMyLDE1LjA5NC01LjgzMmMxMi4zOTksMCwyMi40ODUsMTAuMDg2LDIyLjQ4NSwyMi40ODRjMCwxMi4zOTYtMTAuMDg2LDIyLjQ4Mi0yMi40ODUsMjIuNDgyYy01LjI3NywwLTEwLjQxNC0xLjg3NS0xNC40NjEtNS4yODFsLTAuMTU4LTAuMTM1bC0yLjMzNi0yLjM0MmwwLjA4LDAuMDcyYy0wLjQ5LTAuNDQxLTAuODAyLTEuMDc4LTAuODAyLTEuNzkxYzAtMS4zMjgsMS4wNzgtMi40MDYsMi40MDctMi40MDZjMC41NjQsMCwxLjA4MywwLjE5NywxLjQ5NCwwLjUyMWwwLjM5LDAuMzkxbDIuMDE3LDIuMDE4YzMuMDc2LDIuNTg4LDcuMDQzLDQuMTUyLDExLjM2OSw0LjE1MmM5Ljc1MiwwLDE3LjY4NS03LjkzMiwxNy42ODUtMTcuNjgyYzAtOS43NTItNy45MzMtMTcuNjg1LTE3LjY4NS0xNy42ODVjLTQuNTYzLDAtOC43MjgsMS43MzktMTEuODY5LDQuNTg3bC0xNi41MjgsMTYuNTI2bC0wLjAxMy0wLjAxM2wtMC4wMDQsMC4wMDRjMCwwLTIyLjY4LTIyLjg5My0yMy4wNjItMjMuMjU1Yy01LjA4OC00LjgwNC0xMS43MzUtNy40NDktMTguNzExLTcuNDQ5Yy0xLjgyMiwwLTMuNjQyLDAuMTgyLTUuNDEzLDAuNTM5bDAuMDA0LDAuMDE3QzQ2Ljk5Myw0Mi4xODUsMzcuODMsNTMuNDI1LDM3LjgzLDY2LjMyaC0wLjA3M2MwLDEyLjg2OSw5LjE0NCwyNC4xMDUsMjEuNzM5LDI2LjcxN2MxLjgxNCwwLjM3NywzLjY3OSwwLjU2Niw1LjU0MywwLjU2NmM2LjQ4MiwwLDEyLjc2LTIuMzIsMTcuNjk2LTYuNTQxbDIuNTExLTIuNTFsMC4yMjEtMC4yMTljMC40MjItMC4zNzMsMC45NzctMC42LDEuNTg1LTAuNmMxLjMzLDAsMi40MDcsMS4wNzYsMi40MDcsMi40MDRjMCwwLjYyNS0wLjI0LDEuMTkzLTAuNjI5LDEuNjIxbC0wLjE1OCwwLjE1NmwtMi42NjksMi42N2MtNS42MjcsNC44NjctMTIuOTU1LDcuODItMjAuOTY0LDcuODJjLTIuMjMyLDAtNC40MTEtMC4yMy02LjUxNy0wLjY2OEM0My45NDYsOTQuNzE3LDMyLjk1Nyw4MS43NzcsMzIuOTU3LDY2LjMySDMyLjk0YzAtMTUuNDc5LDExLjAxNy0yOC40MzEsMjUuNjIxLTMxLjQzMWMyLjA4OC0wLjQyOSw0LjI0OS0wLjY1NCw2LjQ2NC0wLjY1NGM4LjUxMSwwLDE2LjI1NywzLjMzMiwyMi4wMDcsOC43NmMwLjQ1MiwwLjQyNywwLjg5MSwwLjg2NSwxLjMxNywxLjMxN2wxMS43NywxMS43NzFsMTEuNzcxLTExLjc3MWMwLjQyNy0wLjQ1MiwwLjg2NS0wLjg5MSwxLjMxNi0xLjMxN2M1Ljc1LTUuNDI4LDEzLjQ5NC04Ljc2LDIyLjAwOC04Ljc2YzIuMjEzLDAsNC4zNzUsMC4yMjYsNi40NjMsMC42NTRjMTQuNjA0LDMsMjUuNjIxLDE1Ljk1MiwyNS42MjEsMzEuNDMxQzE2Ny4yOTgsODEuNzc3LDE1Ni4zMDgsOTQuNzE3LDE0MS43MzMsOTcuNzM4eiIvPjwvZz48L3N2Zz4="
 }
 },{}],6:[function(require,module,exports){
-module.exports={"title":"Comparison OMIM:101600 - MGI:95523 for disease page","xAxis":[{"label":"Fgfr2<tm2.3Dsn>/Fgfr2<+> involves: 129 * C57BL/6 * FVB/N","phenotypes":["MP:0000074","MP:0000081","MP:0000097","MP:0000189","MP:0000440","MP:0000445","MP:0000521","MP:0000596","MP:0001175","MP:0001265","MP:0001347","MP:0001669","MP:0001732","MP:0002267","MP:0002750","MP:0002989","MP:0003641","MP:0004322","MP:0004469","MP:0004505","MP:0004678","MP:0006027","MP:0008277","MP:0009050","MP:0009051","MP:0009570","MP:0010911","MP:0011011","MP:0011085","MP:0011290","MP:0012667"],"score":{"metric":"phenodigm","score":67.1,"rank":0},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129 * C57BL/6 * FVB/N","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<m1Sgg>/Fgfr2<m1Sgg> involves: C3H/HeJ * C57BL/6J","phenotypes":["MP:0000060","MP:0000106","MP:0000118","MP:0000137","MP:0000157","MP:0000159","MP:0000163","MP:0000166","MP:0000438","MP:0000445","MP:0000462","MP:0000549","MP:0000762","MP:0000774","MP:0001347","MP:0001677","MP:0001698","MP:0001954","MP:0002058","MP:0002239","MP:0002750","MP:0002835","MP:0002989","MP:0003641","MP:0003938","MP:0004247","MP:0004320","MP:0004377","MP:0004418","MP:0004449","MP:0004469","MP:0004537","MP:0004609","MP:0004620","MP:0004726","MP:0004989","MP:0006213","MP:0006279","MP:0008272","MP:0008785","MP:0009524","MP:0009653","MP:0010743","MP:0011011"],"score":{"metric":"phenodigm","score":77.65,"rank":1},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: C3H/HeJ * C57BL/6J","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm4Lni>/Fgfr2<tm4Lni> Not Specified","phenotypes":["MP:0000102","MP:0000435","MP:0000440","MP:0001175","MP:0001302","MP:0001953","MP:0002114","MP:0004322","MP:0004552","MP:0004609","MP:0004988","MP:0005006","MP:0005249","MP:0008271","MP:0009250","MP:0009887","MP:0009890","MP:0010029","MP:0011087"],"score":{"metric":"phenodigm","score":68.57,"rank":2},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"Not Specified","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<m1Sgg>/Fgfr2<+> involves: C3H/HeJ * C57BL/6J","phenotypes":["MP:0000081","MP:0000106","MP:0000120","MP:0000157","MP:0000166","MP:0000428","MP:0000440","MP:0000445","MP:0001698","MP:0002239","MP:0002835","MP:0003840","MP:0003938","MP:0004449","MP:0004831","MP:0004989","MP:0008272","MP:0008525","MP:0009703","MP:0009887","MP:0009890"],"score":{"metric":"phenodigm","score":67.42,"rank":3},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: C3H/HeJ * C57BL/6J","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm4Lni>/Fgfr2<+> Not Specified","phenotypes":["MP:0000081","MP:0000097","MP:0000104","MP:0000120","MP:0000435","MP:0000440","MP:0001300","MP:0002750","MP:0004988","MP:0006400"],"score":{"metric":"phenodigm","score":65.32,"rank":4},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"Not Specified","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd * C57BL/6","phenotypes":["MP:0000031","MP:0000035","MP:0000039","MP:0000081","MP:0000111","MP:0000118","MP:0000440","MP:0000470","MP:0000492","MP:0000551","MP:0000557","MP:0000613","MP:0000629","MP:0001176","MP:0001181","MP:0001199","MP:0001201","MP:0001218","MP:0001231","MP:0001244","MP:0001265","MP:0001341","MP:0002095","MP:0002428","MP:0002691","MP:0003051","MP:0003124","MP:0003308","MP:0003315","MP:0003703","MP:0003816","MP:0004310","MP:0004343","MP:0004346","MP:0004507","MP:0004509","MP:0004619","MP:0004691","MP:0005298","MP:0005354","MP:0006011","MP:0006279","MP:0006287","MP:0006288","MP:0008320","MP:0009479","MP:0009509","MP:0009510","MP:0009522","MP:0009524","MP:0011026","MP:0011089","MP:0011158","MP:0011759","MP:0013351","MP:0013352","MP:0013721","MP:0013785"],"score":{"metric":"phenodigm","score":65.11,"rank":5},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129P2/OlaHsd * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm3.1Lni>/Fgfr2<tm3.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6","phenotypes":["MP:0000060","MP:0000081","MP:0000104","MP:0000106","MP:0000432","MP:0000440","MP:0000566","MP:0001262","MP:0001265","MP:0001732","MP:0002116","MP:0002750","MP:0003409","MP:0003840","MP:0004448","MP:0005006","MP:0008489","MP:0008525","MP:0010029"],"score":{"metric":"phenodigm","score":62.51,"rank":6},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm3Ewj>/Fgfr2<+> B6.129-Fgfr2<tm3Ewj>","phenotypes":["MP:0000081","MP:0000157","MP:0000435","MP:0000566","MP:0001219","MP:0001222","MP:0001231","MP:0001240","MP:0001725","MP:0001732","MP:0001874","MP:0002060","MP:0003743","MP:0009545","MP:0009601","MP:0009611","MP:0011085","MP:0011495"],"score":{"metric":"phenodigm","score":56.1,"rank":7},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"B6.129-Fgfr2<tm3Ewj>","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1Schl>/Fgfr2<+> involves: 129S1/Sv","phenotypes":["MP:0000081","MP:0000428","MP:0000438","MP:0002750","MP:0003840"],"score":{"metric":"phenodigm","score":56.0,"rank":8},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm2Ewj>/Fgfr2<+> involves: 129S1/Sv * 129X1/SvJ * C57BL/6J","phenotypes":["MP:0000081","MP:0000780","MP:0002152","MP:0008534","MP:0008535","MP:0008540"],"score":{"metric":"phenodigm","score":53.52,"rank":9},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * 129X1/SvJ * C57BL/6J","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm3Dsn>/Fgfr2<tm3Dsn> involves: 129P2/OlaHsd * C57BL/6","phenotypes":["MP:0000111","MP:0000124","MP:0000149","MP:0000267","MP:0000273","MP:0000279","MP:0000280","MP:0000284","MP:0000377","MP:0000379","MP:0000527","MP:0000537","MP:0000549","MP:0000613","MP:0000704","MP:0001181","MP:0001199","MP:0001216","MP:0001218","MP:0001231","MP:0001341","MP:0001676","MP:0002060","MP:0002295","MP:0002655","MP:0002989","MP:0003051","MP:0003124","MP:0003420","MP:0003704","MP:0003934","MP:0004032","MP:0004055","MP:0004067","MP:0004200","MP:0004509","MP:0004619","MP:0005294","MP:0005314","MP:0006030","MP:0006288","MP:0008320","MP:0009003","MP:0010418","MP:0010420","MP:0010454","MP:0010521","MP:0010566","MP:0010585","MP:0010587","MP:0010646","MP:0011089","MP:0011290","MP:0013310","MP:0013578"],"score":{"metric":"phenodigm","score":48.29,"rank":10},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129P2/OlaHsd * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1Schl>/Fgfr2<tm1Schl> involves: 129S1/Sv","phenotypes":["MP:0000111","MP:0001943","MP:0003120","MP:0003189","MP:0009888","MP:0011087"],"score":{"metric":"phenodigm","score":44.33,"rank":11},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd","phenotypes":["MP:0000762","MP:0003755","MP:0003760","MP:0003934","MP:0004247","MP:0009655","MP:0009884","MP:0009890","MP:0013264","MP:0013766"],"score":{"metric":"phenodigm","score":41.43,"rank":12},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129P2/OlaHsd","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm2Schl>/Fgfr2<tm2Schl> involves: 129S1/Sv * BALB/c * C57BL/6","phenotypes":["MP:0000111","MP:0003120","MP:0009888"],"score":{"metric":"phenodigm","score":40.58,"rank":13},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * BALB/c * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm2.1Lni>/Fgfr2<tm2.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6","phenotypes":["MP:0000549","MP:0001181","MP:0009524","MP:0011087"],"score":{"metric":"phenodigm","score":34.5,"rank":14},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dor>/Fgfr2<hob> involves: 129X1/SvJ * C57BL/6J * FVB/N","phenotypes":["MP:0000549","MP:0001178","MP:0002995","MP:0004200"],"score":{"metric":"phenodigm","score":30.33,"rank":15},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129X1/SvJ * C57BL/6J * FVB/N","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<hob>/Fgfr2<hob> involves: C57BL/6J","phenotypes":["MP:0000549","MP:0001178","MP:0002995","MP:0006208"],"score":{"metric":"phenodigm","score":30.33,"rank":16},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: C57BL/6J","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm3Lni>/Fgfr2<tm3Lni> involves: 129S1/Sv * 129X1/SvJ","phenotypes":["MP:0000537","MP:0000549"],"score":{"metric":"phenodigm","score":28.34,"rank":17},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * 129X1/SvJ","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1Cxd>/Fgfr2<tm1Cxd> either: (involves: 129S6/SvEvTac) or (involves: 129S6/SvEvTac * NIH Black Swiss)","phenotypes":["MP:0001698","MP:0001711","MP:0001712","MP:0003231","MP:0003403","MP:0003984","MP:0004255","MP:0004310","MP:0004556","MP:0004573","MP:0005031","MP:0009397","MP:0009657","MP:0011098"],"score":{"metric":"phenodigm","score":25.31,"rank":18},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"either: (involves: 129S6/SvEvTac) or (involves: 129S6/SvEvTac * NIH Black Swiss)","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dor>/Fgfr2<tm1.1Dor> involves: 129X1/SvJ","phenotypes":["MP:0001712","MP:0004573","MP:0011098"],"score":{"metric":"phenodigm","score":25.3,"rank":19},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129X1/SvJ","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dsn>/Fgfr2<+> involves: 129P2/OlaHsd * C57BL/6","phenotypes":["MP:0009522","MP:0009525"],"score":{"metric":"phenodigm","score":25.07,"rank":20},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129P2/OlaHsd * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]}],"yAxis":[{"label":"OMIM:101600","phenotypes":["HP:0000006","HP:0000174","HP:0000194","HP:0000218","HP:0000238","HP:0000244","HP:0000272","HP:0000303","HP:0000316","HP:0000322","HP:0000324","HP:0000327","HP:0000348","HP:0000431","HP:0000452","HP:0000453","HP:0000470","HP:0000486","HP:0000494","HP:0000508","HP:0000586","HP:0000678","HP:0001156","HP:0001249","HP:0002308","HP:0002676","HP:0002780","HP:0003041","HP:0003070","HP:0003196","HP:0003272","HP:0003307","HP:0003795","HP:0004209","HP:0004322","HP:0004440","HP:0005048","HP:0005280","HP:0005347","HP:0006101","HP:0006110","HP:0009602","HP:0009773","HP:0010055","HP:0010669","HP:0011304"],"score":null,"taxon":{"id":"NCBITaxon:9606","label":"Homo sapiens"},"info":[]}]}
+module.exports={
+  "title": "Comparison OMIM:101600 - MGI:96794 for disease page",
+  "xAxis": [
+    {
+      "id": "MGI:3844310",
+      "label": "Lmna<Dhe>/Lmna<+> B6(D2)-Lmna<Dhe>/TyGrsrJ",
+      "score": {
+        "metric": "phenodigm",
+        "score": 73.12,
+        "rank": 0
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "B6(D2)-Lmna<Dhe>/TyGrsrJ",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:96794",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+        }
+      ]
+    },
+      
+    {
+      "id": "MGI:2176484",
+      "label": "Lmna<tm1Lgf>/Lmna<tm1Lgf> involves: 129P2/OlaHsd * C57BL/6",
+      "score": {
+        "metric": "phenodigm",
+        "score": 56.12,
+        "rank": 1
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "B6(D2)-Lmna<Dhe>/TyGrsrJ",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:96794",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+        }
+      ]
+    },
+      
+    {
+      "id": "MGI:3844310",
+      "label": "Lmna<Dhe>/Lmna<+> B6(D2)-Lmna<Dhe>/TyGrsrJ",
+      "score": {
+        "metric": "phenodigm",
+        "score": 73.12,
+        "rank": 0
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129P2/OlaHsd * C57BL/6",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:96794",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+        }
+      ]
+    }
+  ],
+  "yAxis": [
+    {
+      "label": "OMIM:101600",
+      "phenotypes": [
+        {
+          "id": "HP:0000006",
+          "term": "Autosomal dominant inheritance"
+        },
+        {
+          "id": "HP:0000174",
+          "term": "Abnormality of the palate"
+        },
+        {
+          "id": "HP:0000194",
+          "term": "Open mouth"
+        },
+        {
+          "id": "HP:0000218",
+          "term": "High palate"
+        },
+        {
+          "id": "HP:0000238",
+          "term": "Hydrocephalus"
+        },
+        {
+          "id": "HP:0000244",
+          "term": "Brachyturricephaly"
+        },
+        {
+          "id": "HP:0000272",
+          "term": "Malar flattening"
+        },
+        {
+          "id": "HP:0000303",
+          "term": "Mandibular prognathia"
+        },
+        {
+          "id": "HP:0000316",
+          "term": "Hypertelorism"
+        },
+        {
+          "id": "HP:0000322",
+          "term": "Short philtrum"
+        },
+        {
+          "id": "HP:0000324",
+          "term": "Facial asymmetry"
+        },
+        {
+          "id": "HP:0000327",
+          "term": "Hypoplasia of the maxilla"
+        },
+        {
+          "id": "HP:0000348",
+          "term": "High forehead"
+        },
+        {
+          "id": "HP:0000431",
+          "term": "Wide nasal bridge"
+        },
+        {
+          "id": "HP:0000452",
+          "term": "Choanal stenosis"
+        },
+        {
+          "id": "HP:0000453",
+          "term": "Choanal atresia"
+        },
+        {
+          "id": "HP:0000470",
+          "term": "Short neck"
+        },
+        {
+          "id": "HP:0000486",
+          "term": "Strabismus"
+        },
+        {
+          "id": "HP:0000494",
+          "term": "Downslanted palpebral fissures"
+        },
+        {
+          "id": "HP:0000508",
+          "term": "Ptosis"
+        },
+        {
+          "id": "HP:0000586",
+          "term": "Shallow orbits"
+        },
+        {
+          "id": "HP:0000678",
+          "term": "Dental crowding"
+        },
+        {
+          "id": "HP:0001156",
+          "term": "Brachydactyly syndrome"
+        },
+        {
+          "id": "HP:0001249",
+          "term": "Intellectual disability"
+        },
+        {
+          "id": "HP:0002308",
+          "term": "Arnold-Chiari malformation"
+        },
+        {
+          "id": "HP:0002676",
+          "term": "Cloverleaf skull"
+        },
+        {
+          "id": "HP:0002780",
+          "term": "Bronchomalacia"
+        },
+        {
+          "id": "HP:0003041",
+          "term": "Humeroradial synostosis"
+        },
+        {
+          "id": "HP:0003070",
+          "term": "Elbow ankylosis"
+        },
+        {
+          "id": "HP:0003196",
+          "term": "Short nose"
+        },
+        {
+          "id": "HP:0003272",
+          "term": "Abnormality of the hip bone"
+        },
+        {
+          "id": "HP:0003307",
+          "term": "Hyperlordosis"
+        },
+        {
+          "id": "HP:0003795",
+          "term": "Short middle phalanx of toe"
+        },
+        {
+          "id": "HP:0004209",
+          "term": "Clinodactyly of the 5th finger"
+        },
+        {
+          "id": "HP:0004322",
+          "term": "Short stature"
+        },
+        {
+          "id": "HP:0004440",
+          "term": "Coronal craniosynostosis"
+        },
+        {
+          "id": "HP:0005048",
+          "term": "Synostosis of carpal bones"
+        },
+        {
+          "id": "HP:0005280",
+          "term": "Depressed nasal bridge"
+        },
+        {
+          "id": "HP:0005347",
+          "term": "Cartilaginous trachea"
+        },
+        {
+          "id": "HP:0006101",
+          "term": "Finger syndactyly"
+        },
+        {
+          "id": "HP:0006110",
+          "term": "Shortening of all middle phalanges of the fingers"
+        },
+        {
+          "id": "HP:0009602",
+          "term": "Abnormality of thumb phalanx"
+        },
+        {
+          "id": "HP:0009773",
+          "term": "Symphalangism affecting the phalanges of the hand"
+        },
+        {
+          "id": "HP:0010055",
+          "term": "Broad hallux"
+        },
+        {
+          "id": "HP:0010669",
+          "term": "Hypoplasia of the zygomatic bone"
+        },
+        {
+          "id": "HP:0011304",
+          "term": "Broad thumb"
+        }
+      ],
+      "score": null,
+      "taxon": {
+        "id": "NCBITaxon:9606",
+        "label": "Homo sapiens"
+      },
+      "info": []
+    }
+  ]
+}
 },{}],7:[function(require,module,exports){
 (function () {
 'use strict';
@@ -1917,6 +2237,7 @@ var impcData = require('./impc.json');
 	$.widget("ui.phenogrid", {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
+            phenotypeData: [],
             serverURL: "http://monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
             selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
@@ -2131,9 +2452,11 @@ var impcData = require('./impc.json');
             
             console.log(impcData);
          
-            // use the mouse phenotypes from the input JSON
-            this.state.phenotypeData = impcData.yAxis[0].phenotypes;
-         
+            // use the human phenotypes from the input JSON
+            for (var i in impcData.yAxis[0].phenotypes) {
+                this.state.phenotypeData.push(impcData.yAxis[0].phenotypes[i].id);
+            }
+
             console.log(this.state.phenotypeData);
              
              // Remove duplicated source IDs - Joe
@@ -2163,21 +2486,17 @@ var impcData = require('./impc.json');
             }
             
             // combine all the mouse phenotype IDs into one list, then send out one ajax compare call - Joe
-            var mousePhenotypeList = [];
+            var genotypeList = [];
             
             for (var idx in impcData.xAxis) {
-                mousePhenotypeList = mousePhenotypeList.concat(impcData.xAxis[idx].phenotypes);
+                genotypeList = genotypeList.concat(impcData.xAxis[idx].id);
             }
-            
-            // now we need to remove the duplicates
-            var filteredMousePhenotypeList = this._parseCombinedMousePhenotypeList(mousePhenotypeList);
-            
             
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, filteredMousePhenotypeList, asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, genotypeList, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -4645,30 +4964,6 @@ var impcData = require('./impc.json');
 	},
 
 
-	_parseCombinedMousePhenotypeList: function(phenotypelist) {
-		var filteredList = {};
-		var newlist = [];
-		var pheno;
-		for (var i in phenotypelist) {
-			pheno = phenotypelist[i];
-			if (typeof pheno === 'string') {
-				newlist.push(pheno);
-			}
-		}
-
-		// Now we have all the phenotype IDs ('MP:23451' like strings) in array,
-		// since JavaScript Array push() doesn't remove duplicates,
-		// we need to get rid of the duplicates. There are many duplicates from the monarch-app returned json - Joe
-		// Based on "Smart" but naïve way - http://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array - Joe
-		// filter() calls a provided callback function once for each element in an array, 
-		// and constructs a new array of all the values for which callback returns a true value or a value that coerces to true.
-		newlist = newlist.filter(function(item) {
-			return filteredList.hasOwnProperty(item) ? false : (filteredList[item] = true);
-		});
-
-		return newlist;
-	},
-    
 	_expandOntology: function(id) {
 		// check to see if id has been cached
 		var cache = this.state.dataLoader.checkOntologyCache(id);

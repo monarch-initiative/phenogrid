@@ -1,1 +1,282 @@
-{"title":"Comparison OMIM:101600 - MGI:95523 for disease page","xAxis":[{"label":"Fgfr2<tm2.3Dsn>/Fgfr2<+> involves: 129 * C57BL/6 * FVB/N","phenotypes":["MP:0000074","MP:0000081","MP:0000097","MP:0000189","MP:0000440","MP:0000445","MP:0000521","MP:0000596","MP:0001175","MP:0001265","MP:0001347","MP:0001669","MP:0001732","MP:0002267","MP:0002750","MP:0002989","MP:0003641","MP:0004322","MP:0004469","MP:0004505","MP:0004678","MP:0006027","MP:0008277","MP:0009050","MP:0009051","MP:0009570","MP:0010911","MP:0011011","MP:0011085","MP:0011290","MP:0012667"],"score":{"metric":"phenodigm","score":67.1,"rank":0},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129 * C57BL/6 * FVB/N","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<m1Sgg>/Fgfr2<m1Sgg> involves: C3H/HeJ * C57BL/6J","phenotypes":["MP:0000060","MP:0000106","MP:0000118","MP:0000137","MP:0000157","MP:0000159","MP:0000163","MP:0000166","MP:0000438","MP:0000445","MP:0000462","MP:0000549","MP:0000762","MP:0000774","MP:0001347","MP:0001677","MP:0001698","MP:0001954","MP:0002058","MP:0002239","MP:0002750","MP:0002835","MP:0002989","MP:0003641","MP:0003938","MP:0004247","MP:0004320","MP:0004377","MP:0004418","MP:0004449","MP:0004469","MP:0004537","MP:0004609","MP:0004620","MP:0004726","MP:0004989","MP:0006213","MP:0006279","MP:0008272","MP:0008785","MP:0009524","MP:0009653","MP:0010743","MP:0011011"],"score":{"metric":"phenodigm","score":77.65,"rank":1},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: C3H/HeJ * C57BL/6J","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm4Lni>/Fgfr2<tm4Lni> Not Specified","phenotypes":["MP:0000102","MP:0000435","MP:0000440","MP:0001175","MP:0001302","MP:0001953","MP:0002114","MP:0004322","MP:0004552","MP:0004609","MP:0004988","MP:0005006","MP:0005249","MP:0008271","MP:0009250","MP:0009887","MP:0009890","MP:0010029","MP:0011087"],"score":{"metric":"phenodigm","score":68.57,"rank":2},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"Not Specified","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<m1Sgg>/Fgfr2<+> involves: C3H/HeJ * C57BL/6J","phenotypes":["MP:0000081","MP:0000106","MP:0000120","MP:0000157","MP:0000166","MP:0000428","MP:0000440","MP:0000445","MP:0001698","MP:0002239","MP:0002835","MP:0003840","MP:0003938","MP:0004449","MP:0004831","MP:0004989","MP:0008272","MP:0008525","MP:0009703","MP:0009887","MP:0009890"],"score":{"metric":"phenodigm","score":67.42,"rank":3},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: C3H/HeJ * C57BL/6J","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm4Lni>/Fgfr2<+> Not Specified","phenotypes":["MP:0000081","MP:0000097","MP:0000104","MP:0000120","MP:0000435","MP:0000440","MP:0001300","MP:0002750","MP:0004988","MP:0006400"],"score":{"metric":"phenodigm","score":65.32,"rank":4},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"Not Specified","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd * C57BL/6","phenotypes":["MP:0000031","MP:0000035","MP:0000039","MP:0000081","MP:0000111","MP:0000118","MP:0000440","MP:0000470","MP:0000492","MP:0000551","MP:0000557","MP:0000613","MP:0000629","MP:0001176","MP:0001181","MP:0001199","MP:0001201","MP:0001218","MP:0001231","MP:0001244","MP:0001265","MP:0001341","MP:0002095","MP:0002428","MP:0002691","MP:0003051","MP:0003124","MP:0003308","MP:0003315","MP:0003703","MP:0003816","MP:0004310","MP:0004343","MP:0004346","MP:0004507","MP:0004509","MP:0004619","MP:0004691","MP:0005298","MP:0005354","MP:0006011","MP:0006279","MP:0006287","MP:0006288","MP:0008320","MP:0009479","MP:0009509","MP:0009510","MP:0009522","MP:0009524","MP:0011026","MP:0011089","MP:0011158","MP:0011759","MP:0013351","MP:0013352","MP:0013721","MP:0013785"],"score":{"metric":"phenodigm","score":65.11,"rank":5},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129P2/OlaHsd * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm3.1Lni>/Fgfr2<tm3.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6","phenotypes":["MP:0000060","MP:0000081","MP:0000104","MP:0000106","MP:0000432","MP:0000440","MP:0000566","MP:0001262","MP:0001265","MP:0001732","MP:0002116","MP:0002750","MP:0003409","MP:0003840","MP:0004448","MP:0005006","MP:0008489","MP:0008525","MP:0010029"],"score":{"metric":"phenodigm","score":62.51,"rank":6},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm3Ewj>/Fgfr2<+> B6.129-Fgfr2<tm3Ewj>","phenotypes":["MP:0000081","MP:0000157","MP:0000435","MP:0000566","MP:0001219","MP:0001222","MP:0001231","MP:0001240","MP:0001725","MP:0001732","MP:0001874","MP:0002060","MP:0003743","MP:0009545","MP:0009601","MP:0009611","MP:0011085","MP:0011495"],"score":{"metric":"phenodigm","score":56.1,"rank":7},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"B6.129-Fgfr2<tm3Ewj>","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1Schl>/Fgfr2<+> involves: 129S1/Sv","phenotypes":["MP:0000081","MP:0000428","MP:0000438","MP:0002750","MP:0003840"],"score":{"metric":"phenodigm","score":56.0,"rank":8},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm2Ewj>/Fgfr2<+> involves: 129S1/Sv * 129X1/SvJ * C57BL/6J","phenotypes":["MP:0000081","MP:0000780","MP:0002152","MP:0008534","MP:0008535","MP:0008540"],"score":{"metric":"phenodigm","score":53.52,"rank":9},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * 129X1/SvJ * C57BL/6J","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm3Dsn>/Fgfr2<tm3Dsn> involves: 129P2/OlaHsd * C57BL/6","phenotypes":["MP:0000111","MP:0000124","MP:0000149","MP:0000267","MP:0000273","MP:0000279","MP:0000280","MP:0000284","MP:0000377","MP:0000379","MP:0000527","MP:0000537","MP:0000549","MP:0000613","MP:0000704","MP:0001181","MP:0001199","MP:0001216","MP:0001218","MP:0001231","MP:0001341","MP:0001676","MP:0002060","MP:0002295","MP:0002655","MP:0002989","MP:0003051","MP:0003124","MP:0003420","MP:0003704","MP:0003934","MP:0004032","MP:0004055","MP:0004067","MP:0004200","MP:0004509","MP:0004619","MP:0005294","MP:0005314","MP:0006030","MP:0006288","MP:0008320","MP:0009003","MP:0010418","MP:0010420","MP:0010454","MP:0010521","MP:0010566","MP:0010585","MP:0010587","MP:0010646","MP:0011089","MP:0011290","MP:0013310","MP:0013578"],"score":{"metric":"phenodigm","score":48.29,"rank":10},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129P2/OlaHsd * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1Schl>/Fgfr2<tm1Schl> involves: 129S1/Sv","phenotypes":["MP:0000111","MP:0001943","MP:0003120","MP:0003189","MP:0009888","MP:0011087"],"score":{"metric":"phenodigm","score":44.33,"rank":11},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd","phenotypes":["MP:0000762","MP:0003755","MP:0003760","MP:0003934","MP:0004247","MP:0009655","MP:0009884","MP:0009890","MP:0013264","MP:0013766"],"score":{"metric":"phenodigm","score":41.43,"rank":12},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129P2/OlaHsd","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm2Schl>/Fgfr2<tm2Schl> involves: 129S1/Sv * BALB/c * C57BL/6","phenotypes":["MP:0000111","MP:0003120","MP:0009888"],"score":{"metric":"phenodigm","score":40.58,"rank":13},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * BALB/c * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm2.1Lni>/Fgfr2<tm2.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6","phenotypes":["MP:0000549","MP:0001181","MP:0009524","MP:0011087"],"score":{"metric":"phenodigm","score":34.5,"rank":14},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dor>/Fgfr2<hob> involves: 129X1/SvJ * C57BL/6J * FVB/N","phenotypes":["MP:0000549","MP:0001178","MP:0002995","MP:0004200"],"score":{"metric":"phenodigm","score":30.33,"rank":15},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129X1/SvJ * C57BL/6J * FVB/N","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<hob>/Fgfr2<hob> involves: C57BL/6J","phenotypes":["MP:0000549","MP:0001178","MP:0002995","MP:0006208"],"score":{"metric":"phenodigm","score":30.33,"rank":16},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: C57BL/6J","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm3Lni>/Fgfr2<tm3Lni> involves: 129S1/Sv * 129X1/SvJ","phenotypes":["MP:0000537","MP:0000549"],"score":{"metric":"phenodigm","score":28.34,"rank":17},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129S1/Sv * 129X1/SvJ","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1Cxd>/Fgfr2<tm1Cxd> either: (involves: 129S6/SvEvTac) or (involves: 129S6/SvEvTac * NIH Black Swiss)","phenotypes":["MP:0001698","MP:0001711","MP:0001712","MP:0003231","MP:0003403","MP:0003984","MP:0004255","MP:0004310","MP:0004556","MP:0004573","MP:0005031","MP:0009397","MP:0009657","MP:0011098"],"score":{"metric":"phenodigm","score":25.31,"rank":18},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"either: (involves: 129S6/SvEvTac) or (involves: 129S6/SvEvTac * NIH Black Swiss)","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dor>/Fgfr2<tm1.1Dor> involves: 129X1/SvJ","phenotypes":["MP:0001712","MP:0004573","MP:0011098"],"score":{"metric":"phenodigm","score":25.3,"rank":19},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129X1/SvJ","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]},{"label":"Fgfr2<tm1.1Dsn>/Fgfr2<+> involves: 129P2/OlaHsd * C57BL/6","phenotypes":["MP:0009522","MP:0009525"],"score":{"metric":"phenodigm","score":25.07,"rank":20},"taxon":{"id":"NCBITaxon:10090","label":"Mus musculus"},"info":[{"id":"Source","value":"MGI","href":null},{"id":"Background","value":"involves: 129P2/OlaHsd * C57BL/6","href":null},{"id":"IMPC gene","value":"MGI:95523","href":"https://dev.mousephenotype.org/data/genes/MGI:95523"}]}],"yAxis":[{"label":"OMIM:101600","phenotypes":["HP:0000006","HP:0000174","HP:0000194","HP:0000218","HP:0000238","HP:0000244","HP:0000272","HP:0000303","HP:0000316","HP:0000322","HP:0000324","HP:0000327","HP:0000348","HP:0000431","HP:0000452","HP:0000453","HP:0000470","HP:0000486","HP:0000494","HP:0000508","HP:0000586","HP:0000678","HP:0001156","HP:0001249","HP:0002308","HP:0002676","HP:0002780","HP:0003041","HP:0003070","HP:0003196","HP:0003272","HP:0003307","HP:0003795","HP:0004209","HP:0004322","HP:0004440","HP:0005048","HP:0005280","HP:0005347","HP:0006101","HP:0006110","HP:0009602","HP:0009773","HP:0010055","HP:0010669","HP:0011304"],"score":null,"taxon":{"id":"NCBITaxon:9606","label":"Homo sapiens"},"info":[]}]}
+{
+  "title": "Comparison OMIM:101600 - MGI:96794 for disease page",
+  "xAxis": [
+    {
+      "id": "MGI:3844310",
+      "label": "Lmna<Dhe>/Lmna<+> B6(D2)-Lmna<Dhe>/TyGrsrJ",
+      "score": {
+        "metric": "phenodigm",
+        "score": 73.12,
+        "rank": 0
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "B6(D2)-Lmna<Dhe>/TyGrsrJ",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:96794",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+        }
+      ]
+    },
+      
+    {
+      "id": "MGI:2176484",
+      "label": "Lmna<tm1Lgf>/Lmna<tm1Lgf> involves: 129P2/OlaHsd * C57BL/6",
+      "score": {
+        "metric": "phenodigm",
+        "score": 56.12,
+        "rank": 1
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "B6(D2)-Lmna<Dhe>/TyGrsrJ",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:96794",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+        }
+      ]
+    },
+      
+    {
+      "id": "MGI:3844310",
+      "label": "Lmna<Dhe>/Lmna<+> B6(D2)-Lmna<Dhe>/TyGrsrJ",
+      "score": {
+        "metric": "phenodigm",
+        "score": 73.12,
+        "rank": 0
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129P2/OlaHsd * C57BL/6",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:96794",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+        }
+      ]
+    }
+  ],
+  "yAxis": [
+    {
+      "label": "OMIM:101600",
+      "phenotypes": [
+        {
+          "id": "HP:0000006",
+          "term": "Autosomal dominant inheritance"
+        },
+        {
+          "id": "HP:0000174",
+          "term": "Abnormality of the palate"
+        },
+        {
+          "id": "HP:0000194",
+          "term": "Open mouth"
+        },
+        {
+          "id": "HP:0000218",
+          "term": "High palate"
+        },
+        {
+          "id": "HP:0000238",
+          "term": "Hydrocephalus"
+        },
+        {
+          "id": "HP:0000244",
+          "term": "Brachyturricephaly"
+        },
+        {
+          "id": "HP:0000272",
+          "term": "Malar flattening"
+        },
+        {
+          "id": "HP:0000303",
+          "term": "Mandibular prognathia"
+        },
+        {
+          "id": "HP:0000316",
+          "term": "Hypertelorism"
+        },
+        {
+          "id": "HP:0000322",
+          "term": "Short philtrum"
+        },
+        {
+          "id": "HP:0000324",
+          "term": "Facial asymmetry"
+        },
+        {
+          "id": "HP:0000327",
+          "term": "Hypoplasia of the maxilla"
+        },
+        {
+          "id": "HP:0000348",
+          "term": "High forehead"
+        },
+        {
+          "id": "HP:0000431",
+          "term": "Wide nasal bridge"
+        },
+        {
+          "id": "HP:0000452",
+          "term": "Choanal stenosis"
+        },
+        {
+          "id": "HP:0000453",
+          "term": "Choanal atresia"
+        },
+        {
+          "id": "HP:0000470",
+          "term": "Short neck"
+        },
+        {
+          "id": "HP:0000486",
+          "term": "Strabismus"
+        },
+        {
+          "id": "HP:0000494",
+          "term": "Downslanted palpebral fissures"
+        },
+        {
+          "id": "HP:0000508",
+          "term": "Ptosis"
+        },
+        {
+          "id": "HP:0000586",
+          "term": "Shallow orbits"
+        },
+        {
+          "id": "HP:0000678",
+          "term": "Dental crowding"
+        },
+        {
+          "id": "HP:0001156",
+          "term": "Brachydactyly syndrome"
+        },
+        {
+          "id": "HP:0001249",
+          "term": "Intellectual disability"
+        },
+        {
+          "id": "HP:0002308",
+          "term": "Arnold-Chiari malformation"
+        },
+        {
+          "id": "HP:0002676",
+          "term": "Cloverleaf skull"
+        },
+        {
+          "id": "HP:0002780",
+          "term": "Bronchomalacia"
+        },
+        {
+          "id": "HP:0003041",
+          "term": "Humeroradial synostosis"
+        },
+        {
+          "id": "HP:0003070",
+          "term": "Elbow ankylosis"
+        },
+        {
+          "id": "HP:0003196",
+          "term": "Short nose"
+        },
+        {
+          "id": "HP:0003272",
+          "term": "Abnormality of the hip bone"
+        },
+        {
+          "id": "HP:0003307",
+          "term": "Hyperlordosis"
+        },
+        {
+          "id": "HP:0003795",
+          "term": "Short middle phalanx of toe"
+        },
+        {
+          "id": "HP:0004209",
+          "term": "Clinodactyly of the 5th finger"
+        },
+        {
+          "id": "HP:0004322",
+          "term": "Short stature"
+        },
+        {
+          "id": "HP:0004440",
+          "term": "Coronal craniosynostosis"
+        },
+        {
+          "id": "HP:0005048",
+          "term": "Synostosis of carpal bones"
+        },
+        {
+          "id": "HP:0005280",
+          "term": "Depressed nasal bridge"
+        },
+        {
+          "id": "HP:0005347",
+          "term": "Cartilaginous trachea"
+        },
+        {
+          "id": "HP:0006101",
+          "term": "Finger syndactyly"
+        },
+        {
+          "id": "HP:0006110",
+          "term": "Shortening of all middle phalanges of the fingers"
+        },
+        {
+          "id": "HP:0009602",
+          "term": "Abnormality of thumb phalanx"
+        },
+        {
+          "id": "HP:0009773",
+          "term": "Symphalangism affecting the phalanges of the hand"
+        },
+        {
+          "id": "HP:0010055",
+          "term": "Broad hallux"
+        },
+        {
+          "id": "HP:0010669",
+          "term": "Hypoplasia of the zygomatic bone"
+        },
+        {
+          "id": "HP:0011304",
+          "term": "Broad thumb"
+        }
+      ],
+      "score": null,
+      "taxon": {
+        "id": "NCBITaxon:9606",
+        "label": "Homo sapiens"
+      },
+      "info": []
+    }
+  ]
+}

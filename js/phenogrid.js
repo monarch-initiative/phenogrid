@@ -96,6 +96,7 @@ var impcData = require('./impc.json');
 	$.widget("ui.phenogrid", {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
+            phenotypeData: [],
             serverURL: "http://monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
             selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
@@ -310,9 +311,11 @@ var impcData = require('./impc.json');
             
             console.log(impcData);
          
-            // use the mouse phenotypes from the input JSON
-            this.state.phenotypeData = impcData.yAxis[0].phenotypes;
-         
+            // use the human phenotypes from the input JSON
+            for (var i in impcData.yAxis[0].phenotypes) {
+                this.state.phenotypeData.push(impcData.yAxis[0].phenotypes[i].id);
+            }
+
             console.log(this.state.phenotypeData);
              
              // Remove duplicated source IDs - Joe
@@ -342,21 +345,17 @@ var impcData = require('./impc.json');
             }
             
             // combine all the mouse phenotype IDs into one list, then send out one ajax compare call - Joe
-            var mousePhenotypeList = [];
+            var genotypeList = [];
             
             for (var idx in impcData.xAxis) {
-                mousePhenotypeList = mousePhenotypeList.concat(impcData.xAxis[idx].phenotypes);
+                genotypeList = genotypeList.concat(impcData.xAxis[idx].id);
             }
-            
-            // now we need to remove the duplicates
-            var filteredMousePhenotypeList = this._parseCombinedMousePhenotypeList(mousePhenotypeList);
-            
             
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, filteredMousePhenotypeList, asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, genotypeList, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -2824,30 +2823,6 @@ var impcData = require('./impc.json');
 	},
 
 
-	_parseCombinedMousePhenotypeList: function(phenotypelist) {
-		var filteredList = {};
-		var newlist = [];
-		var pheno;
-		for (var i in phenotypelist) {
-			pheno = phenotypelist[i];
-			if (typeof pheno === 'string') {
-				newlist.push(pheno);
-			}
-		}
-
-		// Now we have all the phenotype IDs ('MP:23451' like strings) in array,
-		// since JavaScript Array push() doesn't remove duplicates,
-		// we need to get rid of the duplicates. There are many duplicates from the monarch-app returned json - Joe
-		// Based on "Smart" but naïve way - http://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array - Joe
-		// filter() calls a provided callback function once for each element in an array, 
-		// and constructs a new array of all the values for which callback returns a true value or a value that coerces to true.
-		newlist = newlist.filter(function(item) {
-			return filteredList.hasOwnProperty(item) ? false : (filteredList[item] = true);
-		});
-
-		return newlist;
-	},
-    
 	_expandOntology: function(id) {
 		// check to see if id has been cached
 		var cache = this.state.dataLoader.checkOntologyCache(id);

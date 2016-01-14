@@ -5,6 +5,8 @@ var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 
 var Utils = require('./utils.js');
 
+var impcData = require('./impc.json');
+
 /*
  	Package: dataloader.js
 
@@ -125,18 +127,18 @@ DataLoader.prototype = {
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			mousePhenotypeList - combined list of mouse genes
+			genotypeList - combined list of mouse genes
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForIMPC: function(qrySourceList, mousePhenotypeList, asyncDataLoadingCallback) {
+    loadCompareDataForIMPC: function(qrySourceList, genotypeList, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP:0000074,MP:0000081
-	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + mousePhenotypeList.join(",");
+        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MGI:3844310,MGI:2176484
+	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + genotypeList.join(",");
 
         var self = this;
         
@@ -156,7 +158,7 @@ DataLoader.prototype = {
                     self.speciesNoMatch.push('Mus musculus');
                 } else {
                     // use 'Mus musculus' as the key of the named array
-                    self.transformIMPC("Mus musculus", data);  
+                    self.transform("Mus musculus", data);  
                 }
                 
                 self.postDataLoadCallback(); 
@@ -370,8 +372,10 @@ DataLoader.prototype = {
 			} // for
 		} // if
 	}, 
+    
+    
 
-    transformIMPC: function(targetGroup, data) {      		
+    transformIMPC222: function(targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
@@ -399,9 +403,34 @@ DataLoader.prototype = {
 
  
             var targetVal;
+            // Target items are genotypes from the IMPC data xAxis
+            for (var i in impcData.xAxis) {
+                // since we only have genotype label, no id
+                var targetID = impcData.xAxis[i].label;
+                // build the target list
+				targetVal = {
+                        "id": targetID,  
+                        "label": impcData.xAxis[i].label, 
+                        "targetGroup": targetGroup, // Mouse
+                        "taxon": '10090', // Mouse taxon
+                        "type": 'genotype', 
+                        "rank": impcData.xAxis[i].score.rank + 1,  // start with 1 not zero
+                        "score": impcData.xAxis[i].score.score
+                    };
+                
+                // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
+                if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
+                    this.targetData[targetGroup][targetID] = {};
+                }
+                
+                this.targetData[targetGroup][targetID] = targetVal;
+            }
+            
+            
+            
+            // build the cellData based on the simsearch/compare result
 			for (var idx in data.b) {
 				var item = data.b[idx];
-				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
 				targetVal = {
@@ -409,7 +438,7 @@ DataLoader.prototype = {
                          "label": item.label, 
                          "targetGroup": targetGroup, // Mouse
                          "taxon": '10090', // Mouse taxon
-                         "type": item.type, 
+                         "type": 'genotype', 
                          "rank": parseInt(idx)+1,  // start with 1 not zero
                          "score": item.score.score
                     }; 
@@ -477,9 +506,19 @@ DataLoader.prototype = {
 
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
-				}  //if
-			} // for
-		} // if
+				}  // end if
+			} // end for
+            
+            // Now we have all the MP as x-axis items and all HP on y-axis with their matches as grid cells
+            // In order to group all the MP back to model (the genotype that they are associated with),
+            // we'll need to modify the targetData and cellData
+            for (var i in this.targetData[targetGroup]) {
+                
+            }
+            
+            
+            
+		} // end if
 	}, 
     
     // used to transform genotype/phenotype matches 
