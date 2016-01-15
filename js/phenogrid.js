@@ -344,7 +344,31 @@ var impcData = require('./impc.json');
                 }			
             }
             
+            /*
+            
+            // Test 1, using all MP
+            
             // combine all the mouse phenotype IDs into one list, then send out one ajax compare call - Joe
+            var mousePhenotypeList = [];
+            
+            for (var idx in impcData.xAxis) {
+                mousePhenotypeList = mousePhenotypeList.concat(impcData.xAxis[idx].phenotypes);
+            }
+            
+            // now we need to remove the duplicates
+            var filteredMousePhenotypeList = this._parseCombinedMousePhenotypeList(mousePhenotypeList);
+            
+            
+            // initialize data processing class for compare query
+            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+
+            // starting loading the data from compare api
+            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, filteredMousePhenotypeList, asyncDataLoadingCallback);
+            */
+            
+            
+            //Test 2, use added genotype IDs
+            
             var genotypeList = [];
             
             for (var idx in impcData.xAxis) {
@@ -355,7 +379,7 @@ var impcData = require('./impc.json');
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, genotypeList, asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForIMPCWithMGI(querySourceList, genotypeList, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -763,7 +787,8 @@ var impcData = require('./impc.json');
 	},
     
     _createOverviewTargetGroupLabels: function () {
-		if (this.state.IMPC) {
+		// Show IMPC title form their JSON
+        if (this.state.IMPC) {
             this.state.svg.append("text")
                 .attr("x", this.state.gridRegion.x + this._gridWidth() + 25) // 25 is margin - Joe
                 .attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
@@ -2797,6 +2822,30 @@ var impcData = require('./impc.json');
         }
     },
 
+    _parseCombinedMousePhenotypeList: function(phenotypelist) {
+		var filteredList = {};
+		var newlist = [];
+		var pheno;
+		for (var i in phenotypelist) {
+			pheno = phenotypelist[i];
+			if (typeof pheno === 'string') {
+				newlist.push(pheno);
+			}
+		}
+
+		// Now we have all the phenotype IDs ('MP:23451' like strings) in array,
+		// since JavaScript Array push() doesn't remove duplicates,
+		// we need to get rid of the duplicates. There are many duplicates from the monarch-app returned json - Joe
+		// Based on "Smart" but naïve way - http://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array - Joe
+		// filter() calls a provided callback function once for each element in an array, 
+		// and constructs a new array of all the values for which callback returns a true value or a value that coerces to true.
+		newlist = newlist.filter(function(item) {
+			return filteredList.hasOwnProperty(item) ? false : (filteredList[item] = true);
+		});
+
+		return newlist;
+	},
+    
 	/*
 	 * given an array of phenotype objects edit the object array.
 	 * items are either ontology ids as strings, in which case they are handled as is,

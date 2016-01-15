@@ -440,10 +440,10 @@ DataLoader.prototype = {
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			genotypeList - combined list of mouse genes
+			mousePhenotypeList - combined list of mouse genes
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForIMPC: function(qrySourceList, genotypeList, asyncDataLoadingCallback) {
+    loadCompareDataForIMPC: function(qrySourceList, mousePhenotypeList, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
@@ -451,7 +451,7 @@ DataLoader.prototype = {
 		this.origSourceList = qrySourceList;
 
         // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MGI:3844310,MGI:2176484
-	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + genotypeList.join(",");
+	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + mousePhenotypeList.join(",");
 
         var self = this;
         
@@ -471,7 +471,7 @@ DataLoader.prototype = {
                     self.speciesNoMatch.push('Mus musculus');
                 } else {
                     // use 'Mus musculus' as the key of the named array
-                    self.transform("Mus musculus", data);  
+                    self.transformIMPC("Mus musculus", data);  
                 }
                 
                 self.postDataLoadCallback(); 
@@ -687,8 +687,47 @@ DataLoader.prototype = {
 	}, 
     
     
+    loadCompareDataForIMPCWithMGI: function(qrySourceList, genotypeList, asyncDataLoadingCallback) {
+		this.postDataLoadCallback = asyncDataLoadingCallback;
+        
+        // save the original source listing
+        // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
+		this.origSourceList = qrySourceList;
 
-    transformIMPC222: function(targetGroup, data) {      		
+        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MGI:3844310,MGI:2176484
+	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + genotypeList.join(",");
+
+        var self = this;
+        
+		// to load the compare data via ajax GET
+        jQuery.ajax({
+            url: this.qryString,
+            method: 'GET', 
+            async : true,
+            dataType : 'json',
+            success : function(data) {
+                console.log('IMPC compare data loaded:');
+                //console.log(data);
+                
+                // sometimes the compare api doesn't find any matches, we need to stop here - Joe
+                if (typeof (data.b) === 'undefined') {
+                    // Add the 'compare' name to the speciesNoMatch array
+                    self.speciesNoMatch.push('Mus musculus');
+                } else {
+                    // use 'Mus musculus' as the key of the named array
+                    self.transform("Mus musculus", data);  
+                }
+                
+                self.postDataLoadCallback(); 
+            },
+            error: function () { 
+                console.log('Ajax error.')
+            } 
+        });
+	},
+    
+
+ transformIMPC: function(targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
@@ -716,34 +755,9 @@ DataLoader.prototype = {
 
  
             var targetVal;
-            // Target items are genotypes from the IMPC data xAxis
-            for (var i in impcData.xAxis) {
-                // since we only have genotype label, no id
-                var targetID = impcData.xAxis[i].label;
-                // build the target list
-				targetVal = {
-                        "id": targetID,  
-                        "label": impcData.xAxis[i].label, 
-                        "targetGroup": targetGroup, // Mouse
-                        "taxon": '10090', // Mouse taxon
-                        "type": 'genotype', 
-                        "rank": impcData.xAxis[i].score.rank + 1,  // start with 1 not zero
-                        "score": impcData.xAxis[i].score.score
-                    };
-                
-                // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
-                if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
-                    this.targetData[targetGroup][targetID] = {};
-                }
-                
-                this.targetData[targetGroup][targetID] = targetVal;
-            }
-            
-            
-            
-            // build the cellData based on the simsearch/compare result
 			for (var idx in data.b) {
 				var item = data.b[idx];
+				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
 				targetVal = {
@@ -751,7 +765,7 @@ DataLoader.prototype = {
                          "label": item.label, 
                          "targetGroup": targetGroup, // Mouse
                          "taxon": '10090', // Mouse taxon
-                         "type": 'genotype', 
+                         "type": item.type, 
                          "rank": parseInt(idx)+1,  // start with 1 not zero
                          "score": item.score.score
                     }; 
@@ -819,20 +833,10 @@ DataLoader.prototype = {
 
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
-				}  // end if
-			} // end for
-            
-            // Now we have all the MP as x-axis items and all HP on y-axis with their matches as grid cells
-            // In order to group all the MP back to model (the genotype that they are associated with),
-            // we'll need to modify the targetData and cellData
-            for (var i in this.targetData[targetGroup]) {
-                
-            }
-            
-            
-            
-		} // end if
-	}, 
+				}  //if
+			} // for
+		} // if
+	},  
     
     // used to transform genotype/phenotype matches 
     // modified based on transform() - Joe
@@ -1857,14 +1861,47 @@ module.exports={
 }
 },{}],6:[function(require,module,exports){
 module.exports={
-  "title": "Comparison OMIM:101600 - MGI:96794 for disease page",
+  "title": "Comparison OMIM:101600 - MGI:95523 for disease page",
   "xAxis": [
     {
-      "id": "MGI:3844310",
-      "label": "Lmna<Dhe>/Lmna<+> B6(D2)-Lmna<Dhe>/TyGrsrJ",
+      "id": "MGI:2176483",
+      "label": "Fgfr2<tm2.3Dsn>/Fgfr2<+> involves: 129 * C57BL/6 * FVB/N",
+      "phenotypes": [
+        "MP:0000074",
+        "MP:0000081",
+        "MP:0000097",
+        "MP:0000189",
+        "MP:0000440",
+        "MP:0000445",
+        "MP:0000521",
+        "MP:0000596",
+        "MP:0001175",
+        "MP:0001265",
+        "MP:0001347",
+        "MP:0001669",
+        "MP:0001732",
+        "MP:0002267",
+        "MP:0002750",
+        "MP:0002989",
+        "MP:0003641",
+        "MP:0004322",
+        "MP:0004469",
+        "MP:0004505",
+        "MP:0004678",
+        "MP:0006027",
+        "MP:0008277",
+        "MP:0009050",
+        "MP:0009051",
+        "MP:0009570",
+        "MP:0010911",
+        "MP:0011011",
+        "MP:0011085",
+        "MP:0011290",
+        "MP:0012667"
+      ],
       "score": {
         "metric": "phenodigm",
-        "score": 73.12,
+        "score": 67.1,
         "rank": 0
       },
       "info": [
@@ -1875,23 +1912,68 @@ module.exports={
         },
         {
           "id": "Background",
-          "value": "B6(D2)-Lmna<Dhe>/TyGrsrJ",
+          "value": "involves: 129 * C57BL/6 * FVB/N",
           "href": null
         },
         {
           "id": "IMPC gene",
-          "value": "MGI:96794",
-          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
         }
       ]
     },
-      
     {
-      "id": "MGI:2176484",
-      "label": "Lmna<tm1Lgf>/Lmna<tm1Lgf> involves: 129P2/OlaHsd * C57BL/6",
+      "id": "MGI:4461806",
+      "label": "Fgfr2<m1Sgg>/Fgfr2<m1Sgg> involves: C3H/HeJ * C57BL/6J",
+      "phenotypes": [
+        "MP:0000060",
+        "MP:0000106",
+        "MP:0000118",
+        "MP:0000137",
+        "MP:0000157",
+        "MP:0000159",
+        "MP:0000163",
+        "MP:0000166",
+        "MP:0000438",
+        "MP:0000445",
+        "MP:0000462",
+        "MP:0000549",
+        "MP:0000762",
+        "MP:0000774",
+        "MP:0001347",
+        "MP:0001677",
+        "MP:0001698",
+        "MP:0001954",
+        "MP:0002058",
+        "MP:0002239",
+        "MP:0002750",
+        "MP:0002835",
+        "MP:0002989",
+        "MP:0003641",
+        "MP:0003938",
+        "MP:0004247",
+        "MP:0004320",
+        "MP:0004377",
+        "MP:0004418",
+        "MP:0004449",
+        "MP:0004469",
+        "MP:0004537",
+        "MP:0004609",
+        "MP:0004620",
+        "MP:0004726",
+        "MP:0004989",
+        "MP:0006213",
+        "MP:0006279",
+        "MP:0008272",
+        "MP:0008785",
+        "MP:0009524",
+        "MP:0009653",
+        "MP:0010743",
+        "MP:0011011"
+      ],
       "score": {
         "metric": "phenodigm",
-        "score": 56.12,
+        "score": 77.65,
         "rank": 1
       },
       "info": [
@@ -1902,24 +1984,217 @@ module.exports={
         },
         {
           "id": "Background",
-          "value": "B6(D2)-Lmna<Dhe>/TyGrsrJ",
+          "value": "involves: C3H/HeJ * C57BL/6J",
           "href": null
         },
         {
           "id": "IMPC gene",
-          "value": "MGI:96794",
-          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
         }
       ]
     },
-      
     {
-      "id": "MGI:3844310",
-      "label": "Lmna<Dhe>/Lmna<+> B6(D2)-Lmna<Dhe>/TyGrsrJ",
+      "id": "MGI:3053578",
+      "label": "Fgfr2<tm4Lni>/Fgfr2<tm4Lni> Not Specified",
+      "phenotypes": [
+        "MP:0000102",
+        "MP:0000435",
+        "MP:0000440",
+        "MP:0001175",
+        "MP:0001302",
+        "MP:0001953",
+        "MP:0002114",
+        "MP:0004322",
+        "MP:0004552",
+        "MP:0004609",
+        "MP:0004988",
+        "MP:0005006",
+        "MP:0005249",
+        "MP:0008271",
+        "MP:0009250",
+        "MP:0009887",
+        "MP:0009890",
+        "MP:0010029",
+        "MP:0011087"
+      ],
       "score": {
         "metric": "phenodigm",
-        "score": 73.12,
-        "rank": 0
+        "score": 68.57,
+        "rank": 2
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "Not Specified",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:4461807",
+      "label": "Fgfr2<m1Sgg>/Fgfr2<+> involves: C3H/HeJ * C57BL/6J",
+      "phenotypes": [
+        "MP:0000081",
+        "MP:0000106",
+        "MP:0000120",
+        "MP:0000157",
+        "MP:0000166",
+        "MP:0000428",
+        "MP:0000440",
+        "MP:0000445",
+        "MP:0001698",
+        "MP:0002239",
+        "MP:0002835",
+        "MP:0003840",
+        "MP:0003938",
+        "MP:0004449",
+        "MP:0004831",
+        "MP:0004989",
+        "MP:0008272",
+        "MP:0008525",
+        "MP:0009703",
+        "MP:0009887",
+        "MP:0009890"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 67.42,
+        "rank": 3
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: C3H/HeJ * C57BL/6J",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:3053579",
+      "label": "Fgfr2<tm4Lni>/Fgfr2<+> Not Specified",
+      "phenotypes": [
+        "MP:0000081",
+        "MP:0000097",
+        "MP:0000104",
+        "MP:0000120",
+        "MP:0000435",
+        "MP:0000440",
+        "MP:0001300",
+        "MP:0002750",
+        "MP:0004988",
+        "MP:0006400"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 65.32,
+        "rank": 4
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "Not Specified",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:2173367",
+      "label": "Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd * C57BL/6",
+      "phenotypes": [
+        "MP:0000031",
+        "MP:0000035",
+        "MP:0000039",
+        "MP:0000081",
+        "MP:0000111",
+        "MP:0000118",
+        "MP:0000440",
+        "MP:0000470",
+        "MP:0000492",
+        "MP:0000551",
+        "MP:0000557",
+        "MP:0000613",
+        "MP:0000629",
+        "MP:0001176",
+        "MP:0001181",
+        "MP:0001199",
+        "MP:0001201",
+        "MP:0001218",
+        "MP:0001231",
+        "MP:0001244",
+        "MP:0001265",
+        "MP:0001341",
+        "MP:0002095",
+        "MP:0002428",
+        "MP:0002691",
+        "MP:0003051",
+        "MP:0003124",
+        "MP:0003308",
+        "MP:0003315",
+        "MP:0003703",
+        "MP:0003816",
+        "MP:0004310",
+        "MP:0004343",
+        "MP:0004346",
+        "MP:0004507",
+        "MP:0004509",
+        "MP:0004619",
+        "MP:0004691",
+        "MP:0005298",
+        "MP:0005354",
+        "MP:0006011",
+        "MP:0006279",
+        "MP:0006287",
+        "MP:0006288",
+        "MP:0008320",
+        "MP:0009479",
+        "MP:0009509",
+        "MP:0009510",
+        "MP:0009522",
+        "MP:0009524",
+        "MP:0011026",
+        "MP:0011089",
+        "MP:0011158",
+        "MP:0011759",
+        "MP:0013351",
+        "MP:0013352",
+        "MP:0013721",
+        "MP:0013785"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 65.11,
+        "rank": 5
       },
       "info": [
         {
@@ -1934,8 +2209,583 @@ module.exports={
         },
         {
           "id": "IMPC gene",
-          "value": "MGI:96794",
-          "href": "https://dev.mousephenotype.org/data/genes/MGI:96794"
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:3844310",
+      "label": "Fgfr2<tm3.1Lni>/Fgfr2<tm3.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6",
+      "phenotypes": [
+        "MP:0000060",
+        "MP:0000081",
+        "MP:0000104",
+        "MP:0000106",
+        "MP:0000432",
+        "MP:0000440",
+        "MP:0000566",
+        "MP:0001262",
+        "MP:0001265",
+        "MP:0001732",
+        "MP:0002116",
+        "MP:0002750",
+        "MP:0003409",
+        "MP:0003840",
+        "MP:0004448",
+        "MP:0005006",
+        "MP:0008489",
+        "MP:0008525",
+        "MP:0010029"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 62.51,
+        "rank": 6
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:5450965",
+      "label": "Fgfr2<tm3Ewj>/Fgfr2<+> B6.129-Fgfr2<tm3Ewj>",
+      "phenotypes": [
+        "MP:0000081",
+        "MP:0000157",
+        "MP:0000435",
+        "MP:0000566",
+        "MP:0001219",
+        "MP:0001222",
+        "MP:0001231",
+        "MP:0001240",
+        "MP:0001725",
+        "MP:0001732",
+        "MP:0001874",
+        "MP:0002060",
+        "MP:0003743",
+        "MP:0009545",
+        "MP:0009601",
+        "MP:0009611",
+        "MP:0011085",
+        "MP:0011495"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 56.1,
+        "rank": 7
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "B6.129-Fgfr2<tm3Ewj>",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:3699818",
+      "label": "Fgfr2<tm1Schl>/Fgfr2<+> involves: 129S1/Sv",
+      "phenotypes": [
+        "MP:0000081",
+        "MP:0000428",
+        "MP:0000438",
+        "MP:0002750",
+        "MP:0003840"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 56,
+        "rank": 8
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129S1/Sv",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:4430189",
+      "label": "Fgfr2<tm2Ewj>/Fgfr2<+> involves: 129S1/Sv * 129X1/SvJ * C57BL/6J",
+      "phenotypes": [
+        "MP:0000081",
+        "MP:0000780",
+        "MP:0002152",
+        "MP:0008534",
+        "MP:0008535",
+        "MP:0008540"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 53.52,
+        "rank": 9
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129S1/Sv * 129X1/SvJ * C57BL/6J",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:2176484",
+      "label": "Fgfr2<tm3Dsn>/Fgfr2<tm3Dsn> involves: 129P2/OlaHsd * C57BL/6",
+      "phenotypes": [
+        "MP:0000111",
+        "MP:0000124",
+        "MP:0000149",
+        "MP:0000267",
+        "MP:0000273",
+        "MP:0000279",
+        "MP:0000280",
+        "MP:0000284",
+        "MP:0000377",
+        "MP:0000379",
+        "MP:0000527",
+        "MP:0000537",
+        "MP:0000549",
+        "MP:0000613",
+        "MP:0000704",
+        "MP:0001181",
+        "MP:0001199",
+        "MP:0001216",
+        "MP:0001218",
+        "MP:0001231",
+        "MP:0001341",
+        "MP:0001676",
+        "MP:0002060",
+        "MP:0002295",
+        "MP:0002655",
+        "MP:0002989",
+        "MP:0003051",
+        "MP:0003124",
+        "MP:0003420",
+        "MP:0003704",
+        "MP:0003934",
+        "MP:0004032",
+        "MP:0004055",
+        "MP:0004067",
+        "MP:0004200",
+        "MP:0004509",
+        "MP:0004619",
+        "MP:0005294",
+        "MP:0005314",
+        "MP:0006030",
+        "MP:0006288",
+        "MP:0008320",
+        "MP:0009003",
+        "MP:0010418",
+        "MP:0010420",
+        "MP:0010454",
+        "MP:0010521",
+        "MP:0010566",
+        "MP:0010585",
+        "MP:0010587",
+        "MP:0010646",
+        "MP:0011089",
+        "MP:0011290",
+        "MP:0013310",
+        "MP:0013578"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 48.29,
+        "rank": 10
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129P2/OlaHsd * C57BL/6",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:3699818",
+      "label": "Fgfr2<tm1Schl>/Fgfr2<tm1Schl> involves: 129S1/Sv",
+      "phenotypes": [
+        "MP:0000111",
+        "MP:0001943",
+        "MP:0003120",
+        "MP:0003189",
+        "MP:0009888",
+        "MP:0011087"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 44.33,
+        "rank": 11
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129S1/Sv",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:2676258",
+      "label": "Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd",
+      "phenotypes": [
+        "MP:0000762",
+        "MP:0003755",
+        "MP:0003760",
+        "MP:0003934",
+        "MP:0004247",
+        "MP:0009655",
+        "MP:0009884",
+        "MP:0009890",
+        "MP:0013264",
+        "MP:0013766"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 41.43,
+        "rank": 12
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129P2/OlaHsd",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:3699819",
+      "label": "Fgfr2<tm2Schl>/Fgfr2<tm2Schl> involves: 129S1/Sv * BALB/c * C57BL/6",
+      "phenotypes": [
+        "MP:0000111",
+        "MP:0003120",
+        "MP:0009888"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 40.58,
+        "rank": 13
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129S1/Sv * BALB/c * C57BL/6",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:3844308",
+      "label": "Fgfr2<tm2.1Lni>/Fgfr2<tm2.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6",
+      "phenotypes": [
+        "MP:0000549",
+        "MP:0001181",
+        "MP:0009524",
+        "MP:0011087"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 34.5,
+        "rank": 14
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:5614321",
+      "label": "Fgfr2<tm1.1Dor>/Fgfr2<hob> involves: 129X1/SvJ * C57BL/6J * FVB/N",
+      "phenotypes": [
+        "MP:0000549",
+        "MP:0001178",
+        "MP:0002995",
+        "MP:0004200"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 30.33,
+        "rank": 15
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129X1/SvJ * C57BL/6J * FVB/N",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:5614309",
+      "label": "Fgfr2<hob>/Fgfr2<hob> involves: C57BL/6J",
+      "phenotypes": [
+        "MP:0000549",
+        "MP:0001178",
+        "MP:0002995",
+        "MP:0006208"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 30.33,
+        "rank": 16
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: C57BL/6J",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:3844323",
+      "label": "Fgfr2<tm3Lni>/Fgfr2<tm3Lni> involves: 129S1/Sv * 129X1/SvJ",
+      "phenotypes": [
+        "MP:0000537",
+        "MP:0000549"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 28.34,
+        "rank": 17
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129S1/Sv * 129X1/SvJ",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:2176478",
+      "label": "Fgfr2<tm1Cxd>/Fgfr2<tm1Cxd> either: (involves: 129S6/SvEvTac) or (involves: 129S6/SvEvTac * NIH Black Swiss)",
+      "phenotypes": [
+        "MP:0001698",
+        "MP:0001711",
+        "MP:0001712",
+        "MP:0003231",
+        "MP:0003403",
+        "MP:0003984",
+        "MP:0004255",
+        "MP:0004310",
+        "MP:0004556",
+        "MP:0004573",
+        "MP:0005031",
+        "MP:0009397",
+        "MP:0009657",
+        "MP:0011098"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 25.31,
+        "rank": 18
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "either: (involves: 129S6/SvEvTac) or (involves: 129S6/SvEvTac * NIH Black Swiss)",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:3044690",
+      "label": "Fgfr2<tm1.1Dor>/Fgfr2<tm1.1Dor> involves: 129X1/SvJ",
+      "phenotypes": [
+        "MP:0001712",
+        "MP:0004573",
+        "MP:0011098"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 25.3,
+        "rank": 19
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129X1/SvJ",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
+        }
+      ]
+    },
+    {
+      "id": "MGI:2173369",
+      "label": "Fgfr2<tm1.1Dsn>/Fgfr2<+> involves: 129P2/OlaHsd * C57BL/6",
+      "phenotypes": [
+        "MP:0009522",
+        "MP:0009525"
+      ],
+      "score": {
+        "metric": "phenodigm",
+        "score": 25.07,
+        "rank": 20
+      },
+      "info": [
+        {
+          "id": "Source",
+          "value": "MGI",
+          "href": null
+        },
+        {
+          "id": "Background",
+          "value": "involves: 129P2/OlaHsd * C57BL/6",
+          "href": null
+        },
+        {
+          "id": "IMPC gene",
+          "value": "MGI:95523",
+          "href": "https://dev.mousephenotype.org/data/genes/MGI:95523"
         }
       ]
     }
@@ -2485,7 +3335,31 @@ var impcData = require('./impc.json');
                 }			
             }
             
+            /*
+            
+            // Test 1, using all MP
+            
             // combine all the mouse phenotype IDs into one list, then send out one ajax compare call - Joe
+            var mousePhenotypeList = [];
+            
+            for (var idx in impcData.xAxis) {
+                mousePhenotypeList = mousePhenotypeList.concat(impcData.xAxis[idx].phenotypes);
+            }
+            
+            // now we need to remove the duplicates
+            var filteredMousePhenotypeList = this._parseCombinedMousePhenotypeList(mousePhenotypeList);
+            
+            
+            // initialize data processing class for compare query
+            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+
+            // starting loading the data from compare api
+            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, filteredMousePhenotypeList, asyncDataLoadingCallback);
+            */
+            
+            
+            //Test 2, use added genotype IDs
+            
             var genotypeList = [];
             
             for (var idx in impcData.xAxis) {
@@ -2496,7 +3370,7 @@ var impcData = require('./impc.json');
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, genotypeList, asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForIMPCWithMGI(querySourceList, genotypeList, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -2904,7 +3778,8 @@ var impcData = require('./impc.json');
 	},
     
     _createOverviewTargetGroupLabels: function () {
-		if (this.state.IMPC) {
+		// Show IMPC title form their JSON
+        if (this.state.IMPC) {
             this.state.svg.append("text")
                 .attr("x", this.state.gridRegion.x + this._gridWidth() + 25) // 25 is margin - Joe
                 .attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
@@ -4938,6 +5813,30 @@ var impcData = require('./impc.json');
         }
     },
 
+    _parseCombinedMousePhenotypeList: function(phenotypelist) {
+		var filteredList = {};
+		var newlist = [];
+		var pheno;
+		for (var i in phenotypelist) {
+			pheno = phenotypelist[i];
+			if (typeof pheno === 'string') {
+				newlist.push(pheno);
+			}
+		}
+
+		// Now we have all the phenotype IDs ('MP:23451' like strings) in array,
+		// since JavaScript Array push() doesn't remove duplicates,
+		// we need to get rid of the duplicates. There are many duplicates from the monarch-app returned json - Joe
+		// Based on "Smart" but naïve way - http://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array - Joe
+		// filter() calls a provided callback function once for each element in an array, 
+		// and constructs a new array of all the values for which callback returns a true value or a value that coerces to true.
+		newlist = newlist.filter(function(item) {
+			return filteredList.hasOwnProperty(item) ? false : (filteredList[item] = true);
+		});
+
+		return newlist;
+	},
+    
 	/*
 	 * given an array of phenotype objects edit the object array.
 	 * items are either ontology ids as strings, in which case they are handled as is,
