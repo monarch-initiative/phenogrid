@@ -127,6 +127,10 @@ var impcData = require('./impc.json');
             },
             // For IMPC integration
             IMPC: true, // true or false
+            IMPCSource: {
+                disease: 'OMIM:101600',
+                gene: 'MGI:95523'
+            },
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'

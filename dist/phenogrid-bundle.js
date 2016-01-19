@@ -1838,7 +1838,7 @@ module.exports={
   "title": "Comparison OMIM:101600 - MGI:95523 for disease page",
   "xAxis": [
     {
-      "id": "MGI:2176483",
+      "id": "658",
       "label": "Fgfr2<tm2.3Dsn>/Fgfr2<+> involves: 129 * C57BL/6 * FVB/N",
       "phenotypes": [
         "MP:0000074",
@@ -1897,7 +1897,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:4461806",
+      "id": "21072",
       "label": "Fgfr2<m1Sgg>/Fgfr2<m1Sgg> involves: C3H/HeJ * C57BL/6J",
       "phenotypes": [
         "MP:0000060",
@@ -1969,7 +1969,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3053578",
+      "id": "5525",
       "label": "Fgfr2<tm4Lni>/Fgfr2<tm4Lni> Not Specified",
       "phenotypes": [
         "MP:0000102",
@@ -2016,7 +2016,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:4461807",
+      "id": "21073",
       "label": "Fgfr2<m1Sgg>/Fgfr2<+> involves: C3H/HeJ * C57BL/6J",
       "phenotypes": [
         "MP:0000081",
@@ -2065,7 +2065,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3053579",
+      "id": "5526",
       "label": "Fgfr2<tm4Lni>/Fgfr2<+> Not Specified",
       "phenotypes": [
         "MP:0000081",
@@ -2103,7 +2103,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:2173367",
+      "id": "117",
       "label": "Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd * C57BL/6",
       "phenotypes": [
         "MP:0000031",
@@ -2189,7 +2189,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3844310",
+      "id": "18286",
       "label": "Fgfr2<tm3.1Lni>/Fgfr2<tm3.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6",
       "phenotypes": [
         "MP:0000060",
@@ -2236,7 +2236,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:5450965",
+      "id": "25781",
       "label": "Fgfr2<tm3Ewj>/Fgfr2<+> B6.129-Fgfr2<tm3Ewj>",
       "phenotypes": [
         "MP:0000081",
@@ -2282,7 +2282,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3699818",
+      "id": "11327",
       "label": "Fgfr2<tm1Schl>/Fgfr2<+> involves: 129S1/Sv",
       "phenotypes": [
         "MP:0000081",
@@ -2315,7 +2315,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:4430189",
+      "id": "20246",
       "label": "Fgfr2<tm2Ewj>/Fgfr2<+> involves: 129S1/Sv * 129X1/SvJ * C57BL/6J",
       "phenotypes": [
         "MP:0000081",
@@ -2349,7 +2349,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:2176484",
+      "id": "659",
       "label": "Fgfr2<tm3Dsn>/Fgfr2<tm3Dsn> involves: 129P2/OlaHsd * C57BL/6",
       "phenotypes": [
         "MP:0000111",
@@ -2432,7 +2432,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3699818",
+      "id": "11328",
       "label": "Fgfr2<tm1Schl>/Fgfr2<tm1Schl> involves: 129S1/Sv",
       "phenotypes": [
         "MP:0000111",
@@ -2466,7 +2466,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:2676258",
+      "id": "3186",
       "label": "Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd",
       "phenotypes": [
         "MP:0000762",
@@ -2504,7 +2504,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3699819",
+      "id": "11329",
       "label": "Fgfr2<tm2Schl>/Fgfr2<tm2Schl> involves: 129S1/Sv * BALB/c * C57BL/6",
       "phenotypes": [
         "MP:0000111",
@@ -2535,7 +2535,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3844308",
+      "id": "18285",
       "label": "Fgfr2<tm2.1Lni>/Fgfr2<tm2.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6",
       "phenotypes": [
         "MP:0000549",
@@ -2567,7 +2567,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:5614321",
+      "id": "28393",
       "label": "Fgfr2<tm1.1Dor>/Fgfr2<hob> involves: 129X1/SvJ * C57BL/6J * FVB/N",
       "phenotypes": [
         "MP:0000549",
@@ -2599,7 +2599,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:5614309",
+      "id": "28392",
       "label": "Fgfr2<hob>/Fgfr2<hob> involves: C57BL/6J",
       "phenotypes": [
         "MP:0000549",
@@ -2631,7 +2631,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3844323",
+      "id": "18290",
       "label": "Fgfr2<tm3Lni>/Fgfr2<tm3Lni> involves: 129S1/Sv * 129X1/SvJ",
       "phenotypes": [
         "MP:0000537",
@@ -2661,7 +2661,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:2176478",
+      "id": "656",
       "label": "Fgfr2<tm1Cxd>/Fgfr2<tm1Cxd> either: (involves: 129S6/SvEvTac) or (involves: 129S6/SvEvTac * NIH Black Swiss)",
       "phenotypes": [
         "MP:0001698",
@@ -2703,7 +2703,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:3044690",
+      "id": "4925",
       "label": "Fgfr2<tm1.1Dor>/Fgfr2<tm1.1Dor> involves: 129X1/SvJ",
       "phenotypes": [
         "MP:0001712",
@@ -2734,7 +2734,7 @@ module.exports={
       ]
     },
     {
-      "id": "MGI:2173369",
+      "id": "118",
       "label": "Fgfr2<tm1.1Dsn>/Fgfr2<+> involves: 129P2/OlaHsd * C57BL/6",
       "phenotypes": [
         "MP:0009522",
@@ -2766,7 +2766,8 @@ module.exports={
   ],
   "yAxis": [
     {
-      "label": "OMIM:101600",
+      "id": "OMIM:101600",
+      "label": "Pfeiffer syndrome",
       "phenotypes": [
         {
           "id": "HP:0000006",
@@ -2954,10 +2955,6 @@ module.exports={
         }
       ],
       "score": null,
-      "taxon": {
-        "id": "NCBITaxon:9606",
-        "label": "Homo sapiens"
-      },
       "info": []
     }
   ]
@@ -3092,6 +3089,10 @@ var impcData = require('./impc.json');
             },
             // For IMPC integration
             IMPC: true, // true or false
+            IMPCSource: {
+                disease: 'OMIM:101600',
+                gene: 'MGI:95523'
+            },
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
             targetSpecies: '', // quoted 'taxon number' or 'all'
