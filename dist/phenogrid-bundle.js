@@ -3277,6 +3277,11 @@ var impcData = require('./impc.json');
          
             // Use IMPC title
             this.state.gridTitle = impcData.title;
+            
+            // IMPC-specific tweaks
+            this.state.gridRegion.cellPad = 30;
+            this.state.gridRegion.cellSize = 20;
+            this.state.gridRegion.rowLabelOffset = 35;
          
             // use the human phenotypes from the input JSON
             for (var i in impcData.yAxis[0].phenotypes) {
