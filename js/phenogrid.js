@@ -316,7 +316,6 @@ var impcData = require('./impc.json');
             
             // IMPC-specific tweaks
             this.state.gridRegion.cellPad = 30;
-            this.state.gridRegion.cellSize = 20;
             this.state.gridRegion.rowLabelOffset = 35;
          
             // use the human phenotypes from the input JSON
@@ -2110,7 +2109,7 @@ var impcData = require('./impc.json');
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
             .style('fill', function(d) { // add different color to genotype labels
-                if (d.type === 'genotype') {
+                if (d.type === 'genotype' && self.state.IMPC !== true) {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
                 } else {
                     return '';
@@ -2140,7 +2139,7 @@ var impcData = require('./impc.json');
                 .attr('width', gridRegion.cellSize)
                 .attr('height', self._gridHeight())
                 .style('fill', function(d){
-                    if (d.type === 'genotype') {
+                    if (d.type === 'genotype' && self.state.IMPC !== true) {
                         return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                     } else {
                         return 'none'; // transparent 
@@ -2184,7 +2183,7 @@ var impcData = require('./impc.json');
             // we'll need to get the genotype data from yAxisRender - Joe
             .style('fill', function(d, i) { // add different color to genotype labels
                 var el = self.state.yAxisRender.itemAt(i);
-                if (el.type === 'genotype') {
+                if (el.type === 'genotype' && self.state.IMPC !== true) {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                 } else {
                     return '';
@@ -2215,7 +2214,7 @@ var impcData = require('./impc.json');
                 .attr('height', gridRegion.cellSize)
                 .style('fill', function(d, i) { // add different color to genotype labels
                     var el = self.state.yAxisRender.itemAt(i);
-                    if (el.type === 'genotype') {
+                    if (el.type === 'genotype' && self.state.IMPC !== true) {
                         return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                     } else {
                         return 'none'; // transparent 
