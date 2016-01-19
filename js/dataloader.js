@@ -426,10 +426,11 @@ DataLoader.prototype = {
                     "targetGroup": targetGroup, // Mouse
                     "taxon": "10090", // Mouse taxon
                     "type": "genotype", 
+                    "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
                     "score": item.score.score // phenodigm score
                 }; 
-  
+
                 // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
                 if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
                     this.targetData[targetGroup][targetID] = {};

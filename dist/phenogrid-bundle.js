@@ -739,10 +739,11 @@ DataLoader.prototype = {
                     "targetGroup": targetGroup, // Mouse
                     "taxon": "10090", // Mouse taxon
                     "type": "genotype", 
+                    "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
                     "score": item.score.score // phenodigm score
                 }; 
-  
+
                 // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
                 if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
                     this.targetData[targetGroup][targetID] = {};
@@ -4759,7 +4760,9 @@ var impcData = require('./impc.json');
 
     // data is either cell data or label data details - Joe
 	_createHoverBox: function(data){
-		var id;
+		console.log(data);
+        
+        var id;
 
 		// for cells we need to check the invertAxis to adjust for correct id
 		if (data.type === 'cell') {
@@ -4885,6 +4888,13 @@ var impcData = require('./impc.json');
                           + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
                           + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
                           + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
+        } else if (data.type === 'genotype' && this.state.IMPC === true) {
+            // IMPC-specific tooltip rendering: Source, Background, IMPC gene
+            var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';
+            var background = '<strong>' + data.info[1].id + ': </strong> ' + data.info[1].value + '<br>';
+            var impcGene = '<strong>' + data.info[2].id + ': </strong> ' + '<a href="'+ data.info[2].href +'" target="_blank">' + data.info[2].value + '</a>' + '<br>';
+            
+            htmlContent = source + background + impcGene ;
         } else {
             // disease and gene/genotype share common items
             var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
