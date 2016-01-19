@@ -440,18 +440,18 @@ DataLoader.prototype = {
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			mousePhenotypeList - combined list of mouse genes
+			multipleTargetEntities - combined list of mouse genes
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForIMPC: function(qrySourceList, mousePhenotypeList, asyncDataLoadingCallback) {
+    loadCompareDataForIMPC: function(qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MGI:3844310,MGI:2176484
-	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + mousePhenotypeList.join(",");
+        // example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP+MP+MP,MP+MP,MP+MP+MP+MP...
+	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + multipleTargetEntities;
 
         var self = this;
         
@@ -686,46 +686,6 @@ DataLoader.prototype = {
 		} // if
 	}, 
     
-    
-    loadCompareDataForIMPCWithMGI: function(qrySourceList, genotypeList, asyncDataLoadingCallback) {
-		this.postDataLoadCallback = asyncDataLoadingCallback;
-        
-        // save the original source listing
-        // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
-		this.origSourceList = qrySourceList;
-
-        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MGI:3844310,MGI:2176484
-	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + genotypeList.join(",");
-
-        var self = this;
-        
-		// to load the compare data via ajax GET
-        jQuery.ajax({
-            url: this.qryString,
-            method: 'GET', 
-            async : true,
-            dataType : 'json',
-            success : function(data) {
-                console.log('IMPC compare data loaded:');
-                //console.log(data);
-                
-                // sometimes the compare api doesn't find any matches, we need to stop here - Joe
-                if (typeof (data.b) === 'undefined') {
-                    // Add the 'compare' name to the speciesNoMatch array
-                    self.speciesNoMatch.push('Mus musculus');
-                } else {
-                    // use 'Mus musculus' as the key of the named array
-                    self.transform("Mus musculus", data);  
-                }
-                
-                self.postDataLoadCallback(); 
-            },
-            error: function () { 
-                console.log('Ajax error.')
-            } 
-        });
-	},
-    
 
  transformIMPC: function(targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' &&
@@ -753,22 +713,35 @@ DataLoader.prototype = {
                 this.sourceData[targetGroup] = {};
             }
 
+            // Modify the resulting JSON
+            // In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
+            // we'll need to use the genotype id (IMPC internal) from input data as the new ID
+            for (var i in data.b) {
+                data.b[i].id = impcData.xAxis[i].id;
+                // add label with genotype label
+                data.b[i].label = impcData.xAxis[i].label;
+                data.b[i].score = impcData.xAxis[i].score;
+                // add info for tooltip rendering
+                data.b[i].info = impcData.xAxis[i].info;
+            }
  
             var targetVal;
 			for (var idx in data.b) {
 				var item = data.b[idx];
-				var targetID = Utils.getConceptId(item.id);
+				// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
+                // we'll need to use the genotype id (IMPC internal) as the new ID
+                var targetID = item.id; // IMPC internal id
 
 				// build the target list
 				targetVal = {
-                        "id":targetID, 
-                         "label": item.label, 
-                         "targetGroup": targetGroup, // Mouse
-                         "taxon": '10090', // Mouse taxon
-                         "type": item.type, 
-                         "rank": parseInt(idx)+1,  // start with 1 not zero
-                         "score": item.score.score
-                    }; 
+                    "id":targetID, 
+                    "label": item.label, 
+                    "targetGroup": targetGroup, // Mouse
+                    "taxon": "10090", // Mouse taxon
+                    "type": "genotype", 
+                    "rank": parseInt(idx)+1,  // start with 1 not zero
+                    "score": item.score.score // phenodigm score
+                }; 
   
                 // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
                 if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
@@ -812,7 +785,7 @@ DataLoader.prototype = {
 						// building cell data points
 						dataVals = {"source_id": sourceID_a, 
 									"target_id": targetID, 
-									"targetGroup": item.taxon.label,									
+									"targetGroup": targetGroup,									
 									"value": lcs, 
 									"a_IC" : curr_row.a.IC,  
 									"a_label" : curr_row.a.label,
@@ -3335,29 +3308,30 @@ var impcData = require('./impc.json');
                 }			
             }
             
-            /*
+
             
             // Test 1, using all MP
-            
-            // combine all the mouse phenotype IDs into one list, then send out one ajax compare call - Joe
-            var mousePhenotypeList = [];
+            var listOfLists = [];
             
             for (var idx in impcData.xAxis) {
-                mousePhenotypeList = mousePhenotypeList.concat(impcData.xAxis[idx].phenotypes);
+                // default separator of array.join(separator) is comma
+                // join all the MP inside each genotype with plus sign, and join each list with comma
+                listOfLists = listOfLists.concat(impcData.xAxis[idx].phenotypes.join('+'));
             }
             
             // now we need to remove the duplicates
-            var filteredMousePhenotypeList = this._parseCombinedMousePhenotypeList(mousePhenotypeList);
+            // use the default comma to separate each list into each genotype profile
+            var multipleTargetEntities = listOfLists.join();
             
             
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, filteredMousePhenotypeList, asyncDataLoadingCallback);
-            */
+            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+ 
             
-            
+            /*
             //Test 2, use added genotype IDs
             
             var genotypeList = [];
@@ -3371,6 +3345,7 @@ var impcData = require('./impc.json');
 
             // starting loading the data from compare api
             this.state.dataLoader.loadCompareDataForIMPCWithMGI(querySourceList, genotypeList, asyncDataLoadingCallback);
+            */
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -5813,30 +5788,7 @@ var impcData = require('./impc.json');
         }
     },
 
-    _parseCombinedMousePhenotypeList: function(phenotypelist) {
-		var filteredList = {};
-		var newlist = [];
-		var pheno;
-		for (var i in phenotypelist) {
-			pheno = phenotypelist[i];
-			if (typeof pheno === 'string') {
-				newlist.push(pheno);
-			}
-		}
-
-		// Now we have all the phenotype IDs ('MP:23451' like strings) in array,
-		// since JavaScript Array push() doesn't remove duplicates,
-		// we need to get rid of the duplicates. There are many duplicates from the monarch-app returned json - Joe
-		// Based on "Smart" but naïve way - http://stackoverflow.com/questions/9229645/remove-duplicates-from-javascript-array - Joe
-		// filter() calls a provided callback function once for each element in an array, 
-		// and constructs a new array of all the values for which callback returns a true value or a value that coerces to true.
-		newlist = newlist.filter(function(item) {
-			return filteredList.hasOwnProperty(item) ? false : (filteredList[item] = true);
-		});
-
-		return newlist;
-	},
-    
+  
 	/*
 	 * given an array of phenotype objects edit the object array.
 	 * items are either ontology ids as strings, in which case they are handled as is,
