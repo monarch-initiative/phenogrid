@@ -120,17 +120,17 @@ DataLoader.prototype = {
 	},
     
     
-        /*
-		Function: loadCompareData
+    /*
+		Function: loadCompareDataForVendor
 
 			fetch and load data from the monarch compare api
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			multipleTargetEntities - combined list of mouse genes
+			multipleTargetEntities - combined list of mouse genes, list of lists
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForIMPC: function(qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
+    loadCompareDataForVendor: function(qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
@@ -155,10 +155,10 @@ DataLoader.prototype = {
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
                     // Add the 'compare' name to the speciesNoMatch array
-                    self.speciesNoMatch.push('Mus musculus');
+                    self.speciesNoMatch.push('Mus musculus'); // Hard coded
                 } else {
                     // use 'Mus musculus' as the key of the named array
-                    self.transformIMPC("Mus musculus", data);  
+                    self.transformDataForVendor("Mus musculus", data);  // Hard coded
                 }
                 
                 self.postDataLoadCallback(); 
@@ -374,7 +374,7 @@ DataLoader.prototype = {
 	}, 
     
 
- transformIMPC: function(targetGroup, data) {      		
+ transformDataForVendor: function(targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");

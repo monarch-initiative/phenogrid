@@ -147,8 +147,13 @@ window.onload = function() {
     
     // IMPC testing
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
-        serverURL : "http://monarchinitiative.org",
-        IMPC : true
+        serverURL: "http://monarchinitiative.org",
+        dataFromVendor: true,
+        dataVendorName: 'IMPC',
+        dataVendorQueryValue: {
+            disease: 'OMIM:101600',
+            gene: 'MGI:95523'
+        }
     });
 }
 </script>

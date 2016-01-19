@@ -433,17 +433,17 @@ DataLoader.prototype = {
 	},
     
     
-        /*
-		Function: loadCompareData
+    /*
+		Function: loadCompareDataForVendor
 
 			fetch and load data from the monarch compare api
 
 		Parameters:	
 			qrySourceList - list of source items to query
-			multipleTargetEntities - combined list of mouse genes
+			multipleTargetEntities - combined list of mouse genes, list of lists
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForIMPC: function(qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
+    loadCompareDataForVendor: function(qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
@@ -468,10 +468,10 @@ DataLoader.prototype = {
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
                     // Add the 'compare' name to the speciesNoMatch array
-                    self.speciesNoMatch.push('Mus musculus');
+                    self.speciesNoMatch.push('Mus musculus'); // Hard coded
                 } else {
                     // use 'Mus musculus' as the key of the named array
-                    self.transformIMPC("Mus musculus", data);  
+                    self.transformDataForVendor("Mus musculus", data);  // Hard coded
                 }
                 
                 self.postDataLoadCallback(); 
@@ -687,7 +687,7 @@ DataLoader.prototype = {
 	}, 
     
 
- transformIMPC: function(targetGroup, data) {      		
+ transformDataForVendor: function(targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' &&
 		    typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
@@ -1825,6 +1825,7 @@ module.exports=DataManager;
 },{"./utils.js":8,"jquery":12}],4:[function(require,module,exports){
 module.exports={
   "scores": "<div><h5>What is the score shown at the top of the grid?<\/h5><div>The score indicated at the top of each column, below the target label, is the overall similarity score between the query and target. Briefly, for each of the targets (columns) listed, the set of Q(1..n) phenotypes of the query are pairwise compared against all of the T(1..m) phenotypes in the target.<br \/><br \/>Then, for each pairwise comparison of phenotypes (q x P1...n), the best comparison is retained for each q and summed for all p1..n. <\/div><br \/><div>The raw score is then normalized against the maximal possible score, which is the query matching to itself. Therefore, range of scores displayed is 0..100. For more details, please see (Smedley et al, 2012 <a href='http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/23660285' target='_blank'>http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/23660285<\/a> and <a href='http:\/\/www.owlsim.org' target='_blank'>http:\/\/www.owlsim.org<\/a>)<\/div>\r\n",
+  "phenodigm": "<div><h5>What is the score shown at the top of the grid?<\/h5><div>The score indicated at the top of each column, below the target label, is the overall similarity score between the query and target. Briefly, for each of the targets (columns) listed, the set of Q(1..n) phenotypes of the query are pairwise compared against all of the T(1..m) phenotypes in the target.<br \/><br \/>Then, for each pairwise comparison of phenotypes (q x P1...n), the best comparison is retained for each q and summed for all p1..n. <\/div><br \/><div>The raw score is then normalized against the maximal possible score, which is the query matching to itself. Therefore, range of scores displayed is 0..100. For more details, please see (Smedley et al, 2012 <a href='http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/23660285' target='_blank'>http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/23660285<\/a> and <a href='http:\/\/www.owlsim.org' target='_blank'>http:\/\/www.owlsim.org<\/a>)<\/div>\r\n",
   "sorts": "<div><h5>What are the different ways that phenotypes can be sorted?<\/h5><div>The phenotypes that are shown on the left side of the grid may be sorted using one of three methods.  More options may be available in the future.<\/div><ul><li><b>Alphabetical<\/b> - A-Z<\/li><li><b>Frequency and Rarity<\/b> - Phenotypes are sorted by the sum of the phenotype values across all models\/genes<\/li><li><b>Frequency (Default)<\/b> - Phenotypes are sorted by the count of the number of model\/gene matches per phenotype <\/li><\/ul>",
   "faq": "<div><h4>Phenogrid Faq<\/h4><h5>How are the similar targets obtained?<\/h5><div>We query our owlsim server to obtain the top 100 most-phenotypically similar targets for the selected organism.  The grid defaults to showing mouse.<\/div><h5>What are the possible targets for comparison?<\/h5><div>Currently, the phenogrid is configured to permit comparisons between your query (typically a set of disease-phenotype associations) and one of:<ul><li>human diseases<\/li><li>mouse genes<\/li><li>zebrafish genes<\/li><\/ul>You can change the target organism by selecting a new organism.  The grid will temporarily disappear, and reappear with the new target rendered.<\/div><h5>Can I compare the phenotypes to human genes?<\/h5><div>No, not yet.  But that will be added soon.<\/div><h5>Where does the data come from?<\/h5><div>The phenotype annotations utilized to compute the phenotypic similarity are drawn from a number of sources:<ul><li>Human disease-phenotype annotations were obtained from  <a href='http:\/\/human-phenotype-ontology.org' target='_blank'>http:\/\/human-phenotype-ontology.org<\/a>, which contains annotations for approx. 7,500 diseases.<\/li><li>Mouse gene-phenotype annotations were obtained from MGI <a href='www.informatics.jax.org'>(www.informatics.jax.org).<\/a> The original annotations were made between genotypes and phenotypes.  We then inferred the relationship between gene and phenotype based on the genes that were variant in each genotype.  We only perform this inference for those genotypes that contain a single variant gene.<\/li><li>Zebrafish genotype-phenotype annotations were obtained from ZFIN  <a href='www.zfin.org' target='_blank'>(www.zfin.org).<\/a> The original annotations were made between genotypes and phenotypes, with some of those genotypes created experimentally with the application of morpholino reagents.  Like for mouse, we inferred the relationship between gene and phenotype based on the genes that were varied in each genotype.  We only perform this inference for those genotypes that contain a single variant gene.<\/li><li>All annotation data, preformatted for use in OWLSim, is available for download from  <a href='http:\/\/code.google.com\/p\/phenotype-ontologies\/' target='_blank'>http:\/\/code.google.com\/p\/phenotype-ontologies\/ <\/a> <\/li><\/ul><h5>What does the phenogrid show?<\/h5><div>The grid depicts the comparison of a set of phenotypes in a query (such as those annotated to a disease or a gene) with one or more phenotypically similar targets.  Each row is a phenotype that is annotated to the query (either directly or it is a less-specific phenotype that is inferred), and each column is an annotated target (such as a gene or disease).  When a phenotype is shared between the query and target, the intersection is colored based on the selected calculation method (see What do the different calculation methods mean).   You can hover over the intersection to get more information about what the original phenotype is of the target, and what is in-common between the two.<\/div><h5>Where can I make suggestions for improvements or additions?<\/h5><div>Please email your feedback to <a href='mailto:info@monarchinitiative.org'>info@monarchinitiative.org.<\/a><h5>What happens to the phenotypes that are not shared?<\/h5><div>Phenotypes that were part of your query but are not shared by any of the targets can be seen by clicking the View Unmatched Phenotype link.<\/div><h5>Why do I sometimes see two targets that share the same phenotypes have very different overall scores?<\/h5><div>This is usually because of some of the phenotypes that are not shared with the query.  For example, if the top hit to a query matches each phenotype exactly, and the next hit matches all of them exactly plus it has 10 additional phenotypes that don&#39;t match it at all, it is penalized for those phenotypes are not in common, and thus ranks lower on the similarity scale. <div><\/div>\r\n",
   "calcs": "<div><h5>What do the different calculation methods mean?<\/h5><div>For each pairwise comparison of phenotypes from the query (q) and target (t), we can assess their individual similarities in a number of ways.  First, we find the phenotype-in-common between each pair (called the lowest common subsumer or LCS). Then, we can leverage the Information Content (IC) of the phenotypes (q,t,lcs) in a variety of combinations to interpret the strength of the similarity.<\/div><br \/><div><b>**Uniqueness <\/b>reflects how often the phenotype-in-common is annotated to all diseases and genes in the Monarch Initiative knowledgebase.  This is simply a reflection of the IC normalized based on the maxIC. IC(PhenotypeInCommon)maxIC(AllPhenotypes)<\/div><br \/><div><b>**Distance<\/b> is the euclidian distance between the query, target, and phenotype-in-common, computed using IC scores.<br\/><center>d=(IC(q)-IC(lcs))2+(IC(t)-IC(lcs))2<\/center>  <\/div><br \/><div>This is normalized based on the maximal distance possible, which would be between two rarely annotated leaf nodes that only have the root node (phenotypic abnormality) in common.  So what is depicted in the grid is 1-dmax(d)<\/div><br \/><div><b>**Ratio(q)<\/b> is the proportion of shared information between a query phenotype and the phenotype-in-common with the target.<br \/><center>ratio(q)=IC(lcs)IC(q)*100<\/center><\/div><br \/><div><b>**Ratio(t)<\/b> is the proportion of shared information between the target phenotype and the phenotype-in-common with the query.<br \/><center>ratio(t)=IC(lcs)IC(t)*100<\/center><\/div><\/div>\r\n"
@@ -3088,10 +3089,16 @@ var impcData = require('./impc.json');
                 noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
             },
             // For IMPC integration
-            IMPC: true, // true or false
-            IMPCSource: {
-                disease: 'OMIM:101600',
-                gene: 'MGI:95523'
+            dataFromVendor: false, // true or false, default false
+            dataVendorName: 'IMPC',
+            dataVendorQuery: {
+                URL: 'https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease',
+                geneIdString: '&geneId=',
+                diseaseIdString: '&diseaseId='
+            },
+            dataVendorQueryValue: {
+                gene: 'MGI:95523', // Sample gene ID
+                disease: 'OMIM:101600' // Sample disease ID
             },
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
@@ -3112,11 +3119,6 @@ var impcData = require('./impc.json');
             },
             compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
-            },
-            IMPCQuery: {
-                URL: 'https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease',
-                geneIdString: '&geneId=', // MGI:95523
-                diseaseIdString: '&diseaseId=' // OMIM:101600
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
@@ -3252,22 +3254,20 @@ var impcData = require('./impc.json');
 		this._showLoadingSpinner();		
 
         // IMPC integration, IMPC returns its own list of mouse phenotypes
-        if (this.state.IMPC) {
+        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
             // Load the IMPC JSON
             
             /*
             XMLHttpRequest cannot load https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease&geneId=MGI:95523&diseaseId=OMIM:101600. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:8000' is therefore not allowed access.
             
             $.ajax({
-                url: this.state.IMPCQuery.URL + this.state.IMPCQuery.geneIdString + 'MGI:95523' + this.state.IMPCQuery.diseaseIdString + 'OMIM:101600',
+                url: this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease,
                 method: 'GET', 
-                async : false, // wait until we load all the data
+                async : true, // wait until we load all the data
                 dataType : 'json',
                 success : function(data) {
                     console.log('IMPC data loaded:');
                     console.log(data);
-                    
-                    
                 },
                 error: function () { 
                     console.log('Ajax error.')
@@ -3280,7 +3280,7 @@ var impcData = require('./impc.json');
             // Use IMPC title
             this.state.gridTitle = impcData.title;
             
-            // IMPC-specific tweaks
+            // DataFromVendor IMPC-specific tweaks
             this.state.gridRegion.cellPad = 30;
             this.state.gridRegion.rowLabelOffset = 35;
          
@@ -3334,7 +3334,7 @@ var impcData = require('./impc.json');
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForVendor(querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -3743,7 +3743,7 @@ var impcData = require('./impc.json');
     
     _createOverviewTargetGroupLabels: function () {
 		// No need to display target group name for IMPC
-        if ( ! this.state.IMPC) {
+        if ( ! this.state.dataFromVendor) {
             if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
                 var self = this;
                 // targetGroupList is an array that contains all the selected targetGroup names
@@ -4889,7 +4889,7 @@ var impcData = require('./impc.json');
                           + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
                           + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
                           + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
-        } else if (data.type === 'genotype' && this.state.IMPC === true) {
+        } else if (data.type === 'genotype' && this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
             // IMPC-specific tooltip rendering: Source, Background, IMPC gene
             var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';
             var background = '<strong>' + data.info[1].id + ': </strong> ' + data.info[1].value + '<br>';
@@ -5084,7 +5084,7 @@ var impcData = require('./impc.json');
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
             .style('fill', function(d) { // add different color to genotype labels
-                if (d.type === 'genotype' && self.state.IMPC !== true) {
+                if (d.type === 'genotype' && self.state.dataFromVendor === false) {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
                 } else {
                     return '';
@@ -5114,7 +5114,7 @@ var impcData = require('./impc.json');
                 .attr('width', gridRegion.cellSize)
                 .attr('height', self._gridHeight())
                 .style('fill', function(d){
-                    if (d.type === 'genotype' && self.state.IMPC !== true) {
+                    if (d.type === 'genotype' && self.state.dataFromVendor === false) {
                         return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                     } else {
                         return 'none'; // transparent 
@@ -5158,7 +5158,7 @@ var impcData = require('./impc.json');
             // we'll need to get the genotype data from yAxisRender - Joe
             .style('fill', function(d, i) { // add different color to genotype labels
                 var el = self.state.yAxisRender.itemAt(i);
-                if (el.type === 'genotype' && self.state.IMPC !== true) {
+                if (el.type === 'genotype' && self.state.dataFromVendor === false) {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                 } else {
                     return '';
@@ -5189,7 +5189,7 @@ var impcData = require('./impc.json');
                 .attr('height', gridRegion.cellSize)
                 .style('fill', function(d, i) { // add different color to genotype labels
                     var el = self.state.yAxisRender.itemAt(i);
-                    if (el.type === 'genotype' && self.state.IMPC !== true) {
+                    if (el.type === 'genotype' && self.state.dataFromVendor === false) {
                         return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                     } else {
                         return 'none'; // transparent 
@@ -5434,7 +5434,7 @@ var impcData = require('./impc.json');
             $('#' + this.state.pgInstanceId + '_unmatched_list').hide(); // Hide by default
             
             // IMPC input data ships will all HP labels, no need to grab via ajax - Joe
-            if (this.state.IMPC) {
+            if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
                 console.log(this.state.unmatchedSources);
                 var impcUnmatchedSources = [];
                 for (var i=0; i< this.state.unmatchedSources.length; i++) {

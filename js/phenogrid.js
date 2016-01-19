@@ -126,10 +126,16 @@ var impcData = require('./impc.json');
                 noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
             },
             // For IMPC integration
-            IMPC: true, // true or false
-            IMPCSource: {
-                disease: 'OMIM:101600',
-                gene: 'MGI:95523'
+            dataFromVendor: false, // true or false, default false
+            dataVendorName: 'IMPC',
+            dataVendorQuery: {
+                URL: 'https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease',
+                geneIdString: '&geneId=',
+                diseaseIdString: '&diseaseId='
+            },
+            dataVendorQueryValue: {
+                gene: 'MGI:95523', // Sample gene ID
+                disease: 'OMIM:101600' // Sample disease ID
             },
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search' or 'exomiser'
@@ -150,11 +156,6 @@ var impcData = require('./impc.json');
             },
             compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
-            },
-            IMPCQuery: {
-                URL: 'https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease',
-                geneIdString: '&geneId=', // MGI:95523
-                diseaseIdString: '&diseaseId=' // OMIM:101600
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             gridTitle: 'Phenotype Similarity Comparison',       
@@ -290,22 +291,20 @@ var impcData = require('./impc.json');
 		this._showLoadingSpinner();		
 
         // IMPC integration, IMPC returns its own list of mouse phenotypes
-        if (this.state.IMPC) {
+        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
             // Load the IMPC JSON
             
             /*
             XMLHttpRequest cannot load https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease&geneId=MGI:95523&diseaseId=OMIM:101600. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:8000' is therefore not allowed access.
             
             $.ajax({
-                url: this.state.IMPCQuery.URL + this.state.IMPCQuery.geneIdString + 'MGI:95523' + this.state.IMPCQuery.diseaseIdString + 'OMIM:101600',
+                url: this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease,
                 method: 'GET', 
-                async : false, // wait until we load all the data
+                async : true, // wait until we load all the data
                 dataType : 'json',
                 success : function(data) {
                     console.log('IMPC data loaded:');
                     console.log(data);
-                    
-                    
                 },
                 error: function () { 
                     console.log('Ajax error.')
@@ -318,7 +317,7 @@ var impcData = require('./impc.json');
             // Use IMPC title
             this.state.gridTitle = impcData.title;
             
-            // IMPC-specific tweaks
+            // DataFromVendor IMPC-specific tweaks
             this.state.gridRegion.cellPad = 30;
             this.state.gridRegion.rowLabelOffset = 35;
          
@@ -372,7 +371,7 @@ var impcData = require('./impc.json');
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForIMPC(querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForVendor(querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -781,7 +780,7 @@ var impcData = require('./impc.json');
     
     _createOverviewTargetGroupLabels: function () {
 		// No need to display target group name for IMPC
-        if ( ! this.state.IMPC) {
+        if ( ! this.state.dataFromVendor) {
             if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
                 var self = this;
                 // targetGroupList is an array that contains all the selected targetGroup names
@@ -1927,7 +1926,7 @@ var impcData = require('./impc.json');
                           + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
                           + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
                           + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
-        } else if (data.type === 'genotype' && this.state.IMPC === true) {
+        } else if (data.type === 'genotype' && this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
             // IMPC-specific tooltip rendering: Source, Background, IMPC gene
             var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';
             var background = '<strong>' + data.info[1].id + ': </strong> ' + data.info[1].value + '<br>';
@@ -2122,7 +2121,7 @@ var impcData = require('./impc.json');
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
             .style('fill', function(d) { // add different color to genotype labels
-                if (d.type === 'genotype' && self.state.IMPC !== true) {
+                if (d.type === 'genotype' && self.state.dataFromVendor === false) {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
                 } else {
                     return '';
@@ -2152,7 +2151,7 @@ var impcData = require('./impc.json');
                 .attr('width', gridRegion.cellSize)
                 .attr('height', self._gridHeight())
                 .style('fill', function(d){
-                    if (d.type === 'genotype' && self.state.IMPC !== true) {
+                    if (d.type === 'genotype' && self.state.dataFromVendor === false) {
                         return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                     } else {
                         return 'none'; // transparent 
@@ -2196,7 +2195,7 @@ var impcData = require('./impc.json');
             // we'll need to get the genotype data from yAxisRender - Joe
             .style('fill', function(d, i) { // add different color to genotype labels
                 var el = self.state.yAxisRender.itemAt(i);
-                if (el.type === 'genotype' && self.state.IMPC !== true) {
+                if (el.type === 'genotype' && self.state.dataFromVendor === false) {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                 } else {
                     return '';
@@ -2227,7 +2226,7 @@ var impcData = require('./impc.json');
                 .attr('height', gridRegion.cellSize)
                 .style('fill', function(d, i) { // add different color to genotype labels
                     var el = self.state.yAxisRender.itemAt(i);
-                    if (el.type === 'genotype' && self.state.IMPC !== true) {
+                    if (el.type === 'genotype' && self.state.dataFromVendor === false) {
                         return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                     } else {
                         return 'none'; // transparent 
@@ -2472,7 +2471,7 @@ var impcData = require('./impc.json');
             $('#' + this.state.pgInstanceId + '_unmatched_list').hide(); // Hide by default
             
             // IMPC input data ships will all HP labels, no need to grab via ajax - Joe
-            if (this.state.IMPC) {
+            if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
                 console.log(this.state.unmatchedSources);
                 var impcUnmatchedSources = [];
                 for (var i=0; i< this.state.unmatchedSources.length; i++) {
