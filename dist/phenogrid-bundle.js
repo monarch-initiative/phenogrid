@@ -3275,6 +3275,9 @@ var impcData = require('./impc.json');
             
             console.log(impcData);
          
+            // Use IMPC title
+            this.state.gridTitle = impcData.title;
+         
             // use the human phenotypes from the input JSON
             for (var i in impcData.yAxis[0].phenotypes) {
                 this.state.phenotypeData.push(impcData.yAxis[0].phenotypes[i].id);
@@ -3307,10 +3310,7 @@ var impcData = require('./impc.json');
                     this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                 }			
             }
-            
 
-            
-            // Test 1, using all MP
             var listOfLists = [];
             
             for (var idx in impcData.xAxis) {
@@ -3329,23 +3329,6 @@ var impcData = require('./impc.json');
 
             // starting loading the data from compare api
             this.state.dataLoader.loadCompareDataForIMPC(querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
- 
-            
-            /*
-            //Test 2, use added genotype IDs
-            
-            var genotypeList = [];
-            
-            for (var idx in impcData.xAxis) {
-                genotypeList = genotypeList.concat(impcData.xAxis[idx].id);
-            }
-            
-            // initialize data processing class for compare query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
-
-            // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForIMPCWithMGI(querySourceList, genotypeList, asyncDataLoadingCallback);
-            */
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -3753,15 +3736,8 @@ var impcData = require('./impc.json');
 	},
     
     _createOverviewTargetGroupLabels: function () {
-		// Show IMPC title form their JSON
-        if (this.state.IMPC) {
-            this.state.svg.append("text")
-                .attr("x", this.state.gridRegion.x + this._gridWidth() + 25) // 25 is margin - Joe
-                .attr("y", this.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
-                .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                .attr("text-anchor", "middle")
-                .text(impcData.title);
-        } else {
+		// No need to display target group name for IMPC
+        if ( ! this.state.IMPC) {
             if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
                 var self = this;
                 // targetGroupList is an array that contains all the selected targetGroup names
