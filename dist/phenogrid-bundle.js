@@ -5422,11 +5422,32 @@ var impcData = require('./impc.json');
             pg_unmatched.append(pg_unmatched_btn);
 
             $('#' + this.state.pgInstanceId + '_unmatched_list').hide(); // Hide by default
-                
-            // Fetch labels for unmatched sources via async ajax calls
-            // then format and append them to the pg_unmatched_list div - Joe
-            this._formatUnmatchedSources(this.state.unmatchedSources);
             
+            // IMPC input data ships will all HP labels, no need to grab via ajax - Joe
+            if (this.state.IMPC) {
+                console.log(this.state.unmatchedSources);
+                var impcUnmatchedSources = [];
+                for (var i=0; i< this.state.unmatchedSources.length; i++) {
+                    for (var idx in impcData.yAxis[0].phenotypes) {
+                        if (impcData.yAxis[0].phenotypes[idx].id === this.state.unmatchedSources[i]) {
+                            // use "label" instead of "term" here
+                            var item = {id: impcData.yAxis[0].phenotypes[idx].id, label: impcData.yAxis[0].phenotypes[idx].term};
+                            impcUnmatchedSources.push(item);
+                            break;
+                        }
+                    }
+                }
+                // Now we have all the unmatched source labels to render
+                for (var j=0; j< impcUnmatchedSources.length; j++) {
+                    var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + this.state.serverURL + '/phenotype/' + impcUnmatchedSources[j].id + '" target="_blank">' + impcUnmatchedSources[j].label + '</a></div>';
+                    $('#' + this.state.pgInstanceId + '_unmatched_list_data').append(pg_unmatched_list_item);
+                }
+            } else {
+                // Fetch labels for unmatched sources via async ajax calls
+                // then format and append them to the pg_unmatched_list div - Joe
+                this._formatUnmatchedSources(this.state.unmatchedSources);
+            }
+
             // Position and toggle
             this._positionUnmatchedSources();
             this._toggleUnmatchedSources();
