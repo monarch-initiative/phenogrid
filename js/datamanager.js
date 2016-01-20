@@ -238,7 +238,7 @@ DataManager.prototype = {
 		    						{return cd[targetGroup][key][k];});
 		}
 		else {
-		    /// it's a target. find the entry for each source.
+		    // it's a target. find the entry for each source.
 		    var srcs = Object.keys(cd[targetGroup]);
 		    for (var i in srcs) {
 				var src = srcs[i];
@@ -382,13 +382,13 @@ DataManager.prototype = {
 					// does a match exist in the cells
 					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') {
 						var rec = {
-                                    source_id: yvalues[y].id, 
-                                    target_id: xvalues[x].id, 
-                                    xpos: x, 
-                                    ypos: y, 
-                                    targetGroup: targetGroup, 
-                                    type: 'cell'
-                                };
+                                source_id: yvalues[y].id, 
+                                target_id: xvalues[x].id, 
+                                xpos: x, 
+                                ypos: y, 
+                                targetGroup: targetGroup, 
+                                type: 'cell'
+                            };
 						// this will create a array as a 'flattened' list of data points, used by mini mapping
 						if (flattened) {
 							matrixFlatten.push(rec);

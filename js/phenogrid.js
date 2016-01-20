@@ -356,19 +356,21 @@ var impcData = require('./impc.json');
                 for (var i in impcData.xAxis[idx].phenotypes) {
                     eachList.push(impcData.xAxis[idx].phenotypes[i].id);
                 }
+                // add new property
+                impcData.xAxis[idx].combinedList = eachList.join('+');
                 // default separator of array.join(separator) is comma
                 // join all the MP inside each MP list with plus sign, and join each list with default comma
-                listOfLists.push(eachList.join('+'));
+                listOfLists.push(impcData.xAxis[idx].combinedList);
             }
             
             // use the default comma to separate each list into each genotype profile
             var multipleTargetEntities = listOfLists.join();
-
+console.log(impcData);
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForVendor(querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForVendor(impcData, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);

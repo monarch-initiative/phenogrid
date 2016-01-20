@@ -318,8 +318,6 @@ var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 
 var Utils = require('./utils.js');
 
-var impcData = require('./impc.json');
-
 /*
  	Package: dataloader.js
 
@@ -443,7 +441,7 @@ DataLoader.prototype = {
 			multipleTargetEntities - combined list of mouse genes, list of lists
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForVendor: function(qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
+    loadCompareDataForVendor: function(impcData, qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
@@ -471,7 +469,7 @@ DataLoader.prototype = {
                     self.speciesNoMatch.push('Mus musculus'); // Hard coded
                 } else {
                     // use 'Mus musculus' as the key of the named array
-                    self.transformDataForVendor("Mus musculus", data);  // Hard coded
+                    self.transformDataForVendor(impcData, "Mus musculus", data);  // Hard coded
                 }
                 
                 self.postDataLoadCallback(); 
@@ -687,11 +685,10 @@ DataLoader.prototype = {
 	}, 
     
 
- transformDataForVendor: function(targetGroup, data) {      		
-		if (typeof(data) !== 'undefined' &&
-		    typeof (data.b) !== 'undefined') {
+ transformDataForVendor: function(impcData, targetGroup, data) {      		
+		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
-
+console.log(data.b);
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
@@ -716,21 +713,32 @@ DataLoader.prototype = {
             // Modify the resulting JSON
             // In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
             // we'll need to use the genotype id (IMPC internal) from input data as the new ID
-            for (var i in data.b) {
-                data.b[i].id = impcData.xAxis[i].id;
-                // add label with genotype label
-                data.b[i].label = impcData.xAxis[i].label;
-                data.b[i].score = impcData.xAxis[i].score;
-                // add info for tooltip rendering
-                data.b[i].info = impcData.xAxis[i].info;
+            // Keep in mind that some lists may not have any simsearch matches, so the order of results don't always match the input impc JSON
+            var result = jQuery.extend({}, data.b); // clone
+            for (var i in result) {
+                for (var j in impcData.xAxis) {
+                    if (result[i].id === impcData.xAxis[j].combinedList) {
+                        // add new id
+                        result[i].newid = impcData.xAxis[j].id;
+                        // add label with genotype label
+                        result[i].label = impcData.xAxis[j].label;
+                        // add phenodigm score
+                        result[i].phenodigmScore = impcData.xAxis[j].score;
+                        // add info for tooltip rendering
+                        result[i].info = impcData.xAxis[j].info;
+                        
+                        break;
+                    }
+                }
             }
- 
+
+console.log(result);
             var targetVal;
-			for (var idx in data.b) {
-				var item = data.b[idx];
+			for (var idx in result) {
+				var item = result[idx];
 				// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
                 // we'll need to use the genotype id (IMPC internal) as the new ID
-                var targetID = item.id; // IMPC internal id
+                var targetID = item.newid; // IMPC internal id
 
 				// build the target list
 				targetVal = {
@@ -741,7 +749,7 @@ DataLoader.prototype = {
                     "type": "genotype", 
                     "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
-                    "score": item.score.score.toFixed(2) // phenodigm score,  keeping only two decimals
+                    "score": item.phenodigmScore.score.toFixed(2) // phenodigm score,  keeping only two decimals
                 }; 
 
                 // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
@@ -750,8 +758,8 @@ DataLoader.prototype = {
                 }
                 
                 this.targetData[targetGroup][targetID] = targetVal;
-
-				var matches = data.b[idx].matches;
+console.log(this.targetData[targetGroup]);
+				var matches = result[idx].matches;
 				var curr_row, lcs, dataVals;
 				var sourceID_a, currID_b, currID_lcs;
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
@@ -1221,7 +1229,7 @@ DataLoader.prototype = {
 module.exports = DataLoader;
 
 }());
-},{"./impc.json":6,"./utils.js":8,"jquery":12}],3:[function(require,module,exports){
+},{"./utils.js":8,"jquery":12}],3:[function(require,module,exports){
 (function () {
 'use strict';
 
@@ -1462,7 +1470,7 @@ DataManager.prototype = {
 		    						{return cd[targetGroup][key][k];});
 		}
 		else {
-		    /// it's a target. find the entry for each source.
+		    // it's a target. find the entry for each source.
 		    var srcs = Object.keys(cd[targetGroup]);
 		    for (var i in srcs) {
 				var src = srcs[i];
@@ -1606,13 +1614,13 @@ DataManager.prototype = {
 					// does a match exist in the cells
 					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') {
 						var rec = {
-                                    source_id: yvalues[y].id, 
-                                    target_id: xvalues[x].id, 
-                                    xpos: x, 
-                                    ypos: y, 
-                                    targetGroup: targetGroup, 
-                                    type: 'cell'
-                                };
+                                source_id: yvalues[y].id, 
+                                target_id: xvalues[x].id, 
+                                xpos: x, 
+                                ypos: y, 
+                                targetGroup: targetGroup, 
+                                type: 'cell'
+                            };
 						// this will create a array as a 'flattened' list of data points, used by mini mapping
 						if (flattened) {
 							matrixFlatten.push(rec);
@@ -4333,19 +4341,21 @@ var impcData = require('./impc.json');
                 for (var i in impcData.xAxis[idx].phenotypes) {
                     eachList.push(impcData.xAxis[idx].phenotypes[i].id);
                 }
+                // add new property
+                impcData.xAxis[idx].combinedList = eachList.join('+');
                 // default separator of array.join(separator) is comma
                 // join all the MP inside each MP list with plus sign, and join each list with default comma
-                listOfLists.push(eachList.join('+'));
+                listOfLists.push(impcData.xAxis[idx].combinedList);
             }
             
             // use the default comma to separate each list into each genotype profile
             var multipleTargetEntities = listOfLists.join();
-
+console.log(impcData);
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForVendor(querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForVendor(impcData, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
