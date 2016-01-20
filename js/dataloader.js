@@ -425,12 +425,13 @@ console.log(result);
 				var item = result[idx];
 				// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
                 // we'll need to use the genotype id (IMPC internal) as the new ID
-                var targetID = item.newid; // IMPC internal id
+                var targetID = 'IMPC:' + item.newid; // IMPC internal id
 
 				// build the target list
 				targetVal = {
-                    "id":targetID, 
-                    "label": item.label, 
+                    "id": targetID, 
+                    //"label": item.label, 
+                    "label": targetID + ' - ' + item.score.score, 
                     "targetGroup": targetGroup, // Mouse
                     "taxon": "10090", // Mouse taxon
                     "type": "genotype", 
