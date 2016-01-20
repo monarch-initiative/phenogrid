@@ -741,7 +741,7 @@ DataLoader.prototype = {
                     "type": "genotype", 
                     "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
-                    "score": item.score.score // phenodigm score
+                    "score": item.score.score.toFixed(2) // phenodigm score,  keeping only two decimals
                 }; 
 
                 // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
@@ -1842,37 +1842,130 @@ module.exports={
       "id": "658",
       "label": "Fgfr2<tm2.3Dsn>/Fgfr2<+> involves: 129 * C57BL/6 * FVB/N",
       "phenotypes": [
-        "MP:0000074",
-        "MP:0000081",
-        "MP:0000097",
-        "MP:0000189",
-        "MP:0000440",
-        "MP:0000445",
-        "MP:0000521",
-        "MP:0000596",
-        "MP:0001175",
-        "MP:0001265",
-        "MP:0001347",
-        "MP:0001669",
-        "MP:0001732",
-        "MP:0002267",
-        "MP:0002750",
-        "MP:0002989",
-        "MP:0003641",
-        "MP:0004322",
-        "MP:0004469",
-        "MP:0004505",
-        "MP:0004678",
-        "MP:0006027",
-        "MP:0008277",
-        "MP:0009050",
-        "MP:0009051",
-        "MP:0009570",
-        "MP:0010911",
-        "MP:0011011",
-        "MP:0011085",
-        "MP:0011290",
-        "MP:0012667"
+        {
+          "id": "MP:0000074",
+          "term": "abnormal neurocranium morphology"
+        },
+        {
+          "id": "MP:0000081",
+          "term": "premature suture closure"
+        },
+        {
+          "id": "MP:0000097",
+          "term": "short maxilla"
+        },
+        {
+          "id": "MP:0000189",
+          "term": "hypoglycemia"
+        },
+        {
+          "id": "MP:0000440",
+          "term": "domed cranium"
+        },
+        {
+          "id": "MP:0000445",
+          "term": "short snout"
+        },
+        {
+          "id": "MP:0000521",
+          "term": "abnormal kidney cortex morphology"
+        },
+        {
+          "id": "MP:0000596",
+          "term": "abnormal liver development"
+        },
+        {
+          "id": "MP:0001175",
+          "term": "abnormal lung morphology"
+        },
+        {
+          "id": "MP:0001265",
+          "term": "decreased body size"
+        },
+        {
+          "id": "MP:0001347",
+          "term": "absent lacrimal glands"
+        },
+        {
+          "id": "MP:0001669",
+          "term": "abnormal intestinal glucose absorption"
+        },
+        {
+          "id": "MP:0001732",
+          "term": "postnatal growth retardation"
+        },
+        {
+          "id": "MP:0002267",
+          "term": "abnormal bronchiole morphology"
+        },
+        {
+          "id": "MP:0002750",
+          "term": "exophthalmos"
+        },
+        {
+          "id": "MP:0002989",
+          "term": "small kidney"
+        },
+        {
+          "id": "MP:0003641",
+          "term": "small lung"
+        },
+        {
+          "id": "MP:0004322",
+          "term": "abnormal sternebra morphology"
+        },
+        {
+          "id": "MP:0004469",
+          "term": "abnormal zygomatic arch morphology"
+        },
+        {
+          "id": "MP:0004505",
+          "term": "decreased renal glomerulus number"
+        },
+        {
+          "id": "MP:0004678",
+          "term": "split xiphoid process"
+        },
+        {
+          "id": "MP:0006027",
+          "term": "impaired lung alveolus development"
+        },
+        {
+          "id": "MP:0008277",
+          "term": "abnormal sternum ossification"
+        },
+        {
+          "id": "MP:0009050",
+          "term": "dilated proximal convoluted tubules"
+        },
+        {
+          "id": "MP:0009051",
+          "term": "dilated distal convoluted tubules"
+        },
+        {
+          "id": "MP:0009570",
+          "term": "abnormal right lung morphology"
+        },
+        {
+          "id": "MP:0010911",
+          "term": "abnormal pulmonary acinus morphology"
+        },
+        {
+          "id": "MP:0011011",
+          "term": "impaired lung lobe morphogenesis"
+        },
+        {
+          "id": "MP:0011085",
+          "term": "complete postnatal lethality"
+        },
+        {
+          "id": "MP:0011290",
+          "term": "decreased nephron number"
+        },
+        {
+          "id": "MP:0012667",
+          "term": "split sternal manubrium"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -1901,50 +1994,182 @@ module.exports={
       "id": "21072",
       "label": "Fgfr2<m1Sgg>/Fgfr2<m1Sgg> involves: C3H/HeJ * C57BL/6J",
       "phenotypes": [
-        "MP:0000060",
-        "MP:0000106",
-        "MP:0000118",
-        "MP:0000137",
-        "MP:0000157",
-        "MP:0000159",
-        "MP:0000163",
-        "MP:0000166",
-        "MP:0000438",
-        "MP:0000445",
-        "MP:0000462",
-        "MP:0000549",
-        "MP:0000762",
-        "MP:0000774",
-        "MP:0001347",
-        "MP:0001677",
-        "MP:0001698",
-        "MP:0001954",
-        "MP:0002058",
-        "MP:0002239",
-        "MP:0002750",
-        "MP:0002835",
-        "MP:0002989",
-        "MP:0003641",
-        "MP:0003938",
-        "MP:0004247",
-        "MP:0004320",
-        "MP:0004377",
-        "MP:0004418",
-        "MP:0004449",
-        "MP:0004469",
-        "MP:0004537",
-        "MP:0004609",
-        "MP:0004620",
-        "MP:0004726",
-        "MP:0004989",
-        "MP:0006213",
-        "MP:0006279",
-        "MP:0008272",
-        "MP:0008785",
-        "MP:0009524",
-        "MP:0009653",
-        "MP:0010743",
-        "MP:0011011"
+        {
+          "id": "MP:0000060",
+          "term": "delayed bone ossification"
+        },
+        {
+          "id": "MP:0000106",
+          "term": "abnormal basisphenoid bone morphology"
+        },
+        {
+          "id": "MP:0000118",
+          "term": "arrest of tooth development"
+        },
+        {
+          "id": "MP:0000137",
+          "term": "abnormal vertebrae morphology"
+        },
+        {
+          "id": "MP:0000157",
+          "term": "abnormal sternum morphology"
+        },
+        {
+          "id": "MP:0000159",
+          "term": "abnormal xiphoid process morphology"
+        },
+        {
+          "id": "MP:0000163",
+          "term": "abnormal cartilage morphology"
+        },
+        {
+          "id": "MP:0000166",
+          "term": "abnormal chondrocyte morphology"
+        },
+        {
+          "id": "MP:0000438",
+          "term": "abnormal cranium morphology"
+        },
+        {
+          "id": "MP:0000445",
+          "term": "short snout"
+        },
+        {
+          "id": "MP:0000462",
+          "term": "abnormal digestive system morphology"
+        },
+        {
+          "id": "MP:0000549",
+          "term": "absent limbs"
+        },
+        {
+          "id": "MP:0000762",
+          "term": "abnormal tongue morphology"
+        },
+        {
+          "id": "MP:0000774",
+          "term": "decreased brain size"
+        },
+        {
+          "id": "MP:0001347",
+          "term": "absent lacrimal glands"
+        },
+        {
+          "id": "MP:0001677",
+          "term": "absent apical ectodermal ridge"
+        },
+        {
+          "id": "MP:0001698",
+          "term": "decreased embryo size"
+        },
+        {
+          "id": "MP:0001954",
+          "term": "respiratory distress"
+        },
+        {
+          "id": "MP:0002058",
+          "term": "neonatal lethality"
+        },
+        {
+          "id": "MP:0002239",
+          "term": "abnormal nasal septum morphology"
+        },
+        {
+          "id": "MP:0002750",
+          "term": "exophthalmos"
+        },
+        {
+          "id": "MP:0002835",
+          "term": "abnormal cranial suture morphology"
+        },
+        {
+          "id": "MP:0002989",
+          "term": "small kidney"
+        },
+        {
+          "id": "MP:0003641",
+          "term": "small lung"
+        },
+        {
+          "id": "MP:0003938",
+          "term": "abnormal ear development"
+        },
+        {
+          "id": "MP:0004247",
+          "term": "small pancreas"
+        },
+        {
+          "id": "MP:0004320",
+          "term": "split sternum"
+        },
+        {
+          "id": "MP:0004377",
+          "term": "small frontal bone"
+        },
+        {
+          "id": "MP:0004418",
+          "term": "small parietal bone"
+        },
+        {
+          "id": "MP:0004449",
+          "term": "absent presphenoid bone"
+        },
+        {
+          "id": "MP:0004469",
+          "term": "abnormal zygomatic arch morphology"
+        },
+        {
+          "id": "MP:0004537",
+          "term": "abnormal palatine bone horizontal plate morphology"
+        },
+        {
+          "id": "MP:0004609",
+          "term": "vertebral fusion"
+        },
+        {
+          "id": "MP:0004620",
+          "term": "cervical vertebral fusion"
+        },
+        {
+          "id": "MP:0004726",
+          "term": "abnormal nasal capsule morphology"
+        },
+        {
+          "id": "MP:0004989",
+          "term": "decreased osteoblast cell number"
+        },
+        {
+          "id": "MP:0006213",
+          "term": "shallow orbits"
+        },
+        {
+          "id": "MP:0006279",
+          "term": "abnormal limb development"
+        },
+        {
+          "id": "MP:0008272",
+          "term": "abnormal endochondral bone ossification"
+        },
+        {
+          "id": "MP:0008785",
+          "term": "abnormal sternum manubrium morphology"
+        },
+        {
+          "id": "MP:0009524",
+          "term": "absent submandibular gland"
+        },
+        {
+          "id": "MP:0009653",
+          "term": "abnormal palate development"
+        },
+        {
+          "id": "MP:0010743",
+          "term": "delayed suture closure"
+        },
+        {
+          "id": "MP:0011011",
+          "term": "impaired lung lobe morphogenesis"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -1973,25 +2198,82 @@ module.exports={
       "id": "5525",
       "label": "Fgfr2<tm4Lni>/Fgfr2<tm4Lni> Not Specified",
       "phenotypes": [
-        "MP:0000102",
-        "MP:0000435",
-        "MP:0000440",
-        "MP:0001175",
-        "MP:0001302",
-        "MP:0001953",
-        "MP:0002114",
-        "MP:0004322",
-        "MP:0004552",
-        "MP:0004609",
-        "MP:0004988",
-        "MP:0005006",
-        "MP:0005249",
-        "MP:0008271",
-        "MP:0009250",
-        "MP:0009887",
-        "MP:0009890",
-        "MP:0010029",
-        "MP:0011087"
+        {
+          "id": "MP:0000102",
+          "term": "abnormal nasal bone morphology"
+        },
+        {
+          "id": "MP:0000435",
+          "term": "shortened head"
+        },
+        {
+          "id": "MP:0000440",
+          "term": "domed cranium"
+        },
+        {
+          "id": "MP:0001175",
+          "term": "abnormal lung morphology"
+        },
+        {
+          "id": "MP:0001302",
+          "term": "eyelids open at birth"
+        },
+        {
+          "id": "MP:0001953",
+          "term": "respiratory failure"
+        },
+        {
+          "id": "MP:0002114",
+          "term": "abnormal axial skeleton morphology"
+        },
+        {
+          "id": "MP:0004322",
+          "term": "abnormal sternebra morphology"
+        },
+        {
+          "id": "MP:0004552",
+          "term": "fused tracheal cartilage rings"
+        },
+        {
+          "id": "MP:0004609",
+          "term": "vertebral fusion"
+        },
+        {
+          "id": "MP:0004988",
+          "term": "increased osteoblast cell number"
+        },
+        {
+          "id": "MP:0005006",
+          "term": "abnormal osteoblast physiology"
+        },
+        {
+          "id": "MP:0005249",
+          "term": "abnormal palatine bone morphology"
+        },
+        {
+          "id": "MP:0008271",
+          "term": "abnormal bone ossification"
+        },
+        {
+          "id": "MP:0009250",
+          "term": "abnormal appendicular skeleton morphology"
+        },
+        {
+          "id": "MP:0009887",
+          "term": "abnormal palatal shelf fusion at midline"
+        },
+        {
+          "id": "MP:0009890",
+          "term": "cleft secondary palate"
+        },
+        {
+          "id": "MP:0010029",
+          "term": "abnormal basicranium morphology"
+        },
+        {
+          "id": "MP:0011087",
+          "term": "complete neonatal lethality"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2020,27 +2302,90 @@ module.exports={
       "id": "21073",
       "label": "Fgfr2<m1Sgg>/Fgfr2<+> involves: C3H/HeJ * C57BL/6J",
       "phenotypes": [
-        "MP:0000081",
-        "MP:0000106",
-        "MP:0000120",
-        "MP:0000157",
-        "MP:0000166",
-        "MP:0000428",
-        "MP:0000440",
-        "MP:0000445",
-        "MP:0001698",
-        "MP:0002239",
-        "MP:0002835",
-        "MP:0003840",
-        "MP:0003938",
-        "MP:0004449",
-        "MP:0004831",
-        "MP:0004989",
-        "MP:0008272",
-        "MP:0008525",
-        "MP:0009703",
-        "MP:0009887",
-        "MP:0009890"
+        {
+          "id": "MP:0000081",
+          "term": "premature suture closure"
+        },
+        {
+          "id": "MP:0000106",
+          "term": "abnormal basisphenoid bone morphology"
+        },
+        {
+          "id": "MP:0000120",
+          "term": "malocclusion"
+        },
+        {
+          "id": "MP:0000157",
+          "term": "abnormal sternum morphology"
+        },
+        {
+          "id": "MP:0000166",
+          "term": "abnormal chondrocyte morphology"
+        },
+        {
+          "id": "MP:0000428",
+          "term": "abnormal craniofacial morphology"
+        },
+        {
+          "id": "MP:0000440",
+          "term": "domed cranium"
+        },
+        {
+          "id": "MP:0000445",
+          "term": "short snout"
+        },
+        {
+          "id": "MP:0001698",
+          "term": "decreased embryo size"
+        },
+        {
+          "id": "MP:0002239",
+          "term": "abnormal nasal septum morphology"
+        },
+        {
+          "id": "MP:0002835",
+          "term": "abnormal cranial suture morphology"
+        },
+        {
+          "id": "MP:0003840",
+          "term": "abnormal coronal suture morphology"
+        },
+        {
+          "id": "MP:0003938",
+          "term": "abnormal ear development"
+        },
+        {
+          "id": "MP:0004449",
+          "term": "absent presphenoid bone"
+        },
+        {
+          "id": "MP:0004831",
+          "term": "long incisors"
+        },
+        {
+          "id": "MP:0004989",
+          "term": "decreased osteoblast cell number"
+        },
+        {
+          "id": "MP:0008272",
+          "term": "abnormal endochondral bone ossification"
+        },
+        {
+          "id": "MP:0008525",
+          "term": "decreased cranium height"
+        },
+        {
+          "id": "MP:0009703",
+          "term": "decreased birth body size"
+        },
+        {
+          "id": "MP:0009887",
+          "term": "abnormal palatal shelf fusion at midline"
+        },
+        {
+          "id": "MP:0009890",
+          "term": "cleft secondary palate"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2069,16 +2414,46 @@ module.exports={
       "id": "5526",
       "label": "Fgfr2<tm4Lni>/Fgfr2<+> Not Specified",
       "phenotypes": [
-        "MP:0000081",
-        "MP:0000097",
-        "MP:0000104",
-        "MP:0000120",
-        "MP:0000435",
-        "MP:0000440",
-        "MP:0001300",
-        "MP:0002750",
-        "MP:0004988",
-        "MP:0006400"
+        {
+          "id": "MP:0000081",
+          "term": "premature suture closure"
+        },
+        {
+          "id": "MP:0000097",
+          "term": "short maxilla"
+        },
+        {
+          "id": "MP:0000104",
+          "term": "abnormal sphenoid bone morphology"
+        },
+        {
+          "id": "MP:0000120",
+          "term": "malocclusion"
+        },
+        {
+          "id": "MP:0000435",
+          "term": "shortened head"
+        },
+        {
+          "id": "MP:0000440",
+          "term": "domed cranium"
+        },
+        {
+          "id": "MP:0001300",
+          "term": "ocular hypertelorism"
+        },
+        {
+          "id": "MP:0002750",
+          "term": "exophthalmos"
+        },
+        {
+          "id": "MP:0004988",
+          "term": "increased osteoblast cell number"
+        },
+        {
+          "id": "MP:0006400",
+          "term": "decreased molar number"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2107,64 +2482,238 @@ module.exports={
       "id": "117",
       "label": "Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd * C57BL/6",
       "phenotypes": [
-        "MP:0000031",
-        "MP:0000035",
-        "MP:0000039",
-        "MP:0000081",
-        "MP:0000111",
-        "MP:0000118",
-        "MP:0000440",
-        "MP:0000470",
-        "MP:0000492",
-        "MP:0000551",
-        "MP:0000557",
-        "MP:0000613",
-        "MP:0000629",
-        "MP:0001176",
-        "MP:0001181",
-        "MP:0001199",
-        "MP:0001201",
-        "MP:0001218",
-        "MP:0001231",
-        "MP:0001244",
-        "MP:0001265",
-        "MP:0001341",
-        "MP:0002095",
-        "MP:0002428",
-        "MP:0002691",
-        "MP:0003051",
-        "MP:0003124",
-        "MP:0003308",
-        "MP:0003315",
-        "MP:0003703",
-        "MP:0003816",
-        "MP:0004310",
-        "MP:0004343",
-        "MP:0004346",
-        "MP:0004507",
-        "MP:0004509",
-        "MP:0004619",
-        "MP:0004691",
-        "MP:0005298",
-        "MP:0005354",
-        "MP:0006011",
-        "MP:0006279",
-        "MP:0006287",
-        "MP:0006288",
-        "MP:0008320",
-        "MP:0009479",
-        "MP:0009509",
-        "MP:0009510",
-        "MP:0009522",
-        "MP:0009524",
-        "MP:0011026",
-        "MP:0011089",
-        "MP:0011158",
-        "MP:0011759",
-        "MP:0013351",
-        "MP:0013352",
-        "MP:0013721",
-        "MP:0013785"
+        {
+          "id": "MP:0000031",
+          "term": "abnormal cochlea morphology"
+        },
+        {
+          "id": "MP:0000035",
+          "term": "abnormal membranous labyrinth morphology"
+        },
+        {
+          "id": "MP:0000039",
+          "term": "abnormal otic capsule morphology"
+        },
+        {
+          "id": "MP:0000081",
+          "term": "premature suture closure"
+        },
+        {
+          "id": "MP:0000111",
+          "term": "cleft palate"
+        },
+        {
+          "id": "MP:0000118",
+          "term": "arrest of tooth development"
+        },
+        {
+          "id": "MP:0000440",
+          "term": "domed cranium"
+        },
+        {
+          "id": "MP:0000470",
+          "term": "abnormal stomach morphology"
+        },
+        {
+          "id": "MP:0000492",
+          "term": "abnormal rectum morphology"
+        },
+        {
+          "id": "MP:0000551",
+          "term": "absent forelimb"
+        },
+        {
+          "id": "MP:0000557",
+          "term": "absent hindlimb"
+        },
+        {
+          "id": "MP:0000613",
+          "term": "abnormal salivary gland morphology"
+        },
+        {
+          "id": "MP:0000629",
+          "term": "absent mammary gland"
+        },
+        {
+          "id": "MP:0001176",
+          "term": "abnormal lung development"
+        },
+        {
+          "id": "MP:0001181",
+          "term": "absent lungs"
+        },
+        {
+          "id": "MP:0001199",
+          "term": "thin skin"
+        },
+        {
+          "id": "MP:0001201",
+          "term": "translucent skin"
+        },
+        {
+          "id": "MP:0001218",
+          "term": "thin epidermis"
+        },
+        {
+          "id": "MP:0001231",
+          "term": "abnormal epidermis stratum basale morphology"
+        },
+        {
+          "id": "MP:0001244",
+          "term": "thin dermal layer"
+        },
+        {
+          "id": "MP:0001265",
+          "term": "decreased body size"
+        },
+        {
+          "id": "MP:0001341",
+          "term": "absent eyelids"
+        },
+        {
+          "id": "MP:0002095",
+          "term": "abnormal skin pigmentation"
+        },
+        {
+          "id": "MP:0002428",
+          "term": "abnormal semicircular canal morphology"
+        },
+        {
+          "id": "MP:0002691",
+          "term": "small stomach"
+        },
+        {
+          "id": "MP:0003051",
+          "term": "curly tail"
+        },
+        {
+          "id": "MP:0003124",
+          "term": "hypospadia"
+        },
+        {
+          "id": "MP:0003308",
+          "term": "abnormal cochlear sensory epithelium morphology"
+        },
+        {
+          "id": "MP:0003315",
+          "term": "abnormal perineum morphology"
+        },
+        {
+          "id": "MP:0003703",
+          "term": "abnormal vestibulocochlear ganglion morphology"
+        },
+        {
+          "id": "MP:0003816",
+          "term": "abnormal pituitary gland development"
+        },
+        {
+          "id": "MP:0004310",
+          "term": "small otic vesicle"
+        },
+        {
+          "id": "MP:0004343",
+          "term": "small scapula"
+        },
+        {
+          "id": "MP:0004346",
+          "term": "absent acromion"
+        },
+        {
+          "id": "MP:0004507",
+          "term": "abnormal ischium morphology"
+        },
+        {
+          "id": "MP:0004509",
+          "term": "abnormal pelvic girdle bone morphology"
+        },
+        {
+          "id": "MP:0004619",
+          "term": "caudal vertebral fusion"
+        },
+        {
+          "id": "MP:0004691",
+          "term": "absent pubis"
+        },
+        {
+          "id": "MP:0005298",
+          "term": "abnormal clavicle morphology"
+        },
+        {
+          "id": "MP:0005354",
+          "term": "abnormal ilium morphology"
+        },
+        {
+          "id": "MP:0006011",
+          "term": "abnormal endolymphatic duct morphology"
+        },
+        {
+          "id": "MP:0006279",
+          "term": "abnormal limb development"
+        },
+        {
+          "id": "MP:0006287",
+          "term": "inner ear cysts"
+        },
+        {
+          "id": "MP:0006288",
+          "term": "small otic capsule"
+        },
+        {
+          "id": "MP:0008320",
+          "term": "absent adenohypophysis"
+        },
+        {
+          "id": "MP:0009479",
+          "term": "abnormal cecum development"
+        },
+        {
+          "id": "MP:0009509",
+          "term": "absent rectum"
+        },
+        {
+          "id": "MP:0009510",
+          "term": "cecal atresia"
+        },
+        {
+          "id": "MP:0009522",
+          "term": "submandibular gland hypoplasia"
+        },
+        {
+          "id": "MP:0009524",
+          "term": "absent submandibular gland"
+        },
+        {
+          "id": "MP:0011026",
+          "term": "impaired branching involved in trachea morphogenesis"
+        },
+        {
+          "id": "MP:0011089",
+          "term": "complete perinatal lethality"
+        },
+        {
+          "id": "MP:0011158",
+          "term": "absent hypodermis muscle layer"
+        },
+        {
+          "id": "MP:0011759",
+          "term": "absent Rathke's pouch"
+        },
+        {
+          "id": "MP:0013351",
+          "term": "abnormal Rathke's pouch development"
+        },
+        {
+          "id": "MP:0013352",
+          "term": "abnormal Rathke's pouch apoptosis"
+        },
+        {
+          "id": "MP:0013721",
+          "term": "abnormal mammary placode morphology"
+        },
+        {
+          "id": "MP:0013785",
+          "term": "abnormal mammary gland bud morphology"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2193,25 +2742,82 @@ module.exports={
       "id": "18286",
       "label": "Fgfr2<tm3.1Lni>/Fgfr2<tm3.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6",
       "phenotypes": [
-        "MP:0000060",
-        "MP:0000081",
-        "MP:0000104",
-        "MP:0000106",
-        "MP:0000432",
-        "MP:0000440",
-        "MP:0000566",
-        "MP:0001262",
-        "MP:0001265",
-        "MP:0001732",
-        "MP:0002116",
-        "MP:0002750",
-        "MP:0003409",
-        "MP:0003840",
-        "MP:0004448",
-        "MP:0005006",
-        "MP:0008489",
-        "MP:0008525",
-        "MP:0010029"
+        {
+          "id": "MP:0000060",
+          "term": "delayed bone ossification"
+        },
+        {
+          "id": "MP:0000081",
+          "term": "premature suture closure"
+        },
+        {
+          "id": "MP:0000104",
+          "term": "abnormal sphenoid bone morphology"
+        },
+        {
+          "id": "MP:0000106",
+          "term": "abnormal basisphenoid bone morphology"
+        },
+        {
+          "id": "MP:0000432",
+          "term": "abnormal head morphology"
+        },
+        {
+          "id": "MP:0000440",
+          "term": "domed cranium"
+        },
+        {
+          "id": "MP:0000566",
+          "term": "synostosis"
+        },
+        {
+          "id": "MP:0001262",
+          "term": "decreased body weight"
+        },
+        {
+          "id": "MP:0001265",
+          "term": "decreased body size"
+        },
+        {
+          "id": "MP:0001732",
+          "term": "postnatal growth retardation"
+        },
+        {
+          "id": "MP:0002116",
+          "term": "abnormal craniofacial bone morphology"
+        },
+        {
+          "id": "MP:0002750",
+          "term": "exophthalmos"
+        },
+        {
+          "id": "MP:0003409",
+          "term": "decreased width of hypertrophic chondrocyte zone"
+        },
+        {
+          "id": "MP:0003840",
+          "term": "abnormal coronal suture morphology"
+        },
+        {
+          "id": "MP:0004448",
+          "term": "abnormal presphenoid bone morphology"
+        },
+        {
+          "id": "MP:0005006",
+          "term": "abnormal osteoblast physiology"
+        },
+        {
+          "id": "MP:0008489",
+          "term": "slow postnatal weight gain"
+        },
+        {
+          "id": "MP:0008525",
+          "term": "decreased cranium height"
+        },
+        {
+          "id": "MP:0010029",
+          "term": "abnormal basicranium morphology"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2240,24 +2846,78 @@ module.exports={
       "id": "25781",
       "label": "Fgfr2<tm3Ewj>/Fgfr2<+> B6.129-Fgfr2<tm3Ewj>",
       "phenotypes": [
-        "MP:0000081",
-        "MP:0000157",
-        "MP:0000435",
-        "MP:0000566",
-        "MP:0001219",
-        "MP:0001222",
-        "MP:0001231",
-        "MP:0001240",
-        "MP:0001725",
-        "MP:0001732",
-        "MP:0001874",
-        "MP:0002060",
-        "MP:0003743",
-        "MP:0009545",
-        "MP:0009601",
-        "MP:0009611",
-        "MP:0011085",
-        "MP:0011495"
+        {
+          "id": "MP:0000081",
+          "term": "premature suture closure"
+        },
+        {
+          "id": "MP:0000157",
+          "term": "abnormal sternum morphology"
+        },
+        {
+          "id": "MP:0000435",
+          "term": "shortened head"
+        },
+        {
+          "id": "MP:0000566",
+          "term": "synostosis"
+        },
+        {
+          "id": "MP:0001219",
+          "term": "thick epidermis"
+        },
+        {
+          "id": "MP:0001222",
+          "term": "epidermal hyperplasia"
+        },
+        {
+          "id": "MP:0001231",
+          "term": "abnormal epidermis stratum basale morphology"
+        },
+        {
+          "id": "MP:0001240",
+          "term": "abnormal epidermis stratum corneum morphology"
+        },
+        {
+          "id": "MP:0001725",
+          "term": "abnormal umbilical cord morphology"
+        },
+        {
+          "id": "MP:0001732",
+          "term": "postnatal growth retardation"
+        },
+        {
+          "id": "MP:0001874",
+          "term": "acanthosis"
+        },
+        {
+          "id": "MP:0002060",
+          "term": "abnormal skin morphology"
+        },
+        {
+          "id": "MP:0003743",
+          "term": "abnormal facial morphology"
+        },
+        {
+          "id": "MP:0009545",
+          "term": "abnormal dermis papillary layer morphology"
+        },
+        {
+          "id": "MP:0009601",
+          "term": "epidermis stratum granulosum hyperplasia"
+        },
+        {
+          "id": "MP:0009611",
+          "term": "epidermis stratum spinosum hyperplasia"
+        },
+        {
+          "id": "MP:0011085",
+          "term": "complete postnatal lethality"
+        },
+        {
+          "id": "MP:0011495",
+          "term": "abnormal head shape"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2286,11 +2946,26 @@ module.exports={
       "id": "11327",
       "label": "Fgfr2<tm1Schl>/Fgfr2<+> involves: 129S1/Sv",
       "phenotypes": [
-        "MP:0000081",
-        "MP:0000428",
-        "MP:0000438",
-        "MP:0002750",
-        "MP:0003840"
+        {
+          "id": "MP:0000081",
+          "term": "premature suture closure"
+        },
+        {
+          "id": "MP:0000428",
+          "term": "abnormal craniofacial morphology"
+        },
+        {
+          "id": "MP:0000438",
+          "term": "abnormal cranium morphology"
+        },
+        {
+          "id": "MP:0002750",
+          "term": "exophthalmos"
+        },
+        {
+          "id": "MP:0003840",
+          "term": "abnormal coronal suture morphology"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2319,12 +2994,30 @@ module.exports={
       "id": "20246",
       "label": "Fgfr2<tm2Ewj>/Fgfr2<+> involves: 129S1/Sv * 129X1/SvJ * C57BL/6J",
       "phenotypes": [
-        "MP:0000081",
-        "MP:0000780",
-        "MP:0002152",
-        "MP:0008534",
-        "MP:0008535",
-        "MP:0008540"
+        {
+          "id": "MP:0000081",
+          "term": "premature suture closure"
+        },
+        {
+          "id": "MP:0000780",
+          "term": "abnormal corpus callosum morphology"
+        },
+        {
+          "id": "MP:0002152",
+          "term": "abnormal brain morphology"
+        },
+        {
+          "id": "MP:0008534",
+          "term": "enlarged fourth ventricle"
+        },
+        {
+          "id": "MP:0008535",
+          "term": "enlarged lateral ventricles"
+        },
+        {
+          "id": "MP:0008540",
+          "term": "abnormal cerebrum morphology"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2353,61 +3046,226 @@ module.exports={
       "id": "659",
       "label": "Fgfr2<tm3Dsn>/Fgfr2<tm3Dsn> involves: 129P2/OlaHsd * C57BL/6",
       "phenotypes": [
-        "MP:0000111",
-        "MP:0000124",
-        "MP:0000149",
-        "MP:0000267",
-        "MP:0000273",
-        "MP:0000279",
-        "MP:0000280",
-        "MP:0000284",
-        "MP:0000377",
-        "MP:0000379",
-        "MP:0000527",
-        "MP:0000537",
-        "MP:0000549",
-        "MP:0000613",
-        "MP:0000704",
-        "MP:0001181",
-        "MP:0001199",
-        "MP:0001216",
-        "MP:0001218",
-        "MP:0001231",
-        "MP:0001341",
-        "MP:0001676",
-        "MP:0002060",
-        "MP:0002295",
-        "MP:0002655",
-        "MP:0002989",
-        "MP:0003051",
-        "MP:0003124",
-        "MP:0003420",
-        "MP:0003704",
-        "MP:0003934",
-        "MP:0004032",
-        "MP:0004055",
-        "MP:0004067",
-        "MP:0004200",
-        "MP:0004509",
-        "MP:0004619",
-        "MP:0005294",
-        "MP:0005314",
-        "MP:0006030",
-        "MP:0006288",
-        "MP:0008320",
-        "MP:0009003",
-        "MP:0010418",
-        "MP:0010420",
-        "MP:0010454",
-        "MP:0010521",
-        "MP:0010566",
-        "MP:0010585",
-        "MP:0010587",
-        "MP:0010646",
-        "MP:0011089",
-        "MP:0011290",
-        "MP:0013310",
-        "MP:0013578"
+        {
+          "id": "MP:0000111",
+          "term": "cleft palate"
+        },
+        {
+          "id": "MP:0000124",
+          "term": "absent teeth"
+        },
+        {
+          "id": "MP:0000149",
+          "term": "abnormal scapula morphology"
+        },
+        {
+          "id": "MP:0000267",
+          "term": "abnormal heart development"
+        },
+        {
+          "id": "MP:0000273",
+          "term": "overriding aortic valve"
+        },
+        {
+          "id": "MP:0000279",
+          "term": "ventricular hypoplasia"
+        },
+        {
+          "id": "MP:0000280",
+          "term": "thin ventricular wall"
+        },
+        {
+          "id": "MP:0000284",
+          "term": "double outlet right ventricle"
+        },
+        {
+          "id": "MP:0000377",
+          "term": "abnormal hair follicle morphology"
+        },
+        {
+          "id": "MP:0000379",
+          "term": "decreased hair follicle number"
+        },
+        {
+          "id": "MP:0000527",
+          "term": "abnormal kidney development"
+        },
+        {
+          "id": "MP:0000537",
+          "term": "abnormal urethra morphology"
+        },
+        {
+          "id": "MP:0000549",
+          "term": "absent limbs"
+        },
+        {
+          "id": "MP:0000613",
+          "term": "abnormal salivary gland morphology"
+        },
+        {
+          "id": "MP:0000704",
+          "term": "abnormal thymus development"
+        },
+        {
+          "id": "MP:0001181",
+          "term": "absent lungs"
+        },
+        {
+          "id": "MP:0001199",
+          "term": "thin skin"
+        },
+        {
+          "id": "MP:0001216",
+          "term": "abnormal epidermal layer morphology"
+        },
+        {
+          "id": "MP:0001218",
+          "term": "thin epidermis"
+        },
+        {
+          "id": "MP:0001231",
+          "term": "abnormal epidermis stratum basale morphology"
+        },
+        {
+          "id": "MP:0001341",
+          "term": "absent eyelids"
+        },
+        {
+          "id": "MP:0001676",
+          "term": "abnormal apical ectodermal ridge morphology"
+        },
+        {
+          "id": "MP:0002060",
+          "term": "abnormal skin morphology"
+        },
+        {
+          "id": "MP:0002295",
+          "term": "abnormal pulmonary circulation"
+        },
+        {
+          "id": "MP:0002655",
+          "term": "abnormal keratinocyte morphology"
+        },
+        {
+          "id": "MP:0002989",
+          "term": "small kidney"
+        },
+        {
+          "id": "MP:0003051",
+          "term": "curly tail"
+        },
+        {
+          "id": "MP:0003124",
+          "term": "hypospadia"
+        },
+        {
+          "id": "MP:0003420",
+          "term": "delayed intramembranous bone ossification"
+        },
+        {
+          "id": "MP:0003704",
+          "term": "abnormal hair follicle development"
+        },
+        {
+          "id": "MP:0003934",
+          "term": "abnormal pancreas development"
+        },
+        {
+          "id": "MP:0004032",
+          "term": "abnormal interventricular groove morphology"
+        },
+        {
+          "id": "MP:0004055",
+          "term": "atrium hypoplasia"
+        },
+        {
+          "id": "MP:0004067",
+          "term": "abnormal trabecula carnea morphology"
+        },
+        {
+          "id": "MP:0004200",
+          "term": "decreased fetal size"
+        },
+        {
+          "id": "MP:0004509",
+          "term": "abnormal pelvic girdle bone morphology"
+        },
+        {
+          "id": "MP:0004619",
+          "term": "caudal vertebral fusion"
+        },
+        {
+          "id": "MP:0005294",
+          "term": "abnormal heart ventricle morphology"
+        },
+        {
+          "id": "MP:0005314",
+          "term": "absent thyroid gland"
+        },
+        {
+          "id": "MP:0006030",
+          "term": "abnormal otic vesicle development"
+        },
+        {
+          "id": "MP:0006288",
+          "term": "small otic capsule"
+        },
+        {
+          "id": "MP:0008320",
+          "term": "absent adenohypophysis"
+        },
+        {
+          "id": "MP:0009003",
+          "term": "abnormal vibrissa number"
+        },
+        {
+          "id": "MP:0010418",
+          "term": "perimembraneous ventricular septal defect"
+        },
+        {
+          "id": "MP:0010420",
+          "term": "muscular ventricular septal defect"
+        },
+        {
+          "id": "MP:0010454",
+          "term": "abnormal truncus arteriosus septation"
+        },
+        {
+          "id": "MP:0010521",
+          "term": "absent pulmonary artery"
+        },
+        {
+          "id": "MP:0010566",
+          "term": "abnormal left posterior bundle morphology"
+        },
+        {
+          "id": "MP:0010585",
+          "term": "abnormal conotruncal ridge morphology"
+        },
+        {
+          "id": "MP:0010587",
+          "term": "conotruncal ridge hypoplasia"
+        },
+        {
+          "id": "MP:0010646",
+          "term": "absent pulmonary vein"
+        },
+        {
+          "id": "MP:0011089",
+          "term": "complete perinatal lethality"
+        },
+        {
+          "id": "MP:0011290",
+          "term": "decreased nephron number"
+        },
+        {
+          "id": "MP:0013310",
+          "term": "abnormal adrenal gland development"
+        },
+        {
+          "id": "MP:0013578",
+          "term": "abnormal stomach glandular region morphology"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2436,12 +3294,30 @@ module.exports={
       "id": "11328",
       "label": "Fgfr2<tm1Schl>/Fgfr2<tm1Schl> involves: 129S1/Sv",
       "phenotypes": [
-        "MP:0000111",
-        "MP:0001943",
-        "MP:0003120",
-        "MP:0003189",
-        "MP:0009888",
-        "MP:0011087"
+        {
+          "id": "MP:0000111",
+          "term": "cleft palate"
+        },
+        {
+          "id": "MP:0001943",
+          "term": "abnormal respiration"
+        },
+        {
+          "id": "MP:0003120",
+          "term": "abnormal tracheal cartilage morphology"
+        },
+        {
+          "id": "MP:0003189",
+          "term": "fused joints"
+        },
+        {
+          "id": "MP:0009888",
+          "term": "palatal shelves fail to meet at midline"
+        },
+        {
+          "id": "MP:0011087",
+          "term": "complete neonatal lethality"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2470,16 +3346,46 @@ module.exports={
       "id": "3186",
       "label": "Fgfr2<tm1.1Dsn>/Fgfr2<tm1.1Dsn> involves: 129P2/OlaHsd",
       "phenotypes": [
-        "MP:0000762",
-        "MP:0003755",
-        "MP:0003760",
-        "MP:0003934",
-        "MP:0004247",
-        "MP:0009655",
-        "MP:0009884",
-        "MP:0009890",
-        "MP:0013264",
-        "MP:0013766"
+        {
+          "id": "MP:0000762",
+          "term": "abnormal tongue morphology"
+        },
+        {
+          "id": "MP:0003755",
+          "term": "abnormal palate morphology"
+        },
+        {
+          "id": "MP:0003760",
+          "term": "decreased palatal length"
+        },
+        {
+          "id": "MP:0003934",
+          "term": "abnormal pancreas development"
+        },
+        {
+          "id": "MP:0004247",
+          "term": "small pancreas"
+        },
+        {
+          "id": "MP:0009655",
+          "term": "abnormal secondary palate development"
+        },
+        {
+          "id": "MP:0009884",
+          "term": "palatal shelf fusion with tongue or mandible"
+        },
+        {
+          "id": "MP:0009890",
+          "term": "cleft secondary palate"
+        },
+        {
+          "id": "MP:0013264",
+          "term": "tongue ankylosis"
+        },
+        {
+          "id": "MP:0013766",
+          "term": "absent palatal rugae"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2508,9 +3414,18 @@ module.exports={
       "id": "11329",
       "label": "Fgfr2<tm2Schl>/Fgfr2<tm2Schl> involves: 129S1/Sv * BALB/c * C57BL/6",
       "phenotypes": [
-        "MP:0000111",
-        "MP:0003120",
-        "MP:0009888"
+        {
+          "id": "MP:0000111",
+          "term": "cleft palate"
+        },
+        {
+          "id": "MP:0003120",
+          "term": "abnormal tracheal cartilage morphology"
+        },
+        {
+          "id": "MP:0009888",
+          "term": "palatal shelves fail to meet at midline"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2539,10 +3454,22 @@ module.exports={
       "id": "18285",
       "label": "Fgfr2<tm2.1Lni>/Fgfr2<tm2.1Lni> involves: 129S1/Sv * 129X1/SvJ * BALB/c * C57BL/6",
       "phenotypes": [
-        "MP:0000549",
-        "MP:0001181",
-        "MP:0009524",
-        "MP:0011087"
+        {
+          "id": "MP:0000549",
+          "term": "absent limbs"
+        },
+        {
+          "id": "MP:0001181",
+          "term": "absent lungs"
+        },
+        {
+          "id": "MP:0009524",
+          "term": "absent submandibular gland"
+        },
+        {
+          "id": "MP:0011087",
+          "term": "complete neonatal lethality"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2571,10 +3498,22 @@ module.exports={
       "id": "28393",
       "label": "Fgfr2<tm1.1Dor>/Fgfr2<hob> involves: 129X1/SvJ * C57BL/6J * FVB/N",
       "phenotypes": [
-        "MP:0000549",
-        "MP:0001178",
-        "MP:0002995",
-        "MP:0004200"
+        {
+          "id": "MP:0000549",
+          "term": "absent limbs"
+        },
+        {
+          "id": "MP:0001178",
+          "term": "pulmonary hypoplasia"
+        },
+        {
+          "id": "MP:0002995",
+          "term": "primary sex reversal"
+        },
+        {
+          "id": "MP:0004200",
+          "term": "decreased fetal size"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2603,10 +3542,22 @@ module.exports={
       "id": "28392",
       "label": "Fgfr2<hob>/Fgfr2<hob> involves: C57BL/6J",
       "phenotypes": [
-        "MP:0000549",
-        "MP:0001178",
-        "MP:0002995",
-        "MP:0006208"
+        {
+          "id": "MP:0000549",
+          "term": "absent limbs"
+        },
+        {
+          "id": "MP:0001178",
+          "term": "pulmonary hypoplasia"
+        },
+        {
+          "id": "MP:0002995",
+          "term": "primary sex reversal"
+        },
+        {
+          "id": "MP:0006208",
+          "term": "lethality throughout fetal growth and development"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2635,8 +3586,14 @@ module.exports={
       "id": "18290",
       "label": "Fgfr2<tm3Lni>/Fgfr2<tm3Lni> involves: 129S1/Sv * 129X1/SvJ",
       "phenotypes": [
-        "MP:0000537",
-        "MP:0000549"
+        {
+          "id": "MP:0000537",
+          "term": "abnormal urethra morphology"
+        },
+        {
+          "id": "MP:0000549",
+          "term": "absent limbs"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2665,20 +3622,62 @@ module.exports={
       "id": "656",
       "label": "Fgfr2<tm1Cxd>/Fgfr2<tm1Cxd> either: (involves: 129S6/SvEvTac) or (involves: 129S6/SvEvTac * NIH Black Swiss)",
       "phenotypes": [
-        "MP:0001698",
-        "MP:0001711",
-        "MP:0001712",
-        "MP:0003231",
-        "MP:0003403",
-        "MP:0003984",
-        "MP:0004255",
-        "MP:0004310",
-        "MP:0004556",
-        "MP:0004573",
-        "MP:0005031",
-        "MP:0009397",
-        "MP:0009657",
-        "MP:0011098"
+        {
+          "id": "MP:0001698",
+          "term": "decreased embryo size"
+        },
+        {
+          "id": "MP:0001711",
+          "term": "abnormal placenta morphology"
+        },
+        {
+          "id": "MP:0001712",
+          "term": "abnormal placenta development"
+        },
+        {
+          "id": "MP:0003231",
+          "term": "abnormal placenta vasculature"
+        },
+        {
+          "id": "MP:0003403",
+          "term": "absent placental labyrinth"
+        },
+        {
+          "id": "MP:0003984",
+          "term": "embryonic growth retardation"
+        },
+        {
+          "id": "MP:0004255",
+          "term": "abnormal spongiotrophoblast layer morphology"
+        },
+        {
+          "id": "MP:0004310",
+          "term": "small otic vesicle"
+        },
+        {
+          "id": "MP:0004556",
+          "term": "enlarged allantois"
+        },
+        {
+          "id": "MP:0004573",
+          "term": "absent limb buds"
+        },
+        {
+          "id": "MP:0005031",
+          "term": "abnormal trophoblast layer morphology"
+        },
+        {
+          "id": "MP:0009397",
+          "term": "increased trophoblast giant cell number"
+        },
+        {
+          "id": "MP:0009657",
+          "term": "failure of chorioallantoic fusion"
+        },
+        {
+          "id": "MP:0011098",
+          "term": "complete embryonic lethality during organogenesis"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2707,9 +3706,18 @@ module.exports={
       "id": "4925",
       "label": "Fgfr2<tm1.1Dor>/Fgfr2<tm1.1Dor> involves: 129X1/SvJ",
       "phenotypes": [
-        "MP:0001712",
-        "MP:0004573",
-        "MP:0011098"
+        {
+          "id": "MP:0001712",
+          "term": "abnormal placenta development"
+        },
+        {
+          "id": "MP:0004573",
+          "term": "absent limb buds"
+        },
+        {
+          "id": "MP:0011098",
+          "term": "complete embryonic lethality during organogenesis"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2738,8 +3746,14 @@ module.exports={
       "id": "118",
       "label": "Fgfr2<tm1.1Dsn>/Fgfr2<+> involves: 129P2/OlaHsd * C57BL/6",
       "phenotypes": [
-        "MP:0009522",
-        "MP:0009525"
+        {
+          "id": "MP:0009522",
+          "term": "submandibular gland hypoplasia"
+        },
+        {
+          "id": "MP:0009525",
+          "term": "abnormal submandibular duct morphology"
+        }
       ],
       "score": {
         "metric": "phenodigm",
@@ -2768,7 +3782,7 @@ module.exports={
   "yAxis": [
     {
       "id": "OMIM:101600",
-      "label": "Pfeiffer syndrome",
+      "label": "OMIM:101600",
       "phenotypes": [
         {
           "id": "HP:0000006",
@@ -3274,14 +4288,12 @@ var impcData = require('./impc.json');
                 } 
             });
             */
-            
-            console.log(impcData);
-         
+
             // Use IMPC title
             this.state.gridTitle = impcData.title;
             
             // DataFromVendor IMPC-specific tweaks
-            this.state.gridRegion.cellPad = 30;
+            this.state.gridRegion.cellPad = 32;
             this.state.gridRegion.rowLabelOffset = 35;
          
             // use the human phenotypes from the input JSON
@@ -3289,8 +4301,6 @@ var impcData = require('./impc.json');
                 this.state.phenotypeData.push(impcData.yAxis[0].phenotypes[i].id);
             }
 
-            console.log(this.state.phenotypeData);
-             
              // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
             
@@ -3318,18 +4328,19 @@ var impcData = require('./impc.json');
             }
 
             var listOfLists = [];
-            
             for (var idx in impcData.xAxis) {
+                var eachList = [];
+                for (var i in impcData.xAxis[idx].phenotypes) {
+                    eachList.push(impcData.xAxis[idx].phenotypes[i].id);
+                }
                 // default separator of array.join(separator) is comma
-                // join all the MP inside each genotype with plus sign, and join each list with comma
-                listOfLists = listOfLists.concat(impcData.xAxis[idx].phenotypes.join('+'));
+                // join all the MP inside each MP list with plus sign, and join each list with default comma
+                listOfLists.push(eachList.join('+'));
             }
             
-            // now we need to remove the duplicates
             // use the default comma to separate each list into each genotype profile
             var multipleTargetEntities = listOfLists.join();
-            
-            
+
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
@@ -4536,7 +5547,11 @@ var impcData = require('./impc.json');
 			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
 			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
 			.on("click", function() {
-				self._populateDialog(htmlnotes.scores);
+				if (self.state.dataFromVendor === true && self.state.datVendorName === 'IMPC') {
+                    self._populateDialog(htmlnotes.phenodigm);
+                } else {
+                    self._populateDialog(htmlnotes.scores);
+                }
 			});
 	},
 		
@@ -4761,8 +5776,6 @@ var impcData = require('./impc.json');
 
     // data is either cell data or label data details - Joe
 	_createHoverBox: function(data){
-		console.log(data);
-        
         var id;
 
 		// for cells we need to check the invertAxis to adjust for correct id
@@ -5435,7 +6448,6 @@ var impcData = require('./impc.json');
             
             // IMPC input data ships will all HP labels, no need to grab via ajax - Joe
             if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
-                console.log(this.state.unmatchedSources);
                 var impcUnmatchedSources = [];
                 for (var i=0; i< this.state.unmatchedSources.length; i++) {
                     for (var idx in impcData.yAxis[0].phenotypes) {

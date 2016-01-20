@@ -311,14 +311,12 @@ var impcData = require('./impc.json');
                 } 
             });
             */
-            
-            console.log(impcData);
-         
+
             // Use IMPC title
             this.state.gridTitle = impcData.title;
             
             // DataFromVendor IMPC-specific tweaks
-            this.state.gridRegion.cellPad = 30;
+            this.state.gridRegion.cellPad = 32;
             this.state.gridRegion.rowLabelOffset = 35;
          
             // use the human phenotypes from the input JSON
@@ -326,8 +324,6 @@ var impcData = require('./impc.json');
                 this.state.phenotypeData.push(impcData.yAxis[0].phenotypes[i].id);
             }
 
-            console.log(this.state.phenotypeData);
-             
              // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
             
@@ -355,18 +351,19 @@ var impcData = require('./impc.json');
             }
 
             var listOfLists = [];
-            
             for (var idx in impcData.xAxis) {
+                var eachList = [];
+                for (var i in impcData.xAxis[idx].phenotypes) {
+                    eachList.push(impcData.xAxis[idx].phenotypes[i].id);
+                }
                 // default separator of array.join(separator) is comma
-                // join all the MP inside each genotype with plus sign, and join each list with comma
-                listOfLists = listOfLists.concat(impcData.xAxis[idx].phenotypes.join('+'));
+                // join all the MP inside each MP list with plus sign, and join each list with default comma
+                listOfLists.push(eachList.join('+'));
             }
             
-            // now we need to remove the duplicates
             // use the default comma to separate each list into each genotype profile
             var multipleTargetEntities = listOfLists.join();
-            
-            
+
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
@@ -1573,7 +1570,11 @@ var impcData = require('./impc.json');
 			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
 			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
 			.on("click", function() {
-				self._populateDialog(htmlnotes.scores);
+				if (self.state.dataFromVendor === true && self.state.datVendorName === 'IMPC') {
+                    self._populateDialog(htmlnotes.phenodigm);
+                } else {
+                    self._populateDialog(htmlnotes.scores);
+                }
 			});
 	},
 		
@@ -1798,8 +1799,6 @@ var impcData = require('./impc.json');
 
     // data is either cell data or label data details - Joe
 	_createHoverBox: function(data){
-		console.log(data);
-        
         var id;
 
 		// for cells we need to check the invertAxis to adjust for correct id
@@ -2472,7 +2471,6 @@ var impcData = require('./impc.json');
             
             // IMPC input data ships will all HP labels, no need to grab via ajax - Joe
             if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
-                console.log(this.state.unmatchedSources);
                 var impcUnmatchedSources = [];
                 for (var i=0; i< this.state.unmatchedSources.length; i++) {
                     for (var idx in impcData.yAxis[0].phenotypes) {
