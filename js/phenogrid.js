@@ -62,11 +62,6 @@ var htmlnotes = require('./htmlnotes.json');
 var images = require('./images.json');
 
 
-
-// IMPC JSON: http://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease&geneId=MGI:95523&diseaseId=OMIM:101600
-var impcData = require('./impc.json');
-
-
 (function(factory) {
 	// If there is a variable named module and it has an exports property,
 	// then we're working in a Node-like environment. Use require to load
@@ -277,6 +272,8 @@ var impcData = require('./impc.json');
 	},
 
 	
+    
+    
     // _init() will be executed first and after the first time when phenogrid is created - Joe
     // So, if you draw a chart with jquery-ui plugin, after it's drawn out, 
     // then you want to use new data to update it, you need to do this in _init() to update your chart. 
@@ -293,84 +290,26 @@ var impcData = require('./impc.json');
         // IMPC integration, IMPC returns its own list of mouse phenotypes
         if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
             // Load the IMPC JSON
-            
-            /*
-            XMLHttpRequest cannot load https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease&geneId=MGI:95523&diseaseId=OMIM:101600. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:8000' is therefore not allowed access.
+
+            //XMLHttpRequest cannot load https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease&geneId=MGI:95523&diseaseId=OMIM:101600. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:8000' is therefore not allowed access.
+            var self = this;
+            var callback = this._dataFromVendorCallback;
             
             $.ajax({
-                url: this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease,
+                //url: this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease,
+                url: 'http://localhost:8000/monarch-app/node_modules/phenogrid/js/impc.json',
                 method: 'GET', 
-                async : true, // wait until we load all the data
+                async : true, // So multiple phenogrid instances can load data parallel
                 dataType : 'json',
                 success : function(data) {
                     console.log('IMPC data loaded:');
                     console.log(data);
+                    callback(self, data);
                 },
                 error: function () { 
                     console.log('Ajax error.')
                 } 
             });
-            */
-
-            // Use IMPC title
-            this.state.gridTitle = impcData.title;
-            
-            // DataFromVendor IMPC-specific tweaks
-            this.state.gridRegion.cellPad = 32;
-            this.state.gridRegion.rowLabelOffset = 35;
-         
-            // use the human phenotypes from the input JSON
-            for (var i in impcData.yAxis[0].phenotypes) {
-                this.state.phenotypeData.push(impcData.yAxis[0].phenotypes[i].id);
-            }
-
-             // Remove duplicated source IDs - Joe
-            var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
-            
-            var self = this;
-            // no change to the callback - Joe
-            var asyncDataLoadingCallback = function() {
-                self._asyncDataLoadingCB(self); 
-            };
-            
-            this.state.targetGroupList = [
-                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true}
-            ];
-            
-            // load the target targetGroup list based on the active flag
-            for (var idx in this.state.targetGroupList) {
-                // for active targetGroup pre-load them
-                if (this.state.targetGroupList[idx].active) {
-                    this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-                }	
-                // should they be shown in the comparison view
-                // crossComparisonView matters only when active = true - Joe
-                if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
-                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-                }			
-            }
-
-            var listOfLists = [];
-            for (var idx in impcData.xAxis) {
-                var eachList = [];
-                for (var i in impcData.xAxis[idx].phenotypes) {
-                    eachList.push(impcData.xAxis[idx].phenotypes[i].id);
-                }
-                // add new property
-                impcData.xAxis[idx].combinedList = eachList.join('+');
-                // default separator of array.join(separator) is comma
-                // join all the MP inside each MP list with plus sign, and join each list with default comma
-                listOfLists.push(impcData.xAxis[idx].combinedList);
-            }
-            
-            // use the default comma to separate each list into each genotype profile
-            var multipleTargetEntities = listOfLists.join();
-console.log(impcData);
-            // initialize data processing class for compare query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
-
-            // starting loading the data from compare api
-            this.state.dataLoader.loadCompareDataForVendor(impcData, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -486,6 +425,69 @@ console.log(impcData);
 
 	},
 
+    _dataFromVendorCallback: function(self, data) {
+        self.state.vendorData = data;
+        
+        // Use IMPC title
+        self.state.gridTitle = self.state.vendorData.title;
+        
+        // DataFromVendor IMPC-specific tweaks
+        self.state.gridRegion.cellPad = 32;
+        self.state.gridRegion.rowLabelOffset = 35;
+     
+        // use the human phenotypes from the input JSON
+        for (var i in self.state.vendorData.yAxis[0].phenotypes) {
+            self.state.phenotypeData.push(self.state.vendorData.yAxis[0].phenotypes[i].id);
+        }
+
+         // Remove duplicated source IDs - Joe
+        var querySourceList = self._parseQuerySourceList(self.state.phenotypeData);
+        
+        // no change to the callback - Joe
+        var asyncDataLoadingCallback = function() {
+            self._asyncDataLoadingCB(self); 
+        };
+        
+        self.state.targetGroupList = [
+            {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true}
+        ];
+        
+        // load the target targetGroup list based on the active flag
+        for (var idx in self.state.targetGroupList) {
+            // for active targetGroup pre-load them
+            if (self.state.targetGroupList[idx].active) {
+                self.state.initialTargetGroupLoadList.push(self.state.targetGroupList[idx]);	
+            }	
+            // should they be shown in the comparison view
+            // crossComparisonView matters only when active = true - Joe
+            if (self.state.targetGroupList[idx].active && self.state.targetGroupList[idx].crossComparisonView) {
+                self.state.selectedCompareTargetGroup.push(self.state.targetGroupList[idx]);	
+            }			
+        }
+
+        var listOfLists = [];
+        for (var idx in self.state.vendorData.xAxis) {
+            var eachList = [];
+            for (var i in self.state.vendorData.xAxis[idx].phenotypes) {
+                eachList.push(self.state.vendorData.xAxis[idx].phenotypes[i].id);
+            }
+            // add new property
+            self.state.vendorData.xAxis[idx].combinedList = eachList.join('+');
+            // default separator of array.join(separator) is comma
+            // join all the MP inside each MP list with plus sign, and join each list with default comma
+            listOfLists.push(self.state.vendorData.xAxis[idx].combinedList);
+        }
+        
+        // use the default comma to separate each list into each genotype profile
+        var multipleTargetEntities = listOfLists.join();
+console.log(self.state.vendorData);
+        // initialize data processing class for compare query
+        self.state.dataLoader = new DataLoader(self.state.serverURL, self.state.compareQuery);
+
+        // starting loading the data from compare api
+        self.state.dataLoader.loadCompareDataForVendor(self.state.vendorData, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+    },
+    
     // Phenogrid container div
 	_createPhenogridContainer: function() {
 		// ID of base containing div of each instance
@@ -2475,10 +2477,10 @@ console.log(impcData);
             if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
                 var impcUnmatchedSources = [];
                 for (var i=0; i< this.state.unmatchedSources.length; i++) {
-                    for (var idx in impcData.yAxis[0].phenotypes) {
-                        if (impcData.yAxis[0].phenotypes[idx].id === this.state.unmatchedSources[i]) {
+                    for (var idx in this.state.vendorData.yAxis[0].phenotypes) {
+                        if (this.state.vendorData.yAxis[0].phenotypes[idx].id === this.state.unmatchedSources[i]) {
                             // use "label" instead of "term" here
-                            var item = {id: impcData.yAxis[0].phenotypes[idx].id, label: impcData.yAxis[0].phenotypes[idx].term};
+                            var item = {id: this.state.vendorData.yAxis[0].phenotypes[idx].id, label: this.state.vendorData.yAxis[0].phenotypes[idx].term};
                             impcUnmatchedSources.push(item);
                             break;
                         }

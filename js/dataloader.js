@@ -401,28 +401,27 @@ console.log(data.b);
             // In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
             // we'll need to use the genotype id (IMPC internal) from input data as the new ID
             // Keep in mind that some lists may not have any simsearch matches, so the order of results don't always match the input impc JSON
-            var result = jQuery.extend({}, data.b); // clone
-            for (var i in result) {
+            for (var i in data.b) {
                 for (var j in impcData.xAxis) {
-                    if (result[i].id === impcData.xAxis[j].combinedList) {
+                    if (data.b[i].id === impcData.xAxis[j].combinedList) {
                         // add new id
-                        result[i].newid = impcData.xAxis[j].id;
+                        data.b[i].newid = impcData.xAxis[j].id;
                         // add label with genotype label
-                        result[i].label = impcData.xAxis[j].label;
+                        data.b[i].label = impcData.xAxis[j].label;
                         // add phenodigm score
-                        result[i].phenodigmScore = impcData.xAxis[j].score;
+                        data.b[i].phenodigmScore = impcData.xAxis[j].score;
                         // add info for tooltip rendering
-                        result[i].info = impcData.xAxis[j].info;
+                        data.b[i].info = impcData.xAxis[j].info;
                         
                         break;
                     }
                 }
             }
 
-console.log(result);
+console.log(data.b);
             var targetVal;
-			for (var idx in result) {
-				var item = result[idx];
+			for (var idx in data.b) {
+				var item = data.b[idx];
 				// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
                 // we'll need to use the genotype id (IMPC internal) as the new ID
                 var targetID = 'IMPC:' + item.newid; // IMPC internal id
@@ -446,8 +445,10 @@ console.log(result);
                 }
                 
                 this.targetData[targetGroup][targetID] = targetVal;
+                
 console.log(this.targetData[targetGroup]);
-				var matches = result[idx].matches;
+
+				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
 				var sourceID_a, currID_b, currID_lcs;
 				if (typeof(matches) !== 'undefined' && matches.length > 0) {
