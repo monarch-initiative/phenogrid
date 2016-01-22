@@ -1574,11 +1574,7 @@ console.log(self.state.vendorData);
 			.attr("x", this.state.gridRegion.x - 21) // based on the grid region x, 21 is offset - Joe
 			.attr("y", this.state.gridRegion.y - 5) // based on the grid region y, 5 is offset - Joe
 			.on("click", function() {
-				if (self.state.dataFromVendor === true && self.state.datVendorName === 'IMPC') {
-                    self._populateDialog(htmlnotes.phenodigm);
-                } else {
-                    self._populateDialog(htmlnotes.scores);
-                }
+				self._populateDialog(htmlnotes.scores);
 			});
 	},
 		
@@ -1921,6 +1917,13 @@ console.log(self.state.vendorData);
                 suffix = '%';
             }
 
+            var targetLabel = '';
+            if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+                targetLabel = targetInfo.label;
+            } else {
+                targetLabel = this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
+            }
+
             htmlContent = "<strong>" + Utils.capitalizeString(sourceInfo.type) + "</strong><br>" 
                           + this._encodeTooltipHref(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
                           + "<strong>In-common</strong><br>" 
@@ -1928,7 +1931,7 @@ console.log(self.state.vendorData);
                           + "<strong>Match</strong><br>" 
                           + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
                           + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
-                          + this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
+                          + targetLabel;
         } else if (data.type === 'genotype' && this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
             // IMPC-specific tooltip rendering: Source, Background, IMPC gene
             var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';

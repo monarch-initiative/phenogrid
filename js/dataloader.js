@@ -375,7 +375,7 @@ DataLoader.prototype = {
  transformDataForVendor: function(impcData, targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
-console.log(data.b);
+
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
@@ -418,7 +418,6 @@ console.log(data.b);
                 }
             }
 
-console.log(data.b);
             var targetVal;
 			for (var idx in data.b) {
 				var item = data.b[idx];
@@ -429,8 +428,7 @@ console.log(data.b);
 				// build the target list
 				targetVal = {
                     "id": targetID, 
-                    //"label": item.label, 
-                    "label": targetID + ' - ' + item.score.score, 
+                    "label": item.label, 
                     "targetGroup": targetGroup, // Mouse
                     "taxon": "10090", // Mouse taxon
                     "type": "genotype", 
