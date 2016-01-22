@@ -432,8 +432,8 @@ var images = require('./images.json');
         self.state.gridTitle = self.state.vendorData.title;
         
         // DataFromVendor IMPC-specific tweaks
-        self.state.gridRegion.cellPad = 32;
-        self.state.gridRegion.rowLabelOffset = 35;
+        //self.state.gridRegion.cellPad = 32;
+        //self.state.gridRegion.rowLabelOffset = 35;
      
         // use the human phenotypes from the input JSON
         for (var i in self.state.vendorData.yAxis[0].phenotypes) {
@@ -1538,7 +1538,11 @@ console.log(self.state.vendorData);
             .style("fill", "#8763A3")
 	      	.text(function(d, i) { 		      	
 				var el = axRender.itemAt(i);
-	      		return el.score; 
+	      		if (self.state.dataFromVendor && self.state.dataVendorName === 'IMPC') {
+                    return Math.round(el.score.score); // rounded to the nearest integer
+                } else {
+                    return el.score; 
+                }
 	      	});
 
 	    if (self.state.invertAxis) { // score are render vertically
@@ -1937,8 +1941,9 @@ console.log(self.state.vendorData);
             var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';
             var background = '<strong>' + data.info[1].id + ': </strong> ' + data.info[1].value + '<br>';
             var impcGene = '<strong>' + data.info[2].id + ': </strong> ' + '<a href="'+ data.info[2].href +'" target="_blank">' + data.info[2].value + '</a>' + '<br>';
+            var phenodigm = '<strong>' + data.score.metric + ': </strong> ' + data.score.score.toFixed(2) + '<br>';
             
-            htmlContent = source + background + impcGene ;
+            htmlContent = source + background + impcGene + phenodigm;
         } else {
             // disease and gene/genotype share common items
             var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");

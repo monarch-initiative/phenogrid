@@ -434,7 +434,7 @@ DataLoader.prototype = {
                     "type": "genotype", 
                     "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
-                    "score": item.phenodigmScore.score.toFixed(2) // phenodigm score,  keeping only two decimals
+                    "score": item.phenodigmScore // phenodigm score,  keeping only two decimals in tooltip rendering
                 }; 
 
                 // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
