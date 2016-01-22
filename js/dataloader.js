@@ -292,14 +292,14 @@ DataLoader.prototype = {
 
 				// build the target list
 				var targetVal = {
-                        "id":targetID, 
-                         "label": item.label, 
-                         "targetGroup": item.taxon.label, 
-                         "taxon": item.taxon.id, 
-                         "type": item.type, 
-                         "rank": parseInt(idx)+1,  // start with 1 not zero
-                         "score": item.score.score
-                    }; 
+                    "id":targetID, 
+                    "label": item.label, 
+                    "targetGroup": item.taxon.label, 
+                    "taxon": item.taxon.id, 
+                    "type": item.type, 
+                    "rank": parseInt(idx)+1,  // start with 1 not zero
+                    "score": item.score.score
+                }; 
   
                 // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
                 if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
@@ -332,29 +332,37 @@ DataLoader.prototype = {
 							sum += parseFloat(curr_row.lcs.IC);
 
 							// create a new source object
-							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
-											"count": count, "sum": sum, "type": "phenotype"};
-							this.sourceData[targetGroup][sourceID_a] = dataVals;
+							dataVals = {
+                                "id":sourceID_a, 
+                                "label": curr_row.a.label, 
+                                "IC": parseFloat(curr_row.a.IC),
+								"count": count, 
+                                "sum": sum, 
+                                "type": "phenotype"
+                            };
+							
+                            this.sourceData[targetGroup][sourceID_a] = dataVals;
 						} else {
 							this.sourceData[targetGroup][sourceID_a].count += 1;
 							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
 						}
 
 						// building cell data points
-						dataVals = {"source_id": sourceID_a, 
-									"target_id": targetID, 
-									"targetGroup": item.taxon.label,									
-									"value": lcs, 
-									"a_IC" : curr_row.a.IC,  
-									"a_label" : curr_row.a.label,
-									"subsumer_id": currID_lcs, 
-									"subsumer_label": curr_row.lcs.label, 
-									"subsumer_IC": parseFloat(curr_row.lcs.IC), 
-									"b_id": currID_b,
-									"b_label": curr_row.b.label, 
-									"b_IC": parseFloat(curr_row.b.IC),
-									"type": 'cell'
-                                    };
+						dataVals = {
+                            "source_id": sourceID_a, 
+                            "target_id": targetID, 
+                            "targetGroup": item.taxon.label,									
+                            "value": lcs, 
+                            "a_IC" : curr_row.a.IC,  
+                            "a_label" : curr_row.a.label,
+                            "subsumer_id": currID_lcs, 
+                            "subsumer_label": curr_row.lcs.label, 
+                            "subsumer_IC": parseFloat(curr_row.lcs.IC), 
+                            "b_id": currID_b,
+                            "b_label": curr_row.b.label, 
+                            "b_IC": parseFloat(curr_row.b.IC),
+                            "type": 'cell'
+                        };
 							 
                         // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error   
                         // No need to redefine this in genotypeTransform() - Joe                     
@@ -370,7 +378,7 @@ DataLoader.prototype = {
 	}, 
     
 
- transformDataForVendor: function(impcData, targetGroup, data) {      		
+    transformDataForVendor: function(impcData, targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
 
@@ -465,29 +473,37 @@ DataLoader.prototype = {
 							sum += parseFloat(curr_row.lcs.IC);
 
 							// create a new source object
-							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
-											"count": count, "sum": sum, "type": "phenotype"};
-							this.sourceData[targetGroup][sourceID_a] = dataVals;
+							dataVals = {
+                                "id":sourceID_a, 
+                                "label": curr_row.a.label, 
+                                "IC": parseFloat(curr_row.a.IC), 
+								"count": count, 
+                                "sum": sum, 
+                                "type": "phenotype"
+                            };
+							
+                            this.sourceData[targetGroup][sourceID_a] = dataVals;
 						} else {
 							this.sourceData[targetGroup][sourceID_a].count += 1;
 							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
 						}
 
 						// building cell data points
-						dataVals = {"source_id": sourceID_a, 
-									"target_id": targetID, 
-									"targetGroup": targetGroup,									
-									"value": lcs, 
-									"a_IC" : curr_row.a.IC,  
-									"a_label" : curr_row.a.label,
-									"subsumer_id": currID_lcs, 
-									"subsumer_label": curr_row.lcs.label, 
-									"subsumer_IC": parseFloat(curr_row.lcs.IC), 
-									"b_id": currID_b,
-									"b_label": curr_row.b.label, 
-									"b_IC": parseFloat(curr_row.b.IC),
-									"type": 'cell'
-                                    };
+						dataVals = {
+                            "source_id": sourceID_a, 
+                            "target_id": targetID, 
+                            "targetGroup": targetGroup,									
+                            "value": lcs, 
+                            "a_IC" : curr_row.a.IC,  
+                            "a_label" : curr_row.a.label,
+                            "subsumer_id": currID_lcs, 
+                            "subsumer_label": curr_row.lcs.label, 
+                            "subsumer_IC": parseFloat(curr_row.lcs.IC), 
+                            "b_id": currID_b,
+                            "b_label": curr_row.b.label, 
+                            "b_IC": parseFloat(curr_row.b.IC),
+                            "type": 'cell'
+                        };
 							 
                         // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error   
                         // No need to redefine this in genotypeTransform() - Joe                     
@@ -522,17 +538,17 @@ DataLoader.prototype = {
 
 				// build the target list
 				var targetVal = {
-                        "id":targetID, 
-                        "label": item.label, 
-                        "targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
-                        //"targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
-                        "taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
-                        "type": item.type, 
-                        'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
-                        "rank": parseInt(idx)+1,  // start with 1 not zero
-                        "score": item.score.score,
-                        "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
-                    };  
+                    "id":targetID, 
+                    "label": item.label, 
+                    "targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
+                    //"targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
+                    "taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
+                    "type": item.type, 
+                    'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
+                    "rank": parseInt(idx)+1,  // start with 1 not zero
+                    "score": item.score.score,
+                    "visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
+                };  
 
                 // We need to define this again here since the targetID is newly added here, doesn't exist before - Joe
                 if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
@@ -567,31 +583,39 @@ DataLoader.prototype = {
 							sum += parseFloat(curr_row.lcs.IC);
 
 							// create a new source object
-							dataVals = {"id":sourceID_a, "label": curr_row.a.label, "IC": parseFloat(curr_row.a.IC), //"pos": 0, 
-											"count": count, "sum": sum, "type": "phenotype"};
-							this.sourceData[targetGroup][sourceID_a] = dataVals;
+							dataVals = {
+                                "id":sourceID_a, 
+                                "label": curr_row.a.label, 
+                                "IC": parseFloat(curr_row.a.IC), 
+                                "count": count, 
+                                "sum": sum, 
+                                "type": "phenotype"
+                            };
+							
+                            this.sourceData[targetGroup][sourceID_a] = dataVals;
 						} else {
 							this.sourceData[targetGroup][sourceID_a].count += 1;
 							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);							
 						}
 
 						// building cell data points
-						dataVals = {"source_id": sourceID_a, 
-									"target_id": targetID, 
-                                    "target_type": 'genotype', // to mark this cell is generated for genotype expansion - Joe
-									"targetGroup": item.taxon.label,									
-									//"targetGroup": targetGroup,
-                                    "value": lcs, 
-									"a_IC" : curr_row.a.IC,  
-									"a_label" : curr_row.a.label,
-									"subsumer_id": currID_lcs, 
-									"subsumer_label": curr_row.lcs.label, 
-									"subsumer_IC": parseFloat(curr_row.lcs.IC), 
-									"b_id": currID_b,
-									"b_label": curr_row.b.label, 
-									"b_IC": parseFloat(curr_row.b.IC),
-									"type": 'cell'
-                                    };
+						dataVals = {
+                            "source_id": sourceID_a, 
+                            "target_id": targetID, 
+                            "target_type": 'genotype', // to mark this cell is generated for genotype expansion - Joe
+                            "targetGroup": item.taxon.label,									
+                            //"targetGroup": targetGroup,
+                            "value": lcs, 
+                            "a_IC" : curr_row.a.IC,  
+                            "a_label" : curr_row.a.label,
+                            "subsumer_id": currID_lcs, 
+                            "subsumer_label": curr_row.lcs.label, 
+                            "subsumer_IC": parseFloat(curr_row.lcs.IC), 
+                            "b_id": currID_b,
+                            "b_label": curr_row.b.label, 
+                            "b_IC": parseFloat(curr_row.b.IC),
+                            "type": 'cell'
+                        };
 
                         // We need to define this here since we may have new matches for existing phenotypes which wasn't in the cellData before - Joe
                         if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
