@@ -443,8 +443,6 @@ DataLoader.prototype = {
                 }
                 
                 this.targetData[targetGroup][targetID] = targetVal;
-                
-console.log(this.targetData[targetGroup]);
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -738,7 +736,7 @@ console.log(this.targetData[targetGroup]);
                 // Now only get the first parent.state.genotypeExpandLimit genotypes in the list
                 var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
                 var phenotype_id_list = self.origSourceList.join("+");
-                var genotype_id_list = '';
+                var genotype_id_list = ''; 
                 for (var i in genotype_list) {
                     genotype_id_list += genotype_list[i].id + ",";
                 }
@@ -746,7 +744,7 @@ console.log(this.targetData[targetGroup]);
                 if (genotype_id_list.slice(-1) === ',') {
                     genotype_id_list = genotype_id_list.slice(0, -1);
                 }
-                // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+                // /compare/:id1+:id2/:id3+:id4+...idN (JSON only)
                 var compare_url = self.serverURL +  parent.state.compareQuery.URL + '/' + phenotype_id_list + "/" + genotype_id_list;
                 // Now we need to get all the matches data
                 var cb = self.getGenotypesCbCb;

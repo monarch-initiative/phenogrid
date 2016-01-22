@@ -756,8 +756,6 @@ DataLoader.prototype = {
                 }
                 
                 this.targetData[targetGroup][targetID] = targetVal;
-                
-console.log(this.targetData[targetGroup]);
 
 				var matches = data.b[idx].matches;
 				var curr_row, lcs, dataVals;
@@ -1051,7 +1049,7 @@ console.log(this.targetData[targetGroup]);
                 // Now only get the first parent.state.genotypeExpandLimit genotypes in the list
                 var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
                 var phenotype_id_list = self.origSourceList.join("+");
-                var genotype_id_list = '';
+                var genotype_id_list = ''; 
                 for (var i in genotype_list) {
                     genotype_id_list += genotype_list[i].id + ",";
                 }
@@ -1059,7 +1057,7 @@ console.log(this.targetData[targetGroup]);
                 if (genotype_id_list.slice(-1) === ',') {
                     genotype_id_list = genotype_id_list.slice(0, -1);
                 }
-                // /compare/:id1+:id2/:id3,:id4,...idN (JSON only)
+                // /compare/:id1+:id2/:id3+:id4+...idN (JSON only)
                 var compare_url = self.serverURL +  parent.state.compareQuery.URL + '/' + phenotype_id_list + "/" + genotype_id_list;
                 // Now we need to get all the matches data
                 var cb = self.getGenotypesCbCb;
@@ -2324,7 +2322,7 @@ var images = require('./images.json');
         
         // use the default comma to separate each list into each genotype profile
         var multipleTargetEntities = listOfLists.join();
-console.log(self.state.vendorData);
+
         // initialize data processing class for compare query
         self.state.dataLoader = new DataLoader(self.state.serverURL, self.state.compareQuery);
 
@@ -4374,7 +4372,7 @@ console.log(self.state.vendorData);
         
         // only show the Organism(s) option when not in compare mode - Joe
         if (this.state.owlSimFunction !== 'compare') {
-            if (this.state.dataFromVendor !== true && this.state.dataVendorName !== 'IMPC') {
+            if (this.state.dataFromVendor !== true) {
                 var orgSel = this._createOrganismSelection();
 		        options.append(orgSel);
             } 
@@ -4509,12 +4507,12 @@ console.log(self.state.vendorData);
 		$('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
         $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
 		// The height of .pg_controls_options defined in phenogrid.css - Joe
-        // shrink the height for IMPC since we don't show the species selection
-        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
-            $('.pg_controls_options').css('height', 280);
-        }
 		var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
-		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
+		// shrink the height for IMPC since we don't show the species selection
+        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+            pg_ctrl_options.css('height', 280);
+        }
+        // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
         pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 42); // create a 10px gap between the vertical scrollbar (12px wide) - Joe
     },	
@@ -4820,7 +4818,7 @@ console.log(self.state.vendorData);
 	},
     
     // this cb has all the matches info returned from the compare
-    // e.g., http://beta.monarchinitiative.org/compare//compare/:id1+:id2/:id3,:id4,...idN
+    // e.g., http://beta.monarchinitiative.org/compare/:id1+:id2/:id3,:id4,...idN
     // parent refers to the global `this` and we have to pass it
     _insertGenotypesCb: function(results, id, parent, errorMsg) {
         console.log(results);
