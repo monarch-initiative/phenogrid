@@ -4503,7 +4503,11 @@ console.log(self.state.vendorData);
 		var marginTop = 17; // Create some whitespace between the button and the y labels 
 		$('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
         $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
-		// The height of #pg_controls_options defined in phenogrid.css - Joe
+		// The height of .pg_controls_options defined in phenogrid.css - Joe
+        // shrink the height for IMPC since we don't show the species selection
+        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+            $('.pg_controls_options').css('height', 280);
+        }
 		var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
 		// options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
