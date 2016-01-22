@@ -4369,8 +4369,10 @@ console.log(self.state.vendorData);
         
         // only show the Organism(s) option when not in compare mode - Joe
         if (this.state.owlSimFunction !== 'compare') {
-            var orgSel = this._createOrganismSelection();
-		    options.append(orgSel);
+            if (this.state.dataFromVendor !== true && this.state.dataVendorName !== 'IMPC') {
+                var orgSel = this._createOrganismSelection();
+		        options.append(orgSel);
+            } 
         }
 
 		var sortSel = this._createSortPhenotypeSelection();
