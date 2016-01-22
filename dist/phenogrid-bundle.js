@@ -574,8 +574,7 @@ DataLoader.prototype = {
 	 		data - owlsims structured data
 	*/
 	transform: function(targetGroup, data) {      		
-		if (typeof(data) !== 'undefined' &&
-		    typeof (data.b) !== 'undefined') {
+		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("transforming...");
 
             // sometimes the 'metadata' field might be missing from the JSON - Joe
@@ -599,14 +598,13 @@ DataLoader.prototype = {
                 this.sourceData[targetGroup] = {};
             }
 
- 
-            var targetVal;
+
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
-				targetVal = {
+				var targetVal = {
                         "id":targetID, 
                          "label": item.label, 
                          "targetGroup": item.taxon.label, 
@@ -731,7 +729,6 @@ DataLoader.prototype = {
                 }
             }
 
-            var targetVal;
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
@@ -739,7 +736,7 @@ DataLoader.prototype = {
                 var targetID = 'IMPC:' + item.newid; // IMPC internal id
 
 				// build the target list
-				targetVal = {
+				var targetVal = {
                     "id": targetID, 
                     "label": item.label, 
                     "targetGroup": targetGroup, // Mouse
@@ -821,8 +818,7 @@ DataLoader.prototype = {
     // used to transform genotype/phenotype matches 
     // modified based on transform() - Joe
     genotypeTransform: function(targetGroup, data, parentGeneID) {      		
-		if (typeof(data) !== 'undefined' &&
-		    typeof (data.b) !== 'undefined') {
+		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			
             console.log("transforming genotype data...");
 
@@ -833,13 +829,12 @@ DataLoader.prototype = {
 
             // no need to initialize the specific targetGroup
             // since they should've been set
-            var targetVal;
 			for (var idx in data.b) {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
 				// build the target list
-				targetVal = {
+				var targetVal = {
                         "id":targetID, 
                         "label": item.label, 
                         "targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
