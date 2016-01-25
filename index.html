@@ -82,9 +82,9 @@ var phenotypes = [
 
 window.onload = function() {
 
-    // Example 1, there are three species that are loaded and each of them has simsearch matches.
-    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
-        serverURL : "http://beta.monarchinitiative.org",
+    // There are three species that are loaded and each of them has simsearch matches.
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
+        serverURL : "http://monarchinitiative.org",
         phenotypeData: phenotypes,
         targetGroupList: [
             {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
@@ -93,56 +93,6 @@ window.onload = function() {
        ]
     });
     
-    // Example 2, Same as Example 1
-    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
-        serverURL : "http://beta.monarchinitiative.org",
-        phenotypeData: phenotypes,
-        targetGroupList: [
-            {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
-            {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
-            {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true}
-       ]
-    });
-    
-    // Example 3, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
-    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
-        serverURL : "http://beta.monarchinitiative.org",
-        phenotypeData: phenotypes,
-        targetGroupList: [
-            {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
-            {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: true},
-            {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: false}
-       ]
-    });
-
-
-    // Example 4, we wanted to show matches for all the three species but none of them has simsearch matches. Friendly messages show instead.
-    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
-        serverURL : "http://beta.monarchinitiative.org",
-        phenotypeData: [
-            {id:"WBPhenotype:0001331", observed:"positive"},
-            {id:"WBPhenotype:0000679", observed:"positive"},
-            {id:"WBPhenotype:0002001", observed:"positive"},
-            {id:"WBPhenotype:0000050", observed:"positive"}
-        ],
-        targetGroupList: [
-            {name: "Homo sapiens", taxon: "9606", crossComparisonView: false, active: true},
-            {name: "Mus musculus", taxon: "10090", crossComparisonView: false, active: true},
-            {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: true}
-       ]
-    });
-    
-    // Example 5, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
-    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container5'), {
-        serverURL : "http://beta.monarchinitiative.org",
-        phenotypeData: phenotypes,
-        targetGroupList: [
-            {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
-            {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
-            {name: "Danio rerio", taxon: "7955", crossComparisonView: false, active: true},
-            {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: true, active: true}
-       ]
-    });
 }
 </script>
 
@@ -152,50 +102,12 @@ window.onload = function() {
 
 <div class="pg_index">
 
+<link rel="stylesheet" property="stylesheet" href="node_modules/gfm.css/gfm.css">
 <div style="padding:1%;margin:1%;border:1px solid lightgray;">
-
-<h1>Example 1</h1>
 <p>
 In this example, there are three species that are loaded and each of them has simsearch matches.
 </p>
-<div id="phenogrid_container1" class="clearfix"></div>
-
-<hr>
-
-<h1>Example 2</h1>
-<p>
-Same as Example 1.
-</p>
-<div id="phenogrid_container2" class="clearfix"></div>
-
-<hr>
-
-<h1>Example 3</h1>
-<p>
-In this example, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
-</p>
-<div id="phenogrid_container3" class="clearfix"></div>
-
-<hr>
-
-<h1>Example 4</h1>
-<p>
-In this example, we wanted to show matches for all the three species but none of them has simsearch matches. Friendly messages show instead.
-</p>
-<div id="phenogrid_container4" class="clearfix"></div>
-
-<hr>
-
-<h1>Example 5</h1>
-<p>
-In this example, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
-</p>
-<div id="phenogrid_container5" class="clearfix"></div>
-
-</div>
-
-<link rel="stylesheet" property="stylesheet" href="node_modules/gfm.css/gfm.css">
-<div style="padding:1%;margin:1%;border:1px solid lightgray;">
+<div id="phenogrid_container" class="clearfix"></div>
 <article class="markdown-body">
 <h1 id="phenogrid">Phenogrid</h1>
 <p><a href="https://travis-ci.org/monarch-initiative/phenogrid"><img src="https://travis-ci.org/monarch-initiative/phenogrid.svg" alt="Build Status"></a></p>
@@ -394,7 +306,7 @@ window.onload = function() {
 <p>This URL should be pointed to the OWLSim URL server associated with your installation containing the Monarch web services. You have three options:</p>
 <ul>
 <li>Use <a href="http://beta.monarchinitiative.org">http://beta.monarchinitiative.org</a> to connect to the development/test web services. This server is less stable than the production server.</li>
-<li>Use <a href="http://monarch.monarchinitiative.org">http://monarch.monarchinitiative.org</a> to connect to the stable, production version of the web services (better uptime)</li>
+<li>Use <a href="http://monarchinitiative.org">http://monarchinitiative.org</a> to connect to the stable, production version of the web services (better uptime)</li>
 <li>If you are running the complete monarch-app, you can point it to <a href="http://localhost:8080">http://localhost:8080</a>, or whichever server/port you are using in your local installation.</li>
 </ul>
 <h3 id="-phenotypedata-array-required"><code>phenotypeData</code>  array | required</h3>
