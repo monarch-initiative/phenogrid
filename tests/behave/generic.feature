@@ -16,7 +16,7 @@ Feature: Generic features work when running Phenogrid as a standalone widget
 
     Scenario Outline: Visible items after open options panel
         Given I go to page "/index.html"
-            And I click the "phenogrid_container1_slide_btn"
+            And I click the "phenogrid_container_slide_btn"
             Then the id "<id>" should contain "<text>"
             Examples: <id> - <text> list
             | id                                        | text                         |
