@@ -2,9 +2,357 @@
 <head>
 <meta charset="UTF-8">
 <title>Monarch Phenotype Grid Widget</title>
+
+<script src="config/phenogrid_config.js"></script>
+<script src="dist/phenogrid-bundle.js"></script>
+
+<link rel="stylesheet" type="text/css" href="dist/phenogrid-bundle.css">
+<link rel="stylesheet" type="text/css" href="dist/gfm.css">
+
+<script>
+var phenotypes = [
+    {id:"HP:0000726", observed:"positive"},
+    {id:"HP:0000746", observed:"positive"},
+    {id:"HP:0001300", observed:"positive"},
+    {id:"HP:0002367", observed:"positive"},
+    {id:"HP:0000012", observed:"positive"},
+    {id:"HP:0000716", observed:"positive"},
+    {id:"HP:0000739", observed:"positive"},
+    {id:"HP:0001332", observed:"positive"},
+    {id:"HP:0001347", observed:"positive"},
+    {id:"HP:0002063", observed:"positive"},
+    {id:"HP:0002067", observed:"positive"},
+    {id:"HP:0002172", observed:"positive"},
+    {id:"HP:0002322", observed:"positive"},
+    {id:"HP:0007159", observed:"positive"},
+    {id:"HP:0009466", observed:"positive"},
+    {id:"HP:0001972", observed:"positive"},
+    {id:"HP:0003502", observed:"positive"},
+    {id:"HP:0005190", observed:"positive"},
+    {id:"HP:0001763", observed:"positive"},
+    {id:"HP:0003318", observed:"positive"},
+    {id:"HP:0001371", observed:"positive"},
+    {id:"HP:0001380", observed:"positive"},
+    {id:"HP:0001394", observed:"positive"},
+    {id:"HP:0001156", observed:"positive"},
+    {id:"HP:0001159", observed:"positive"},
+    {id:"HP:0001004", observed:"positive"},
+    {id:"HP:0010886", observed:"positive"},
+    {id:"HP:0006530", observed:"positive"},
+    {id:"HP:0004792", observed:"positive"},
+    {id:"HP:0002816", observed:"positive"},
+    {id:"HP:0000954", observed:"positive"},
+    {id:"HP:0000974", observed:"positive"},
+    {id:"HP:0000765", observed:"positive"},
+    {id:"HP:0000602", observed:"positive"},
+    {id:"HP:0002240", observed:"positive"},
+    {id:"HP:0030084", observed:"positive"},
+    {id:"HP:0000049", observed:"positive"},
+    {id:"HP:0000028", observed:"positive"},
+    {id:"HP:0000175", observed:"positive"},
+    {id:"HP:0000204", observed:"positive"},
+    {id:"HP:0000202", observed:"positive"},
+    {id:"HP:0000316", observed:"positive"},
+    {id:"HP:0000343", observed:"positive"},
+    {id:"HP:0000349", observed:"positive"},
+    {id:"HP:0002023", observed:"positive"},
+    {id:"HP:0000327", observed:"positive"},
+    {id:"HP:0002055", observed:"positive"},
+    {id:"HP:0000394", observed:"positive"},
+    {id:"HP:0000463", observed:"positive"},
+    {id:"HP:0000431", observed:"positive"},
+    {id:"HP:0000494", observed:"positive"},
+    {id:"HP:0000484", observed:"positive"},
+    {id:"HP:0000486", observed:"positive"},
+    {id:"HP:0000508", observed:"positive"},
+    {id:"HP:0009748", observed:"positive"},
+    {id:"HP:0007018", observed:"positive"},
+    {id:"HP:0001773", observed:"positive"},
+    {id:"HP:0001769", observed:"positive"},
+    {id:"HP:0003311", observed:"positive"},
+    {id:"HP:0001544", observed:"positive"},
+    {id:"HP:0001508", observed:"positive"},
+    {id:"HP:0003196", observed:"positive"},
+    {id:"HP:0001249", observed:"positive"},
+    {id:"HP:0001187", observed:"positive"},
+    {id:"HP:0001169", observed:"positive"},
+    {id:"HP:0012774", observed:"positive"},
+    {id:"HP:0002650", observed:"positive"}
+];
+
+
+window.onload = function() {
+
+    // There are three species that are loaded and each of them has simsearch matches.
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
+        serverURL : "http://monarchinitiative.org",
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+            {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+            {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true}
+       ]
+    });
+    
+}
+</script>
+
 </head>
 
 <body>
-<iframe src="http://beta.monarchinitiative.org/node_modules/phenogrid/index.html" style="position:absolute;top:0px;width:100%;height:100vh;" frameBorder="0"></iframe>
+
+<div class="pg_index">
+
+<div style="padding:1%;margin:1%;border:1px solid lightgray;">
+<p>
+In this example, there are three species that are loaded and each of them has simsearch matches.
+</p>
+<div id="phenogrid_container" class="clearfix"></div>
+<article class="markdown-body">
+<h1 id="phenogrid">Phenogrid</h1>
+<p><a href="https://travis-ci.org/monarch-initiative/phenogrid"><img src="https://travis-ci.org/monarch-initiative/phenogrid.svg" alt="Build Status"></a></p>
+<p><a href="https://nodei.co/npm/phenogrid/"><img src="https://nodei.co/npm/phenogrid.png?downloads=true&amp;stars=true" alt="NPM"></a></p>
+<h2 id="about-phenogrid">About Phenogrid</h2>
+<p>Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by <a href="https://github.com/owlcollab/owltools">OWLSim</a>, as provided through APIs from the <a href="http://monarchinitiative.org/">Monarch Initiative</a>.</p>
+<p>Given an input list of phenotypes (you will see the sample input below) and parameters specified in config/phenogrid_config.js indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.</p>
+<h2 id="installation-instructions">Installation Instructions</h2>
+<p>Phenogrid is published as a npm package, so you will need to have npm (npm is bundled and installed automatically with node.js) installed before you can install Phenogrid.</p>
+<h3 id="1-install-npm">1. Install npm</h3>
+<p>If you have not installed node.js, try:</p>
+<pre><code>curl -sL https://rpm.nodesource.com/setup | bash -
+
+yum install -y nodejs
+</code></pre><p>This above commands work on RedHat and CentOS.</p>
+<p>For OS X machines, you can try these instructions: <a href="http://blog.teamtreehouse.com/install-node-js-npm-mac">http://blog.teamtreehouse.com/install-node-js-npm-mac</a>. Or, just visit nodejs.org.</p>
+<p>If you are running Ubuntu, you can </p>
+<pre><code>sudo apt-get install nodejs
+sudo apt-get install npm
+</code></pre><p>Then create a symbolic link for &quot;node&quot; as many Node.js tools use this name to execute.</p>
+<pre><code>sudo ln -s /usr/bin/nodejs /usr/bin/node
+</code></pre><h3 id="2-install-phenogrid-package">2. Install Phenogrid package</h3>
+<p>To download and install the phenogrid widget, simply run</p>
+<pre><code>npm install phenogrid
+</code></pre><p>Sometimes, it requires root access to for the installation, just run the following instead</p>
+<pre><code>sudo npm install phenogrid
+</code></pre><p>This will create a local <code>/node_modules</code> folder in your current working directory, and download/install Phenogrid package and all its dependencies (except the devDepencies) into the local <code>/node_modules</code> folder.</p>
+<h2 id="add-phenogrid-in-your-target-page">Add phenogrid in your target page</h2>
+<p>In the below sample code, you will see how to use phenogrid as a embeded widget in your HTML. Please note that in order to parse the js file correctly (since it uses D3.js and D3.js requires UTF-8 charset encoding), we suggest you to add the <code>&lt;meta charset=&quot;UTF-8&quot;&gt;</code> tag in your HTML head.</p>
+<pre><code class="lang-html">&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;title&gt;Monarch Phenotype Grid Widget&lt;/title&gt;
+
+&lt;script src=&quot;config/phenogrid_config.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;dist/phenogrid-bundle.js&quot;&gt;&lt;/script&gt;
+
+&lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;dist/phenogrid-bundle.css&quot;&gt;
+
+&lt;script&gt;
+var phenotypes = [
+    {id:&quot;HP:0000726&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000746&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001300&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002367&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000012&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000716&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000739&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001332&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001347&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002063&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002067&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002172&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002322&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0007159&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0009466&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001972&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0003502&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0005190&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001763&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0003318&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001371&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001380&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001394&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001156&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001159&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001004&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0010886&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0006530&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0004792&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002816&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000954&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000974&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000765&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000602&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002240&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0030084&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000049&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000028&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000175&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000204&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000202&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000316&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000343&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000349&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002023&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000327&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002055&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000394&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000463&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000431&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000494&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000484&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000486&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0000508&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0009748&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0007018&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001773&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001769&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0003311&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001544&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001508&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0003196&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001249&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001187&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0001169&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0012774&quot;, observed:&quot;positive&quot;},
+    {id:&quot;HP:0002650&quot;, observed:&quot;positive&quot;}
+];
+
+window.onload = function() {
+
+    // Example 1, there are three species that are loaded and each of them has simsearch matches.
+    Phenogrid.createPhenogridForElement(document.getElementById(&#39;phenogrid_container1&#39;), {
+        serverURL : &quot;http://beta.monarchinitiative.org&quot;,
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {name: &quot;Homo sapiens&quot;, taxon: &quot;9606&quot;, crossComparisonView: true, active: true},
+            {name: &quot;Mus musculus&quot;, taxon: &quot;10090&quot;, crossComparisonView: true, active: true},
+            {name: &quot;Danio rerio&quot;, taxon: &quot;7955&quot;, crossComparisonView: true, active: true}
+       ]
+    });
+
+    // Example 2, Same as Example 1
+    Phenogrid.createPhenogridForElement(document.getElementById(&#39;phenogrid_container2&#39;), {
+        serverURL : &quot;http://beta.monarchinitiative.org&quot;,
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {name: &quot;Homo sapiens&quot;, taxon: &quot;9606&quot;, crossComparisonView: true, active: true},
+            {name: &quot;Mus musculus&quot;, taxon: &quot;10090&quot;, crossComparisonView: true, active: true},
+            {name: &quot;Danio rerio&quot;, taxon: &quot;7955&quot;, crossComparisonView: true, active: true}
+       ]
+    });
+
+    // Example 3, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
+    Phenogrid.createPhenogridForElement(document.getElementById(&#39;phenogrid_container3&#39;), {
+        serverURL : &quot;http://beta.monarchinitiative.org&quot;,
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {name: &quot;Homo sapiens&quot;, taxon: &quot;9606&quot;, crossComparisonView: true, active: true},
+            {name: &quot;Mus musculus&quot;, taxon: &quot;10090&quot;, crossComparisonView: false, active: true},
+            {name: &quot;Danio rerio&quot;, taxon: &quot;7955&quot;, crossComparisonView: false, active: false}
+       ]
+    });
+
+
+    // Example 4, we wanted to show matches for all the three species but none of them has simsearch matches. Friendly messages show instead.
+    Phenogrid.createPhenogridForElement(document.getElementById(&#39;phenogrid_container4&#39;), {
+        serverURL : &quot;http://beta.monarchinitiative.org&quot;,
+        phenotypeData: [
+            {id:&quot;WBPhenotype:0001331&quot;, observed:&quot;positive&quot;},
+            {id:&quot;WBPhenotype:0000679&quot;, observed:&quot;positive&quot;},
+            {id:&quot;WBPhenotype:0002001&quot;, observed:&quot;positive&quot;},
+            {id:&quot;WBPhenotype:0000050&quot;, observed:&quot;positive&quot;}
+        ],
+        targetGroupList: [
+            {name: &quot;Homo sapiens&quot;, taxon: &quot;9606&quot;, crossComparisonView: false, active: true},
+            {name: &quot;Mus musculus&quot;, taxon: &quot;10090&quot;, crossComparisonView: false, active: true},
+            {name: &quot;Danio rerio&quot;, taxon: &quot;7955&quot;, crossComparisonView: false, active: true}
+       ]
+    });
+
+    // Example 5, we have four species that we want to show their matches. But we only show two by default and one doesn&#39;t have any matches.
+    Phenogrid.createPhenogridForElement(document.getElementById(&#39;phenogrid_container5&#39;), {
+        serverURL : &quot;http://beta.monarchinitiative.org&quot;,
+        phenotypeData: phenotypes,
+        targetGroupList: [
+            {name: &quot;Homo sapiens&quot;, taxon: &quot;9606&quot;, crossComparisonView: true, active: true},
+            {name: &quot;Mus musculus&quot;, taxon: &quot;10090&quot;, crossComparisonView: true, active: true},
+            {name: &quot;Danio rerio&quot;, taxon: &quot;7955&quot;, crossComparisonView: false, active: true},
+            {name: &quot;Drosophila melanogaster&quot;, taxon: &quot;7227&quot;, crossComparisonView: true, active: true}
+       ]
+    });
+}
+&lt;/script&gt;
+
+&lt;/head&gt;
+
+&lt;body&gt;
+
+&lt;div id=&quot;phenogrid_container1&quot; class=&quot;clearfix&quot;&gt;&lt;/div&gt;
+
+&lt;div id=&quot;phenogrid_container2&quot; class=&quot;clearfix&quot;&gt;&lt;/div&gt;
+
+&lt;div id=&quot;phenogrid_container3&quot; class=&quot;clearfix&quot;&gt;&lt;/div&gt;
+
+&lt;div id=&quot;phenogrid_container4&quot; class=&quot;clearfix&quot;&gt;&lt;/div&gt;
+
+&lt;div id=&quot;phenogrid_container5&quot; class=&quot;clearfix&quot;&gt;&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<h2 id="configuration-parameters">Configuration Parameters</h2>
+<h3 id="-serverurl-string-required"><code>serverURL</code>  string | required</h3>
+<p>This URL should be pointed to the OWLSim URL server associated with your installation containing the Monarch web services. You have three options:</p>
+<ul>
+<li>Use <a href="http://beta.monarchinitiative.org">http://beta.monarchinitiative.org</a> to connect to the development/test web services. This server is less stable than the production server.</li>
+<li>Use <a href="http://monarchinitiative.org">http://monarchinitiative.org</a> to connect to the stable, production version of the web services (better uptime)</li>
+<li>If you are running the complete monarch-app, you can point it to <a href="http://localhost:8080">http://localhost:8080</a>, or whichever server/port you are using in your local installation.</li>
+</ul>
+<h3 id="-phenotypedata-array-required"><code>phenotypeData</code>  array | required</h3>
+<p>It is a Javascript array of objects listing the phenotypes to be rendered in the widget.</p>
+<h3 id="-selectedsort-string-optional"><code>selectedSort</code>  string | optional</h3>
+<p>The different ways that the sources (e.g., phenotypes) can be sorted. The sources that are shown on the left side of the grid may be sorted using one of three methods. </p>
+<ul>
+<li>Alphabetical - A-Z</li>
+<li>Frequency and Rarity - sources, e.g., phenotypes are sorted by the sum of the phenotype values across all models/genes</li>
+<li>Frequency - Default, sources, e.g., phenotypes are sorted by the count of the number of model/gene matches per phenotype</li>
+</ul>
+<h3 id="-selectedcalculation-string-optional"><code>selectedCalculation</code>  string | optional</h3>
+<p>For each pairwise comparison of phenotypes from the query (q) and target (t), we can assess their individual similarities in a number of ways. </p>
+<ul>
+<li>0 - Similarity</li>
+<li>1 - Ratio (q)</li>
+<li>2 - Uniqueness</li>
+<li>3- Ratio (t)</li>
+</ul>
+<h3 id="-targetgrouplist-array-optional"><code>targetGroupList</code>  array | optional</h3>
+<p>This option allows you to specify the set of target groups (i.e., species) that will be visible throughout Phenogrid. There are two parameters which allow you to control whether a target group is displayed as a default in the multi-target comparison view, <code>crossComparisonView</code> and whether it should be active, <code>active = true</code>,  and thus fully visible within phenogrid. If <code>crossComparisonView = true</code>, for example, the target group will be visible as a default within the multi-target comparison view. For example, by default the following targets will be visible upon loading phenogrid (active must be set to true):</p>
+<pre><code>{name: &quot;Homo sapiens&quot;, taxon: &quot;9606&quot;, crossComparisonView: true, active: true},
+{name: &quot;Mus musculus&quot;, taxon: &quot;10090&quot;, crossComparisonView: true, active: true},
+{name: &quot;Danio rerio&quot;, taxon: &quot;7955&quot;, crossComparisonView: true, active: true},
+{name: &quot;Drosophila melanogaster&quot;, taxon: &quot;7227&quot;, crossComparisonView: false, active: false},
+{name: &quot;Caenorhabditis elegans&quot;, taxon: &quot;6239&quot;, crossComparisonView: false, active: false}
+</code></pre><p>At this point, only species in the above list are supported.</p>
+<p>The <code>active</code> parameter can override other parameters, but activating or deactivating a target group. For example, if the <code>active = false</code>, then the target group is not active within phenogrid and is not shown in comparison nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be displayed within phenogrid and would like to retain the target group reference within the list. For example, the following are not active and will not be visible within phenogrid:</p>
+<pre><code>{name: &quot;Drosophila melanogaster&quot;, taxon: &quot;7227&quot;, crossComparisonView: false, active: false},
+{name: &quot;Caenorhabditis elegans&quot;, taxon: &quot;6239&quot;, crossComparisonView: false, active: false}
+</code></pre><h2 id="web-browser-support">Web Browser Support</h2>
+<p>Some phenogrid features are not support by IE 11 and below. So please use Google chrome, Fireffox, or Safari to open this widget.</p>
+<h2 id="for-developers">For developers</h2>
+<p>If you would like to poke around Phenogrid and make changes to the source code, you will also need to have all the devDepencies downloaded by running the following code in the Phenogrid package root directory:</p>
+<pre><code>npm install
+</code></pre><p>Once the installation is finished, you are welcome to make code changes and test them out by running</p>
+<pre><code>gulp bundle
+</code></pre><p>This command will use browserify to bundle up phenogrid core and its dependencies into phenogrid-bundle.js and create the merged phenogrid-bundle.css and put both files under dist folder. And both bundled files will be minified.</p>
+<p>It&#39;s helpful to have unminified versions of phenogrid-bundle.js and phenogrid-bundle.css for development and debugging. If this is the case, you can run the following command.</p>
+<pre><code>gulp dev-bundle
+</code></pre><p>This will also show you all the JSHint messages for debugging or improving the code.</p>
+<h2 id="license">License</h2>
+<p>Phenogrid is released under <a href="https://opensource.org/licenses/GPL-2.0">GPL-2.0 license</a>.</p>
+
+</article>
+<div/>
+
 </body>
 </html>
