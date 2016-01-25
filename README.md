@@ -234,7 +234,7 @@ window.onload = function() {
 
 This URL should be pointed to the OWLSim URL server associated with your installation containing the Monarch web services. You have three options:
 - Use http://beta.monarchinitiative.org to connect to the development/test web services. This server is less stable than the production server.
-- Use http://monarch.monarchinitiative.org to connect to the stable, production version of the web services (better uptime)
+- Use http://monarchinitiative.org to connect to the stable, production version of the web services (better uptime)
 - If you are running the complete monarch-app, you can point it to http://localhost:8080, or whichever server/port you are using in your local installation.
 
 

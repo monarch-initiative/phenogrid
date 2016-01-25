@@ -1,0 +1,35 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Monarch Phenotype Grid Widget</title>
+
+<script src="config/phenogrid_config.js"></script>
+<script src="dist/phenogrid-bundle.js"></script>
+
+<link rel="stylesheet" type="text/css" href="dist/phenogrid-bundle.css">
+
+<script>
+window.onload = function() {
+    // IMPC testing
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
+        serverURL: "http://monarchinitiative.org",
+        dataFromVendor: true,
+        dataVendorName: 'IMPC',
+        dataVendorQueryValue: {
+            disease: 'OMIM:101600',
+            gene: 'MGI:95523'
+        }
+    });
+}
+</script>
+
+</head>
+
+<body>
+
+
+<div id="phenogrid_container" class="clearfix"></div>
+
+
+</body>
+</html>
