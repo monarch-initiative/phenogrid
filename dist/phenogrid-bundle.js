@@ -2104,8 +2104,13 @@ var images = require('./images.json');
     // There are no parameters, but this.element and this.options are already set.
     // The widget factory automatically fires the _create() and then _init() during initialization
 	_create: function() {
-        // Loaded from a separate file config/phenogrid_config.js
-		this.configoptions = configoptions;
+        // Loaded from a separate file config/phenogrid_config.js IF PROVIDED
+		if (typeof(configoptions) !== 'undefined') {
+            this.configoptions = configoptions;
+        } else {
+            this.configoptions = {}; // Define as an empty object 
+        }
+
         // Merge into one object
         // this.options is the options object provided in phenogrid constructor
         // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
