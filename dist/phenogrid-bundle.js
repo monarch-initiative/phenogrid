@@ -437,11 +437,12 @@ DataLoader.prototype = {
 			fetch and load data from the monarch compare api
 
 		Parameters:	
-			qrySourceList - list of source items to query
+			vendorData - JSON data from vendor
+            qrySourceList - list of source items to query
 			multipleTargetEntities - combined list of mouse genes, list of lists
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForVendor: function(impcData, qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
+    loadCompareDataForVendor: function(vendorData, qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
@@ -469,7 +470,7 @@ DataLoader.prototype = {
                     self.speciesNoMatch.push('Mus musculus'); // Hard coded
                 } else {
                     // use 'Mus musculus' as the key of the named array
-                    self.transformDataForVendor(impcData, "Mus musculus", data);  // Hard coded
+                    self.transformDataForVendor(vendorData, "Mus musculus", data);  // Hard coded
                 }
                 
                 self.postDataLoadCallback(); 
@@ -691,7 +692,7 @@ DataLoader.prototype = {
 	}, 
     
 
-    transformDataForVendor: function(impcData, targetGroup, data) {      		
+    transformDataForVendor: function(vendorData, targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
 
@@ -721,16 +722,16 @@ DataLoader.prototype = {
             // we'll need to use the genotype id (IMPC internal) from input data as the new ID
             // Keep in mind that some lists may not have any simsearch matches, so the order of results don't always match the input impc JSON
             for (var i in data.b) {
-                for (var j in impcData.xAxis) {
-                    if (data.b[i].id === impcData.xAxis[j].combinedList) {
+                for (var j in vendorData.xAxis) {
+                    if (data.b[i].id === vendorData.xAxis[j].combinedList) {
                         // add new id
-                        data.b[i].newid = impcData.xAxis[j].id;
+                        data.b[i].newid = vendorData.xAxis[j].id;
                         // add label with genotype label
-                        data.b[i].label = impcData.xAxis[j].label;
+                        data.b[i].label = vendorData.xAxis[j].label;
                         // add phenodigm score
-                        data.b[i].phenodigmScore = impcData.xAxis[j].score;
+                        data.b[i].phenodigmScore = vendorData.xAxis[j].score;
                         // add info for tooltip rendering
-                        data.b[i].info = impcData.xAxis[j].info;
+                        data.b[i].info = vendorData.xAxis[j].info;
                         
                         break;
                     }
@@ -2163,7 +2164,7 @@ var images = require('./images.json');
             var url = this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease;
             console.log(url);
             $.ajax({
-                //url: this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease,
+                //url: url, // Enable this and disable the localhost testing url later
                 url: 'http://localhost:8000/monarch-app/node_modules/phenogrid/js/impc.json',
                 method: 'GET', 
                 async : true, // So multiple phenogrid instances can load data parallel
