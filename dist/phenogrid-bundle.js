@@ -442,7 +442,7 @@ DataLoader.prototype = {
 			multipleTargetEntities - combined list of mouse genes, list of lists
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareDataForVendor: function(vendorData, qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
+    loadCompareDataForVendor: function(vendorData, targetGroup, qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
@@ -453,7 +453,7 @@ DataLoader.prototype = {
 	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + multipleTargetEntities;
 
         var self = this;
-        
+
 		// to load the compare data via ajax GET
         jQuery.ajax({
             url: this.qryString,
@@ -467,10 +467,10 @@ DataLoader.prototype = {
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
                     // Add the 'compare' name to the speciesNoMatch array
-                    self.speciesNoMatch.push('Mus musculus'); // Hard coded
+                    self.speciesNoMatch.push(targetGroup); 
                 } else {
-                    // use 'Mus musculus' as the key of the named array
-                    self.transformDataForVendor(vendorData, "Mus musculus", data);  // Hard coded
+                    // use targetGroup (For IMPC, it's 'Mus musculus') as the key of the named array
+                    self.transformDataForVendor(vendorData, targetGroup, data);  // Hard coded
                 }
                 
                 self.postDataLoadCallback(); 
@@ -2316,6 +2316,7 @@ var images = require('./images.json');
             self._asyncDataLoadingCB(self); 
         };
         
+        // IMPC is designed for only Mus musculus
         self.state.targetGroupList = [
             {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true}
         ];
@@ -2353,7 +2354,7 @@ var images = require('./images.json');
         self.state.dataLoader = new DataLoader(self.state.serverURL, self.state.compareQuery);
 
         // starting loading the data from compare api
-        self.state.dataLoader.loadCompareDataForVendor(self.state.vendorData, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+        self.state.dataLoader.loadCompareDataForVendor(self.state.vendorData, self.state.targetGroupList[0].name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
     },
     
     // Phenogrid container div

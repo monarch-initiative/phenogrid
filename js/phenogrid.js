@@ -454,6 +454,7 @@ var images = require('./images.json');
             self._asyncDataLoadingCB(self); 
         };
         
+        // IMPC is designed for only Mus musculus
         self.state.targetGroupList = [
             {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true}
         ];
@@ -491,7 +492,7 @@ var images = require('./images.json');
         self.state.dataLoader = new DataLoader(self.state.serverURL, self.state.compareQuery);
 
         // starting loading the data from compare api
-        self.state.dataLoader.loadCompareDataForVendor(self.state.vendorData, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+        self.state.dataLoader.loadCompareDataForVendor(self.state.vendorData, self.state.targetGroupList[0].name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
     },
     
     // Phenogrid container div
