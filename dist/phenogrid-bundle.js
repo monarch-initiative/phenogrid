@@ -2179,17 +2179,7 @@ var images = require('./images.json');
                 ];
                 
                 // load the target targetGroup list based on the active flag
-                for (var idx in this.state.targetGroupList) {
-                    // for active targetGroup pre-load them
-                    if (this.state.targetGroupList[idx].active) {
-                        this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-                    }	
-                    // should they be shown in the comparison view
-                    // crossComparisonView matters only when active = true - Joe
-                    if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
-                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-                    }			
-                }	
+                this._parseTargetGroupList(false);	
 
                 // initialize data processing class for compare query
                 this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
@@ -2213,27 +2203,11 @@ var images = require('./images.json');
                     ];
                     
                     // load the target targetGroup list based on the active flag
-                    for (var idx in this.state.targetGroupList) {
-                        // for active targetGroup pre-load them
-                        if (this.state.targetGroupList[idx].active) {
-                            this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-                        }	
-                        // should they be shown in the comparison view
-                        // crossComparisonView matters only when active = true - Joe
-                        if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
-                            this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-                        }			
-                    }
-                } else { // when single species is selected (taxon is passed in)
+                    this._parseTargetGroupList(false);
+                } else { 
+                    // when single species is selected (taxon is passed in)
                     // load just the one selected from the dropdown menu - Joe
-                    for (var idx in this.state.targetGroupList) {
-                        // for active targetGroup pre-load them
-                        // The phenogrid constructor settings will overwrite the one in phenogrid_config.js - Joe
-                        if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
-                            this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-                            this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-                        }	
-                    }
+                    this._parseTargetGroupList(true);
                 }
                 
                 // initialize data processing class for simsearch query
@@ -2250,17 +2224,7 @@ var images = require('./images.json');
                 // this can be single species mode or cross comparison mode depends on the config
                 // load the default selected target targetGroup list based on the active flag in config, 
                 // has nothing to do with the monarch's analyze phenotypes page - Joe
-                for (var idx in this.state.targetGroupList) {
-                    // for active targetGroup pre-load them
-                    if (this.state.targetGroupList[idx].active) {
-                        this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-                    }	
-                    // should they be shown in the comparison view
-                    // crossComparisonView matters only when active = true - Joe
-                    if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
-                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-                    }			
-                }
+                this._parseTargetGroupList(false);
                 
                 // initialize data processing class for simsearch query
                 this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
@@ -2269,11 +2233,38 @@ var images = require('./images.json');
                 //optional parm: this.limit
                 this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);
             }
-
         }
-
 	},
 
+    // when not work with monarch's analyze/phenotypes page
+    // this can be single species mode or cross comparison mode depends on the config
+    // load the default selected target targetGroup list based on the active flag in config, 
+    // has nothing to do with the monarch's analyze phenotypes page - Joe
+    _parseTargetGroupList: function(forSingleSpecies) {
+        for (var idx in this.state.targetGroupList) {
+            // when single species is selected (taxon is passed in)
+            // load just the one selected from the dropdown menu - Joe
+            if (forSingleSpecies === true) {
+                // for active targetGroup pre-load them
+                // The phenogrid constructor settings will overwrite the one in phenogrid_config.js - Joe
+                if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
+                    this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                }
+            } else {
+                // for active targetGroup pre-load them
+                if (this.state.targetGroupList[idx].active) {
+                    this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                }	
+                // should they be shown in the comparison view
+                // crossComparisonView matters only when active = true - Joe
+                if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
+                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
+                }
+            }
+        }
+    },
+    
     // Load vendor provided data via ajax
     _loadDataFromVendor: function() {
         // Load the IMPC JSON
