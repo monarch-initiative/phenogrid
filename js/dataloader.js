@@ -78,14 +78,14 @@ DataLoader.prototype = {
 			geneList - combined list of genes
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareData: function(qrySourceList, geneList, asyncDataLoadingCallback) {
+    loadCompareData: function(targetGroup, qrySourceList, geneList, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
+        // example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
 	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
 
         var self = this;
@@ -103,10 +103,10 @@ DataLoader.prototype = {
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
                     // Add the 'compare' name to the speciesNoMatch array
-                    self.speciesNoMatch.push('compare');
+                    self.speciesNoMatch.push(targetGroup);
                 } else {
                     // use 'compare' as the key of the named array
-                    self.transform("compare", data);  
+                    self.transform(targetGroup, data);  
                 }
                 
                 self.postDataLoadCallback(); 

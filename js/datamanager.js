@@ -354,12 +354,12 @@ DataManager.prototype = {
 			xvals - target value list
 			yvals - source value list
 			flattened - flag to flatten the array into a single list of data points; true for usage with overview map
-            compare - flag to indicate if phenogrid is in owlSimFunction === 'compare' mode
+            forCompare - "compare" to indicate if phenogrid is in owlSimFunction === 'compare' mode
 
 		Returns:
 			array
 	*/
-	buildMatrix: function(xvals, yvals, flattened, compare) {
+	buildMatrix: function(xvals, yvals, flattened, forCompare) {
 	    var xvalues = xvals, yvalues = yvals;     
 	    var matrixFlatten = []; 
 
@@ -370,10 +370,10 @@ DataManager.prototype = {
 
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
-			for (var x=0; x < xvalues.length; x++ ) {
+			for (var x = 0; x < xvalues.length; x++ ) {
                 // when owlSimFunction === 'compare', we use 'compare' as the targetGroup name - Joe
-                if (compare === true) {
-                    var targetGroup = 'compare';
+                if (typeof(forCompare) !== 'undefined') {
+                    var targetGroup = forCompare;
                 } else {
                     var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
                 }

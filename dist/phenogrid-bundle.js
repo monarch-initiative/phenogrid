@@ -391,14 +391,14 @@ DataLoader.prototype = {
 			geneList - combined list of genes
 			asyncDataLoadingCallback - callback
 	*/
-    loadCompareData: function(qrySourceList, geneList, asyncDataLoadingCallback) {
+    loadCompareData: function(targetGroup, qrySourceList, geneList, asyncDataLoadingCallback) {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
         
         // save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-        // example: beta.monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
+        // example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
 	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
 
         var self = this;
@@ -416,10 +416,10 @@ DataLoader.prototype = {
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
                     // Add the 'compare' name to the speciesNoMatch array
-                    self.speciesNoMatch.push('compare');
+                    self.speciesNoMatch.push(targetGroup);
                 } else {
                     // use 'compare' as the key of the named array
-                    self.transform("compare", data);  
+                    self.transform(targetGroup, data);  
                 }
                 
                 self.postDataLoadCallback(); 
@@ -1605,12 +1605,12 @@ DataManager.prototype = {
 			xvals - target value list
 			yvals - source value list
 			flattened - flag to flatten the array into a single list of data points; true for usage with overview map
-            compare - flag to indicate if phenogrid is in owlSimFunction === 'compare' mode
+            forCompare - "compare" to indicate if phenogrid is in owlSimFunction === 'compare' mode
 
 		Returns:
 			array
 	*/
-	buildMatrix: function(xvals, yvals, flattened, compare) {
+	buildMatrix: function(xvals, yvals, flattened, forCompare) {
 	    var xvalues = xvals, yvalues = yvals;     
 	    var matrixFlatten = []; 
 
@@ -1621,10 +1621,10 @@ DataManager.prototype = {
 
 	    for (var y=0; y < yvalues.length; y++ ) {
     		var list = [];
-			for (var x=0; x < xvalues.length; x++ ) {
+			for (var x = 0; x < xvalues.length; x++ ) {
                 // when owlSimFunction === 'compare', we use 'compare' as the targetGroup name - Joe
-                if (compare === true) {
-                    var targetGroup = 'compare';
+                if (typeof(forCompare) !== 'undefined') {
+                    var targetGroup = forCompare;
                 } else {
                     var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
                 }
@@ -2173,7 +2173,7 @@ var images = require('./images.json');
             // in compare mode, there's no crossComparisonView - Joe
             if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
                 // overwrite the this.state.targetGroupList with only 'compare'
-                // this 'compare' is hard coded in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
+                // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
                 this.state.targetGroupList = [
                     {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
                 ];
@@ -2186,7 +2186,7 @@ var images = require('./images.json');
 
                 // starting loading the data from compare api
                 // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
-                this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
+                this.state.dataLoader.loadCompareData(this.state.targetGroupList[0].name, querySourceList, this.state.geneList, asyncDataLoadingCallback);
             } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
                 // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
                 if (this.state.targetSpecies === 'all') {
@@ -2819,9 +2819,9 @@ var images = require('./images.json');
         // in compare mode, the targetGroup will be 'compare' instead of actual species name - Joe
         // each element in data contains source_id, targetGroup, target_id, type ('cell'), xpos, and ypos
         if (this.state.owlSimFunction === 'compare') {
-            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, this.state.owlSimFunction);
         } else {
-            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true);
         }
 
 		// Group all mini cells in g element
@@ -3966,9 +3966,9 @@ var images = require('./images.json');
 
 		// use the x/y renders to generate the matrix
         if (this.state.owlSimFunction === 'compare') {
-            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, true);
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, this.state.owlSimFunction);
         } else {
-            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
         }
 
         // create column labels first, so the added genotype cells will overwrite the background color - Joe

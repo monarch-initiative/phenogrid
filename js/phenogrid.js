@@ -310,7 +310,7 @@ var images = require('./images.json');
             // in compare mode, there's no crossComparisonView - Joe
             if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
                 // overwrite the this.state.targetGroupList with only 'compare'
-                // this 'compare' is hard coded in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
+                // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
                 this.state.targetGroupList = [
                     {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
                 ];
@@ -323,7 +323,7 @@ var images = require('./images.json');
 
                 // starting loading the data from compare api
                 // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
-                this.state.dataLoader.loadCompareData(querySourceList, this.state.geneList, asyncDataLoadingCallback);
+                this.state.dataLoader.loadCompareData(this.state.targetGroupList[0].name, querySourceList, this.state.geneList, asyncDataLoadingCallback);
             } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
                 // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
                 if (this.state.targetSpecies === 'all') {
@@ -956,9 +956,9 @@ var images = require('./images.json');
         // in compare mode, the targetGroup will be 'compare' instead of actual species name - Joe
         // each element in data contains source_id, targetGroup, target_id, type ('cell'), xpos, and ypos
         if (this.state.owlSimFunction === 'compare') {
-            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, true);
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, this.state.owlSimFunction);
         } else {
-            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, false);
+            var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true);
         }
 
 		// Group all mini cells in g element
@@ -2103,9 +2103,9 @@ var images = require('./images.json');
 
 		// use the x/y renders to generate the matrix
         if (this.state.owlSimFunction === 'compare') {
-            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, true);
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, this.state.owlSimFunction);
         } else {
-            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, false);
+            var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
         }
 
         // create column labels first, so the added genotype cells will overwrite the background color - Joe
