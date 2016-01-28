@@ -279,9 +279,7 @@ var images = require('./images.json');
         this.state.reactivateGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
 	},
 
-	
-    
-    
+
     // _init() will be executed first and after the first time when phenogrid is created - Joe
     // So, if you draw a chart with jquery-ui plugin, after it's drawn out, 
     // then you want to use new data to update it, you need to do this in _init() to update your chart. 
@@ -297,28 +295,7 @@ var images = require('./images.json');
 
         // IMPC integration, IMPC returns its own list of mouse phenotypes
         if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
-            // Load the IMPC JSON
-
-            //XMLHttpRequest cannot load https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease&geneId=MGI:95523&diseaseId=OMIM:101600. No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:8000' is therefore not allowed access.
-            var self = this;
-            var callback = this._dataFromVendorCallback;
-            var url = this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease;
-            console.log(url);
-            $.ajax({
-                //url: url, // Enable this and disable the localhost testing url later
-                url: 'http://localhost:8000/monarch-app/node_modules/phenogrid/js/impc.json',
-                method: 'GET', 
-                async : true, // So multiple phenogrid instances can load data parallel
-                dataType : 'json',
-                success : function(data) {
-                    console.log('IMPC data loaded:');
-                    console.log(data);
-                    callback(self, data);
-                },
-                error: function () { 
-                    console.log('Ajax error.')
-                } 
-            });
+            this._loadDataFromVendor();
         } else {
             // Remove duplicated source IDs - Joe
             var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -434,16 +411,37 @@ var images = require('./images.json');
 
 	},
 
+    // Load vendor provided data via ajax
+    _loadDataFromVendor: function() {
+        // Load the IMPC JSON
+        var self = this;
+        var callback = this._dataFromVendorCallback;
+        var url = this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease;
+
+        $.ajax({
+            //url: url, // Enable this and disable the localhost testing url later
+            url: 'http://localhost:8000/monarch-app/node_modules/phenogrid/js/impc.json',
+            method: 'GET', 
+            async: true, // So multiple phenogrid instances can load data parallel
+            dataType: 'json',
+            success: function(data) {
+                console.log('IMPC data loaded:');
+                console.log(data);
+                callback(self, data);
+            },
+            error: function () { 
+                console.log('Ajax error.')
+            } 
+        });
+    },
+    
+    // Callback function to handle vendor data and config before sending them to dataLoader
     _dataFromVendorCallback: function(self, data) {
         self.state.vendorData = data;
         
         // Use IMPC title
         self.state.gridTitle = self.state.vendorData.title;
-        
-        // DataFromVendor IMPC-specific tweaks
-        //self.state.gridRegion.cellPad = 32;
-        //self.state.gridRegion.rowLabelOffset = 35;
-     
+
         // use the human phenotypes from the input JSON
         for (var i in self.state.vendorData.yAxis[0].phenotypes) {
             self.state.phenotypeData.push(self.state.vendorData.yAxis[0].phenotypes[i].id);
@@ -494,7 +492,7 @@ var images = require('./images.json');
         // initialize data processing class for compare query
         self.state.dataLoader = new DataLoader(self.state.serverURL, self.state.compareQuery);
 
-        // starting loading the data from compare api
+        // starting loading the owlsim data from compare api for this vendor
         self.state.dataLoader.loadCompareDataForVendor(self.state.vendorData, self.state.targetGroupList[0].name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
     },
     
@@ -2837,7 +2835,7 @@ var images = require('./images.json');
         
         // Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
         // so we need to fetch each label from the monarch-app server
-        // Sample output: http://beta.monarchinitiative.org/phenotype/HP:0000746.json
+        // Sample output: http://monarchinitiative.org/phenotype/HP:0000746.json
         $.ajax({
             url: this.state.serverURL + "/phenotype/" + target + ".json",
             async: true,
@@ -2986,7 +2984,7 @@ var images = require('./images.json');
 	},
     
     // this cb has all the matches info returned from the compare
-    // e.g., http://beta.monarchinitiative.org/compare/:id1+:id2/:id3,:id4,...idN
+    // e.g., http://monarchinitiative.org/compare/:id1+:id2/:id3,:id4,...idN
     // parent refers to the global `this` and we have to pass it
     _insertGenotypesCb: function(results, id, parent, errorMsg) {
         console.log(results);
