@@ -438,6 +438,7 @@ DataLoader.prototype = {
 
 		Parameters:	
 			vendorData - JSON data from vendor
+            targetGroup - targetGroup name
             qrySourceList - list of source items to query
 			multipleTargetEntities - combined list of mouse genes, list of lists
 			asyncDataLoadingCallback - callback
@@ -1004,12 +1005,12 @@ DataLoader.prototype = {
 		var self = this;
 		// check cached hashtable first
 		var direction = ontologyDirection;
-		var relationship = "subClassOf";
+		var relationship = parent.state.ontologyRelationship;
 		var depth = ontologyDepth;
 
-		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
+		// http://monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 
-		var url = this.serverURL + "/neighborhood/" + id.replace('_', ':') + "/" + depth + "/" + direction + "/" + relationship + ".json";
+		var url = this.serverURL + parent.state.ontologyQuery + id.replace('_', ':') + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 		var cb = this.postOntologyCb;
 
@@ -1028,7 +1029,7 @@ DataLoader.prototype = {
 	*/
     getGenotypes: function(id, finalCallback, parent) {
         var self = this;
-        // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
+        // http://monarchinitiative.org/gene/MGI:98297/genotype_list.json
         var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
         var cb = this.getGenotypesCb;
         // ajax get all the genotypes of this gene id
@@ -1056,7 +1057,7 @@ DataLoader.prototype = {
                 // First filter out genotype IDs with unstable prefix
                 // https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
                 // According to Kent, IDs starting with an underscore or prefixed with MONARCH: do not persist across different scigraph loads
-                var unstablePrefix = ['MONARCH:', '_:'];
+                var unstablePrefix = parent.state.unstableGenotypePrefix;
                 for (var i in results.genotype_list) {
                     for (var k in unstablePrefix) {
                         if (results.genotype_list[i].id.indexOf(unstablePrefix[k]) === 0) {
@@ -2022,6 +2023,8 @@ var images = require('./images.json');
             labelCharDisplayCount : 20,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
+            ontologyRelationship: "subClassOf",
+            ontologyQuery: "/neighborhood/", // Keep the slashes
             ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
                                 // [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
             genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
@@ -2035,6 +2038,7 @@ var images = require('./images.json');
                 "Drosophila melanogaster": false,
                 "Caenorhabditis elegans": false
             },
+            unstableGenotypePrefix: ['MONARCH:', '_:'], //https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
             colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
             colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
                 'rgb(237,248,177)',

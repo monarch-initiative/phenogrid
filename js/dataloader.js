@@ -125,6 +125,7 @@ DataLoader.prototype = {
 
 		Parameters:	
 			vendorData - JSON data from vendor
+            targetGroup - targetGroup name
             qrySourceList - list of source items to query
 			multipleTargetEntities - combined list of mouse genes, list of lists
 			asyncDataLoadingCallback - callback
@@ -691,12 +692,12 @@ DataLoader.prototype = {
 		var self = this;
 		// check cached hashtable first
 		var direction = ontologyDirection;
-		var relationship = "subClassOf";
+		var relationship = parent.state.ontologyRelationship;
 		var depth = ontologyDepth;
 
-		// http://beta.monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
+		// http://monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 
-		var url = this.serverURL + "/neighborhood/" + id.replace('_', ':') + "/" + depth + "/" + direction + "/" + relationship + ".json";
+		var url = this.serverURL + parent.state.ontologyQuery + id.replace('_', ':') + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 		var cb = this.postOntologyCb;
 
@@ -715,7 +716,7 @@ DataLoader.prototype = {
 	*/
     getGenotypes: function(id, finalCallback, parent) {
         var self = this;
-        // http://beta.monarchinitiative.org/gene/MGI:98297/genotype_list.json
+        // http://monarchinitiative.org/gene/MGI:98297/genotype_list.json
         var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
         var cb = this.getGenotypesCb;
         // ajax get all the genotypes of this gene id
@@ -743,7 +744,7 @@ DataLoader.prototype = {
                 // First filter out genotype IDs with unstable prefix
                 // https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
                 // According to Kent, IDs starting with an underscore or prefixed with MONARCH: do not persist across different scigraph loads
-                var unstablePrefix = ['MONARCH:', '_:'];
+                var unstablePrefix = parent.state.unstableGenotypePrefix;
                 for (var i in results.genotype_list) {
                     for (var k in unstablePrefix) {
                         if (results.genotype_list[i].id.indexOf(unstablePrefix[k]) === 0) {
