@@ -409,20 +409,23 @@ var images = require('./images.json');
         var callback = this._dataFromVendorCallback;
         var url = this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease;
 
-        $.ajax({
+        // Separate the ajax request with callbacks
+        var jqxhr = $.ajax({
             //url: url, // Enable this and disable the localhost testing url later
             url: 'http://localhost:8000/monarch-app/node_modules/phenogrid/js/impc.json',
             method: 'GET', 
             async: true, // So multiple phenogrid instances can load data parallel
             dataType: 'json',
-            success: function(data) {
-                console.log('IMPC data loaded:');
-                console.log(data);
-                callback(self, data);
-            },
-            error: function () { 
-                console.log('Ajax error.')
-            } 
+        });
+        
+        jqxhr.done(function(data) {
+            console.log('IMPC data loaded:');
+            console.log(data);
+            callback(self, data); 
+        });
+        
+        jqxhr.fail(function () { 
+            console.log('Ajax error - _loadDataFromVendor()')
         });
     },
     
@@ -2827,17 +2830,20 @@ var images = require('./images.json');
         // Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
         // so we need to fetch each label from the monarch-app server
         // Sample output: http://monarchinitiative.org/phenotype/HP:0000746.json
-        $.ajax({
+        // Separate the ajax request with callbacks
+        var jqxhr = $.ajax({
             url: this.state.serverURL + "/phenotype/" + target + ".json",
             async: true,
             method: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                callback(self, target, targets, data); // callback needs self for reference to global this - Joe
-            },
-            error: function (xhr, errorType, exception) {
-                console.log("We are having problems fetching the unmatched phenotypes from the server. Please try again later. Error:" + xhr.status);
-            }
+            dataType: 'json'
+        });
+        
+        jqxhr.done(function(data) {
+            callback(self, target, targets, data); // callback needs self for reference to global this - Joe
+        });
+        
+        jqxhr.fail(function () { 
+            console.log('Ajax error - _fetchUnmatchedLabel()')
         });
     },
     

@@ -1,7 +1,7 @@
 (function () {
 'use strict';
 
-var jQuery = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
+var $ = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
 
 var Utils = require('./utils.js');
 
@@ -90,30 +90,32 @@ DataLoader.prototype = {
 
         var self = this;
         
-		// to load the compare data via ajax GET
-        jQuery.ajax({
+        // Separate the ajax request with callbacks
+        var jqxhr = $.ajax({
             url: this.qryString,
             method: 'GET', 
             async : true,
-            dataType : 'json',
-            success : function(data) {
-                //console.log('compare data loaded:');
-                //console.log(data);
-                
-                // sometimes the compare api doesn't find any matches, we need to stop here - Joe
-                if (typeof (data.b) === 'undefined') {
-                    // Add the 'compare' name to the speciesNoMatch array
-                    self.speciesNoMatch.push(targetGroup);
-                } else {
-                    // use 'compare' as the key of the named array
-                    self.transform(targetGroup, data);  
-                }
-                
-                self.postDataLoadCallback(); 
-            },
-            error: function () { 
-                console.log('Ajax error.')
-            } 
+            dataType : 'json'
+        });
+        
+        jqxhr.done(function(data) {
+            //console.log('compare data loaded:');
+            //console.log(data);
+            
+            // sometimes the compare api doesn't find any matches, we need to stop here - Joe
+            if (typeof (data.b) === 'undefined') {
+                // Add the 'compare' name to the speciesNoMatch array
+                self.speciesNoMatch.push(targetGroup);
+            } else {
+                // use 'compare' as the key of the named array
+                self.transform(targetGroup, data);  
+            }
+            
+            self.postDataLoadCallback();  
+        });
+        
+        jqxhr.fail(function () { 
+            console.log('Ajax error - loadCompareData()')
         });
 	},
     
@@ -142,30 +144,32 @@ DataLoader.prototype = {
 
         var self = this;
 
-		// to load the compare data via ajax GET
-        jQuery.ajax({
+        // Separate the ajax request with callbacks
+        var jqxhr = $.ajax({
             url: this.qryString,
             method: 'GET', 
             async : true,
-            dataType : 'json',
-            success : function(data) {
-                console.log('IMPC compare data loaded:');
-                //console.log(data);
-                
-                // sometimes the compare api doesn't find any matches, we need to stop here - Joe
-                if (typeof (data.b) === 'undefined') {
-                    // Add the 'compare' name to the speciesNoMatch array
-                    self.speciesNoMatch.push(targetGroup); 
-                } else {
-                    // use targetGroup (For IMPC, it's 'Mus musculus') as the key of the named array
-                    self.transformDataForVendor(vendorData, targetGroup, data);  // Hard coded
-                }
-                
-                self.postDataLoadCallback(); 
-            },
-            error: function () { 
-                console.log('Ajax error.')
-            } 
+            dataType : 'json'
+        });
+        
+        jqxhr.done(function(data) {
+            console.log('IMPC compare data loaded:');
+            //console.log(data);
+            
+            // sometimes the compare api doesn't find any matches, we need to stop here - Joe
+            if (typeof (data.b) === 'undefined') {
+                // Add the 'compare' name to the speciesNoMatch array
+                self.speciesNoMatch.push(targetGroup); 
+            } else {
+                // use targetGroup (For IMPC, it's 'Mus musculus') as the key of the named array
+                self.transformDataForVendor(vendorData, targetGroup, data);  // Hard coded
+            }
+            
+            self.postDataLoadCallback(); 
+        });
+        
+        jqxhr.fail(function () { 
+            console.log('Ajax error - loadCompareDataForVendor()')
         });
 	},
     
@@ -210,20 +214,23 @@ DataLoader.prototype = {
 		var self = this;
 
         console.log('POST:' + url);
-        
-        jQuery.ajax({
+
+        // Separate the ajax request with callbacks
+        var jqxhr = $.ajax({
             url: url,
             method: 'POST', 
             data: postData,
             async : true,
             timeout: 60000,
-            dataType : 'json',
-            success : function(data) {
-                callback(self, target, targets, data);
-            },
-            error: function () { 
-                console.log('Ajax error.');
-            }
+            dataType : 'json'
+        });
+        
+        jqxhr.done(function(data) {
+            callback(self, target, targets, data); 
+        });
+        
+        jqxhr.fail(function () { 
+            console.log('Ajax error - postFetch()')
         });
 	},
 
@@ -664,17 +671,20 @@ DataLoader.prototype = {
 	getFetch: function (self, url, target, callback, finalCallback, parent) {
         console.log('GET:' + url);
         
-        jQuery.ajax({
+        // Separate the ajax request with callbacks
+        var jqxhr = $.ajax({
             url: url,
             method: 'GET', 
             async : true,
             dataType : 'json',
-            success : function(data) {
-                callback(self, target, data, finalCallback, parent);					
-            },
-            error: function () { 
-                console.log('Ajax error.')
-            } 
+        });
+        
+        jqxhr.done(function(data) {
+            callback(self, target, data, finalCallback, parent);
+        });
+        
+        jqxhr.fail(function () { 
+            console.log('Ajax error - getFetch()')
         });
 	},
 
