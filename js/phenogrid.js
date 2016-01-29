@@ -1847,124 +1847,160 @@ var images = require('./images.json');
 		}
 	},
 
-    // main method for rendering tooltip content
-    _renderTooltip: function(id, data) {
+    _phenotypeTooltip: function(id, data) {
         var htmlContent = '';
+        
+        // phenotype tooltip shows type, id, sum, frequency, and ontology expansion
+        var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
+        var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br>" : "");
+        var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br>" : "");
+        var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br>" : "");
 
-        if (data.type === 'phenotype') {
-            // phenotype tooltip shows type, id, sum, frequency, and ontology expansion
-            var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
-            var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br>" : "");
-            var sum = (typeof(data.sum) !== 'undefined' ? "<strong>Sum:</strong> " + data.sum.toFixed(2)+"<br>" : "");
-            var frequency = (typeof(data.count) !== 'undefined' ? "<strong>Frequency:</strong> " + data.count +"<br>" : "");
+        htmlContent = tooltipType + ic + sum + frequency;
+                        
+        var expanded = false;
+        var ontologyData = "<br>";
 
-            htmlContent = tooltipType + ic + sum + frequency;
-                            
-            var expanded = false;
-            var ontologyData = "<br>";
+        var cached = this.state.dataLoader.checkOntologyCache(id);
 
-            var cached = this.state.dataLoader.checkOntologyCache(id);
+        if (typeof(cached) !== 'undefined') {
+            expanded = true;
 
-            if (typeof(cached) !== 'undefined') {
-                expanded = true;
-
-                //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
-                this.state.ontologyTreesDone = 0;
-                this.state.ontologyTreeHeight = 0;
-                var tree = '<div id="' + this.state.pgInstanceId + '_hpoDiv">' + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + '</div>';
-                if (tree === "<br>"){
-                    ontologyData += "<em>No Classification hierarchy Found</em>";
-                } else {
-                    ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
-                }
-            }
-            
-            if (expanded){
-                htmlContent += ontologyData;
+            //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
+            this.state.ontologyTreesDone = 0;
+            this.state.ontologyTreeHeight = 0;
+            var tree = '<div id="' + this.state.pgInstanceId + '_hpoDiv">' + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + '</div>';
+            if (tree === "<br>"){
+                ontologyData += "<em>No Classification hierarchy Found</em>";
             } else {
-                htmlContent += '<br><div class="pg_expand_ontology" id="' + this.state.pgInstanceId + '_expandOntology_' + id + '">Expand classification hierarchy<i class="pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer"></i></div>';
-            }	
-        } else if (data.type === 'cell') {
-            var suffix = "";
-            var selCalc = this.state.selectedCalculation;
-
-            var prefix, targetId, sourceId, targetInfo, sourceInfo;
-
-            sourceId = data.source_id;
-            targetId = data.target_id;
-                
-            if (this.state.invertAxis) {
-                targetInfo = this.state.yAxisRender.get(data.target_id); 
-                sourceInfo = this.state.xAxisRender.get(data.source_id); 			
-            } else {
-                targetInfo = this.state.xAxisRender.get(data.target_id); 
-                sourceInfo = this.state.yAxisRender.get(data.source_id); 						
+                ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
             }
-
-            for (var idx in this.state.similarityCalculation) {	
-                if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
-                    prefix = this.state.similarityCalculation[idx].label;
-                    break;
-                }
-            }
-
-            // If the selected calculation isn't percentage based (aka similarity) make it a percentage
-            if (selCalc !== 2) {
-                suffix = '%';
-            }
-
-            var targetLabel = '';
-            if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
-                // Do not show the label as hyperlink since IMPC doesn't have this genotype link
-                targetLabel = targetInfo.label;
-            } else {
-                targetLabel = this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
-            }
-
-            htmlContent = "<strong>" + Utils.capitalizeString(sourceInfo.type) + "</strong><br>" 
-                          + this._encodeTooltipHref(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
-                          + "<strong>In-common</strong><br>" 
-                          + this._encodeTooltipHref(sourceInfo.type, data.subsumer_id, data.subsumer_label) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
-                          + "<strong>Match</strong><br>" 
-                          + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
-                          + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
-                          + targetLabel;
-        } else if (data.type === 'genotype' && this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
-            // IMPC-specific tooltip rendering: Source, Background, IMPC gene
-            var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';
-            var background = '<strong>' + data.info[1].id + ': </strong> ' + data.info[1].value + '<br>';
-            var impcGene = '<strong>' + data.info[2].id + ': </strong> ' + '<a href="'+ data.info[2].href +'" target="_blank">' + data.info[2].value + '</a>' + '<br>';
-            var phenodigm = '<strong>' + data.phenodigmScore.metric + ': </strong> ' + data.phenodigmScore.score.toFixed(2) + '<br>';
-            
-            htmlContent = source + background + impcGene + phenodigm;
+        }
+        
+        if (expanded){
+            htmlContent += ontologyData;
         } else {
-            // disease and gene/genotype share common items
-            var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
-            var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br>" : "");
-            var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br>" : "");	
-            var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
+            htmlContent += '<br><div class="pg_expand_ontology" id="' + this.state.pgInstanceId + '_expandOntology_' + id + '">Expand classification hierarchy<i class="pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer"></i></div>';
+        }
+        
+        // Finally return the rendered HTML result
+		return htmlContent;
+    },
+    
+    _cellTooltip: function(id, data) {
+        var htmlContent = '';
+        
+        var suffix = "";
+        var selCalc = this.state.selectedCalculation;
 
-            htmlContent = tooltipType + rank + score + species;
+        var prefix, targetId, sourceId, targetInfo, sourceInfo;
+
+        sourceId = data.source_id;
+        targetId = data.target_id;
             
-            // Add genotype expansion link to genes
-            // genotype expansion won't work with owlSimFunction === 'compare' since we use
-            // 'compare' as the key of the named array, while the added genotypes are named based on their species - Joe
-            if (data.type === 'gene') {
-                // ENABLED for now, just comment to DISABLE genotype expansion - Joe
-                // for gene and single species mode only, add genotype expansion link
-                if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
-                    var expanded = this.state.dataManager.isExpanded(id); // gene id
+        if (this.state.invertAxis) {
+            targetInfo = this.state.yAxisRender.get(data.target_id); 
+            sourceInfo = this.state.xAxisRender.get(data.source_id); 			
+        } else {
+            targetInfo = this.state.xAxisRender.get(data.target_id); 
+            sourceInfo = this.state.yAxisRender.get(data.source_id); 						
+        }
 
-                    if (expanded){
-                        htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_remove_genotypes_' + id + '">Remove associated genotypes<i class="pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer"></i></div>'; 
-                    } else {
-                        htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_insert_genotypes_' + id + '">Insert associated genotypes<i class="pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer"></i></div>'; 
-                    }
+        for (var idx in this.state.similarityCalculation) {	
+            if (this.state.similarityCalculation[idx].calc === this.state.selectedCalculation) {
+                prefix = this.state.similarityCalculation[idx].label;
+                break;
+            }
+        }
+
+        // If the selected calculation isn't percentage based (aka similarity) make it a percentage
+        if (selCalc !== 2) {
+            suffix = '%';
+        }
+
+        var targetLabel = '';
+        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+            // Do not show the label as hyperlink since IMPC doesn't have this genotype link
+            targetLabel = targetInfo.label;
+        } else {
+            targetLabel = this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
+        }
+
+        htmlContent = "<strong>" + Utils.capitalizeString(sourceInfo.type) + "</strong><br>" 
+                      + this._encodeTooltipHref(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
+                      + "<strong>In-common</strong><br>" 
+                      + this._encodeTooltipHref(sourceInfo.type, data.subsumer_id, data.subsumer_label) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
+                      + "<strong>Match</strong><br>" 
+                      + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
+                      + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
+                      + targetLabel;
+                      
+        // Finally return the rendered HTML result
+		return htmlContent;
+    },
+    
+    _vendorTooltip: function(id, data) {
+        var htmlContent = '';
+        
+        // IMPC-specific tooltip rendering: Source, Background, IMPC gene
+        var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';
+        var background = '<strong>' + data.info[1].id + ': </strong> ' + data.info[1].value + '<br>';
+        var impcGene = '<strong>' + data.info[2].id + ': </strong> ' + '<a href="'+ data.info[2].href +'" target="_blank">' + data.info[2].value + '</a>' + '<br>';
+        var phenodigm = '<strong>' + data.phenodigmScore.metric + ': </strong> ' + data.phenodigmScore.score.toFixed(2) + '<br>';
+        
+        htmlContent = source + background + impcGene + phenodigm;
+        
+        // Finally return the rendered HTML result
+		return htmlContent;
+    },
+    
+    _defaultTooltip: function(id, data) {
+        var htmlContent = '';
+        
+        // disease and gene/genotype share common items
+        var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
+        var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br>" : "");
+        var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br>" : "");	
+        var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
+
+        htmlContent = tooltipType + rank + score + species;
+        
+        // Add genotype expansion link to genes
+        // genotype expansion won't work with owlSimFunction === 'compare' since we use
+        // 'compare' as the key of the named array, while the added genotypes are named based on their species - Joe
+        if (data.type === 'gene') {
+            // ENABLED for now, just comment to DISABLE genotype expansion - Joe
+            // for gene and single species mode only, add genotype expansion link
+            if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].name !== 'compare') {
+                var expanded = this.state.dataManager.isExpanded(id); // gene id
+
+                if (expanded){
+                    htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_remove_genotypes_' + id + '">Remove associated genotypes<i class="pg_expand_genotype_icon fa fa-minus-circle pg_cursor_pointer"></i></div>'; 
+                } else {
+                    htmlContent += '<br><div class="pg_expand_genotype" id="' + this.state.pgInstanceId + '_insert_genotypes_' + id + '">Insert associated genotypes<i class="pg_expand_genotype_icon fa fa-plus-circle pg_cursor_pointer"></i></div>'; 
                 }
             }
         }
         
-         // Finally return the rendered HTML result
+        // Finally return the rendered HTML result
+		return htmlContent;
+    },
+    
+    // main method for rendering tooltip content
+    _renderTooltip: function(id, data) {
+        var htmlContent = '';
+        
+        if (data.type === 'phenotype') {
+            htmlContent = this._phenotypeTooltip(id, data);	
+        } else if (data.type === 'cell') {
+            htmlContent = this._cellTooltip(id, data);	
+        } else if (data.type === 'genotype' && this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+            htmlContent = this._vendorTooltip(id, data);	
+        } else {
+            htmlContent = this._defaultTooltip(id, data);	
+        }
+        
+        // Finally return the rendered HTML result
 		return htmlContent;
     },
     
