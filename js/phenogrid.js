@@ -1526,11 +1526,7 @@ var images = require('./images.json');
             .style("fill", "#8763A3")
 	      	.text(function(d, i) { 		      	
 				var el = axRender.itemAt(i);
-	      		if (self.state.dataFromVendor && self.state.dataVendorName === 'IMPC') {
-                    return Math.round(el.score.score); // rounded to the nearest integer
-                } else {
-                    return el.score; 
-                }
+	      		return el.score; 
 	      	});
 
 	    if (self.state.invertAxis) { // score are render vertically
@@ -1545,7 +1541,7 @@ var images = require('./images.json');
                     });
 	    }
 	}, 
-    
+
 	_getCellColor: function(score) {
 		var selectedScale = this.state.colorScale[this.state.selectedCalculation];
 		return selectedScale(score);
@@ -1929,7 +1925,7 @@ var images = require('./images.json');
             var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';
             var background = '<strong>' + data.info[1].id + ': </strong> ' + data.info[1].value + '<br>';
             var impcGene = '<strong>' + data.info[2].id + ': </strong> ' + '<a href="'+ data.info[2].href +'" target="_blank">' + data.info[2].value + '</a>' + '<br>';
-            var phenodigm = '<strong>' + data.score.metric + ': </strong> ' + data.score.score.toFixed(2) + '<br>';
+            var phenodigm = '<strong>' + data.phenodigmScore.metric + ': </strong> ' + data.phenodigmScore.score.toFixed(2) + '<br>';
             
             htmlContent = source + background + impcGene + phenodigm;
         } else {

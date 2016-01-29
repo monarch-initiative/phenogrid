@@ -18,6 +18,8 @@ var Utils = require('./utils.js');
  		simSearchQuery - sim search query specific url string
         limit - cutoff number
  */
+ 
+// Define the DataLoader constructor using an object constructor function
 var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.serverURL = serverURL;	
     this.simSearchQuery = simSearchQuery; // object
@@ -36,6 +38,7 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.postDataLoadCallback = '';
 };
 
+// Add methods to DataLoader.prototype
 DataLoader.prototype = {
 	constructor: DataLoader,
 
@@ -448,7 +451,8 @@ DataLoader.prototype = {
                     "type": "genotype", 
                     "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
-                    "score": item.phenodigmScore // phenodigm score,  keeping only two decimals in tooltip rendering
+                    "score": Math.round(item.phenodigmScore.score), // rounded to the nearest integer, used in _createTextScores() in phenogrid.js
+                    "phenodigmScore": item.phenodigmScore // phenodigm score,  keeping only two decimals in tooltip rendering
                 }; 
 
                 // We need to define this here since the targetID is newly added here, doesn't exist before - Joe
