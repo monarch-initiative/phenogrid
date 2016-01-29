@@ -133,7 +133,7 @@ var images = require('./images.json');
                 disease: 'OMIM:101600' // Sample disease ID
             },
             // hooks to the monarch app's Analyze/phenotypes page - Joe
-            owlSimFunction: '', // 'compare', 'search' or 'exomiser'
+            owlSimFunction: '', // 'compare', 'search'
             targetSpecies: '', // quoted 'taxon number' or 'all'
             searchResultLimit: 100, // the limit field under analyze/phenotypes search section in search mode, default 100, will be overwritten by user-input limit 
             geneList: [] // an array of gene IDs to be used in compare mode, already contains orthologs and paralogs when provided 
@@ -298,82 +298,90 @@ var images = require('./images.json');
             this._loadDataFromVendor();
         } else {
             // Remove duplicated source IDs - Joe
-            var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
+            this.state.querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
 
             var self = this;
             // no change to the callback - Joe
-            var asyncDataLoadingCallback = function() {
+            this.state.asyncDataLoadingCallback = function() {
                 self._asyncDataLoadingCB(self); 
             };
 
             // Load data from compare API for geneList
             // in compare mode, there's no crossComparisonView - Joe
             if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
-                // overwrite the this.state.targetGroupList with only 'compare'
-                // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
-                this.state.targetGroupList = [
-                    {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
-                ];
-                
-                // load the target targetGroup list based on the active flag
-                this._parseTargetGroupList(false, this);	
-
-                // initialize data processing class for compare query
-                this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
-
-                // starting loading the data from compare api
-                // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
-                this.state.dataLoader.loadCompareData(this.state.targetGroupList[0].name, querySourceList, this.state.geneList, asyncDataLoadingCallback);
+                this._initCompare();
             } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
-                // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
-                if (this.state.targetSpecies === 'all') {
-                    // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
-                    this.state.targetGroupList = [
-                        // Because only the three species are supported in monarch analyze/phenotypes page at this point - Joe
-                        {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
-                        {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
-                        {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
-                        // Disabled species
-                        {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                        {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
-                        {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
-                    ];
-                    
-                    // load the target targetGroup list based on the active flag
-                    this._parseTargetGroupList(false, this);
-                } else { 
-                    // when single species is selected (taxon is passed in via this.state.targetSpecies)
-                    // load just the one selected from the dropdown menu - Joe
-                    if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
-                        this._parseTargetGroupList(true, this);	
-                    }	
-                }
-                
-                // initialize data processing class for simsearch query
-                this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
-                
-                // starting loading the data from simsearch
-                this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback, this.state.searchResultLimit);
-            } else if (this.state.owlSimFunction === 'exomiser') {
-                // hook for exomiser, PENDING - Joe
-                // from the old code
-                this.state.selectedCalculation = 2; // Force the color to Uniqueness
+                this._initSearch();
             } else {
-                // when not work with monarch's analyze/phenotypes page
-                // this can be single species mode or cross comparison mode depends on the config
-                // load the default selected target targetGroup list based on the active flag in config, 
-                // has nothing to do with the monarch's analyze phenotypes page - Joe
-                this._parseTargetGroupList(false, this);
-                
-                // initialize data processing class for simsearch query
-                this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
-                
-                // starting loading the data from simsearch
-                //optional parm: this.limit
-                this.state.dataLoader.load(querySourceList, this.state.initialTargetGroupLoadList, asyncDataLoadingCallback);
+                this._initDefault();
             }
         }
 	},
+    
+    _initDefault: function() {
+        // when not work with monarch's analyze/phenotypes page
+        // this can be single species mode or cross comparison mode depends on the config
+        // load the default selected target targetGroup list based on the active flag in config, 
+        // has nothing to do with the monarch's analyze phenotypes page - Joe
+        this._parseTargetGroupList(false, this);
+        
+        // initialize data processing class for simsearch query
+        this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+        
+        // starting loading the data from simsearch
+        //optional parm: this.limit
+        this.state.dataLoader.load(this.state.querySourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback);
+    },
+    
+    _initCompare: function() {
+        // overwrite the this.state.targetGroupList with only 'compare'
+        // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
+        this.state.targetGroupList = [
+            {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
+        ];
+        
+        // load the target targetGroup list based on the active flag
+        this._parseTargetGroupList(false, this);	
+
+        // initialize data processing class for compare query
+        this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+
+        // starting loading the data from compare api
+        // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
+        this.state.dataLoader.loadCompareData(this.state.targetGroupList[0].name, this.state.querySourceList, this.state.geneList, this.state.asyncDataLoadingCallback);
+    },
+
+    _initSearch: function() {
+        // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
+        if (this.state.targetSpecies === 'all') {
+            // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
+            this.state.targetGroupList = [
+                // Because only the three species are supported in monarch analyze/phenotypes page at this point - Joe
+                {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
+                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
+                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                // Disabled species
+                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
+                {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
+                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+            ];
+            
+            // load the target targetGroup list based on the active flag
+            this._parseTargetGroupList(false, this);
+        } else { 
+            // when single species is selected (taxon is passed in via this.state.targetSpecies)
+            // load just the one selected from the dropdown menu - Joe
+            if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
+                this._parseTargetGroupList(true, this);	
+            }	
+        }
+        
+        // initialize data processing class for simsearch query
+        this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+        
+        // starting loading the data from simsearch
+        this.state.dataLoader.load(this.state.querySourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.searchResultLimit);
+    },
 
     // when not work with monarch's analyze/phenotypes page
     // this can be single species mode or cross comparison mode depends on the config
@@ -770,7 +778,7 @@ var images = require('./images.json');
     _createOverviewTargetGroupLabels: function () {
 		// No need to display target group name for IMPC
         if ( ! this.state.dataFromVendor) {
-            if (this.state.owlSimFunction !== 'compare' && this.state.owlSimFunction !== 'exomiser') {
+            if (this.state.owlSimFunction !== 'compare') {
                 var self = this;
                 // targetGroupList is an array that contains all the selected targetGroup names
                 var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
@@ -1907,6 +1915,7 @@ var images = require('./images.json');
 
             var targetLabel = '';
             if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+                // Do not show the label as hyperlink since IMPC doesn't have this genotype link
                 targetLabel = targetInfo.label;
             } else {
                 targetLabel = this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
