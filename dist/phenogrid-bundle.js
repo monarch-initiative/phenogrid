@@ -326,7 +326,6 @@ var Utils = require('./utils.js');
  		servers, transformations.
  
  	Parameters:
- 	 	parent - reference to parent calling object
  		serverUrl - sim server url
  		simSearchQuery - sim search query specific url string
         limit - cutoff number
@@ -703,6 +702,20 @@ DataLoader.prototype = {
 	}, 
     
 
+    /*
+		Function: transformDataForVendor
+
+			transforms data from raw owlsims into simplified format for vendor use
+
+		 	For a given model, extract the sim search data including IC scores and the triple:
+		    The a column, b column, and lowest common subsumer for the triple's IC score, use the LCS score
+		 	
+	 	Parameters:
+
+            vendorData - vendor-specific data, used to modify the final dataset
+	 		targetGroup - targetGroup name
+	 		data - owlsims structured data
+	*/
     transformDataForVendor: function(vendorData, targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
@@ -844,8 +857,20 @@ DataLoader.prototype = {
 		} // if
 	},  
     
-    // used to transform genotype/phenotype matches 
-    // modified based on transform() - Joe
+    /*
+		Function: genotypeTransform
+
+			transforms data from raw owlsims into simplified format
+
+		 	For a given model, extract the sim search data including IC scores and the triple:
+		    The a column, b column, and lowest common subsumer for the triple's IC score, use the LCS score
+		 	
+	 	Parameters:
+
+	 		targetGroup - targetGroup name
+	 		data - owlsims structured data
+            parentGeneID - the parent gene ID that these genotypes are associated with
+	*/
     genotypeTransform: function(targetGroup, data, parentGeneID) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			
