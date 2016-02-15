@@ -2025,7 +2025,7 @@ var images = require('./images.json');
             // For IMPC integration
             dataFromVendor: false, // true or false, default false
             dataVendorName: 'IMPC',
-            gridAxes: {}, //  skeleton json structure: https://github.com/monarch-initiative/phenogrid/blob/impc-integration/js/impc.json
+            gridSkeletonData: {}, //  skeleton json structure: https://github.com/monarch-initiative/phenogrid/blob/impc-integration/js/impc.json
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search'
             targetSpecies: '', // quoted 'taxon number' or 'all'
@@ -2302,14 +2302,12 @@ var images = require('./images.json');
     
     // Load vendor provided data via ajax
     _loadDataFromVendor: function() {
-        this.state.vendorData = this.state.gridAxes;
-        
         // Use IMPC title
-        this.state.gridTitle = this.state.vendorData.title;
+        this.state.gridTitle = this.state.gridSkeletonData.title;
 
         // use the human phenotypes from the input JSON
-        for (var i in this.state.vendorData.yAxis[0].phenotypes) {
-            this.state.phenotypeData.push(this.state.vendorData.yAxis[0].phenotypes[i].id);
+        for (var i in this.state.gridSkeletonData.yAxis[0].phenotypes) {
+            this.state.phenotypeData.push(this.state.gridSkeletonData.yAxis[0].phenotypes[i].id);
         }
 
          // Remove duplicated source IDs - Joe
@@ -2330,16 +2328,16 @@ var images = require('./images.json');
         this._parseTargetGroupList(true, this);
 
         var listOfLists = [];
-        for (var idx in this.state.vendorData.xAxis) {
+        for (var idx in this.state.gridSkeletonData.xAxis) {
             var eachList = [];
-            for (var i in this.state.vendorData.xAxis[idx].phenotypes) {
-                eachList.push(this.state.vendorData.xAxis[idx].phenotypes[i].id);
+            for (var i in this.state.gridSkeletonData.xAxis[idx].phenotypes) {
+                eachList.push(this.state.gridSkeletonData.xAxis[idx].phenotypes[i].id);
             }
             // add new property
-            this.state.vendorData.xAxis[idx].combinedList = eachList.join('+');
+            this.state.gridSkeletonData.xAxis[idx].combinedList = eachList.join('+');
             // default separator of array.join(separator) is comma
             // join all the MP inside each MP list with plus sign, and join each list with default comma
-            listOfLists.push(this.state.vendorData.xAxis[idx].combinedList);
+            listOfLists.push(this.state.gridSkeletonData.xAxis[idx].combinedList);
         }
         
         // use the default comma to separate each list into each genotype profile
@@ -2349,7 +2347,7 @@ var images = require('./images.json');
         this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
         // starting loading the owlsim data from compare api for this vendor
-        this.state.dataLoader.loadCompareDataForVendor(this.state.vendorData, this.state.targetGroupList[0].name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+        this.state.dataLoader.loadCompareDataForVendor(this.state.gridSkeletonData, this.state.targetGroupList[0].name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
     },
     
     // Phenogrid container div
@@ -4382,10 +4380,10 @@ var images = require('./images.json');
             if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
                 var impcUnmatchedSources = [];
                 for (var i=0; i< this.state.unmatchedSources.length; i++) {
-                    for (var idx in this.state.vendorData.yAxis[0].phenotypes) {
-                        if (this.state.vendorData.yAxis[0].phenotypes[idx].id === this.state.unmatchedSources[i]) {
+                    for (var idx in this.state.gridSkeletonData.yAxis[0].phenotypes) {
+                        if (this.state.gridSkeletonData.yAxis[0].phenotypes[idx].id === this.state.unmatchedSources[i]) {
                             // use "label" instead of "term" here
-                            var item = {id: this.state.vendorData.yAxis[0].phenotypes[idx].id, label: this.state.vendorData.yAxis[0].phenotypes[idx].term};
+                            var item = {id: this.state.gridSkeletonData.yAxis[0].phenotypes[idx].id, label: this.state.gridSkeletonData.yAxis[0].phenotypes[idx].term};
                             impcUnmatchedSources.push(item);
                             break;
                         }
