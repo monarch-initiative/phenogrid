@@ -314,7 +314,7 @@ var images = require('./images.json');
         // this can be single species mode or cross comparison mode depends on the config
         // load the default selected target targetGroup list based on the active flag in config, 
         // has nothing to do with the monarch's analyze phenotypes page - Joe
-        this._parseTargetGroupList(false, this);
+        this._parseTargetGroupList(false);
         
         // initialize data processing class for simsearch query
         this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
@@ -332,7 +332,7 @@ var images = require('./images.json');
         ];
         
         // load the target targetGroup list based on the active flag
-        this._parseTargetGroupList(false, this);	
+        this._parseTargetGroupList(false);	
 
         // initialize data processing class for compare query
         this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
@@ -358,12 +358,12 @@ var images = require('./images.json');
             ];
             
             // load the target targetGroup list based on the active flag
-            this._parseTargetGroupList(false, this);
+            this._parseTargetGroupList(false);
         } else { 
             // when single species is selected (taxon is passed in via this.state.targetSpecies)
             // load just the one selected from the dropdown menu - Joe
             if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
-                this._parseTargetGroupList(true, this);	
+                this._parseTargetGroupList(true);	
             }	
         }
         
@@ -378,20 +378,20 @@ var images = require('./images.json');
     // this can be single species mode or cross comparison mode depends on the config
     // load the default selected target targetGroup list based on the active flag in config, 
     // has nothing to do with the monarch's analyze phenotypes page - Joe
-    _parseTargetGroupList: function(forSingleSpecies, self) {
-        for (var idx in self.state.targetGroupList) {
+    _parseTargetGroupList: function(forSingleSpecies) {
+        for (var idx in this.state.targetGroupList) {
             if (forSingleSpecies === true) {
-                self.state.initialTargetGroupLoadList.push(self.state.targetGroupList[idx]);	
-                self.state.selectedCompareTargetGroup.push(self.state.targetGroupList[idx]);	
+                this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
+                this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
             } else {
                 // for active targetGroup pre-load them
-                if (self.state.targetGroupList[idx].active) {
-                    self.state.initialTargetGroupLoadList.push(self.state.targetGroupList[idx]);	
+                if (this.state.targetGroupList[idx].active) {
+                    this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
                 }	
                 // should they be shown in the comparison view
                 // crossComparisonView matters only when active = true - Joe
-                if (self.state.targetGroupList[idx].active && self.state.targetGroupList[idx].crossComparisonView) {
-                    self.state.selectedCompareTargetGroup.push(self.state.targetGroupList[idx]);	
+                if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
+                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                 }
             }
         }
@@ -421,7 +421,7 @@ var images = require('./images.json');
         ];
         
         // load the target targetGroup list based on the active flag
-        this._parseTargetGroupList(true, this);
+        this._parseTargetGroupList(true);
 
         var listOfLists = [];
         for (var idx in this.state.gridSkeletonData.xAxis) {
