@@ -123,15 +123,7 @@ var images = require('./images.json');
             // For IMPC integration
             dataFromVendor: false, // true or false, default false
             dataVendorName: 'IMPC',
-            dataVendorQuery: {
-                URL: 'https://dev.mousephenotype.org/data/phenodigm/phenogrid?requestPageType=disease',
-                geneIdString: '&geneId=',
-                diseaseIdString: '&diseaseId='
-            },
-            dataVendorQueryValue: {
-                gene: 'MGI:95523', // Sample gene ID
-                disease: 'OMIM:101600' // Sample disease ID
-            },
+            gridAxes: {}, //  skeleton json structure: https://github.com/monarch-initiative/phenogrid/blob/impc-integration/js/impc.json
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search'
             targetSpecies: '', // quoted 'taxon number' or 'all'
@@ -408,80 +400,54 @@ var images = require('./images.json');
     
     // Load vendor provided data via ajax
     _loadDataFromVendor: function() {
-        // Load the IMPC JSON
-        var self = this;
-        var callback = this._dataFromVendorCallback;
-        var url = this.state.dataVendorQuery.URL + this.state.dataVendorQuery.geneIdString + this.state.dataVendorQueryValue.gene + this.state.dataVendorQuery.diseaseIdString + this.state.dataVendorQueryValue.disease;
-
-        // Separate the ajax request with callbacks
-        var jqxhr = $.ajax({
-            //url: url, // Enable this and disable the localhost testing url later
-            url: 'http://localhost:8000/monarch-app/node_modules/phenogrid/js/impc.json',
-            method: 'GET', 
-            async: true, // So multiple phenogrid instances can load data parallel
-            dataType: 'json'
-        });
-        
-        jqxhr.done(function(data) {
-            console.log('IMPC data loaded:');
-            console.log(data);
-            callback(self, data); 
-        });
-        
-        jqxhr.fail(function () { 
-            console.log('Ajax error - _loadDataFromVendor()')
-        });
-    },
-    
-    // Callback function to handle vendor data and config before sending them to dataLoader
-    _dataFromVendorCallback: function(self, data) {
-        self.state.vendorData = data;
+        this.state.vendorData = this.state.gridAxes;
         
         // Use IMPC title
-        self.state.gridTitle = self.state.vendorData.title;
+        this.state.gridTitle = this.state.vendorData.title;
 
         // use the human phenotypes from the input JSON
-        for (var i in self.state.vendorData.yAxis[0].phenotypes) {
-            self.state.phenotypeData.push(self.state.vendorData.yAxis[0].phenotypes[i].id);
+        for (var i in this.state.vendorData.yAxis[0].phenotypes) {
+            this.state.phenotypeData.push(this.state.vendorData.yAxis[0].phenotypes[i].id);
         }
 
          // Remove duplicated source IDs - Joe
-        var querySourceList = self._parseQuerySourceList(self.state.phenotypeData);
+        var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
         
         // no change to the callback - Joe
+        var self = this;
         var asyncDataLoadingCallback = function() {
             self._asyncDataLoadingCB(self); 
         };
         
         // IMPC is designed for only Mus musculus
-        self.state.targetGroupList = [
+        this.state.targetGroupList = [
             {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true}
         ];
         
         // load the target targetGroup list based on the active flag
-        self._parseTargetGroupList(true, self);
+        this._parseTargetGroupList(true, this);
 
         var listOfLists = [];
-        for (var idx in self.state.vendorData.xAxis) {
+        for (var idx in this.state.vendorData.xAxis) {
             var eachList = [];
-            for (var i in self.state.vendorData.xAxis[idx].phenotypes) {
-                eachList.push(self.state.vendorData.xAxis[idx].phenotypes[i].id);
+            for (var i in this.state.vendorData.xAxis[idx].phenotypes) {
+                eachList.push(this.state.vendorData.xAxis[idx].phenotypes[i].id);
             }
             // add new property
-            self.state.vendorData.xAxis[idx].combinedList = eachList.join('+');
+            this.state.vendorData.xAxis[idx].combinedList = eachList.join('+');
             // default separator of array.join(separator) is comma
             // join all the MP inside each MP list with plus sign, and join each list with default comma
-            listOfLists.push(self.state.vendorData.xAxis[idx].combinedList);
+            listOfLists.push(this.state.vendorData.xAxis[idx].combinedList);
         }
         
         // use the default comma to separate each list into each genotype profile
         var multipleTargetEntities = listOfLists.join();
 
         // initialize data processing class for compare query
-        self.state.dataLoader = new DataLoader(self.state.serverURL, self.state.compareQuery);
+        this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
         // starting loading the owlsim data from compare api for this vendor
-        self.state.dataLoader.loadCompareDataForVendor(self.state.vendorData, self.state.targetGroupList[0].name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+        this.state.dataLoader.loadCompareDataForVendor(this.state.vendorData, this.state.targetGroupList[0].name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
     },
     
     // Phenogrid container div
