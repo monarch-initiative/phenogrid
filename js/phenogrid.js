@@ -286,7 +286,7 @@ var images = require('./images.json');
 
         // IMPC integration, IMPC returns its own list of mouse phenotypes
         if (this.state.gridSkeletonDataVendor === 'IMPC') {
-            this._loadDataFromVendor();
+            this._initGridSkeleton();
         } else {
             // Remove duplicated source IDs - Joe
             this.state.querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
@@ -397,9 +397,8 @@ var images = require('./images.json');
         }
     },
     
-    // Load vendor provided data via ajax
-    _loadDataFromVendor: function() {
-        // Use IMPC title
+
+    _initGridSkeleton: function() {
         this.state.gridTitle = this.state.gridSkeletonData.title;
 
         // use the human phenotypes from the input JSON
@@ -2657,8 +2656,8 @@ var images = require('./images.json');
         $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
 		// The height of .pg_controls_options defined in phenogrid.css - Joe
 		var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
-		// shrink the height for IMPC since we don't show the species selection
-        if (this.state.gridSkeletonDataVendor === 'IMPC') {
+		// shrink the height when we don't show the species selection
+        if (this.state.initialTargetGroupLoadList.length === 1) {
             pg_ctrl_options.css('height', 280);
         }
         // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
