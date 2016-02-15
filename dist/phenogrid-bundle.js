@@ -2294,12 +2294,13 @@ var images = require('./images.json');
             self._asyncDataLoadingCB(self); 
         };
         
-        // IMPC is designed for only Mus musculus
+        // For only single species
+        // If multi species needed as target groups, we'll need to change the skelton structure
         // Merge the provided this.state.gridSkeletonTargetGroup properties with {crossComparisonView: true, active: true}
         // so the new object is in the desired format
-        var targetGroup = $.extend({}, this.state.gridSkeletonTargetGroup, {crossComparisonView: true, active: true});
+        var normalizedTargetGroup = $.extend({}, this.state.gridSkeletonTargetGroup, {crossComparisonView: true, active: true});
         this.state.targetGroupList = [
-            targetGroup
+            normalizedTargetGroup
         ];
         
         // load the target targetGroup list based on the active flag
@@ -2325,7 +2326,7 @@ var images = require('./images.json');
         this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
         // starting loading the owlsim data from compare api for this vendor
-        this.state.dataLoader.loadCompareDataForVendor(this.state.gridSkeletonData, this.state.targetGroupList[0].name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+        this.state.dataLoader.loadCompareDataForVendor(this.state.gridSkeletonData, this.state.gridSkeletonTargetGroup.name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
     },
     
     // when not work with monarch's analyze/phenotypes page
