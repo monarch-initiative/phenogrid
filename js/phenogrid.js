@@ -121,8 +121,7 @@ var images = require('./images.json');
                 noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
             },
             // For IMPC integration
-            dataFromVendor: false, // true or false, default false
-            dataVendorName: 'IMPC',
+            gridSkeletonDataVendor: 'IMPC',
             gridSkeletonData: {}, //  skeleton json structure: https://github.com/monarch-initiative/phenogrid/blob/impc-integration/js/impc.json
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search'
@@ -286,7 +285,7 @@ var images = require('./images.json');
 		this._showLoadingSpinner();		
 
         // IMPC integration, IMPC returns its own list of mouse phenotypes
-        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+        if (this.state.gridSkeletonDataVendor === 'IMPC') {
             this._loadDataFromVendor();
         } else {
             // Remove duplicated source IDs - Joe
@@ -740,58 +739,55 @@ var images = require('./images.json');
 	},
     
     _createOverviewTargetGroupLabels: function () {
-		// No need to display target group name for IMPC
-        if ( ! this.state.dataFromVendor) {
-            if (this.state.owlSimFunction !== 'compare') {
-                var self = this;
-                // targetGroupList is an array that contains all the selected targetGroup names
-                var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
+        if (this.state.owlSimFunction !== 'compare') {
+            var self = this;
+            // targetGroupList is an array that contains all the selected targetGroup names
+            var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.name;}); 
 
-                // Inverted and multi targetGroup
-                if (self.state.invertAxis) { 
-                    var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
+            // Inverted and multi targetGroup
+            if (self.state.invertAxis) { 
+                var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
 
-                    this.state.svg.selectAll(".pg_targetGroup_name")
-                        .data(targetGroupList)
-                        .enter()
-                        .append("text")
-                        .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
-                        .attr("y", function(d, i) { 
-                                return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-                            })
-                        .attr('transform', function(d, i) {
-                            var currX = self.state.gridRegion.x + self._gridWidth() + 25;
-                            var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-                            return 'rotate(90 ' + currX + ' ' + currY + ')';
-                        }) // rotate by 90 degrees 
-                        .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                        .text(function (d, i){
-                            return targetGroupList[i];
+                this.state.svg.selectAll(".pg_targetGroup_name")
+                    .data(targetGroupList)
+                    .enter()
+                    .append("text")
+                    .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
+                    .attr("y", function(d, i) { 
+                            return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
                         })
-                        .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
-                } else {
-                    var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
+                    .attr('transform', function(d, i) {
+                        var currX = self.state.gridRegion.x + self._gridWidth() + 25;
+                        var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                        return 'rotate(90 ' + currX + ' ' + currY + ')';
+                    }) // rotate by 90 degrees 
+                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                    .text(function (d, i){
+                        return targetGroupList[i];
+                    })
+                    .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
+            } else {
+                var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
 
-                    this.state.svg.selectAll(".pg_targetGroup_name")
-                        .data(targetGroupList)
-                        .enter()
-                        .append("text")
-                        .attr("x", function(d, i){ 
-                                return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
-                            })
-                        .attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
-                        .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                        .text(function(d, i){return targetGroupList[i];})
-                        .attr("text-anchor", function() {
-                            if (self._isCrossComparisonView()) {
-                                return 'start'; // Try to align with the rotated divider lines for cross-target comparison
-                            } else {
-                                return 'middle'; // Position the label in middle for single species
-                            }
-                        }); 
-                }
-            } 
-        }
+                this.state.svg.selectAll(".pg_targetGroup_name")
+                    .data(targetGroupList)
+                    .enter()
+                    .append("text")
+                    .attr("x", function(d, i){ 
+                            return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
+                        })
+                    .attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+                    .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                    .text(function(d, i){return targetGroupList[i];})
+                    .attr("text-anchor", function() {
+                        if (self._isCrossComparisonView()) {
+                            return 'start'; // Try to align with the rotated divider lines for cross-target comparison
+                        } else {
+                            return 'middle'; // Position the label in middle for single species
+                        }
+                    }); 
+            }
+        } 
 	},
 
     // Create minimap and scrollbars based on needs
@@ -1883,7 +1879,7 @@ var images = require('./images.json');
         }
 
         var targetLabel = '';
-        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+        if (this.state.gridSkeletonDataVendor === 'IMPC') {
             // Do not show the label as hyperlink since IMPC doesn't have this genotype link
             targetLabel = targetInfo.label;
         } else {
@@ -1958,7 +1954,7 @@ var images = require('./images.json');
             htmlContent = this._phenotypeTooltip(id, data);	
         } else if (data.type === 'cell') {
             htmlContent = this._cellTooltip(id, data);	
-        } else if (data.type === 'genotype' && this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+        } else if (data.type === 'genotype' && this.state.gridSkeletonDataVendor === 'IMPC') {
             htmlContent = this._vendorTooltip(id, data);	
         } else {
             htmlContent = this._defaultTooltip(id, data);	
@@ -2125,7 +2121,8 @@ var images = require('./images.json');
 	      	.attr("y", xScale.rangeBand()+2)  //2
 		    .attr("dy", ".32em")
             .style('fill', function(d) { // add different color to genotype labels
-                if (d.type === 'genotype' && self.state.dataFromVendor === false) {
+                // Only added genotypes have this `parentGeneID` property
+                if (d.type === 'genotype' && typeof(d.parentGeneID) !== 'undefined') {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for export purpose - Joe
                 } else {
                     return '';
@@ -2155,7 +2152,8 @@ var images = require('./images.json');
                 .attr('width', gridRegion.cellSize)
                 .attr('height', self._gridHeight())
                 .style('fill', function(d){
-                    if (d.type === 'genotype' && self.state.dataFromVendor === false) {
+                    // Only added genotypes have this `parentGeneID` property
+                    if (d.type === 'genotype' && typeof(d.parentGeneID) !== 'undefined') {
                         return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                     } else {
                         return 'none'; // transparent 
@@ -2199,7 +2197,8 @@ var images = require('./images.json');
             // we'll need to get the genotype data from yAxisRender - Joe
             .style('fill', function(d, i) { // add different color to genotype labels
                 var el = self.state.yAxisRender.itemAt(i);
-                if (el.type === 'genotype' && self.state.dataFromVendor === false) {
+                // Only added genotypes have this `parentGeneID` property
+                if (el.type === 'genotype' && typeof(el.parentGeneID) !== 'undefined') {
                     return '#EA763B'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                 } else {
                     return '';
@@ -2230,7 +2229,8 @@ var images = require('./images.json');
                 .attr('height', gridRegion.cellSize)
                 .style('fill', function(d, i) { // add different color to genotype labels
                     var el = self.state.yAxisRender.itemAt(i);
-                    if (el.type === 'genotype' && self.state.dataFromVendor === false) {
+                    // Only added genotypes have this `parentGeneID` property
+                    if (el.type === 'genotype' && typeof(el.parentGeneID) !== 'undefined') {
                         return '#ededed'; // fill color needs to be here instead of CSS, for SVG export purpose - Joe
                     } else {
                         return 'none'; // transparent 
@@ -2475,7 +2475,7 @@ var images = require('./images.json');
             $('#' + this.state.pgInstanceId + '_unmatched_list').hide(); // Hide by default
             
             // IMPC input data ships will all HP labels, no need to grab via ajax - Joe
-            if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+            if (this.state.gridSkeletonDataVendor === 'IMPC') {
                 var impcUnmatchedSources = [];
                 for (var i=0; i< this.state.unmatchedSources.length; i++) {
                     for (var idx in this.state.gridSkeletonData.yAxis[0].phenotypes) {
@@ -2521,12 +2521,10 @@ var images = require('./images.json');
 		
 		var options = $(optionhtml);
         
-        // only show the Organism(s) option when not in compare mode - Joe
-        if (this.state.owlSimFunction !== 'compare') {
-            if (this.state.dataFromVendor !== true) {
-                var orgSel = this._createOrganismSelection();
-		        options.append(orgSel);
-            } 
+        // only show the Organism(s) option when we have at least two speices
+        if (this.state.initialTargetGroupLoadList.length > 1) {
+            var orgSel = this._createOrganismSelection();
+		    options.append(orgSel);
         }
 
 		var sortSel = this._createSortPhenotypeSelection();
@@ -2660,7 +2658,7 @@ var images = require('./images.json');
 		// The height of .pg_controls_options defined in phenogrid.css - Joe
 		var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
 		// shrink the height for IMPC since we don't show the species selection
-        if (this.state.dataFromVendor && this.state.dataVendorName === 'IMPC') {
+        if (this.state.gridSkeletonDataVendor === 'IMPC') {
             pg_ctrl_options.css('height', 280);
         }
         // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
