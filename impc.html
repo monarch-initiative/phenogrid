@@ -2153,7 +2153,8 @@ window.onload = function() {
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
         serverURL: "http://monarchinitiative.org",
         gridSkeletonDataVendor: 'IMPC',
-        gridSkeletonData: IMPCData
+        gridSkeletonData: IMPCData,
+        gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"}
     });
 }
 </script>
