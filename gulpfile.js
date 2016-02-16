@@ -16,7 +16,7 @@ var rename = require("gulp-rename");
 var mocha = require('gulp-mocha'); // Keep in mind that this is just a thin wrapper around Mocha and your issue is most likely with Mocha
 var streamify = require('gulp-streamify');
 var uglify = require('gulp-uglify');
-var minifyCSS = require('gulp-minify-css');
+var cssnano = require('gulp-cssnano');
 var concat = require('gulp-concat');
 var replace = require('gulp-replace');
 var marked = require('marked');
@@ -120,7 +120,7 @@ gulp.task('css-bundle', function(cb) {
     return gulp.src(config.css.source)
         .pipe(concat(config.css.target))
         .pipe(replace(config.css.replace.search, config.css.replace.replace)) // change fonts path in font-awesome.css
-        .pipe(minifyCSS()) //Minify CSS
+        .pipe(cssnano()) //Minify CSS
         .pipe(gulp.dest(config.dist));
 });
 
