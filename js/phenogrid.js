@@ -691,7 +691,7 @@ var images = require('./images.json');
 
     _createSvgComponents: function() {
         this._createSvgContainer();
-        this._addLogoImage();
+        // this._addLogoImage(); // Let's not to add the logo for now - Joe
         this._createOverviewTargetGroupLabels();
         this._createNavigation();
         this._createGrid();
@@ -2614,7 +2614,7 @@ var images = require('./images.json');
             // SVG styles are applied with D3, not in CSS for this exporting purpose
             var svgElementClone = $('#' + self.state.pgInstanceId + '_svg').clone(); // clone the svg to manipulate
             // Use data uri for svg logo
-            svgElementClone.find('#' + self.state.pgInstanceId + '_logo').attr('href',images.logo);
+            //svgElementClone.find('#' + self.state.pgInstanceId + '_logo').attr('href', images.logo);
             svgElementClone.find('#' + self.state.pgInstanceId + '_scores_tip_icon').remove(); // remove fontawesome icon
             svgElementClone.find('#' + self.state.pgInstanceId + '_monarchinitiative_text').removeClass('pg_hide'); // Show text in exported SVG
             
@@ -2642,12 +2642,11 @@ var images = require('./images.json');
     // To be used for exported phenogrid SVG, hide this by default
     _createMonarchInitiativeText: function() {
         this.state.svg.append("text")
-			.attr("x", this.state.gridRegion.x)
+			.attr("x", this.state.gridRegion.x - 90)
 			.attr("y", this.state.gridRegion.y + this._gridHeight() + 90) // 90 is margin
 			.attr("id", this.state.pgInstanceId + "_monarchinitiative_text")
-			.attr('class', 'pg_hide') // Only show this text in exported SVG of Phenogrid 
-            .style('font-size', '11px')
-			.text(this.state.serverURL);
+            .style('font-size', '10px')
+			.text('Phenotype comparison data provided by the Monarch Initiative ' + this.state.serverURL);
     },
     
 	// Position the control panel when the gridRegion changes
