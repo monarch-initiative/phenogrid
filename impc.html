@@ -2149,14 +2149,23 @@ IMPCData = {
 };
 
 window.onload = function() {
-    // IMPC testing
-    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
+    // IMPC testing 1
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
+        serverURL: "http://monarchinitiative.org",
+        gridSkeletonDataVendor: 'IMPC',
+        gridSkeletonData: IMPCData,
+        gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"}
+    });
+    
+    // IMPC testing 2
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
         serverURL: "http://monarchinitiative.org",
         gridSkeletonDataVendor: 'IMPC',
         gridSkeletonData: IMPCData,
         gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"}
     });
 }
+
 </script>
 
 </head>
@@ -2164,8 +2173,8 @@ window.onload = function() {
 <body>
 
 
-<div id="phenogrid_container" class="clearfix"></div>
-
+<div id="phenogrid_container1" class="clearfix"></div>
+<div id="phenogrid_container2" class="clearfix"></div>
 
 </body>
 </html>

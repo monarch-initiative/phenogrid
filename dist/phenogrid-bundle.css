@@ -3818,6 +3818,7 @@ padding:0;
 position:absolute;
 left:0;
 top:0;
+z-index:999;
 }
 
 .pg_container  .pg_unmatched_list {
