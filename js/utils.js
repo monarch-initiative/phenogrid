@@ -46,11 +46,11 @@ var Utils = {
 	getShortLabel: function(label, newlength) {
 		if (label !== undefined){
 			var retLabel = label;
-			if (!newlength) {
-				newlength = 34;  //this.state.textLength;
+			if ( ! newlength) {
+				newlength = 30;  //this.state.textLength;
 			}
 			if (label.length > newlength) {
-				retLabel = label.substring(0,newlength-3) + "...";
+				retLabel = label.substring(0, newlength - 3) + "...";
 			}	
 			return retLabel;
 		}else {
