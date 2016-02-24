@@ -3657,7 +3657,7 @@ var images = require('./images.json');
         // Add the top main title to pg_svg_group
         this.state.svg.append("svg:text")
             .attr("id", this.state.pgInstanceId + "_toptitle")
-            .attr("x", this.state.gridRegion.x + this._gridWidth()/2) // Calculated based on the gridRegion - Joe
+            .attr("x", this.state.gridRegion.x + this.state.defaultSingleTargetDisplayLimit*this.state.gridRegion.cellPad/2) // Calculated based on the defaultSingleTargetDisplayLimit - Joe
             .attr("y", 40) // Fixed y position - Joe
             .style('text-anchor', 'middle') // Center the main title - Joe
             .style('font-size', '1.4em')
