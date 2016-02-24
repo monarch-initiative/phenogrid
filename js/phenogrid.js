@@ -372,9 +372,11 @@ var images = require('./images.json');
     },
 
     _initGridSkeleton: function() {
-        // Use provided grid title if there's one, otherwise use the default title
+        // Use provided grid title if there's one, otherwise set as empty
         if (typeof(this.state.gridSkeletonData.title) !== 'undefined' && this.state.gridSkeletonData.title !== '') {
             this.state.gridTitle = this.state.gridSkeletonData.title;
+        } else {
+            this.state.gridTitle = '';
         }
         
         // use the human phenotypes from the input JSON
@@ -1257,10 +1259,8 @@ var images = require('./images.json');
     
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
-        var toptitleWidth = parseInt($('#' + this.state.pgInstanceId + '_toptitle').attr('x')) + $('#' + this.state.pgInstanceId + '_toptitle')[0].getBoundingClientRect().width/2;
-        var calculatedSvgWidth = this.state.gridRegion.x + this._gridWidth();
-        var svgWidth = (toptitleWidth >= calculatedSvgWidth) ? toptitleWidth : calculatedSvgWidth;
-        
+        var svgWidth = this.state.gridRegion.x + this.state.defaultSingleTargetDisplayLimit*this.state.gridRegion.cellPad + 200; // Add 200 to cover the Options button - Joe
+
         d3.select('#' + this.state.pgInstanceId + '_svg')
             .attr('width', svgWidth + 100)
             .attr('height', this.state.gridRegion.y + this._gridHeight() + 100); // Add an extra 100 to height - Joe
@@ -1746,15 +1746,17 @@ var images = require('./images.json');
 
 	// Grid main top title
 	_addGridTitle: function() {
-        // Add the top main title to pg_svg_group
-        this.state.svg.append("svg:text")
-            .attr("id", this.state.pgInstanceId + "_toptitle")
-            .attr("x", this.state.gridRegion.x + this.state.defaultSingleTargetDisplayLimit*this.state.gridRegion.cellPad/2) // Calculated based on the defaultSingleTargetDisplayLimit - Joe
-            .attr("y", 40) // Fixed y position - Joe
-            .style('text-anchor', 'middle') // Center the main title - Joe
-            .style('font-size', '1.4em')
-            .style('font-weight', 'bold')
-            .text(this.state.gridTitle);
+        if (this.state.gridTitle !== '') {
+            // Add the top main title to pg_svg_group
+            this.state.svg.append("svg:text")
+                .attr("id", this.state.pgInstanceId + "_toptitle")
+                .attr("x", this.state.gridRegion.x + this.state.defaultSingleTargetDisplayLimit*this.state.gridRegion.cellPad/2) // Calculated based on the defaultSingleTargetDisplayLimit - Joe
+                .attr("y", 40) // Fixed y position - Joe
+                .style('text-anchor', 'middle') // Center the main title - Joe
+                .style('font-size', '1.4em')
+                .style('font-weight', 'bold')
+                .text(this.state.gridTitle);
+        }
 	},
 
     // data is either cell data or label data details - Joe
