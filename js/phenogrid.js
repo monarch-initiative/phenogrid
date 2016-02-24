@@ -145,6 +145,7 @@ var images = require('./images.json');
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             },
             unmatchedButtonLabel: 'Unmatched Phenotypes',
+            optionsBtnText: 'Options',
             gridTitle: 'Phenotype Similarity Comparison',       
             defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
             defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
@@ -2526,7 +2527,7 @@ var images = require('./images.json');
 		var optionhtml = '<div id="' + this.state.pgInstanceId + '_controls_options" class="pg_controls_options"><i id="' + this.state.pgInstanceId + '_controls_close" class="fa fa-times pg_controls_close"></i><span class="pg_controls_options_arrow_border"></span><span class="pg_controls_options_arrow"></span></div>';
 		
 		// Hide/show panel - button - Joe
-		var slideBtn = '<div id="' + this.state.pgInstanceId + '_slide_btn" class="pg_slide_btn"><i class="fa fa-bars"></i> OPTIONS</div>';
+		var slideBtn = '<div id="' + this.state.pgInstanceId + '_slide_btn" class="pg_slide_btn"><i class="fa fa-bars"></i> ' + this.state.optionsBtnText + '</div>';
 		
 		var options = $(optionhtml);
         
@@ -2662,7 +2663,10 @@ var images = require('./images.json');
 		var gridRegion = this.state.gridRegion; 
 		var marginTop = 17; // Create some whitespace between the button and the y labels 
 		$('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
-        $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this._gridWidth() + 20); // 20 is margin
+        
+        // Place the options button to the right of the default limit of columns
+        $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + 20); // 20 is margin
+        
 		// The height of .pg_controls_options defined in phenogrid.css - Joe
 		var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
 		// shrink the height when we don't show the species selection
@@ -2671,7 +2675,7 @@ var images = require('./images.json');
         }
         // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
-        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + 42); // create a 10px gap between the vertical scrollbar (12px wide) - Joe
+        pg_ctrl_options.css('left', gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + 20); 
     },	
 	
 	_createOrganismSelection: function() {
