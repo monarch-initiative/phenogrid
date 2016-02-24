@@ -144,6 +144,7 @@ var images = require('./images.json');
             compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             },
+            monarchInitiativeText: 'Phenotype comparison data provided by the Monarch Initiative',
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             optionsBtnText: 'Options',
             gridTitle: 'Phenotype Similarity Comparison',       
@@ -2649,11 +2650,12 @@ var images = require('./images.json');
     // To be used for exported phenogrid SVG, hide this by default
     _createMonarchInitiativeText: function() {
         this.state.svg.append("text")
-			.attr("x", this.state.gridRegion.x - 90)
+			.attr("x", this.state.gridRegion.x + this.state.defaultSingleTargetDisplayLimit*this.state.gridRegion.cellPad/2)
 			.attr("y", this.state.gridRegion.y + this._gridHeight() + 90) // 90 is margin
 			.attr("id", this.state.pgInstanceId + "_monarchinitiative_text")
+            .style('text-anchor', 'middle')
             .style('font-size', '10px')
-			.text('Phenotype comparison data provided by the Monarch Initiative ' + this.state.serverURL);
+			.text(this.state.monarchInitiativeText + ' ' + this.state.serverURL);
     },
     
 	// Position the control panel when the gridRegion changes
