@@ -4700,7 +4700,7 @@ var images = require('./images.json');
 		var gridRegion = this.state.gridRegion; 
 		$('#' + this.state.pgInstanceId + '_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
         $('#' + this.state.pgInstanceId + '_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#' + this.state.pgInstanceId + '_unmatched_btn').outerHeight() + + 17 + 10);
-        $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this._gridWidth() - 20); // don't include the paddings 2*10px = 20 - Joe
+        $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad -20); 
     },	
     
     // ajax callback
