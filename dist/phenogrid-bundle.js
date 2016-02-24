@@ -3161,10 +3161,10 @@ var images = require('./images.json');
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
         var svgWidth = this.state.gridRegion.x + this.state.defaultSingleTargetDisplayLimit*this.state.gridRegion.cellPad + 200; // Add 200 to cover the Options button - Joe
-
+        
         d3.select('#' + this.state.pgInstanceId + '_svg')
-            .attr('width', svgWidth + 100)
-            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100); // Add an extra 100 to height - Joe
+            .attr('width', svgWidth)
+            .attr('height', this.state.gridRegion.y + this._gridHeight() + 100);     
     },
     
 	// Click the setting button to open the control options
