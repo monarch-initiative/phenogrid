@@ -1908,16 +1908,18 @@ var images = require('./images.json');
     _vendorTooltip: function(id, data) {
         var htmlContent = '';
         
-        // IMPC-specific tooltip rendering: Source, Background, IMPC gene
-        var source = '<strong>' + data.info[0].id + ': </strong> ' + data.info[0].value + '<br>';
-        var background = '<strong>' + data.info[1].id + ': </strong> ' + data.info[1].value + '<br>';
-        var impcGene = '<strong>' + data.info[2].id + ': </strong> ' + '<a href="'+ data.info[2].href +'" target="_blank">' + data.info[2].value + '</a>' + '<br>';
-        var phenodigm = '<strong>' + data.phenodigmScore.metric + ': </strong> ' + data.phenodigmScore.score.toFixed(2) + '<br>';
-        
-        htmlContent = source + background + impcGene + phenodigm;
-        
+        // Tooltip rendering for Vendor
+        for (var idx in data.info) {
+            // null is javascript object
+            if (typeof(data.info[idx].href) === 'string') {
+                htmlContent += '<strong>' + data.info[idx].id + ': </strong> ' + '<a href="'+ data.info[idx].href +'" target="_blank">' + data.info[idx].value + '</a>' + '<br>';
+            } else {
+                htmlContent += '<strong>' + data.info[idx].id + ': </strong> ' + data.info[idx].value + '<br>';
+            }
+        }
+
         // Finally return the rendered HTML result
-		return htmlContent;
+		return htmlContent.slice(0, -4); // Trim off the last '<br>'
     },
     
     _defaultTooltip: function(id, data) {
