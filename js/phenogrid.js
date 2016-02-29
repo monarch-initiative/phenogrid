@@ -730,10 +730,14 @@ var images = require('./images.json');
     
     // Positioned next to the grid region bottom
 	_addLogoImage: function() { 
-		var self = this;
+		var gridRegion = this.state.gridRegion;
+        
+        var x = (gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + gridRegion.rowLabelOffset)/2;
+        
+        var self = this;
         this.state.svg.append("svg:image")
 			.attr("xlink:href", images.logo)
-			.attr("x", this.state.gridRegion.x + $("#" + this.state.pgInstanceId + "_monarchinitiative_text")[0].getBoundingClientRect().width + 5) // 5 is left margin to the monarch text
+			.attr("x", x + $("#" + this.state.pgInstanceId + "_monarchinitiative_text")[0].getBoundingClientRect().width + 5) // 5 is left margin to the monarch text
 			.attr("y", this.state.gridRegion.y + this._gridHeight() + 74) // 74 is margin to grid bottom
 			.attr("id", this.state.pgInstanceId + "_logo")
 			.attr('class', 'pg_cursor_pointer')
@@ -2376,11 +2380,13 @@ var images = require('./images.json');
 	 * Add the gradient legend (bar and label texts) to the grid bottom
 	 */
 	_createGradientLegend: function(){
-		// Create a group for gradient bar and legend texts - Joe
+		var gridRegion = this.state.gridRegion;
+        
+        var x = gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad/2;
+        
+        // Create a group for gradient bar and legend texts - Joe
 		var gradientGrp = this.state.svg.append("g")
 			.attr('id', this.state.pgInstanceId + '_gradient_legend');
-			
-		var gridRegion = this.state.gridRegion;
 
 		// The <linearGradient> element is used to define a linear gradient background - Joe
 		// The <linearGradient> element must be nested within a <defs> tag. 
@@ -2405,7 +2411,7 @@ var images = require('./images.json');
 
 		// Create the gradient rect
 		gradientGrp.append("rect")
-			.attr("x", gridRegion.x)
+			.attr("x", x - this.state.gradientRegion.width/2)
 			.attr("y", gridRegion.y + this._gridHeight() + 60) // use x and y instead of transform since rect has x and y, 60 is margin - Joe
 			.attr("id", this.state.pgInstanceId + "_gradient_legend_rect")
 			.attr("width", this.state.gradientRegion.width)
@@ -2438,21 +2444,21 @@ var images = require('./images.json');
 
 		// create and position the low label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x)
+			.attr("x", x - this.state.gradientRegion.width/2)
 			.attr("y", yTexts)
 			.style('text-anchor', 'start') // Actually no need to specify this here since it's the default - Joe
 			.text(lowText);
 
 		// create and position the display type label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + (this.state.gradientRegion.width/2))
+			.attr("x", x)
 			.attr("y", yTexts)	
 			.style('text-anchor', 'middle') // This renders the middle of the text string as the current text position x - Joe			
 			.text(labelText);
 
 		// create and position the high label
 		gradientTextGrp.append("svg:text")
-			.attr("x", gridRegion.x + this.state.gradientRegion.width) 
+			.attr("x", x + this.state.gradientRegion.width/2) 
 			.attr("y", yTexts)	
             .style('text-anchor', 'end') // This renders the end of the text to align the end of the rect - Joe 			
 			.text(highText);
@@ -2646,8 +2652,10 @@ var images = require('./images.json');
 
     // To be used for exported phenogrid SVG, hide this by default
     _createMonarchInitiativeText: function() {
+        var gridRegion = this.state.gridRegion;
+        
         this.state.svg.append("text")
-			.attr("x", this.state.gridRegion.x)
+			.attr("x", (gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + gridRegion.rowLabelOffset)/2)
 			.attr("y", this.state.gridRegion.y + this._gridHeight() + 90) // 90 is margin
 			.attr("id", this.state.pgInstanceId + "_monarchinitiative_text")
             .style('font-size', '10px')
