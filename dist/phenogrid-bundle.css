@@ -3704,7 +3704,6 @@ font-size:12px;
 position:absolute;
 left:0;
 top:0;
-z-index:999;
 }
 
 .pg_container  .pg_controls_options {
@@ -3716,6 +3715,7 @@ padding:20px;
 color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
+z-index:999; /* Only use z-index on .pg_controls_options, not not the button */
 }
 
 .pg_container  .pg_controls_options_arrow_border{
