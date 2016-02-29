@@ -6634,8 +6634,8 @@ IMPCData3 = {
   ]
 };
 
-var gridColumnWidth = 25;
-var gridRowHeight= 15;
+var singleTargetModeTargetLengthLimit = 25;
+var sourceLengthLimit = 15;
 
 window.onload = function() {
     // IMPC testing 1
@@ -6644,8 +6644,8 @@ window.onload = function() {
         gridSkeletonDataVendor: 'IMPC',
         gridSkeletonData: IMPCData1,
         gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
-        defaultSingleTargetDisplayLimit: gridColumnWidth,
-        defaultSourceDisplayLimit: gridRowHeight
+        singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+        sourceLengthLimit: sourceLengthLimit
     });
     
     // IMPC testing 2
@@ -6654,8 +6654,8 @@ window.onload = function() {
         gridSkeletonDataVendor: 'IMPC',
         gridSkeletonData: IMPCData2,
         gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
-        defaultSingleTargetDisplayLimit: gridColumnWidth,
-        defaultSourceDisplayLimit: gridRowHeight
+        singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+        sourceLengthLimit: sourceLengthLimit
     });
 
 
@@ -6664,8 +6664,8 @@ window.onload = function() {
       gridSkeletonDataVendor: 'IMPC',
       gridSkeletonData: IMPCData3,
       gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
-      defaultSingleTargetDisplayLimit: gridColumnWidth,
-      defaultSourceDisplayLimit: gridRowHeight
+      singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+      sourceLengthLimit: sourceLengthLimit
     });
 }
 

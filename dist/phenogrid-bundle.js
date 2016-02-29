@@ -2049,9 +2049,9 @@ var images = require('./images.json');
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             optionsBtnText: 'Options',
             gridTitle: 'Phenotype Similarity Comparison',       
-            defaultSingleTargetDisplayLimit: 30, //  defines the limit of the number of targets to display
-            defaultSourceDisplayLimit: 30, //  defines the limit of the number of sources to display
-            defaultCrossCompareTargetLimitPerTargetGroup: 10,    // the number of visible targets per species to be displayed in cross compare mode  
+            singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
+            sourceLengthLimit: 30, //  defines the limit of the number of sources to display
+            crossCompareModeTargetLengthLimit: 10,    // the number of visible targets per species to be displayed in cross compare mode  
             xLabelCharDisplayCount : 27,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -2451,17 +2451,17 @@ var images = require('./images.json');
 
 		if (this._isCrossComparisonView()) {  
 			// create a combined list of targets
-			sourceList = this.state.dataManager.createCombinedSourceList(this.state.selectedCompareTargetGroup, this.state.defaultCrossCompareTargetLimitPerTargetGroup);	
+			sourceList = this.state.dataManager.createCombinedSourceList(this.state.selectedCompareTargetGroup, this.state.crossCompareModeTargetLengthLimit);	
 
 			// get the length of the sourceList, this sets that limit since we are in comparison mode
-			// only the defaultCrossCompareTargetLimitPerTargetGroup is set, which provides the overall display limit
+			// only the crossCompareModeTargetLengthLimit is set, which provides the overall display limit
 			this.state.sourceDisplayLimit = Object.keys(sourceList).length;
 
 			// create a combined list of targets
-			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.defaultCrossCompareTargetLimitPerTargetGroup);	
+			targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.crossCompareModeTargetLengthLimit);	
 
 			// get the length of the targetlist, this sets that limit since we are in comparison mode
-			// only the defaultCrossCompareTargetLimitPerTargetGroup is set, which provides the overall display limit
+			// only the crossCompareModeTargetLengthLimit is set, which provides the overall display limit
 			this.state.targetDisplayLimit = Object.keys(targetList).length;
 		} else if (this.state.selectedCompareTargetGroup.length === 1) {
 			// just get the target group name 
@@ -2470,7 +2470,7 @@ var images = require('./images.json');
 			
 			sourceList = this.state.dataManager.getData("source", singleTargetGroupName);
 
-			// set default display limits based on displaying defaultSourceDisplayLimit
+			// set default display limits based on displaying sourceLengthLimit
     		this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
 	
             // display all the expanded genotypes when we switch back from multi-species mode to single-species mode
@@ -2487,12 +2487,12 @@ var images = require('./images.json');
 		}
 
 		// check to make sure the display limits are not over the default display limits
-		if (this.state.sourceDisplayLimit > this.state.defaultSourceDisplayLimit) {
-			this.state.sourceDisplayLimit = this.state.defaultSourceDisplayLimit;  // adjust the display limit within default limit
+		if (this.state.sourceDisplayLimit > this.state.sourceLengthLimit) {
+			this.state.sourceDisplayLimit = this.state.sourceLengthLimit;  // adjust the display limit within default limit
 		}
 
-		if (this.state.targetDisplayLimit > this.state.defaultSingleTargetDisplayLimit) {
-			this.state.targetDisplayLimit = this.state.defaultSingleTargetDisplayLimit;
+		if (this.state.targetDisplayLimit > this.state.singleTargetModeTargetLengthLimit) {
+			this.state.targetDisplayLimit = this.state.singleTargetModeTargetLengthLimit;
 		} 
 
        	// creates AxisGroup with full source and target lists with default rendering range
@@ -2632,7 +2632,7 @@ var images = require('./images.json');
 	_addLogoImage: function() { 
 		var gridRegion = this.state.gridRegion;
         
-        var x = (gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + gridRegion.rowLabelOffset)/2;
+        var x = (gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset)/2;
         
         var self = this;
         this.state.svg.append("svg:image")
@@ -2718,25 +2718,25 @@ var images = require('./images.json');
         // check xCount based on yCount
         if ( ! this.state.invertAxis) {
             if ( ! this._isCrossComparisonView()) {
-                if (yCount >= this.state.defaultSourceDisplayLimit) {
-                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
+                if (yCount >= this.state.sourceLengthLimit) {
+                    if (xCount >= this.state.singleTargetModeTargetLengthLimit) {
                         // just use the default mini map width and height
                         this._createMinimap(width, height);
                         // create both horizontal and vertical scrollbars
                         this._createScrollbars(true, true);
                     } else {
-                        // shrink the width of mini map based on the xCount/this.state.defaultSingleTargetDisplayLimit
+                        // shrink the width of mini map based on the xCount/this.state.singleTargetModeTargetLengthLimit
                         // and keep the hight unchanged
-                        width = width * (xCount/this.state.defaultSingleTargetDisplayLimit);
+                        width = width * (xCount/this.state.singleTargetModeTargetLengthLimit);
                         this._createMinimap(width, height);
                         // only create vertical scrollbar
                         this._createScrollbars(false, true);
                     }
                 } else {
-                    if (xCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        // shrink the height of mini map based on the yCount/this.state.defaultSourceDisplayLimit ratio
+                    if (xCount >= this.state.singleTargetModeTargetLengthLimit) {
+                        // shrink the height of mini map based on the yCount/this.state.sourceLengthLimit ratio
                         // and keep the hight unchanged
-                        height = height * (yCount/this.state.defaultSourceDisplayLimit);
+                        height = height * (yCount/this.state.sourceLengthLimit);
                         this._createMinimap(width, height);
                         // only create horizontal scrollbar
                         this._createScrollbars(true, false);
@@ -2746,7 +2746,7 @@ var images = require('./images.json');
                 }
             } else {
                 // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
-                if (yCount >= this.state.defaultSourceDisplayLimit) {  
+                if (yCount >= this.state.sourceLengthLimit) {  
                     // just use the default mini map width and height
                     this._createMinimap(width, height);
                     // only create vertical scrollbar
@@ -2757,27 +2757,27 @@ var images = require('./images.json');
             }
 	   	} else {
             if ( ! this._isCrossComparisonView()) {
-                if (xCount >= this.state.defaultSourceDisplayLimit) {
-                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
+                if (xCount >= this.state.sourceLengthLimit) {
+                    if (yCount >= this.state.singleTargetModeTargetLengthLimit) {
                         this._createMinimap(width, height);
                         // create both horizontal and vertical scrollbars
                         this._createScrollbars(true, true);
                     } else {
-                        height = height * (yCount/this.state.defaultSingleTargetDisplayLimit);
+                        height = height * (yCount/this.state.singleTargetModeTargetLengthLimit);
                         this._createMinimap(width, height);
                         // only create horizontal scrollbar
                         this._createScrollbars(true, false);
                     }
                 } else {
-                    if (yCount >= this.state.defaultSingleTargetDisplayLimit) {
-                        width = width * (xCount/this.state.defaultSourceDisplayLimit);
+                    if (yCount >= this.state.singleTargetModeTargetLengthLimit) {
+                        width = width * (xCount/this.state.sourceLengthLimit);
                         this._createMinimap(width, height);
                         // only create vertical scrollbar
                         this._createScrollbars(false, true);
                     }
                 }
             } else {
-                if (xCount >= this.state.defaultSourceDisplayLimit) {  
+                if (xCount >= this.state.sourceLengthLimit) {  
                     this._createMinimap(width, height);
                     // only create horizontal scrollbar
                     this._createScrollbars(true, false);
@@ -3163,7 +3163,7 @@ var images = require('./images.json');
     
     _setSvgSize: function() {
         // Update the width and height of #pg_svg
-        var svgWidth = this.state.gridRegion.x + this.state.defaultSingleTargetDisplayLimit*this.state.gridRegion.cellPad + 200; // Add 200 to cover the Options button - Joe
+        var svgWidth = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + 200; // Add 200 to cover the Options button - Joe
         
         d3.select('#' + this.state.pgInstanceId + '_svg')
             .attr('width', svgWidth)
@@ -3654,7 +3654,7 @@ var images = require('./images.json');
             // Add the top main title to pg_svg_group
             this.state.svg.append("svg:text")
                 .attr("id", this.state.pgInstanceId + "_toptitle")
-                .attr("x", this.state.gridRegion.x + this.state.defaultSingleTargetDisplayLimit*this.state.gridRegion.cellPad/2) // Calculated based on the defaultSingleTargetDisplayLimit - Joe
+                .attr("x", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad/2) // Calculated based on the singleTargetModeTargetLengthLimit - Joe
                 .attr("y", 40) // Fixed y position - Joe
                 .style('text-anchor', 'middle') // Center the main title - Joe
                 .style('font-size', '1.4em')
@@ -3944,7 +3944,7 @@ var images = require('./images.json');
 			for (var i = 1; i < numOfTargetGroup; i++) {
 				if (this.state.invertAxis) {
 					// gridRegion.colLabelOffset: offset the line to reach the labels
-                    var y = gridRegion.y + gridRegion.cellPad * i * this.state.defaultCrossCompareTargetLimitPerTargetGroup - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                    var y = gridRegion.y + gridRegion.cellPad * i * this.state.crossCompareModeTargetLengthLimit - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                     // render horizontal divider line
                     this.state.svg.append("line")				
@@ -3958,7 +3958,7 @@ var images = require('./images.json');
                         .style("shape-rendering", "crispEdges");
 				} else {
 					// Perfectly center the first divider line between the 10th and 11th cell, same rule for the second line ...
-                    var x = gridRegion.x + gridRegion.cellPad * i * this.state.defaultCrossCompareTargetLimitPerTargetGroup - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                    var x = gridRegion.x + gridRegion.cellPad * i * this.state.crossCompareModeTargetLengthLimit - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                     // render vertical divider line
 					this.state.svg.append("line")				
@@ -4282,7 +4282,7 @@ var images = require('./images.json');
 	_createGradientLegend: function(){
 		var gridRegion = this.state.gridRegion;
         
-        var x = gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad/2;
+        var x = gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad/2;
         
         // Create a group for gradient bar and legend texts - Joe
 		var gradientGrp = this.state.svg.append("g")
@@ -4554,7 +4554,7 @@ var images = require('./images.json');
     _createMonarchInitiativeRecognition: function() {
         var gridRegion = this.state.gridRegion;
         
-        var x = gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad/2;
+        var x = gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad/2;
         
         // Create a group for text and logo
   		var recognitionGrp = this.state.svg.append("g")
@@ -4596,7 +4596,7 @@ var images = require('./images.json');
 		$('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
         
         // Place the options button to the right of the default limit of columns
-        $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + gridRegion.rowLabelOffset);
+        $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset);
         
 		// The height of .pg_controls_options defined in phenogrid.css - Joe
 		var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
@@ -4606,7 +4606,7 @@ var images = require('./images.json');
         }
         // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
-        pg_ctrl_options.css('left', gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + gridRegion.rowLabelOffset); 
+        pg_ctrl_options.css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset); 
     },	
 	
 	_createOrganismSelection: function() {
@@ -4735,7 +4735,7 @@ var images = require('./images.json');
 		var gridRegion = this.state.gridRegion; 
 		$('#' + this.state.pgInstanceId + '_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
         $('#' + this.state.pgInstanceId + '_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#' + this.state.pgInstanceId + '_unmatched_btn').outerHeight() + + 17 + 10);
-        $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad -20); 
+        $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad -20); 
     },	
     
     // ajax callback
