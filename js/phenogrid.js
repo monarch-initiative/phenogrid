@@ -144,7 +144,7 @@ var images = require('./images.json');
             compareQuery: { // compare API takes HTTP GET, so no body parameters
                 URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
             },
-            monarchInitiativeText: 'Powered by Monarch Initiative',
+            monarchInitiativeText: 'Powered by The Monarch Initiative',
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             optionsBtnText: 'Options',
             gridTitle: 'Phenotype Similarity Comparison',       
@@ -701,9 +701,8 @@ var images = require('./images.json');
         this._addGridTitle(); // Must after _createGrid() since it's positioned based on the _gridWidth() - Joe
         this._createGradientLegend();
         this._createTargetGroupDividerLines();
-        this._createMonarchInitiativeText(); // For exported phenogrid SVG, hide by default
-        this._addLogoImage(); // Must after _createGrid() and _createMonarchInitiativeText() since it's positioned based on the _gridheight() and monarch text width - Joe
-        
+        this._createMonarchInitiativeRecognition(); // For exported phenogrid SVG, hide by default
+
         // this must be called here so the tooltip disappears when we mouseout the current element - Joe
         this._relinkTooltip();
     },
@@ -2650,16 +2649,41 @@ var images = require('./images.json');
 		});
 	},
 
-    // To be used for exported phenogrid SVG, hide this by default
-    _createMonarchInitiativeText: function() {
+    // Recognition text and monarch logo
+    _createMonarchInitiativeRecognition: function() {
         var gridRegion = this.state.gridRegion;
         
-        this.state.svg.append("text")
-			.attr("x", (gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + gridRegion.rowLabelOffset)/2)
+        var x = gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad/2;
+        
+        // Create a group for text and logo
+  		var recognitionGrp = this.state.svg.append("g")
+  			.attr('id', this.state.pgInstanceId + '_recognition');  
+        
+        // Add text
+        recognitionGrp.append("text")
+			.attr("x", x)
 			.attr("y", this.state.gridRegion.y + this._gridHeight() + 90) // 90 is margin
 			.attr("id", this.state.pgInstanceId + "_monarchinitiative_text")
             .style('font-size', '10px')
 			.text(this.state.monarchInitiativeText);
+            
+        // Add logo
+        var self = this;
+        recognitionGrp.append("svg:image")
+			.attr("xlink:href", images.logo)
+			.attr("x", x + $("#" + this.state.pgInstanceId + "_monarchinitiative_text")[0].getBoundingClientRect().width + 3) // 3 is left margin to the monarch text
+			.attr("y", this.state.gridRegion.y + this._gridHeight() + 74) // 74 is margin to grid bottom
+			.attr("id", this.state.pgInstanceId + "_logo")
+			.attr('class', 'pg_cursor_pointer')
+			.attr("width", 40)
+			.attr("height", 26)
+			.on('click', function() {
+				window.open(self.state.serverURL, '_blank');
+			});
+            
+        var recognitionGrpWidth = $("#" + this.state.pgInstanceId + "_recognition")[0].getBoundingClientRect().width;
+        // Center the group by left shift half the width of the group element
+        recognitionGrp.attr("transform", "translate(" + -recognitionGrpWidth/2 + "0)");
     },
     
 	// Position the control panel when the gridRegion changes
