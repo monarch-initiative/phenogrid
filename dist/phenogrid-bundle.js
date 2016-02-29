@@ -2052,7 +2052,7 @@ var images = require('./images.json');
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
             sourceLengthLimit: 30, //  defines the limit of the number of sources to display
             crossCompareModeTargetLengthLimit: 10,    // the number of visible targets per species to be displayed in cross compare mode  
-            xLabelCharDisplayCount : 27,
+            targetLabelCharLimit : 27,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
             ontologyRelationship: "subClassOf",
@@ -4043,7 +4043,7 @@ var images = require('./images.json');
 		    .attr("data-tooltip", this.state.pgInstanceId + "_tooltip")   			
 	      	.attr("text-anchor", "start")
 	      	.text(function(d) { 		
-	      		return Utils.getShortLabel(d.label, self.state.xLabelCharDisplayCount); 
+	      		return Utils.getShortLabel(d.label, self.state.targetLabelCharLimit); 
             })
 		    .on("mouseover", function(d) { 				
 		    	// self is the global widget this
@@ -4743,7 +4743,7 @@ var images = require('./images.json');
         var label;
         // Show id if label is not found
         if (typeof(data.label) !== 'undefined') {
-            label = Utils.getShortLabel(data.label, self.state.xLabelCharDisplayCount);
+            label = Utils.getShortLabel(data.label, self.state.targetLabelCharLimit);
         } else {
             label = data.id;
         }
