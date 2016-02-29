@@ -2663,7 +2663,7 @@ var images = require('./images.json');
 		$('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
         
         // Place the options button to the right of the default limit of columns
-        $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this._gridWidth() + gridRegion.rowLabelOffset);
+        $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + gridRegion.rowLabelOffset);
         
 		// The height of .pg_controls_options defined in phenogrid.css - Joe
 		var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
@@ -2673,7 +2673,7 @@ var images = require('./images.json');
         }
         // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
 		pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
-        pg_ctrl_options.css('left', gridRegion.x + this._gridWidth() + gridRegion.rowLabelOffset); 
+        pg_ctrl_options.css('left', gridRegion.x + this.state.defaultSingleTargetDisplayLimit*gridRegion.cellPad + gridRegion.rowLabelOffset); 
     },	
 	
 	_createOrganismSelection: function() {
