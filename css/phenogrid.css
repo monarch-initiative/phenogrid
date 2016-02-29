@@ -217,7 +217,7 @@ cursor:pointer;
 .pg_container .pg_tooltip {
 position: absolute;
 padding:5px;
-z-index:99;
+z-index:1000; /* Make tooltip overlap everything */
 }
 
 .pg_container .pg_tooltip_inner {
