@@ -3787,15 +3787,13 @@ font-size:12px;
 margin-bottom:3px;
 }
 
-.pg_container  .pg_controls input[type="checkbox"] {
-display:inline-block;
-width:11px;
-height:11px;
-margin:-2px 4px 0 0;
-vertical-align:middle;
+.pg_container .pg_select_item  {
+height:13px;
+padding:0;
+margin:0;
 }
 
-.pg_container  .pg_controls input[type="radio"] {
+.pg_container  input {
 display:inline-block;
 width:11px;
 height:11px;
