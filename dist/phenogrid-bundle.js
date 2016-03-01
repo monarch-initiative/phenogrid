@@ -3078,9 +3078,11 @@ var images = require('./images.json');
             
             // scrollbar rect
             verticalScrollbarGrp.append("line")
-                .attr("x1", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
+                //.attr("x1", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
+                .attr("x1", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin)
                 .attr("y1", this.state.gridRegion.y)
-                .attr("x2", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
+                //.attr("x2", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
+                .attr("x2", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin)
                 .attr("y2", this.state.gridRegion.y + this._gridHeight())
                 .attr("id", this.state.pgInstanceId + "_vertical_scrollbar")
                 .style("stroke", barColor)
@@ -3088,7 +3090,8 @@ var images = require('./images.json');
 
             // slider rect
             verticalScrollbarGrp.append("rect")
-                .attr("x", this.state.gridRegion.x + this._gridWidth() + barToGridMargin - sliderThickness/2) 
+                //.attr("x", this.state.gridRegion.x + this._gridWidth() + barToGridMargin - sliderThickness/2) 
+                .attr("x", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin - sliderThickness/2) 
                 .attr("y", defaultY + sliderRectY) // sets the slider to the desired position after inverting axis - Joe
                 .attr("id", this.state.pgInstanceId + "_vertical_scrollbar_slider")
                 .attr("height", sliderHeight)
