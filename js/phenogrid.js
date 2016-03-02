@@ -809,16 +809,16 @@ var images = require('./images.json');
     // when there are more sources than the default limit
     // Create scrollbars accordingly
     _createNavigation: function() {
-        var xCount = this.state.xAxisRender.displayLength();
-        var yCount = this.state.yAxisRender.displayLength();
+        var xCount = this.state.xAxisRender.groupLength();
+        var yCount = this.state.yAxisRender.groupLength();
         var width = this.state.minimap.width;
-        var height =this.state.minimap.height;
+        var height = this.state.minimap.height;
         
         // check xCount based on yCount
         if ( ! this.state.invertAxis) {
             if ( ! this._isCrossComparisonView()) {
-                if (yCount >= this.state.sourceLengthLimit) {
-                    if (xCount >= this.state.singleTargetModeTargetLengthLimit) {
+                if (yCount > this.state.sourceLengthLimit) {
+                    if (xCount > this.state.singleTargetModeTargetLengthLimit) {
                         // just use the default mini map width and height
                         this._createMinimap(width, height);
                         // create both horizontal and vertical scrollbars
@@ -832,7 +832,7 @@ var images = require('./images.json');
                         this._createScrollbars(false, true);
                     }
                 } else {
-                    if (xCount >= this.state.singleTargetModeTargetLengthLimit) {
+                    if (xCount > this.state.singleTargetModeTargetLengthLimit) {
                         // shrink the height of mini map based on the yCount/this.state.sourceLengthLimit ratio
                         // and keep the hight unchanged
                         height = height * (yCount/this.state.sourceLengthLimit);
@@ -845,7 +845,7 @@ var images = require('./images.json');
                 }
             } else {
                 // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
-                if (yCount >= this.state.sourceLengthLimit) {  
+                if (yCount > this.state.sourceLengthLimit) {  
                     // just use the default mini map width and height
                     this._createMinimap(width, height);
                     // only create vertical scrollbar
@@ -856,8 +856,8 @@ var images = require('./images.json');
             }
 	   	} else {
             if ( ! this._isCrossComparisonView()) {
-                if (xCount >= this.state.sourceLengthLimit) {
-                    if (yCount >= this.state.singleTargetModeTargetLengthLimit) {
+                if (xCount > this.state.sourceLengthLimit) {
+                    if (yCount > this.state.singleTargetModeTargetLengthLimit) {
                         this._createMinimap(width, height);
                         // create both horizontal and vertical scrollbars
                         this._createScrollbars(true, true);
@@ -868,7 +868,7 @@ var images = require('./images.json');
                         this._createScrollbars(true, false);
                     }
                 } else {
-                    if (yCount >= this.state.singleTargetModeTargetLengthLimit) {
+                    if (yCount > this.state.singleTargetModeTargetLengthLimit) {
                         width = width * (xCount/this.state.sourceLengthLimit);
                         this._createMinimap(width, height);
                         // only create vertical scrollbar
@@ -876,7 +876,7 @@ var images = require('./images.json');
                     }
                 }
             } else {
-                if (xCount >= this.state.sourceLengthLimit) {  
+                if (xCount > this.state.sourceLengthLimit) {  
                     this._createMinimap(width, height);
                     // only create horizontal scrollbar
                     this._createScrollbars(true, false);
