@@ -2105,7 +2105,7 @@ var images = require('./images.json');
                 rotatedDividerLength: 110 // the length of the divider line for the rotated labels
             },
             gridRegion: {
-                x:254, 
+                x:240, 
                 y:200, // origin coordinates for grid region (matrix)
                 cellPad:19, // distance from the first cell to the next cell, odd number(19 - 12 = 7) makes the divider line entered perfectly - Joe
                 cellSize:12, // grid cell width/height
