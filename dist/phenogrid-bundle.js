@@ -3791,22 +3791,12 @@ var images = require('./images.json');
             suffix = '%';
         }
 
-        var targetLabel = '';
-        if (this.state.gridSkeletonDataVendor === 'IMPC') {
-            // Do not show the label as hyperlink since IMPC doesn't have this genotype link
-            targetLabel = targetInfo.label;
-        } else {
-            targetLabel = this._encodeTooltipHref(targetInfo.type, targetInfo.id, targetInfo.label);
-        }
-
         htmlContent = "<strong>" + Utils.capitalizeString(sourceInfo.type) + "</strong><br>" 
                       + this._encodeTooltipHref(sourceInfo.type, sourceId, data.a_label ) +  " " + Utils.formatScore(data.a_IC.toFixed(2)) + "<br><br>" 
                       + "<strong>In-common</strong><br>" 
                       + this._encodeTooltipHref(sourceInfo.type, data.subsumer_id, data.subsumer_label) + " (" + Utils.formatScore(data.subsumer_IC.toFixed(2)) + ", " + prefix + " " + data.value[this.state.selectedCalculation].toFixed(2) + '%' + ")<br><br>" 
                       + "<strong>Match</strong><br>" 
-                      + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2)) + "<br><br>" 
-                      + "<strong>" + Utils.capitalizeString(targetInfo.type) + " (" + data.targetGroup + ")</strong><br>" 
-                      + targetLabel;
+                      + this._encodeTooltipHref(sourceInfo.type, data.b_id, data.b_label ) + Utils.formatScore(data.b_IC.toFixed(2));
                       
         // Finally return the rendered HTML result
 		return htmlContent;
