@@ -3809,9 +3809,9 @@ var images = require('./images.json');
         for (var idx in data.info) {
             // null is javascript object
             if (typeof(data.info[idx].href) === 'string') {
-                htmlContent += '<strong>' + data.info[idx].id + ': </strong> ' + '<a href="'+ data.info[idx].href +'" target="_blank">' + data.info[idx].value + '</a>' + '<br>';
+                htmlContent += '<strong>' + data.info[idx].id + ': </strong> ' + '<a href="'+ data.info[idx].href +'" target="_blank">' + Utils.encodeHtmlEntity(data.info[idx].value) + '</a>' + '<br>';
             } else {
-                htmlContent += '<strong>' + data.info[idx].id + ': </strong> ' + data.info[idx].value + '<br>';
+                htmlContent += '<strong>' + data.info[idx].id + ': </strong> ' + Utils.encodeHtmlEntity(data.info[idx].value) + '<br>';
             }
         }
 
@@ -3931,7 +3931,7 @@ var images = require('./images.json');
 	_createTargetGroupDividerLines: function() {
 		var gridRegion = this.state.gridRegion;
 
-		if (this._isCrossComparisonView() ) {
+		if (this._isCrossComparisonView()) {
 			var numOfTargetGroup = this.state.selectedCompareTargetGroup.length; 
 
 			for (var i = 1; i < numOfTargetGroup; i++) {
