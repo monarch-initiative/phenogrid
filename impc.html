@@ -5998,15 +5998,35 @@ window.onload = function() {
         sourceLengthLimit: sourceLengthLimit
     });
     
+    // Repeating testing 1 on the same container with IMPCData2
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL: "http://monarchinitiative.org",
         gridSkeletonDataVendor: 'IMPC',
-        gridSkeletonData: IMPCData1,
+        gridSkeletonData: IMPCData2,
         gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
         singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
         sourceLengthLimit: sourceLengthLimit
     });
 
+    // IMPC testing 2
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
+        serverURL: "http://monarchinitiative.org",
+        gridSkeletonDataVendor: 'IMPC',
+        gridSkeletonData: IMPCData2,
+        gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
+        singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+        sourceLengthLimit: sourceLengthLimit
+    });
+
+    // IMPC testing 3
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
+      serverURL: "http://monarchinitiative.org",
+      gridSkeletonDataVendor: 'IMPC',
+      gridSkeletonData: IMPCData3,
+      gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
+      singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+      sourceLengthLimit: sourceLengthLimit
+    });
 }
 
 </script>
@@ -6016,8 +6036,10 @@ window.onload = function() {
 <body>
 
 
-  <div id="phenogrid_container1" class="clearfix"></div>
-
+<div id="phenogrid_container1" class="clearfix"></div>
+<div id="phenogrid_container1" class="clearfix"></div>
+<div id="phenogrid_container2" class="clearfix"></div>
+<div id="phenogrid_container3" class="clearfix"></div>
 
 </body>
 </html>
