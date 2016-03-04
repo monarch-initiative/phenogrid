@@ -5984,7 +5984,7 @@ IMPCData3 = {
   ]
 };
 
-var singleTargetModeTargetLengthLimit = 15;
+var singleTargetModeTargetLengthLimit = 25;
 var sourceLengthLimit = 15;
 
 window.onload = function() {
@@ -5999,6 +5999,24 @@ window.onload = function() {
     });
 
   Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
+    serverURL: "http://monarchinitiative.org",
+    gridSkeletonDataVendor: 'IMPC',
+    gridSkeletonData: IMPCData1,
+    gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
+    singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+    sourceLengthLimit: sourceLengthLimit
+  });
+  
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
+    serverURL: "http://monarchinitiative.org",
+    gridSkeletonDataVendor: 'IMPC',
+    gridSkeletonData: IMPCData2,
+    gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
+    singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+    sourceLengthLimit: sourceLengthLimit
+  });
+  
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
     serverURL: "http://monarchinitiative.org",
     gridSkeletonDataVendor: 'IMPC',
     gridSkeletonData: IMPCData1,
@@ -6034,6 +6052,8 @@ window.onload = function() {
 
 <body>
 
+  <div id="phenogrid_container1" class="clearfix"></div>
+  <div id="phenogrid_container1" class="clearfix"></div>
   <div id="phenogrid_container1" class="clearfix"></div>
   <div id="phenogrid_container1" class="clearfix"></div>
   <div id="phenogrid_container2" class="clearfix"></div>
