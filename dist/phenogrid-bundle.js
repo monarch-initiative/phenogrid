@@ -2298,14 +2298,14 @@ var images = require('./images.json');
         // If multi species needed as target groups, we'll need to change the skelton structure
         // Merge the provided this.state.gridSkeletonTargetGroup properties with {crossComparisonView: true, active: true}
         // so the new object is in the desired format
-        var normalizedTargetGroup = $.extend({}, this.state.gridSkeletonTargetGroup, {crossComparisonView: true, active: true});
+        var normalizedTargetGroup = $.extend(this.state.gridSkeletonTargetGroup, {crossComparisonView: true, active: true});
         this.state.targetGroupList = [
             normalizedTargetGroup
         ];
         
         // load the target targetGroup list based on the active flag
         this._parseTargetGroupList(true);
-
+ 
         var listOfLists = [];
         for (var idx in this.state.gridSkeletonData.xAxis) {
             var eachList = [];
@@ -2333,9 +2333,9 @@ var images = require('./images.json');
     // this can be single species mode or cross comparison mode depends on the config
     // load the default selected target targetGroup list based on the active flag in config, 
     // has nothing to do with the monarch's analyze phenotypes page - Joe
-    _parseTargetGroupList: function(forSingleSpecies) {
+    _parseTargetGroupList: function(forSingleTargetGroup) {
         for (var idx in this.state.targetGroupList) {
-            if (forSingleSpecies === true) {
+            if (forSingleTargetGroup === true) {
                 this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
                 this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
             } else {
@@ -2349,7 +2349,7 @@ var images = require('./images.json');
                     this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
                 }
             }
-        }
+        } 
     },
 
     // Phenogrid container div
@@ -5054,7 +5054,7 @@ var images = require('./images.json');
 
 
 	_isCrossComparisonView: function() {
-		if (this.state.selectedCompareTargetGroup.length === 1) {
+        if (this.state.selectedCompareTargetGroup.length === 1) {
 			return false;
 		}
 		return true;
