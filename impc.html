@@ -13,7 +13,7 @@ IMPCData1 = {
   "xAxis": [
     {
       "id": "13787",
-      "label": "Chst11<Gt(PT-1)1Wran>/Chst11<Gt(PT-1)1Wran> Not Specified",
+      "label": "Chst11<sup>Gt(PT-1)1Wran</sup>/Chst11<sup>Gt(PT-1)1Wran</sup>",
       "phenotypes": [
         {
           "id": "MP:0000088",
@@ -111,19 +111,44 @@ IMPCData1 = {
       },
       "info": [
         {
-          "id": "Source",
+          "id": "Source:",
           "value": "MGI",
           "href": null
         },
         {
-          "id": "Background",
+          "id": "Genotype:",
+          "value": "Chst11<sup>Gt(PT-1)1Wran</sup>/Chst11<sup>Gt(PT-1)1Wran</sup>",
+          "href": null
+        },
+        {
+          "id": "Background:",
           "value": "Not Specified",
           "href": null
         },
         {
-          "id": "IMPC gene",
+          "id": "IMPC gene:",
           "value": "MGI:1927166",
           "href": "https://dev.mousephenotype.org/data/genes/MGI:1927166"
+        },
+        {
+          "id": "Phenodigm score:",
+          "value": "69.06",
+          "href": null
+        },
+        {
+          "id": "Observed phenotypes: ",
+          "value": "",
+          "href": null
+        },
+        {
+          "id": "",
+          "value": "short mandible",
+          "href": "https://mousephenotype.org/data/phenotypes/MP:0000088"
+        },
+        {
+          "id": "",
+          "value": "short maxilla",
+          "href": "https://mousephenotype.org/data/phenotypes/MP:0000097"
         }
       ]
     }
@@ -5972,6 +5997,15 @@ window.onload = function() {
         singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
         sourceLengthLimit: sourceLengthLimit
     });
+
+  Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
+    serverURL: "http://monarchinitiative.org",
+    gridSkeletonDataVendor: 'IMPC',
+    gridSkeletonData: IMPCData1,
+    gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
+    singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+    sourceLengthLimit: sourceLengthLimit
+  });
     
     // IMPC testing 2
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
@@ -6000,6 +6034,7 @@ window.onload = function() {
 
 <body>
 
+  <div id="phenogrid_container1" class="clearfix"></div>
   <div id="phenogrid_container1" class="clearfix"></div>
   <div id="phenogrid_container2" class="clearfix"></div>
   <div id="phenogrid_container3" class="clearfix"></div>
