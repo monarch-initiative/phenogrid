@@ -8,9 +8,7 @@ position:relative;
 font-family:Verdana, Geneva, sans-serif;
 font-size:12px;
 }
-svg{
-    border:1px solid red;
-}
+
 /* HTML options popup */
 .pg_container  .pg_controls {
 position:absolute;
@@ -201,12 +199,6 @@ stroke:#4CA092;
 stroke-width: 2;
 fill: #4CA092;
 fill-opacity: 0.1;
-}
-
-.pg_container  .pg_tip {
-width: 80px;
-height:10px;
-font-size:11px;
 }
 
 .pg_container  .pg_scores_tip_icon{
