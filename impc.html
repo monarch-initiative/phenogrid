@@ -13,7 +13,7 @@ IMPCData1 = {
   "xAxis": [
     {
       "id": "13787",
-      "label": "Chst11<sup>Gt(PT-1)1Wran</sup>/Chst11<sup>Gt(PT-1)1Wran</sup>",
+      "label": "Chst11<Gt(PT-1)1Wran>/Chst11<Gt(PT-1)1Wran>",
       "phenotypes": [
         {
           "id": "MP:0000088",
@@ -5999,6 +5999,7 @@ window.onload = function() {
     });
     
     // Repeating testing 1 on the same container with IMPCData2
+    // But this won't get created because the widget factory protects against multiple instantiations on the same element
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL: "http://monarchinitiative.org",
         gridSkeletonDataVendor: 'IMPC',

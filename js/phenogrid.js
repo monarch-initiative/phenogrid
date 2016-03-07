@@ -1913,16 +1913,16 @@ var images = require('./images.json');
                     // So the assumption is value is not null at any time.
                     // href can only be string
                     if (typeof(data.info[idx].href) === 'string') {
-                        htmlContent += '<strong>' + data.info[idx].id + '</strong> ' + '<a href="'+ data.info[idx].href +'" target="_blank">' + Utils.encodeHtmlEntity(data.info[idx].value) + '</a>' + '<br>';
+                        htmlContent += '<strong>' + data.info[idx].id + '</strong> ' + '<a href="'+ data.info[idx].href +'" target="_blank">' + data.info[idx].value + '</a>' + '<br>';
                     } else {
-                        htmlContent += '<strong>' + data.info[idx].id + '</strong> ' + Utils.encodeHtmlEntity(data.info[idx].value) + '<br>';
+                        htmlContent += '<strong>' + data.info[idx].id + '</strong> ' + data.info[idx].value + '<br>';
                     }
                 } else {
                     // Only display value and href (if provided)
                     if (typeof(data.info[idx].href) === 'string') {
-                        htmlContent += '<a href="'+ data.info[idx].href +'" target="_blank">' + Utils.encodeHtmlEntity(data.info[idx].value) + '</a>' + '<br>';
+                        htmlContent += '<a href="'+ data.info[idx].href +'" target="_blank">' + data.info[idx].value + '</a>' + '<br>';
                     } else {
-                        htmlContent += Utils.encodeHtmlEntity(data.info[idx].value) + '<br>';
+                        htmlContent += data.info[idx].value + '<br>';
                     }
                 }
             }
