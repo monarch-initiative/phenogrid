@@ -3693,12 +3693,14 @@ body .ui-tooltip {
 */
 /* #pg_container contains SVG (#pg_svg) and HTML (#pg_controls, #pg_unmatched) */
 .pg_container {
-margin:20px 10px;
+margin:20px 0;
 position:relative;
 font-family:Verdana, Geneva, sans-serif;
 font-size:12px;
 }
-
+svg{
+    border:1px solid red;
+}
 /* HTML options popup */
 .pg_container  .pg_controls {
 position:absolute;
@@ -3877,8 +3879,7 @@ width: 0;
 
 .pg_container  .pg_unmatched_btn{
 position:absolute;
-left:13px;
-width:202px;
+width:185px;
 text-align:right;
 font-size:14px;
 color:#44A293;

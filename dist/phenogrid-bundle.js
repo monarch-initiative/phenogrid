@@ -2565,9 +2565,16 @@ var images = require('./images.json');
             this._createSvgComponents();
 
             // Create and postion HTML sections
-            
+
             // Unmatched sources
             this._createUnmatchedSources();
+            
+            // calculate the button padding
+            // whitespace size between left boundry to unmatched button, same as the options button to right boundry
+            this.state.btnPadding = this.state.gridRegion.x - $('#' + this.state.pgInstanceId + '_unmatched_btn').width() - this.state.gridRegion.rowLabelOffset;
+            
+            // Must after the this.state.btnPadding calculation since we use the padding to position the unmatched button - Joe
+            this._positionUnmatchedSources();
             
             // Options menu
             this._createPhenogridControls();
@@ -3166,7 +3173,7 @@ var images = require('./images.json');
         
         _setSvgSize: function() {
             // Update the width and height of #pg_svg
-            var svgWidth = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + 200; // Add 200 to cover the Options button - Joe
+            var svgWidth = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + this.state.gridRegion.rowLabelOffset + $('#' + this.state.pgInstanceId + '_slide_btn').width() + this.state.btnPadding;
             
             d3.select('#' + this.state.pgInstanceId + '_svg')
                 .attr('width', svgWidth)
@@ -4739,9 +4746,11 @@ var images = require('./images.json');
         // Position the unmatched sources when the gridRegion changes
         _positionUnmatchedSources: function(){
             var gridRegion = this.state.gridRegion; 
+
             $('#' + this.state.pgInstanceId + '_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
+            $('#' + this.state.pgInstanceId + '_unmatched_btn').css('left', this.state.btnPadding);
             $('#' + this.state.pgInstanceId + '_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#' + this.state.pgInstanceId + '_unmatched_btn').outerHeight() + + 17 + 10);
-            $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad -20); 
+            $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad - 20); 
         },	
         
         // ajax callback
