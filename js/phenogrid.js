@@ -116,6 +116,7 @@ var images = require('./images.json');
             ],
             messaging: {
                 misconfig: 'Please fix your config to enable at least one species.',
+                gridSkeletonDataError: 'No phenotypes to compare.',
                 noAssociatedGenotype: 'This gene has no associated genotypes.',
                 noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
                 noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
@@ -373,59 +374,70 @@ var images = require('./images.json');
 
         _initGridSkeleton: function() {
             // Use provided grid title if there's one, otherwise set as empty
-            if (typeof(this.state.gridSkeletonData.title) !== 'undefined' && this.state.gridSkeletonData.title !== '') {
+            if (typeof(this.state.gridSkeletonData.title) !== 'undefined' && this.state.gridSkeletonData.title !== '' && this.state.gridSkeletonData.title !== null) {
                 this.state.gridTitle = this.state.gridSkeletonData.title;
             } else {
                 this.state.gridTitle = '';
             }
             
-            // use the human phenotypes from the input JSON
-            for (var i in this.state.gridSkeletonData.yAxis[0].phenotypes) {
-                this.state.phenotypeData.push(this.state.gridSkeletonData.yAxis[0].phenotypes[i].id);
-            }
-
-             // Remove duplicated source IDs - Joe
-            var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
-            
-            // no change to the callback - Joe
-            var self = this;
-            var asyncDataLoadingCallback = function() {
-                self._asyncDataLoadingCB(self); 
-            };
-            
-            // For only single species
-            // If multi species needed as target groups, we'll need to change the skelton structure
-            // Merge the provided this.state.gridSkeletonTargetGroup properties with {crossComparisonView: true, active: true}
-            // so the new object is in the desired format
-            var normalizedTargetGroup = $.extend({}, this.state.gridSkeletonTargetGroup, {crossComparisonView: true, active: true});
-            this.state.targetGroupList = [
-                normalizedTargetGroup
-            ];
-            
-            // load the target targetGroup list based on the active flag
-            this._parseTargetGroupList(true);
-     
-            var listOfLists = [];
-            for (var idx in this.state.gridSkeletonData.xAxis) {
-                var eachList = [];
-                for (var i in this.state.gridSkeletonData.xAxis[idx].phenotypes) {
-                    eachList.push(this.state.gridSkeletonData.xAxis[idx].phenotypes[i].id);
+            // We need some basic data validation here to make sure 
+            // there are at least two phenotypes (one from each axis) to send off to the compare API before trying
+            if (this.state.gridSkeletonData.xAxis.length > 0 && this.state.gridSkeletonData.yAxis.length > 0) { 
+                // use the human phenotypes from the input JSON
+                for (var i in this.state.gridSkeletonData.yAxis[0].phenotypes) {
+                    this.state.phenotypeData.push(this.state.gridSkeletonData.yAxis[0].phenotypes[i].id);
                 }
-                // add new property
-                this.state.gridSkeletonData.xAxis[idx].combinedList = eachList.join('+');
-                // default separator of array.join(separator) is comma
-                // join all the MP inside each MP list with plus sign, and join each list with default comma
-                listOfLists.push(this.state.gridSkeletonData.xAxis[idx].combinedList);
+
+                 // Remove duplicated source IDs - Joe
+                var querySourceList = this._parseQuerySourceList(this.state.phenotypeData);
+                
+                // no change to the callback - Joe
+                var self = this;
+                var asyncDataLoadingCallback = function() {
+                    self._asyncDataLoadingCB(self); 
+                };
+                
+                // For only single species
+                // If multi species needed as target groups, we'll need to change the skelton structure
+                // Merge the provided this.state.gridSkeletonTargetGroup properties with {crossComparisonView: true, active: true}
+                // so the new object is in the desired format
+                var normalizedTargetGroup = $.extend({}, this.state.gridSkeletonTargetGroup, {crossComparisonView: true, active: true});
+                this.state.targetGroupList = [
+                    normalizedTargetGroup
+                ];
+                
+                // load the target targetGroup list based on the active flag
+                this._parseTargetGroupList(true);
+         
+                var listOfLists = [];
+                for (var idx in this.state.gridSkeletonData.xAxis) {
+                    var eachList = [];
+                    for (var i in this.state.gridSkeletonData.xAxis[idx].phenotypes) {
+                        eachList.push(this.state.gridSkeletonData.xAxis[idx].phenotypes[i].id);
+                    }
+                    // add new property
+                    this.state.gridSkeletonData.xAxis[idx].combinedList = eachList.join('+');
+                    // default separator of array.join(separator) is comma
+                    // join all the MP inside each MP list with plus sign, and join each list with default comma
+                    listOfLists.push(this.state.gridSkeletonData.xAxis[idx].combinedList);
+                }
+                
+                // use the default comma to separate each list into each genotype profile
+                var multipleTargetEntities = listOfLists.join();
+
+                // initialize data processing class for compare query
+                this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+
+                // starting loading the owlsim data from compare api for this vendor
+                this.state.dataLoader.loadCompareDataForVendor(this.state.gridSkeletonData, this.state.gridSkeletonTargetGroup.name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+            } else {
+                // No need to compose the compare API call 
+                this._showGridSkeletonDataErrorMsg();
             }
-            
-            // use the default comma to separate each list into each genotype profile
-            var multipleTargetEntities = listOfLists.join();
-
-            // initialize data processing class for compare query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
-
-            // starting loading the owlsim data from compare api for this vendor
-            this.state.dataLoader.loadCompareDataForVendor(this.state.gridSkeletonData, this.state.gridSkeletonTargetGroup.name, querySourceList, multipleTargetEntities, asyncDataLoadingCallback);
+        },
+        
+        _showGridSkeletonDataErrorMsg: function() {
+            this.state.pgContainer.html(this.state.messaging.gridSkeletonDataError);
         },
         
         // when not work with monarch's analyze/phenotypes page

@@ -5984,6 +5984,217 @@ IMPCData3 = {
   ]
 };
 
+IMPCData4 = {
+  "title": null,
+  "xAxis": [],
+  "yAxis": [
+    {
+      "id": "ORPHANET:1465",
+      "label": "Coffin-Siris Syndrome",
+      "phenotypes": [
+        {
+          "id": "HP:0000028",
+          "term": "Cryptorchidism"
+        },
+        {
+          "id": "HP:0000154",
+          "term": "Wide mouth"
+        },
+        {
+          "id": "HP:0000164",
+          "term": "Abnormality of the teeth"
+        },
+        {
+          "id": "HP:0000175",
+          "term": "Cleft palate"
+        },
+        {
+          "id": "HP:0000179",
+          "term": "Thick lower lip vermilion"
+        },
+        {
+          "id": "HP:0000252",
+          "term": "Microcephaly"
+        },
+        {
+          "id": "HP:0000280",
+          "term": "Coarse facial features"
+        },
+        {
+          "id": "HP:0000286",
+          "term": "Epicanthus"
+        },
+        {
+          "id": "HP:0000322",
+          "term": "Short philtrum"
+        },
+        {
+          "id": "HP:0000365",
+          "term": "Hearing impairment"
+        },
+        {
+          "id": "HP:0000457",
+          "term": "Depressed nasal ridge"
+        },
+        {
+          "id": "HP:0000486",
+          "term": "Strabismus"
+        },
+        {
+          "id": "HP:0000499",
+          "term": "Abnormality of the eyelashes"
+        },
+        {
+          "id": "HP:0000508",
+          "term": "Ptosis"
+        },
+        {
+          "id": "HP:0000518",
+          "term": "Cataract"
+        },
+        {
+          "id": "HP:0000574",
+          "term": "Thick eyebrow"
+        },
+        {
+          "id": "HP:0000632",
+          "term": "Lacrimation abnormality"
+        },
+        {
+          "id": "HP:0000639",
+          "term": "Nystagmus"
+        },
+        {
+          "id": "HP:0000776",
+          "term": "Congenital diaphragmatic hernia"
+        },
+        {
+          "id": "HP:0000889",
+          "term": "Abnormality of the clavicle"
+        },
+        {
+          "id": "HP:0000954",
+          "term": "Single transverse palmar crease"
+        },
+        {
+          "id": "HP:0000965",
+          "term": "Cutis marmorata"
+        },
+        {
+          "id": "HP:0000998",
+          "term": "Hypertrichosis"
+        },
+        {
+          "id": "HP:0001250",
+          "term": "Seizures"
+        },
+        {
+          "id": "HP:0001252",
+          "term": "Muscular hypotonia"
+        },
+        {
+          "id": "HP:0001305",
+          "term": "Dandy-Walker malformation"
+        },
+        {
+          "id": "HP:0001382",
+          "term": "Joint hypermobility"
+        },
+        {
+          "id": "HP:0001511",
+          "term": "Intrauterine growth retardation"
+        },
+        {
+          "id": "HP:0001798",
+          "term": "Anonychia"
+        },
+        {
+          "id": "HP:0002205",
+          "term": "Recurrent respiratory infections"
+        },
+        {
+          "id": "HP:0002217",
+          "term": "Slow-growing hair"
+        },
+        {
+          "id": "HP:0002564",
+          "term": "Malformation of the heart and great vessels"
+        },
+        {
+          "id": "HP:0002650",
+          "term": "Scoliosis"
+        },
+        {
+          "id": "HP:0002808",
+          "term": "Kyphosis"
+        },
+        {
+          "id": "HP:0003042",
+          "term": "Elbow dislocation"
+        },
+        {
+          "id": "HP:0003272",
+          "term": "Abnormality of the hip bone"
+        },
+        {
+          "id": "HP:0003298",
+          "term": "Spina bifida occulta"
+        },
+        {
+          "id": "HP:0004322",
+          "term": "Short stature"
+        },
+        {
+          "id": "HP:0005108",
+          "term": "Abnormality of the intervertebral disk"
+        },
+        {
+          "id": "HP:0005280",
+          "term": "Depressed nasal bridge"
+        },
+        {
+          "id": "HP:0006443",
+          "term": "Patellar aplasia"
+        },
+        {
+          "id": "HP:0007360",
+          "term": "Aplasia/Hypoplasia of the cerebellum"
+        },
+        {
+          "id": "HP:0007370",
+          "term": "Aplasia/Hypoplasia of the corpus callosum"
+        },
+        {
+          "id": "HP:0008678",
+          "term": "Renal hypoplasia/aplasia"
+        },
+        {
+          "id": "HP:0008872",
+          "term": "Feeding difficulties in infancy"
+        },
+        {
+          "id": "HP:0009882",
+          "term": "Short distal phalanx of finger"
+        },
+        {
+          "id": "HP:0010624",
+          "term": "Aplastic/hypoplastic toenail"
+        },
+        {
+          "id": "HP:0100542",
+          "term": "Abnormal localization of kidney"
+        },
+        {
+          "id": "HP:0100543",
+          "term": "Cognitive impairment"
+        }
+      ],
+      "score": null,
+      "info": []
+    }
+  ]
+};
+
 var singleTargetModeTargetLengthLimit = 25;
 var sourceLengthLimit = 15;
 
@@ -5998,17 +6209,6 @@ window.onload = function() {
         sourceLengthLimit: sourceLengthLimit
     });
     
-    // Repeating testing 1 on the same container with IMPCData2
-    // But this won't get created because the widget factory protects against multiple instantiations on the same element
-    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
-        serverURL: "http://monarchinitiative.org",
-        gridSkeletonDataVendor: 'IMPC',
-        gridSkeletonData: IMPCData2,
-        gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
-        singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
-        sourceLengthLimit: sourceLengthLimit
-    });
-
     // IMPC testing 2
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
         serverURL: "http://monarchinitiative.org",
@@ -6028,6 +6228,16 @@ window.onload = function() {
       singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
       sourceLengthLimit: sourceLengthLimit
     });
+    
+    // IMPC testing 4
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
+        serverURL: "http://monarchinitiative.org",
+        gridSkeletonDataVendor: 'IMPC',
+        gridSkeletonData: IMPCData4,
+        gridSkeletonTargetGroup: {name: "Mus musculus", taxon: "10090"},
+        singleTargetModeTargetLengthLimit: singleTargetModeTargetLengthLimit,
+        sourceLengthLimit: sourceLengthLimit
+    });
 }
 
 </script>
@@ -6044,9 +6254,9 @@ svg{
 
 
 <div id="phenogrid_container1" class="clearfix"></div>
-<div id="phenogrid_container1" class="clearfix"></div>
 <div id="phenogrid_container2" class="clearfix" style="border:1px solid black; width:820px;"></div>
 <div id="phenogrid_container3" class="clearfix" style="border:1px solid black; width:920px;"></div>
+<div id="phenogrid_container4" class="clearfix"></div>
 
 </body>
 </html>
