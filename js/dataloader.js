@@ -191,7 +191,7 @@ DataLoader.prototype = {
 			targetGrpList = targetGrpList.slice(1);
 	    	
 	    	// need to add on target targetGroup id
-	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.taxon;
+	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.id;
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
@@ -305,8 +305,7 @@ DataLoader.prototype = {
 				var targetVal = {
                     "id":targetID, 
                     "label": item.label, 
-                    "targetGroup": item.taxon.label, 
-                    "taxon": item.taxon.id, 
+                    "targetGroup": item.taxon.label,  
                     "type": item.type, 
                     "rank": parseInt(idx)+1,  // start with 1 not zero
                     "score": item.score.score
@@ -460,7 +459,6 @@ DataLoader.prototype = {
                     "id": targetID, 
                     "label": item.label, 
                     "targetGroup": targetGroup, // Mouse
-                    "taxon": "10090", // Mouse taxon
                     "type": "genotype", 
                     "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
@@ -579,7 +577,6 @@ DataLoader.prototype = {
                     "label": item.label, 
                     "targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
                     //"targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
-                    "taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
                     "type": item.type, 
                     'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
                     "rank": parseInt(idx)+1,  // start with 1 not zero

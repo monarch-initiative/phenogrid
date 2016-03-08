@@ -504,7 +504,7 @@ DataLoader.prototype = {
 			targetGrpList = targetGrpList.slice(1);
 	    	
 	    	// need to add on target targetGroup id
-	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.taxon;
+	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.id;
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
@@ -618,8 +618,7 @@ DataLoader.prototype = {
 				var targetVal = {
                     "id":targetID, 
                     "label": item.label, 
-                    "targetGroup": item.taxon.label, 
-                    "taxon": item.taxon.id, 
+                    "targetGroup": item.taxon.label,  
                     "type": item.type, 
                     "rank": parseInt(idx)+1,  // start with 1 not zero
                     "score": item.score.score
@@ -773,7 +772,6 @@ DataLoader.prototype = {
                     "id": targetID, 
                     "label": item.label, 
                     "targetGroup": targetGroup, // Mouse
-                    "taxon": "10090", // Mouse taxon
                     "type": "genotype", 
                     "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
@@ -892,7 +890,6 @@ DataLoader.prototype = {
                     "label": item.label, 
                     "targetGroup": item.taxon.label, // item.taxon.label is 'Not Specified' for fish sometimes
                     //"targetGroup": targetGroup, // we use the provided targetGroup as a quick fix - Joe
-                    "taxon": item.taxon.id,  // item.taxon.id is also missing in the returned compare json - Joe
                     "type": item.type, 
                     'parentGeneID': parentGeneID, // added this for each added genotype so it knows which gene to be associated with - Joe
                     "rank": parseInt(idx)+1,  // start with 1 not zero
@@ -1915,9 +1912,9 @@ module.exports={
  *         serverURL : "http://monarchinitiative.org",
  *         phenotypeData: phenotypes,
  *         targetGroupList: [
- *           {"name": "Homo sapiens", "taxon": "9606","crossComparisonView": true, "active": true},
- *           {"name": "Mus musculus", "taxon": "10090", "crossComparisonView": true, "active": true},
- *           {"name": "Danio rerio", "taxon": "7955", "crossComparisonView": true, "active": true}
+ *           {"name": "Homo sapiens", "id": "9606","crossComparisonView": true, "active": true},
+ *           {"name": "Mus musculus", "id": "10090", "crossComparisonView": true, "active": true},
+ *           {"name": "Danio rerio", "id": "7955", "crossComparisonView": true, "active": true}
  *         ]
  *     });
  * }
@@ -2008,15 +2005,15 @@ var images = require('./images.json');
             // displayed within phenogrid and would like to retain the target group reference within the list. - MD
             // taxon is used by dataLoader to specify 'target_species' in query URL - Joe
             targetGroupList: [
-                {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
-                {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
-                {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
-                {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
-                {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false} // Undiagnosed Diseases Program Integrated Collaboration System(UDPICS)
+                {name: "Homo sapiens", id: "9606", crossComparisonView: true, active: true},
+                {name: "Mus musculus", id: "10090", crossComparisonView: true, active: true},
+                {name: "Danio rerio", id: "7955", crossComparisonView: true, active: true},
+                {name: "Drosophila melanogaster", id: "7227", crossComparisonView: false, active: false},
+                {name: "Caenorhabditis elegans", id: "6239", crossComparisonView: false, active: false},
+                {name: "UDPICS", id: "UDPICS", crossComparisonView: false, active: false} // Undiagnosed Diseases Program Integrated Collaboration System(UDPICS)
             ],
             messaging: {
-                misconfig: 'Please fix your config to enable at least one species.',
+                misconfig: 'Please fix your config to enable at least one target group.',
                 gridSkeletonDataError: 'No phenotypes to compare.',
                 noAssociatedGenotype: 'This gene has no associated genotypes.',
                 noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
@@ -2025,7 +2022,7 @@ var images = require('./images.json');
             // For IMPC integration
             gridSkeletonDataVendor: '', // Use 'IMPC' in constructor
             gridSkeletonData: {}, //  skeleton json structure: https://github.com/monarch-initiative/phenogrid/blob/impc-integration/js/impc.json
-            gridSkeletonTargetGroup: {}, // E.g., {name: "Mus musculus", taxon: "10090"}
+            gridSkeletonTargetGroup: {}, // E.g., {name: "Mus musculus", id: "10090"}
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search'
             targetSpecies: '', // quoted 'taxon number' or 'all'
@@ -2227,7 +2224,7 @@ var images = require('./images.json');
             // overwrite the this.state.targetGroupList with only 'compare'
             // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
             this.state.targetGroupList = [
-                {name: "compare", taxon: "compare", crossComparisonView: true, active: true}
+                {name: "compare", id: "compare", crossComparisonView: true, active: true}
             ];
             
             // load the target targetGroup list based on the active flag
@@ -2247,13 +2244,13 @@ var images = require('./images.json');
                 // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
                 this.state.targetGroupList = [
                     // Because only the three species are supported in monarch analyze/phenotypes page at this point - Joe
-                    {name: "Homo sapiens", taxon: "9606", crossComparisonView: true, active: true},
-                    {name: "Mus musculus", taxon: "10090", crossComparisonView: true, active: true},
-                    {name: "Danio rerio", taxon: "7955", crossComparisonView: true, active: true},
+                    {name: "Homo sapiens", id: "9606", crossComparisonView: true, active: true},
+                    {name: "Mus musculus", id: "10090", crossComparisonView: true, active: true},
+                    {name: "Danio rerio", id: "7955", crossComparisonView: true, active: true},
                     // Disabled species
-                    {name: "Drosophila melanogaster", taxon: "7227", crossComparisonView: false, active: false},
-                    {name: "Caenorhabditis elegans", taxon: "6239", crossComparisonView: false, active: false},
-                    {name: "UDPICS", taxon: "UDPICS", crossComparisonView: false, active: false}
+                    {name: "Drosophila melanogaster", id: "7227", crossComparisonView: false, active: false},
+                    {name: "Caenorhabditis elegans", id: "6239", crossComparisonView: false, active: false},
+                    {name: "UDPICS", id: "UDPICS", crossComparisonView: false, active: false}
                 ];
                 
                 // load the target targetGroup list based on the active flag
@@ -2261,7 +2258,7 @@ var images = require('./images.json');
             } else { 
                 // when single species is selected (taxon is passed in via this.state.targetSpecies)
                 // load just the one selected from the dropdown menu - Joe
-                if (this.state.targetGroupList[idx].taxon === this.state.targetSpecies) {
+                if (this.state.targetGroupList[idx].id === this.state.targetSpecies) {
                     this._parseTargetGroupList(true);	
                 }	
             }
