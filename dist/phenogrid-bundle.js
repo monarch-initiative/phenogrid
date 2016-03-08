@@ -2707,7 +2707,7 @@ var images = require('./images.json');
                             .attr("x", function(d, i){ 
                                     return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
                                 })
-                            .attr("y", self.state.gridRegion.y - 110) // based on the grid region y, margin-top -110 - Joe
+                            .attr("y", self.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
                             .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
                             .text(function(d, i){return targetGroupList[i];})
                             .attr("text-anchor", function() {
@@ -3677,7 +3677,7 @@ var images = require('./images.json');
                 this.state.svg.append("svg:text")
                     .attr("id", this.state.pgInstanceId + "_toptitle")
                     .attr("x", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad/2) // Calculated based on the singleTargetModeTargetLengthLimit - Joe
-                    .attr("y", 40) // Fixed y position - Joe
+                    .attr("y", 25) // Fixed y position - Joe
                     .style('text-anchor', 'middle') // Center the main title - Joe
                     .style('font-size', '1.4em')
                     .style('font-weight', 'bold')
