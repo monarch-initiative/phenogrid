@@ -1196,11 +1196,9 @@ var images = require('./images.json');
                 
                 // scrollbar rect
                 verticalScrollbarGrp.append("line")
-                    //.attr("x1", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
-                    .attr("x1", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin)
+                    .attr("x1", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad - sliderThickness/2 + barToGridMargin)
                     .attr("y1", this.state.gridRegion.y)
-                    //.attr("x2", this.state.gridRegion.x + this._gridWidth() + barToGridMargin)
-                    .attr("x2", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin)
+                    .attr("x2", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad - sliderThickness/2 + barToGridMargin)
                     .attr("y2", this.state.gridRegion.y + this._gridHeight())
                     .attr("id", this.state.pgInstanceId + "_vertical_scrollbar")
                     .style("stroke", barColor)
@@ -1209,7 +1207,7 @@ var images = require('./images.json');
                 // slider rect
                 verticalScrollbarGrp.append("rect")
                     //.attr("x", this.state.gridRegion.x + this._gridWidth() + barToGridMargin - sliderThickness/2) 
-                    .attr("x", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin - sliderThickness/2) 
+                    .attr("x", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin - sliderThickness) 
                     .attr("y", defaultY + sliderRectY) // sets the slider to the desired position after inverting axis - Joe
                     .attr("id", this.state.pgInstanceId + "_vertical_scrollbar_slider")
                     .attr("height", sliderHeight)
@@ -2561,8 +2559,8 @@ var images = require('./images.json');
             
             // only show the Organism(s) option when we have at least two speices
             if (this.state.initialTargetGroupLoadList.length > 1) {
-                var orgSel = this._createOrganismSelection();
-                options.append(orgSel);
+                var targetGroupSelection = this._createTargetGroupSelection();
+                options.append(targetGroupSelection);
             }
 
             var sortSel = this._createSortPhenotypeSelection();
@@ -2587,8 +2585,8 @@ var images = require('./images.json');
             $('#' + this.state.pgInstanceId + '_controls_options').hide(); 
             
             // add the handler for the checkboxes control
-            $('#' + this.state.pgInstanceId + '_organism').change(function(d) {
-                var items = this.childNodes; // this refers to $("#pg_organism") object - Joe
+            $('#' + this.state.pgInstanceId + '_targetGroup').change(function(d) {
+                var items = this.childNodes; // this refers to $("#pg_targetGroup") object - Joe
                 var temp = [];
                 for (var idx = 0; idx < items.length; idx++) {
                     if (items[idx].childNodes[0].checked) {
@@ -2600,7 +2598,7 @@ var images = require('./images.json');
                 if (temp.length > 0) {
                     self.state.selectedCompareTargetGroup = temp;				
                 } else {
-                    alert("You must have at least 1 species selected.");
+                    alert("You must have at least 1 target group selected.");
                 }
 
                 self._createAxisRenderingGroups();
@@ -2733,9 +2731,9 @@ var images = require('./images.json');
             pg_ctrl_options.css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset); 
         },	
         
-        _createOrganismSelection: function() {
-            var optionhtml = "<div class='pg_ctrl_label'>Organism(s)</div>" + 
-                "<div id='" + this.state.pgInstanceId + "_organism'>";
+        _createTargetGroupSelection: function() {
+            var optionhtml = "<div class='pg_ctrl_label'>Target Group(s)</div>" + 
+                "<div id='" + this.state.pgInstanceId + "_targetGroup'>";
             for (var idx in this.state.targetGroupList) {
                 if ( ! this.state.targetGroupList.hasOwnProperty(idx)) {
                     break;
