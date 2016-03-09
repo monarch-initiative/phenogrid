@@ -121,60 +121,49 @@ DataLoader.prototype = {
         });
 	},
     
-    
-    /*
-		Function: loadCompareDataForVendor
-
-			fetch and load data from the monarch compare api
-
-		Parameters:	
-			vendorData - JSON data from vendor
-            targetGroup - targetGroup name
-            qrySourceList - list of source items to query
-			multipleTargetEntities - combined list of mouse genes, list of lists
-			asyncDataLoadingCallback - callback
-	*/
-    loadCompareDataForVendor: function(vendorData, targetGroup, qrySourceList, multipleTargetEntities, asyncDataLoadingCallback) {
-		this.postDataLoadCallback = asyncDataLoadingCallback;
-        
-        // save the original source listing
+    // In progress 03/09/2016
+	loadCompareDataForVendor: function(qrySourceList, targetGroupList, asyncDataLoadingCallback, limit) {
+		// save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-        // example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP+MP+MP,MP+MP,MP+MP+MP+MP...
+        for (var i = 0; i < targetGroupList.length; i++) {
+            var listOfListsPerTargetGroup = [];
+            for (var j = 0; j < targetGroupList[i].entities.length; j++) {
+                var eachList = [];
+                for (var k = 0; k < targetGroupList[i].entities[j].phenotypes.length; k++) {
+                    eachList.push(targetGroupList[i].entities[j].phenotypes[k].id);
+                }
+                // add new property
+                targetGroupList[i].entities[j].combinedList = eachList.join('+');
+            }
+            // default separator of array.join(separator) is comma
+            // join all the MP inside each MP list with plus sign, and join each list with default comma
+            listOfListsPerTargetGroup.push(targetGroupList[i].entities[j].combinedList);
+        }
+        
+        // use the default comma to separate each list into each genotype profile
+        var multipleTargetEntities = listOfListsPerTargetGroup.join();
+
+
+        
+        
+        
+	    // example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP+MP+MP,MP+MP,MP+MP+MP+MP...
 	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + multipleTargetEntities;
 
-        var self = this;
+        // limit is used in analyze/phenotypes search mode
+        // can also be used in general simsearch query - Joe
+		if (typeof(limit) !== 'undefined') {
+	    	this.qryString += this.simSearchQuery.limitString + limit;
+		}
 
-        // Separate the ajax request with callbacks
-        var jqxhr = $.ajax({
-            url: this.qryString,
-            method: 'GET', 
-            async : true,
-            dataType : 'json'
-        });
-        
-        jqxhr.done(function(data) {
-            console.log('IMPC compare data loaded:');
-            //console.log(data);
-            
-            // sometimes the compare api doesn't find any matches, we need to stop here - Joe
-            if (typeof (data.b) === 'undefined') {
-                // Add the 'compare' name to the speciesNoMatch array
-                self.speciesNoMatch.push(targetGroup); 
-            } else {
-                // use targetGroup (For IMPC, it's 'Mus musculus') as the key of the named array
-                self.transformDataForVendor(vendorData, targetGroup, data);  // Hard coded
-            }
-            
-            self.postDataLoadCallback(); 
-        });
-        
-        jqxhr.fail(function () { 
-            console.log('Ajax error - loadCompareDataForVendor()')
-        });
+		this.postDataLoadCallback = asyncDataLoadingCallback;
+
+		// begin processing
+		this.processDataForVendor(targetGroupList, this.qryString);
 	},
-    
+
     
 	/*
 		Function: process
@@ -190,8 +179,8 @@ DataLoader.prototype = {
 			var target = targetGrpList[0];  // pull off the first to start processing
 			targetGrpList = targetGrpList.slice(1);
 	    	
-	    	// need to add on target targetGroup id
-	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.id;
+	    	// need to add on target targetGroup groupId
+	    	var postData = qryString + this.simSearchQuery.targetSpeciesString + target.groupId;
 
 	    	var postFetchCallback = this.postSimsFetchCb;
 
@@ -246,12 +235,12 @@ DataLoader.prototype = {
 		    // data.b contains all the matches, if not present, then no matches - Joe
             if (typeof(data.b) === 'undefined') {
                 // Add the species name to the speciesNoMatch array
-                self.speciesNoMatch.push(target.name);
+                self.speciesNoMatch.push(target.groupName);
             } else {
                 // save the original owlsim data
-                self.owlsimsData[target.name] = data;
+                self.owlsimsData[target.groupName] = data;
                 // now transform data to there basic data structures
-                self.transform(target.name, data);  
+                self.transform(target.groupName, data);  
             }
 		}
 		// iterative back to process to make sure we processed all the targetGrpList
@@ -273,7 +262,7 @@ DataLoader.prototype = {
 	*/
 	transform: function(targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
-			console.log("transforming...");
+			console.log("Transforming simsearch data of group: " + targetGroup);
 
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
@@ -361,7 +350,7 @@ DataLoader.prototype = {
 						dataVals = {
                             "source_id": sourceID_a, 
                             "target_id": targetID, 
-                            "targetGroup": item.taxon.label,									
+                            "targetGroup": targetGroup,									
                             "value": lcs, 
                             "a_IC" : curr_row.a.IC,  
                             "a_label" : curr_row.a.label,

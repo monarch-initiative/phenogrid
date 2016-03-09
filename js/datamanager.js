@@ -478,7 +478,7 @@ DataManager.prototype = {
 		// loop thru for the number of comparisons
 
 		for (var k in targetGroupList) {
-			var data = this.getData("target", targetGroupList[k].name);
+			var data = this.getData("target", targetGroupList[k].groupName);
 			if (typeof(data) !== 'undefined') {
 				var i=0;
 				for (var idx in data) {
@@ -507,7 +507,7 @@ DataManager.prototype = {
 		// loop thru for the number of comparisons and build a combined list
 		// also build the frequency and sum for the subset
 		for (var k in targetGroupList) {
-			var srcs = this.getData("source", targetGroupList[k].name);
+			var srcs = this.getData("source", targetGroupList[k].groupName);
 
 			if (typeof(srcs) !== 'undefined') {
 				for (var idx in srcs) {
@@ -530,7 +530,7 @@ DataManager.prototype = {
 
 			for (var t in targetGroupList) {
 				// get all the cell data
-				var cellData = this.getData("cellData", targetGroupList[t].name);
+				var cellData = this.getData("cellData", targetGroupList[t].groupName);
 				for (var cd in cellData) {
 
 				var cells = cellData[cd];
