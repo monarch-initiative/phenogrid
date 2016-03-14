@@ -150,11 +150,11 @@ DataLoader.prototype = {
                     eachList.push(target.entities[j].phenotypes[k].id);
                 }
                 // add new property
-                target.combinedList = eachList.join('+');
+                target.entities[j].combinedList = eachList.join('+');
                 
                 // default separator of array.join(separator) is comma
                 // join all the MP inside each MP list with plus sign, and join each list with default comma
-                listOfListsPerTargetGroup.push(target.combinedList);
+                listOfListsPerTargetGroup.push(target.entities[j].combinedList);
             }
             
             
@@ -182,7 +182,7 @@ DataLoader.prototype = {
                     self.speciesNoMatch.push(target.groupName);
                 } else {
                     // use target.groupName as the key of the named array
-                    self.transform(target.groupName, data);  
+                    self.transformDataForVendor(target, target.groupName, data);  
                 }
                 
                 // iterative back to process to make sure we processed all the targetGrpList
@@ -419,11 +419,10 @@ DataLoader.prototype = {
 		 	
 	 	Parameters:
 
-            vendorData - vendor-specific data, used to modify the final dataset
 	 		targetGroup - targetGroup name
 	 		data - owlsims structured data
 	*/
-    transformDataForVendor: function(vendorData, targetGroup, data) {      		
+    transformDataForVendor: function(target, targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("IMPC transforming...");
 
@@ -453,16 +452,16 @@ DataLoader.prototype = {
             // we'll need to use the genotype id (IMPC internal) from input data as the new ID
             // Keep in mind that some lists may not have any simsearch matches, so the order of results don't always match the input impc JSON
             for (var i in data.b) {
-                for (var j in vendorData.xAxis) {
-                    if (data.b[i].id === vendorData.xAxis[j].combinedList) {
+                for (var j in target.entities) {
+                    if (data.b[i].id === target.entities[j].combinedList) {
                         // add new id
-                        data.b[i].newid = vendorData.xAxis[j].id;
+                        data.b[i].newid = target.entities[j].id;
                         // add label with genotype label
-                        data.b[i].label = vendorData.xAxis[j].label;
+                        data.b[i].label = target.entities[j].label;
                         // add phenodigm score
-                        data.b[i].phenodigmScore = vendorData.xAxis[j].score;
+                        data.b[i].phenodigmScore = target.entities[j].score;
                         // add info for tooltip rendering
-                        data.b[i].info = vendorData.xAxis[j].info;
+                        data.b[i].info = target.entities[j].info;
                         
                         break;
                     }
