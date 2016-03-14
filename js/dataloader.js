@@ -122,41 +122,14 @@ DataLoader.prototype = {
 	},
     
     // In progress 03/09/2016
-	loadCompareDataForVendor: function(qrySourceList, targetGroupList, asyncDataLoadingCallback, limit) {
+	loadCompareDataForVendor: function(qrySourceList, targetGroupList, asyncDataLoadingCallback) {
 		// save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
 
-        for (var i = 0; i < targetGroupList.length; i++) {
-            var listOfListsPerTargetGroup = [];
-            for (var j = 0; j < targetGroupList[i].entities.length; j++) {
-                var eachList = [];
-                for (var k = 0; k < targetGroupList[i].entities[j].phenotypes.length; k++) {
-                    eachList.push(targetGroupList[i].entities[j].phenotypes[k].id);
-                }
-                // add new property
-                targetGroupList[i].entities[j].combinedList = eachList.join('+');
-            }
-            // default separator of array.join(separator) is comma
-            // join all the MP inside each MP list with plus sign, and join each list with default comma
-            listOfListsPerTargetGroup.push(targetGroupList[i].entities[j].combinedList);
-        }
-        
         // use the default comma to separate each list into each genotype profile
-        var multipleTargetEntities = listOfListsPerTargetGroup.join();
-
-
-        
-        
-        
 	    // example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP+MP+MP,MP+MP,MP+MP+MP+MP...
-	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/' + multipleTargetEntities;
-
-        // limit is used in analyze/phenotypes search mode
-        // can also be used in general simsearch query - Joe
-		if (typeof(limit) !== 'undefined') {
-	    	this.qryString += this.simSearchQuery.limitString + limit;
-		}
+	    this.qryString = this.serverURL + this.simSearchQuery.URL + '/' + qrySourceList.join("+") + '/';
 
 		this.postDataLoadCallback = asyncDataLoadingCallback;
 
@@ -164,6 +137,65 @@ DataLoader.prototype = {
 		this.processDataForVendor(targetGroupList, this.qryString);
 	},
 
+    processDataForVendor: function(targetGrpList, qryString) {
+		if (targetGrpList.length > 0) {
+			var target = targetGrpList[0];  // pull off the first to start processing
+			targetGrpList = targetGrpList.slice(1);
+	    	
+            
+            var listOfListsPerTargetGroup = [];
+            for (var j = 0; j < target.entities.length; j++) {
+                var eachList = [];
+                for (var k = 0; k < target.entities[j].phenotypes.length; k++) {
+                    eachList.push(target.entities[j].phenotypes[k].id);
+                }
+                // add new property
+                target.combinedList = eachList.join('+');
+                
+                // default separator of array.join(separator) is comma
+                // join all the MP inside each MP list with plus sign, and join each list with default comma
+                listOfListsPerTargetGroup.push(target.combinedList);
+            }
+            
+            
+            // use the default comma to separate each list into each genotype profile
+	        // example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP+MP+MP,MP+MP,MP+MP+MP+MP...
+	        var qryStringPerTargetGroup = qryString + listOfListsPerTargetGroup.join();
+
+            var self = this;
+            
+            // Separate the ajax request with callbacks
+            var jqxhr = $.ajax({
+                url: qryStringPerTargetGroup,
+                method: 'GET', 
+                async : true,
+                dataType : 'json'
+            });
+            
+            jqxhr.done(function(data) {
+                //console.log('compare data loaded:');
+                //console.log(data);
+                
+                // sometimes the compare api doesn't find any matches, we need to stop here - Joe
+                if (typeof (data.b) === 'undefined') {
+                    // Add the target.groupName to the speciesNoMatch array
+                    self.speciesNoMatch.push(target.groupName);
+                } else {
+                    // use target.groupName as the key of the named array
+                    self.transform(target.groupName, data);  
+                }
+                
+                // iterative back to process to make sure we processed all the targetGrpList
+		        self.processDataForVendor(targetGrpList, self.qryString);
+            });
+            
+            jqxhr.fail(function () { 
+                console.log('Ajax error - processDataForVendor()')
+            });
+		} else {
+			this.postDataLoadCallback();  // make a call back to post data init function
+		}
+	},
     
 	/*
 		Function: process
