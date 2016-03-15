@@ -213,13 +213,13 @@ DataManager.prototype = {
 	     var rec;
 	     if (typeof(this.cellData[targetGroup]) !== 'undefined') {
              if (typeof(this.cellData[targetGroup][key1]) !== 'undefined') {
-                 if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
-                 rec = this.cellData[targetGroup][key1][key2];
-                 }
+                if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
+                    rec = this.cellData[targetGroup][key1][key2];
+                }
              } else if (typeof(this.cellData[targetGroup][key2]) !== 'undefined') {
-                 if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
-                 rec = this.cellData[targetGroup][key2][key1];
-                 }
+                if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
+                    rec = this.cellData[targetGroup][key2][key1];
+                }
              }
 	     }
 	     return rec;
@@ -368,14 +368,15 @@ DataManager.prototype = {
 	    	this.matrix = []; 
 	    }
 
-	    for (var y=0; y < yvalues.length; y++ ) {
+	    for (var y = 0; y < yvalues.length; y++ ) {
     		var list = [];
 			for (var x = 0; x < xvalues.length; x++ ) {
                 // when owlSimFunction === 'compare', we use 'compare' as the targetGroup name - Joe
                 if (typeof(forCompare) !== 'undefined') {
                     var targetGroup = forCompare;
                 } else {
-                    var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
+                    //var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
+                    var targetGroup = xvalues[x].targetGroup;
                 }
 
 				if ((typeof(yvalues[y]) !== 'undefined') && (typeof(xvalues[x]) !== 'undefined')) {
@@ -395,7 +396,6 @@ DataManager.prototype = {
 						} else {  // else, just create an array of arrays, grid likes this format
 							list.push(rec);	
 						}
-						
 					}
 				}
 			}
@@ -415,7 +415,7 @@ DataManager.prototype = {
 
 		for (var i in this.matrix) {
 			var r = this.matrix[i];
-			for (var j=0; j < r.length; j++) {
+			for (var j = 0; j < r.length; j++) {
 				if (r[j].ypos == matchpos && !highlightSources) {
 					matchedPositions.push(r[j]);
 				} else if (r[j].xpos == matchpos && highlightSources) {

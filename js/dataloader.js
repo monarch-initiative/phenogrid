@@ -426,6 +426,7 @@ DataLoader.prototype = {
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("Vendor Data transforming...");
 
+            var targetGroupId = target.groupId;
             var targetGroup = target.groupName;
             
             // sometimes the 'metadata' field might be missing from the JSON - Joe
@@ -435,18 +436,18 @@ DataLoader.prototype = {
 			}
 			
             // just initialize the specific targetGroup
-            
             // Here we don't reset the cellData, targetData, and sourceData every time,
             // because we want to append the genotype expansion data - Joe
             // No need to redefine this in genotypeTransform() - Joe   
-			if (typeof(this.cellData[targetGroup]) === 'undefined') {
-                this.cellData[targetGroup] = {};
-            }
+			
             if (typeof(this.targetData[targetGroup]) === 'undefined') {
                 this.targetData[targetGroup] = {};
             }
             if (typeof(this.sourceData[targetGroup]) === 'undefined') {
                 this.sourceData[targetGroup] = {};
+            }
+            if (typeof(this.cellData[targetGroup]) === 'undefined') {
+                this.cellData[targetGroup] = {};
             }
 
             // Modify the resulting JSON
@@ -474,14 +475,15 @@ DataLoader.prototype = {
 				var item = data.b[idx];
 				// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
                 // we'll need to use the genotype id (IMPC internal) as the new ID
-                var targetID = 'IMPC:' + item.newid; // IMPC internal id
+                // Add prefix of groupId, otherwise may have javascript array ordering issues - Joe
+                var targetID = target.groupId + item.newid;
 
 				// build the target list
 				var targetVal = {
                     "id": targetID, 
                     "label": item.label, 
                     "targetGroup": targetGroup, // Mouse
-                    "type": "genotype", 
+                    "type": "genotype", // Needs to be dynamic instead of hard coded - Joe
                     "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
                     "score": Math.round(item.phenodigmScore.score) // rounded to the nearest integer, used in _createTextScores() in phenogrid.js
@@ -558,9 +560,55 @@ DataLoader.prototype = {
 
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
-				}  //if
-			} // for
-		} // if
+				} 
+			} 
+            
+            // Add dummy paddings when the number of colums per target group is less than the default length limit
+            // so we can still show the divider lines based on the fixed number of limit
+            var defaultLengthLimit = 6;
+            if (target.entities.length < defaultLengthLimit) {
+                var numPaddings = defaultLengthLimit - target.entities.length;
+                for (var j = 0; j < numPaddings; j++) {
+                    var dummyTargetPadding = {
+                            "id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
+                            "label": '', // use empty string since the label gets truncated
+                            "targetGroup": targetGroup, 
+                            "type": null, 
+                            "info": null, 
+                            "rank": null, 
+                            "score": null
+                        };
+
+                    // Add dummy target column
+                    this.targetData[targetGroup]['dummyTargetPadding' + j] = dummyTargetPadding;
+                    
+                    // Add dummy cells for each column
+                    for (var idx in this.sourceData[targetGroup]) {
+                        var dummyCellPadding = {
+                            "source_id": this.sourceData[targetGroup][idx].id, // Can't use null
+                            "target_id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
+                            "targetGroup": targetGroup, 								
+                            "value": null, 
+                            "a_IC" : null,  
+                            "a_label" : null, 
+                            "subsumer_id": null, 
+                            "subsumer_label": null, 
+                            "subsumer_IC": null, 
+                            "b_id": null, 
+                            "b_label": null, 
+                            "b_IC": null, 
+                            "type": 'cell'
+                        };
+                        
+                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                     
+                        if (typeof(this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]) === 'undefined') {
+                            this.cellData[targetGroup][this.sourceData[targetGroup][idx].id] = {};
+                        }
+                        this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]['dummyTargetPadding_' + targetGroupId + '_' + j] = dummyCellPadding;
+                    }
+                }
+            }
+		} 
 	},  
     
     /*

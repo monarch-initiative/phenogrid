@@ -149,7 +149,7 @@ var images = require('./images.json');
             gridTitle: 'Phenotype Similarity Comparison',       
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
             sourceLengthLimit: 30, //  defines the limit of the number of sources to display
-            multiTargetsModeTargetLengthLimit: 3,    // the number of visible targets per group to be displayed in cross compare mode  
+            multiTargetsModeTargetLengthLimit: 6,    // the number of visible targets per group to be displayed in cross compare mode  
             targetLabelCharLimit : 27,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -2120,6 +2120,8 @@ var images = require('./images.json');
                 var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
             }
 
+            console.log(matrix);
+            
             // create column labels first, so the added genotype cells will overwrite the background color - Joe
             // create columns using the xvalues (targets)
             var column = this.state.svg.selectAll(".column")
@@ -2244,7 +2246,7 @@ var images = require('./images.json');
                     self._mouseout();		  		
                 });
 
-            // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+            // no need to add this grey background for multi groups or owlSimFunction === 'compare' - Joe
             if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].groupName !== 'compare') {
                 row.append("rect")
                     .attr('width', self._gridWidth())
@@ -2282,15 +2284,23 @@ var images = require('./images.json');
                     .attr("height", gridRegion.cellSize) 
                     .attr("data-tooltip", "tooltip")   					        
                     .style("fill", function(d) { 
-                        var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-                        return self._getCellColor(el.value[self.state.selectedCalculation]);
+                        if (d.target_id.indexOf('dummyTargetPadding') > -1) {
+                            return '#ddd'; // fill light grey for dummy cells
+                        } else {
+                            var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+                            return self._getCellColor(el.value[self.state.selectedCalculation]);
+                        }
                     })
                     .on("mouseover", function(d) { 					
-                        // self is the global widget this
-                        // this passed to _mouseover refers to the current element
-                        // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
-                        // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                        self._mouseover(this, d, self);})							
+                        // No need to add mouseover event to dummy cells
+                        if (d.target_id.indexOf('dummyTargetPadding') === -1) {
+                            // self is the global widget this
+                            // this passed to _mouseover refers to the current element
+                            // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                            // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                            self._mouseover(this, d, self);	
+                        }
+                    })
                     .on("mouseout", function() {
                         // _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                         self._mouseout();

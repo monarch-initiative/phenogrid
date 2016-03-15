@@ -739,6 +739,7 @@ DataLoader.prototype = {
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("Vendor Data transforming...");
 
+            var targetGroupId = target.groupId;
             var targetGroup = target.groupName;
             
             // sometimes the 'metadata' field might be missing from the JSON - Joe
@@ -748,18 +749,18 @@ DataLoader.prototype = {
 			}
 			
             // just initialize the specific targetGroup
-            
             // Here we don't reset the cellData, targetData, and sourceData every time,
             // because we want to append the genotype expansion data - Joe
             // No need to redefine this in genotypeTransform() - Joe   
-			if (typeof(this.cellData[targetGroup]) === 'undefined') {
-                this.cellData[targetGroup] = {};
-            }
+			
             if (typeof(this.targetData[targetGroup]) === 'undefined') {
                 this.targetData[targetGroup] = {};
             }
             if (typeof(this.sourceData[targetGroup]) === 'undefined') {
                 this.sourceData[targetGroup] = {};
+            }
+            if (typeof(this.cellData[targetGroup]) === 'undefined') {
+                this.cellData[targetGroup] = {};
             }
 
             // Modify the resulting JSON
@@ -787,14 +788,15 @@ DataLoader.prototype = {
 				var item = data.b[idx];
 				// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
                 // we'll need to use the genotype id (IMPC internal) as the new ID
-                var targetID = 'IMPC:' + item.newid; // IMPC internal id
+                // Add prefix of groupId, otherwise may have javascript array ordering issues - Joe
+                var targetID = target.groupId + item.newid;
 
 				// build the target list
 				var targetVal = {
                     "id": targetID, 
                     "label": item.label, 
                     "targetGroup": targetGroup, // Mouse
-                    "type": "genotype", 
+                    "type": "genotype", // Needs to be dynamic instead of hard coded - Joe
                     "info": item.info, // for tooltip rendering
                     "rank": parseInt(idx)+1,  // start with 1 not zero
                     "score": Math.round(item.phenodigmScore.score) // rounded to the nearest integer, used in _createTextScores() in phenogrid.js
@@ -871,9 +873,55 @@ DataLoader.prototype = {
 
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
-				}  //if
-			} // for
-		} // if
+				} 
+			} 
+            
+            // Add dummy paddings when the number of colums per target group is less than the default length limit
+            // so we can still show the divider lines based on the fixed number of limit
+            var defaultLengthLimit = 6;
+            if (target.entities.length < defaultLengthLimit) {
+                var numPaddings = defaultLengthLimit - target.entities.length;
+                for (var j = 0; j < numPaddings; j++) {
+                    var dummyTargetPadding = {
+                            "id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
+                            "label": '', // use empty string since the label gets truncated
+                            "targetGroup": targetGroup, 
+                            "type": null, 
+                            "info": null, 
+                            "rank": null, 
+                            "score": null
+                        };
+
+                    // Add dummy target column
+                    this.targetData[targetGroup]['dummyTargetPadding' + j] = dummyTargetPadding;
+                    
+                    // Add dummy cells for each column
+                    for (var idx in this.sourceData[targetGroup]) {
+                        var dummyCellPadding = {
+                            "source_id": this.sourceData[targetGroup][idx].id, // Can't use null
+                            "target_id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
+                            "targetGroup": targetGroup, 								
+                            "value": null, 
+                            "a_IC" : null,  
+                            "a_label" : null, 
+                            "subsumer_id": null, 
+                            "subsumer_label": null, 
+                            "subsumer_IC": null, 
+                            "b_id": null, 
+                            "b_label": null, 
+                            "b_IC": null, 
+                            "type": 'cell'
+                        };
+                        
+                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                     
+                        if (typeof(this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]) === 'undefined') {
+                            this.cellData[targetGroup][this.sourceData[targetGroup][idx].id] = {};
+                        }
+                        this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]['dummyTargetPadding_' + targetGroupId + '_' + j] = dummyCellPadding;
+                    }
+                }
+            }
+		} 
 	},  
     
     /*
@@ -1521,13 +1569,13 @@ DataManager.prototype = {
 	     var rec;
 	     if (typeof(this.cellData[targetGroup]) !== 'undefined') {
              if (typeof(this.cellData[targetGroup][key1]) !== 'undefined') {
-                 if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
-                 rec = this.cellData[targetGroup][key1][key2];
-                 }
+                if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
+                    rec = this.cellData[targetGroup][key1][key2];
+                }
              } else if (typeof(this.cellData[targetGroup][key2]) !== 'undefined') {
-                 if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
-                 rec = this.cellData[targetGroup][key2][key1];
-                 }
+                if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
+                    rec = this.cellData[targetGroup][key2][key1];
+                }
              }
 	     }
 	     return rec;
@@ -1676,14 +1724,15 @@ DataManager.prototype = {
 	    	this.matrix = []; 
 	    }
 
-	    for (var y=0; y < yvalues.length; y++ ) {
+	    for (var y = 0; y < yvalues.length; y++ ) {
     		var list = [];
 			for (var x = 0; x < xvalues.length; x++ ) {
                 // when owlSimFunction === 'compare', we use 'compare' as the targetGroup name - Joe
                 if (typeof(forCompare) !== 'undefined') {
                     var targetGroup = forCompare;
                 } else {
-                    var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
+                    //var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
+                    var targetGroup = xvalues[x].targetGroup;
                 }
 
 				if ((typeof(yvalues[y]) !== 'undefined') && (typeof(xvalues[x]) !== 'undefined')) {
@@ -1703,7 +1752,6 @@ DataManager.prototype = {
 						} else {  // else, just create an array of arrays, grid likes this format
 							list.push(rec);	
 						}
-						
 					}
 				}
 			}
@@ -1723,7 +1771,7 @@ DataManager.prototype = {
 
 		for (var i in this.matrix) {
 			var r = this.matrix[i];
-			for (var j=0; j < r.length; j++) {
+			for (var j = 0; j < r.length; j++) {
 				if (r[j].ypos == matchpos && !highlightSources) {
 					matchedPositions.push(r[j]);
 				} else if (r[j].xpos == matchpos && highlightSources) {
@@ -2069,7 +2117,7 @@ var images = require('./images.json');
             gridTitle: 'Phenotype Similarity Comparison',       
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
             sourceLengthLimit: 30, //  defines the limit of the number of sources to display
-            multiTargetsModeTargetLengthLimit: 3,    // the number of visible targets per group to be displayed in cross compare mode  
+            multiTargetsModeTargetLengthLimit: 6,    // the number of visible targets per group to be displayed in cross compare mode  
             targetLabelCharLimit : 27,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -4040,6 +4088,8 @@ var images = require('./images.json');
                 var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
             }
 
+            console.log(matrix);
+            
             // create column labels first, so the added genotype cells will overwrite the background color - Joe
             // create columns using the xvalues (targets)
             var column = this.state.svg.selectAll(".column")
@@ -4164,7 +4214,7 @@ var images = require('./images.json');
                     self._mouseout();		  		
                 });
 
-            // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+            // no need to add this grey background for multi groups or owlSimFunction === 'compare' - Joe
             if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].groupName !== 'compare') {
                 row.append("rect")
                     .attr('width', self._gridWidth())
@@ -4202,15 +4252,23 @@ var images = require('./images.json');
                     .attr("height", gridRegion.cellSize) 
                     .attr("data-tooltip", "tooltip")   					        
                     .style("fill", function(d) { 
-                        var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-                        return self._getCellColor(el.value[self.state.selectedCalculation]);
+                        if (d.target_id.indexOf('dummyTargetPadding') > -1) {
+                            return '#ddd'; // fill light grey for dummy cells
+                        } else {
+                            var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+                            return self._getCellColor(el.value[self.state.selectedCalculation]);
+                        }
                     })
                     .on("mouseover", function(d) { 					
-                        // self is the global widget this
-                        // this passed to _mouseover refers to the current element
-                        // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
-                        // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                        self._mouseover(this, d, self);})							
+                        // No need to add mouseover event to dummy cells
+                        if (d.target_id.indexOf('dummyTargetPadding') === -1) {
+                            // self is the global widget this
+                            // this passed to _mouseover refers to the current element
+                            // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                            // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                            self._mouseover(this, d, self);	
+                        }
+                    })
                     .on("mouseout", function() {
                         // _mouseout() removes the matching highlighting as well as the crosshairs - Joe
                         self._mouseout();
