@@ -4530,20 +4530,20 @@ var images = require('./images.json');
                 
                 // IMPC input data ships will all HP labels, no need to grab via ajax - Joe
                 if (this.state.gridSkeletonDataVendor === 'IMPC') {
-                    var impcUnmatchedSources = [];
-                    for (var i=0; i< this.state.unmatchedSources.length; i++) {
-                        for (var idx in this.state.gridSkeletonData.yAxis[0].phenotypes) {
-                            if (this.state.gridSkeletonData.yAxis[0].phenotypes[idx].id === this.state.unmatchedSources[i]) {
+                    var vendorDataUnmatchedSources = [];
+                    for (var i = 0; i< this.state.unmatchedSources.length; i++) {
+                        for (var idx in this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes) {
+                            if (this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes[idx].id === this.state.unmatchedSources[i]) {
                                 // use "label" instead of "term" here
-                                var item = {id: this.state.gridSkeletonData.yAxis[0].phenotypes[idx].id, label: this.state.gridSkeletonData.yAxis[0].phenotypes[idx].term};
-                                impcUnmatchedSources.push(item);
+                                var item = {id: this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes[idx].id, label: this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes[idx].term};
+                                vendorDataUnmatchedSources.push(item);
                                 break;
                             }
                         }
                     }
                     // Now we have all the unmatched source labels to render
-                    for (var j=0; j< impcUnmatchedSources.length; j++) {
-                        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + this.state.serverURL + '/phenotype/' + impcUnmatchedSources[j].id + '" target="_blank">' + impcUnmatchedSources[j].label + '</a></div>';
+                    for (var j = 0; j< vendorDataUnmatchedSources.length; j++) {
+                        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + this.state.serverURL + '/phenotype/' + vendorDataUnmatchedSources[j].id + '" target="_blank">' + vendorDataUnmatchedSources[j].label + '</a></div>';
                         $('#' + this.state.pgInstanceId + '_unmatched_list_data').append(pg_unmatched_list_item);
                     }
                 } else {
