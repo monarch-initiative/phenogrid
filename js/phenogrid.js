@@ -149,7 +149,7 @@ var images = require('./images.json');
             gridTitle: 'Phenotype Similarity Comparison',       
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
             sourceLengthLimit: 30, //  defines the limit of the number of sources to display
-            multiTargetsModeTargetLengthLimit: 20,    // the number of visible targets per group to be displayed in cross compare mode  
+            multiTargetsModeTargetLengthLimit: 15,    // the number of visible targets per group to be displayed in cross compare mode  
             targetLabelCharLimit : 27,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -560,7 +560,6 @@ var images = require('./images.json');
                 targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.multiTargetsModeTargetLengthLimit);	
 
                 // get the length of the targetlist, this sets that limit since we are in comparison mode
-                // only the multiTargetsModeTargetLengthLimit is set, which provides the overall display limit
                 this.state.targetDisplayLimit = Object.keys(targetList).length;
             } else if (this.state.selectedCompareTargetGroup.length === 1) {
                 // just get the target group name 
@@ -582,17 +581,18 @@ var images = require('./images.json');
                     targetList = this.state.dataManager.getData("target", singleTargetGroupName);
                 }
                 
-                this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);			
+                this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);	
+
+                // In single target mode, use singleTargetModeTargetLengthLimit if more than that
+                if (this.state.targetDisplayLimit > this.state.singleTargetModeTargetLengthLimit) {
+                    this.state.targetDisplayLimit = this.state.singleTargetModeTargetLengthLimit;
+                }                 
             }
 
             // check to make sure the display limits are not over the default display limits
             if (this.state.sourceDisplayLimit > this.state.sourceLengthLimit) {
                 this.state.sourceDisplayLimit = this.state.sourceLengthLimit;  // adjust the display limit within default limit
             }
-
-            if (this.state.targetDisplayLimit > this.state.singleTargetModeTargetLengthLimit) {
-                this.state.targetDisplayLimit = this.state.singleTargetModeTargetLengthLimit;
-            } 
 
             // creates AxisGroup with full source and target lists with default rendering range
             this.state.sourceAxis = new AxisGroup(0, this.state.sourceDisplayLimit, sourceList);
@@ -1181,12 +1181,12 @@ var images = require('./images.json');
             if (vertical === true) {
                 var verticalScrollbarGrp = this.state.svg.append("g")
                     .attr("id", this.state.pgInstanceId + "_vertical_scrollbar_group");
-                
+
                 // scrollbar rect
                 verticalScrollbarGrp.append("line")
-                    .attr("x1", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad - sliderThickness/2 + barToGridMargin)
+                    .attr("x1", this._positionVerticalScrollbarLine(sliderThickness, barToGridMargin))
                     .attr("y1", this.state.gridRegion.y)
-                    .attr("x2", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad - sliderThickness/2 + barToGridMargin)
+                    .attr("x2", this._positionVerticalScrollbarLine(sliderThickness, barToGridMargin))
                     .attr("y2", this.state.gridRegion.y + this._gridHeight())
                     .attr("id", this.state.pgInstanceId + "_vertical_scrollbar")
                     .style("stroke", barColor)
@@ -1194,8 +1194,7 @@ var images = require('./images.json');
 
                 // slider rect
                 verticalScrollbarGrp.append("rect")
-                    //.attr("x", this.state.gridRegion.x + this._gridWidth() + barToGridMargin - sliderThickness/2) 
-                    .attr("x", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin - sliderThickness) 
+                    .attr("x", this._positionVerticalScrollbarRect(sliderThickness, barToGridMargin)) 
                     .attr("y", defaultY + sliderRectY) // sets the slider to the desired position after inverting axis - Joe
                     .attr("id", this.state.pgInstanceId + "_vertical_scrollbar_slider")
                     .attr("height", sliderHeight)
@@ -1249,6 +1248,30 @@ var images = require('./images.json');
             }
         },
         
+        _positionVerticalScrollbarLine: function(sliderThickness, barToGridMargin) {
+            var x;
+            
+            if (this._isCrossComparisonView()) {
+                x = this.state.gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*this.state.gridRegion.cellPad - sliderThickness/2 + barToGridMargin
+            } else {
+                x = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad - sliderThickness/2 + barToGridMargin;
+            }
+            
+            return x;
+        },
+        
+        _positionVerticalScrollbarRect: function(sliderThickness, barToGridMargin) {
+            var x;
+            
+            if (this._isCrossComparisonView()) {
+                x = this.state.gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*this.state.gridRegion.cellPad + barToGridMargin - sliderThickness;
+            } else {
+                x = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + barToGridMargin - sliderThickness;
+            }
+            
+            return x;
+        },
+        
         // for scrollbars
         _createScrollbarScales: function(width, height) {
             // create list of all item ids within each axis
@@ -1270,7 +1293,13 @@ var images = require('./images.json');
         
         _setSvgSize: function() {
             // Update the width and height of #pg_svg
-            var svgWidth = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + this.state.gridRegion.rowLabelOffset + $('#' + this.state.pgInstanceId + '_slide_btn').width() + this.state.btnPadding;
+            var svgWidth;
+            
+            if (this._isCrossComparisonView()) {
+                svgWidth = this.state.gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*this.state.gridRegion.cellPad + this.state.gridRegion.rowLabelOffset + $('#' + this.state.pgInstanceId + '_slide_btn').width() + this.state.btnPadding;
+            } else {
+                svgWidth = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + this.state.gridRegion.rowLabelOffset + $('#' + this.state.pgInstanceId + '_slide_btn').width() + this.state.btnPadding;
+            }
             
             d3.select('#' + this.state.pgInstanceId + '_svg')
                 .attr('width', svgWidth)
@@ -1758,10 +1787,17 @@ var images = require('./images.json');
         // Grid main top title
         _addGridTitle: function() {
             if (this.state.gridTitle !== '') {
+                var self = this;
                 // Add the top main title to pg_svg_group
                 this.state.svg.append("svg:text")
                     .attr("id", this.state.pgInstanceId + "_toptitle")
-                    .attr("x", this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad/2) // Calculated based on the singleTargetModeTargetLengthLimit - Joe
+                    .attr("x", function() {
+                        if (self._isCrossComparisonView()) {
+                            return self.state.gridRegion.x + self.state.multiTargetsModeTargetLengthLimit*self.state.selectedCompareTargetGroup.length*self.state.gridRegion.cellPad/2
+                        } else {
+                            return self.state.gridRegion.x + self.state.singleTargetModeTargetLengthLimit*self.state.gridRegion.cellPad/2;
+                        }
+                    }) // Calculated based on the singleTargetModeTargetLengthLimit - Joe
                     .attr("y", 25) // Fixed y position - Joe
                     .style('text-anchor', 'middle') // Center the main title - Joe
                     .style('font-size', '1.4em')
@@ -2119,9 +2155,7 @@ var images = require('./images.json');
             } else {
                 var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false);
             }
-
-            console.log(matrix);
-            
+  
             // create column labels first, so the added genotype cells will overwrite the background color - Joe
             // create columns using the xvalues (targets)
             var column = this.state.svg.selectAll(".column")
@@ -2402,8 +2436,12 @@ var images = require('./images.json');
         _createGradientLegend: function(){
             var gridRegion = this.state.gridRegion;
             
-            var x = gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad/2;
-            
+            if (this._isCrossComparisonView()) {
+                var x = gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*gridRegion.cellPad/2;
+            } else {
+                var x = gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad/2;
+            }
+
             // Create a group for gradient bar and legend texts - Joe
             var gradientGrp = this.state.svg.append("g")
                 .attr('id', this.state.pgInstanceId + '_gradient_legend');
@@ -2674,8 +2712,12 @@ var images = require('./images.json');
         _createMonarchInitiativeRecognition: function() {
             var gridRegion = this.state.gridRegion;
             
-            var x = gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad/2;
-            
+            if (this._isCrossComparisonView()) {
+                var x = gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*gridRegion.cellPad/2;
+            } else {
+                var x = gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad/2;
+            }
+
             // Create a group for text and logo
             var recognitionGrp = this.state.svg.append("g")
                 .attr('id', this.state.pgInstanceId + '_recognition');  
@@ -2715,9 +2757,6 @@ var images = require('./images.json');
             var marginTop = 17; // Create some whitespace between the button and the y labels 
             $('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
             
-            // Place the options button to the right of the default limit of columns
-            $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset);
-            
             // The height of .pg_controls_options defined in phenogrid.css - Joe
             var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
             // shrink the height when we don't show the species selection
@@ -2726,7 +2765,15 @@ var images = require('./images.json');
             }
             // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
             pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
-            pg_ctrl_options.css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset); 
+            
+            // Place the options button to the right of the default limit of columns
+            if (this._isCrossComparisonView()) {
+                pg_ctrl_options.css('left', gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*gridRegion.cellPad + gridRegion.rowLabelOffset); 
+                $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*gridRegion.cellPad + gridRegion.rowLabelOffset);
+            } else {
+                pg_ctrl_options.css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset); 
+                $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset);
+            }
         },	
         
         _createTargetGroupSelection: function() {
@@ -2857,7 +2904,12 @@ var images = require('./images.json');
             $('#' + this.state.pgInstanceId + '_unmatched_btn').css('top', gridRegion.y + this._gridHeight() + 17); // 17 is top margin
             $('#' + this.state.pgInstanceId + '_unmatched_btn').css('left', this.state.btnPadding);
             $('#' + this.state.pgInstanceId + '_unmatched_list').css('top', gridRegion.y + this._gridHeight() + $('#' + this.state.pgInstanceId + '_unmatched_btn').outerHeight() + + 17 + 10);
-            $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad - 20); 
+            
+            if (this._isCrossComparisonView()) {
+                $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*gridRegion.cellPad - 20); 
+            } else {
+                $('#' + this.state.pgInstanceId + '_unmatched_list').css('width', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad - 20); 
+            }
         },	
         
         // ajax callback
