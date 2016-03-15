@@ -435,7 +435,7 @@ DataLoader.prototype = {
 	},
     
     // In progress 03/09/2016
-	loadCompareDataForVendor: function(qrySourceList, targetGroupList, asyncDataLoadingCallback) {
+	loadCompareDataForVendor: function(qrySourceList, targetGroupList, asyncDataLoadingCallback, multiTargetsModeTargetLengthLimit) {
 		// save the original source listing
         // The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 		this.origSourceList = qrySourceList;
@@ -447,10 +447,10 @@ DataLoader.prototype = {
 		this.postDataLoadCallback = asyncDataLoadingCallback;
 
 		// begin processing
-		this.processDataForVendor(targetGroupList, this.qryString);
+		this.processDataForVendor(targetGroupList, this.qryString, multiTargetsModeTargetLengthLimit);
 	},
 
-    processDataForVendor: function(targetGrpList, qryString) {
+    processDataForVendor: function(targetGrpList, qryString, multiTargetsModeTargetLengthLimit) {
 		if (targetGrpList.length > 0) {
 			var target = targetGrpList[0];  // pull off the first to start processing
 			targetGrpList = targetGrpList.slice(1);
@@ -495,7 +495,7 @@ DataLoader.prototype = {
                     self.speciesNoMatch.push(target.groupName);
                 } else {
                     // Will use target.groupName as the key of the named array
-                    self.transformDataForVendor(target, data);  
+                    self.transformDataForVendor(target, data, multiTargetsModeTargetLengthLimit);  
                 }
                 
                 // iterative back to process to make sure we processed all the targetGrpList
@@ -734,8 +734,9 @@ DataLoader.prototype = {
 
             target - target group data
 	 		data - owlsims structured data
+            multiTargetsModeTargetLengthLimit - default target length limit per group
 	*/
-    transformDataForVendor: function(target, data) {      		
+    transformDataForVendor: function(target, data, multiTargetsModeTargetLengthLimit) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("Vendor Data transforming...");
 
@@ -878,9 +879,8 @@ DataLoader.prototype = {
             
             // Add dummy paddings when the number of colums per target group is less than the default length limit
             // so we can still show the divider lines based on the fixed number of limit
-            var defaultLengthLimit = 6;
-            if (target.entities.length < defaultLengthLimit) {
-                var numPaddings = defaultLengthLimit - target.entities.length;
+            if (target.entities.length < multiTargetsModeTargetLengthLimit) {
+                var numPaddings = multiTargetsModeTargetLengthLimit - target.entities.length;
                 for (var j = 0; j < numPaddings; j++) {
                     var dummyTargetPadding = {
                             "id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
@@ -2117,7 +2117,7 @@ var images = require('./images.json');
             gridTitle: 'Phenotype Similarity Comparison',       
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
             sourceLengthLimit: 30, //  defines the limit of the number of sources to display
-            multiTargetsModeTargetLengthLimit: 6,    // the number of visible targets per group to be displayed in cross compare mode  
+            multiTargetsModeTargetLengthLimit: 20,    // the number of visible targets per group to be displayed in cross compare mode  
             targetLabelCharLimit : 27,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -2389,7 +2389,7 @@ var images = require('./images.json');
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the owlsim data from compare api for this vendor
-            this.state.dataLoader.loadCompareDataForVendor(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForVendor(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.multiTargetsModeTargetLengthLimit);
         },
         
         _showGridSkeletonDataErrorMsg: function() {

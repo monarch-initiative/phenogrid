@@ -149,7 +149,7 @@ var images = require('./images.json');
             gridTitle: 'Phenotype Similarity Comparison',       
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
             sourceLengthLimit: 30, //  defines the limit of the number of sources to display
-            multiTargetsModeTargetLengthLimit: 6,    // the number of visible targets per group to be displayed in cross compare mode  
+            multiTargetsModeTargetLengthLimit: 20,    // the number of visible targets per group to be displayed in cross compare mode  
             targetLabelCharLimit : 27,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -421,7 +421,7 @@ var images = require('./images.json');
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the owlsim data from compare api for this vendor
-            this.state.dataLoader.loadCompareDataForVendor(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback);
+            this.state.dataLoader.loadCompareDataForVendor(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.multiTargetsModeTargetLengthLimit);
         },
         
         _showGridSkeletonDataErrorMsg: function() {
