@@ -499,7 +499,7 @@ DataLoader.prototype = {
                 }
                 
                 // iterative back to process to make sure we processed all the targetGrpList
-		        self.processDataForVendor(targetGrpList, self.qryString);
+		        self.processDataForVendor(targetGrpList, self.qryString, multiTargetsModeTargetLengthLimit);
             });
             
             jqxhr.fail(function () { 
