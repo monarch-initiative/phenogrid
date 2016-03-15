@@ -148,7 +148,7 @@ var images = require('./images.json');
             optionsBtnText: 'Options',
             gridTitle: 'Phenotype Similarity Comparison',       
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
-            sourceLengthLimit: 10, //  defines the limit of the number of sources to display
+            sourceLengthLimit: 30, //  defines the limit of the number of sources to display
             multiTargetsModeTargetLengthLimit: 15,    // the number of visible targets per group to be displayed in cross compare mode  
             targetLabelCharLimit : 24,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
@@ -2319,11 +2319,22 @@ var images = require('./images.json');
                     .attr("height", gridRegion.cellSize) 
                     .attr("data-tooltip", "tooltip")   					        
                     .style("fill", function(d) { 
-                        if (d.target_id.indexOf('dummyTargetPadding') > -1) {
-                            return '#ddd'; // fill light grey for dummy cells
+                        // Only show dummy paddings in multi targets mode
+                        // hide the added dummy cells in single target mode, even though they are still in the data array - Joe
+                        if (self._isCrossComparisonView()) {
+                            if (d.target_id.indexOf('dummyTargetPadding') > -1) {
+                                return '#ddd'; // fill light grey for dummy cells
+                            } else {
+                                var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+                                return self._getCellColor(el.value[self.state.selectedCalculation]);
+                            }
                         } else {
-                            var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-                            return self._getCellColor(el.value[self.state.selectedCalculation]);
+                            if (d.target_id.indexOf('dummyTargetPadding') > -1) {
+                                return 'none'; 
+                            } else {
+                                var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+                                return self._getCellColor(el.value[self.state.selectedCalculation]);
+                            }
                         }
                     })
                     .on("mouseover", function(d) { 					
