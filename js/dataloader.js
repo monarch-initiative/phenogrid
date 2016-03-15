@@ -181,8 +181,8 @@ DataLoader.prototype = {
                     // Add the target.groupName to the speciesNoMatch array
                     self.speciesNoMatch.push(target.groupName);
                 } else {
-                    // use target.groupName as the key of the named array
-                    self.transformDataForVendor(target, target.groupName, data);  
+                    // Will use target.groupName as the key of the named array
+                    self.transformDataForVendor(target, data);  
                 }
                 
                 // iterative back to process to make sure we processed all the targetGrpList
@@ -419,13 +419,15 @@ DataLoader.prototype = {
 		 	
 	 	Parameters:
 
-	 		targetGroup - targetGroup name
+            target - target group data
 	 		data - owlsims structured data
 	*/
-    transformDataForVendor: function(target, targetGroup, data) {      		
+    transformDataForVendor: function(target, data) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
-			console.log("IMPC transforming...");
+			console.log("Vendor Data transforming...");
 
+            var targetGroup = target.groupName;
+            
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {

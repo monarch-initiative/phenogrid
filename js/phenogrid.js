@@ -149,7 +149,7 @@ var images = require('./images.json');
             gridTitle: 'Phenotype Similarity Comparison',       
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
             sourceLengthLimit: 30, //  defines the limit of the number of sources to display
-            crossCompareModeTargetLengthLimit: 10,    // the number of visible targets per species to be displayed in cross compare mode  
+            multiTargetsModeTargetLengthLimit: 3,    // the number of visible targets per group to be displayed in cross compare mode  
             targetLabelCharLimit : 27,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
@@ -551,16 +551,16 @@ var images = require('./images.json');
             if (this._isCrossComparisonView()) {  
                 // create a combined list of targets
                 sourceList = this.state.dataManager.createCombinedSourceList(this.state.selectedCompareTargetGroup);	
-console.log(sourceList);
+
                 // get the length of the sourceList, this sets that limit since we are in comparison mode
-                // only the crossCompareModeTargetLengthLimit is set, which provides the overall display limit
+                // only the multiTargetsModeTargetLengthLimit is set, which provides the overall display limit
                 this.state.sourceDisplayLimit = Object.keys(sourceList).length;
 
                 // create a combined list of targets
-                targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.crossCompareModeTargetLengthLimit);	
-console.log(targetList);
+                targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.multiTargetsModeTargetLengthLimit);	
+
                 // get the length of the targetlist, this sets that limit since we are in comparison mode
-                // only the crossCompareModeTargetLengthLimit is set, which provides the overall display limit
+                // only the multiTargetsModeTargetLengthLimit is set, which provides the overall display limit
                 this.state.targetDisplayLimit = Object.keys(targetList).length;
             } else if (this.state.selectedCompareTargetGroup.length === 1) {
                 // just get the target group name 
@@ -2054,7 +2054,7 @@ console.log(targetList);
                 for (var i = 1; i < numOfTargetGroup; i++) {
                     if (this.state.invertAxis) {
                         // gridRegion.colLabelOffset: offset the line to reach the labels
-                        var y = gridRegion.y + gridRegion.cellPad * i * this.state.crossCompareModeTargetLengthLimit - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                        var y = gridRegion.y + gridRegion.cellPad * i * this.state.multiTargetsModeTargetLengthLimit - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                         // render horizontal divider line
                         this.state.svg.append("line")				
@@ -2068,7 +2068,7 @@ console.log(targetList);
                             .style("shape-rendering", "crispEdges");
                     } else {
                         // Perfectly center the first divider line between the 10th and 11th cell, same rule for the second line ...
-                        var x = gridRegion.x + gridRegion.cellPad * i * this.state.crossCompareModeTargetLengthLimit - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                        var x = gridRegion.x + gridRegion.cellPad * i * this.state.multiTargetsModeTargetLengthLimit - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                         // render vertical divider line
                         this.state.svg.append("line")				
