@@ -564,47 +564,50 @@ DataLoader.prototype = {
 				} 
 			} 
             
-            // Add dummy paddings when the number of colums per target group is less than the default length limit
-            // so we can still show the divider lines based on the fixed number of limit
-            if (target.entities.length < multiTargetsModeTargetLengthLimit) {
-                var numPaddings = multiTargetsModeTargetLengthLimit - target.entities.length;
-                for (var j = 0; j < numPaddings; j++) {
-                    var dummyTargetPadding = {
-                            "id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
-                            "label": '', // use empty string since the label gets truncated
-                            "targetGroup": targetGroup, 
-                            "type": null, 
-                            "info": null, 
-                            "rank": null, 
-                            "score": null
-                        };
+            // No paddings in single target group mode
+            if (typeof(multiTargetsModeTargetLengthLimit) !== 'undefined') {
+                 // Add dummy paddings when the number of colums per target group is less than the default length limit
+                // so we can still show the divider lines based on the fixed number of limit
+                if (target.entities.length < multiTargetsModeTargetLengthLimit) {
+                    var numPaddings = multiTargetsModeTargetLengthLimit - target.entities.length;
+                    for (var j = 0; j < numPaddings; j++) {
+                        var dummyTargetPadding = {
+                                "id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
+                                "label": '', // use empty string since the label gets truncated
+                                "targetGroup": targetGroup, 
+                                "type": null, 
+                                "info": null, 
+                                "rank": null, 
+                                "score": null
+                            };
 
-                    // Add dummy target column
-                    this.targetData[targetGroup]['dummyTargetPadding' + j] = dummyTargetPadding;
-                    
-                    // Add dummy cells for each column
-                    for (var idx in this.sourceData[targetGroup]) {
-                        var dummyCellPadding = {
-                            "source_id": this.sourceData[targetGroup][idx].id, // Can't use null
-                            "target_id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
-                            "targetGroup": targetGroup, 								
-                            "value": null, 
-                            "a_IC" : null,  
-                            "a_label" : null, 
-                            "subsumer_id": null, 
-                            "subsumer_label": null, 
-                            "subsumer_IC": null, 
-                            "b_id": null, 
-                            "b_label": null, 
-                            "b_IC": null, 
-                            "type": 'cell'
-                        };
+                        // Add dummy target column
+                        this.targetData[targetGroup]['dummyTargetPadding' + j] = dummyTargetPadding;
                         
-                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                     
-                        if (typeof(this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]) === 'undefined') {
-                            this.cellData[targetGroup][this.sourceData[targetGroup][idx].id] = {};
+                        // Add dummy cells for each column
+                        for (var idx in this.sourceData[targetGroup]) {
+                            var dummyCellPadding = {
+                                "source_id": this.sourceData[targetGroup][idx].id, // Can't use null
+                                "target_id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
+                                "targetGroup": targetGroup, 								
+                                "value": null, 
+                                "a_IC" : null,  
+                                "a_label" : null, 
+                                "subsumer_id": null, 
+                                "subsumer_label": null, 
+                                "subsumer_IC": null, 
+                                "b_id": null, 
+                                "b_label": null, 
+                                "b_IC": null, 
+                                "type": 'cell'
+                            };
+                            
+                            // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                     
+                            if (typeof(this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]) === 'undefined') {
+                                this.cellData[targetGroup][this.sourceData[targetGroup][idx].id] = {};
+                            }
+                            this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]['dummyTargetPadding_' + targetGroupId + '_' + j] = dummyCellPadding;
                         }
-                        this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]['dummyTargetPadding_' + targetGroupId + '_' + j] = dummyCellPadding;
                     }
                 }
             }

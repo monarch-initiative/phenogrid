@@ -877,47 +877,50 @@ DataLoader.prototype = {
 				} 
 			} 
             
-            // Add dummy paddings when the number of colums per target group is less than the default length limit
-            // so we can still show the divider lines based on the fixed number of limit
-            if (target.entities.length < multiTargetsModeTargetLengthLimit) {
-                var numPaddings = multiTargetsModeTargetLengthLimit - target.entities.length;
-                for (var j = 0; j < numPaddings; j++) {
-                    var dummyTargetPadding = {
-                            "id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
-                            "label": '', // use empty string since the label gets truncated
-                            "targetGroup": targetGroup, 
-                            "type": null, 
-                            "info": null, 
-                            "rank": null, 
-                            "score": null
-                        };
+            // No paddings in single target group mode
+            if (typeof(multiTargetsModeTargetLengthLimit) !== 'undefined') {
+                 // Add dummy paddings when the number of colums per target group is less than the default length limit
+                // so we can still show the divider lines based on the fixed number of limit
+                if (target.entities.length < multiTargetsModeTargetLengthLimit) {
+                    var numPaddings = multiTargetsModeTargetLengthLimit - target.entities.length;
+                    for (var j = 0; j < numPaddings; j++) {
+                        var dummyTargetPadding = {
+                                "id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
+                                "label": '', // use empty string since the label gets truncated
+                                "targetGroup": targetGroup, 
+                                "type": null, 
+                                "info": null, 
+                                "rank": null, 
+                                "score": null
+                            };
 
-                    // Add dummy target column
-                    this.targetData[targetGroup]['dummyTargetPadding' + j] = dummyTargetPadding;
-                    
-                    // Add dummy cells for each column
-                    for (var idx in this.sourceData[targetGroup]) {
-                        var dummyCellPadding = {
-                            "source_id": this.sourceData[targetGroup][idx].id, // Can't use null
-                            "target_id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
-                            "targetGroup": targetGroup, 								
-                            "value": null, 
-                            "a_IC" : null,  
-                            "a_label" : null, 
-                            "subsumer_id": null, 
-                            "subsumer_label": null, 
-                            "subsumer_IC": null, 
-                            "b_id": null, 
-                            "b_label": null, 
-                            "b_IC": null, 
-                            "type": 'cell'
-                        };
+                        // Add dummy target column
+                        this.targetData[targetGroup]['dummyTargetPadding' + j] = dummyTargetPadding;
                         
-                        // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                     
-                        if (typeof(this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]) === 'undefined') {
-                            this.cellData[targetGroup][this.sourceData[targetGroup][idx].id] = {};
+                        // Add dummy cells for each column
+                        for (var idx in this.sourceData[targetGroup]) {
+                            var dummyCellPadding = {
+                                "source_id": this.sourceData[targetGroup][idx].id, // Can't use null
+                                "target_id": 'dummyTargetPadding_' + targetGroupId + '_' + j, // Can't use null, and must include targetGroupId
+                                "targetGroup": targetGroup, 								
+                                "value": null, 
+                                "a_IC" : null,  
+                                "a_label" : null, 
+                                "subsumer_id": null, 
+                                "subsumer_label": null, 
+                                "subsumer_IC": null, 
+                                "b_id": null, 
+                                "b_label": null, 
+                                "b_IC": null, 
+                                "type": 'cell'
+                            };
+                            
+                            // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error                     
+                            if (typeof(this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]) === 'undefined') {
+                                this.cellData[targetGroup][this.sourceData[targetGroup][idx].id] = {};
+                            }
+                            this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]['dummyTargetPadding_' + targetGroupId + '_' + j] = dummyCellPadding;
                         }
-                        this.cellData[targetGroup][this.sourceData[targetGroup][idx].id]['dummyTargetPadding_' + targetGroupId + '_' + j] = dummyCellPadding;
                     }
                 }
             }
@@ -2115,9 +2118,9 @@ var images = require('./images.json');
             optionsBtnText: 'Options',
             gridTitle: 'Phenotype Similarity Comparison',       
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
-            sourceLengthLimit: 30, //  defines the limit of the number of sources to display
+            sourceLengthLimit: 10, //  defines the limit of the number of sources to display
             multiTargetsModeTargetLengthLimit: 15,    // the number of visible targets per group to be displayed in cross compare mode  
-            targetLabelCharLimit : 27,
+            targetLabelCharLimit : 24,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
             ontologyRelationship: "subClassOf",
@@ -2276,7 +2279,7 @@ var images = require('./images.json');
                     } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
                         this._initSearch();
                     } else {
-                        this._initDefault();
+                        this._initGridSkeletonData();
                     }
                 }
             } else {
@@ -2297,9 +2300,8 @@ var images = require('./images.json');
             this.state.gridSourceList = this._removeDuplicatedSourceId(gridSourceList);
         },
         
-        
-        // Testing groups feature
-        _initDefault: function() {
+        // Monarch use case
+        _initGridSkeletonData: function() {
             this.state.targetGroupList = [];
             
             // Compose the target group list based on gridSkeletonData.xAxis
@@ -2320,7 +2322,7 @@ var images = require('./images.json');
             this.state.dataLoader.load(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback);
         },
         
-        
+        // Monarch analyze/phenotype compare use case
         _initCompare: function() {
             // overwrite the this.state.targetGroupList with only 'compare'
             // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
@@ -2339,6 +2341,7 @@ var images = require('./images.json');
             this.state.dataLoader.loadCompareData(this.state.targetGroupList[0].groupName, this.state.gridSourceList, this.state.geneList, this.state.asyncDataLoadingCallback);
         },
 
+        // Monarch analyze/phenotype search use case
         _initSearch: function() {
             // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
             if (this.state.targetSpecies === 'all') {
@@ -2371,6 +2374,7 @@ var images = require('./images.json');
             this.state.dataLoader.load(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.searchResultLimit);
         },
 
+        // IMPC use case or similar
         _initGridSkeletonDataForVendor: function() {
             this.state.targetGroupList = [];
             
@@ -2388,7 +2392,11 @@ var images = require('./images.json');
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
 
             // starting loading the owlsim data from compare api for this vendor
-            this.state.dataLoader.loadCompareDataForVendor(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.multiTargetsModeTargetLengthLimit);
+            if (this._isCrossComparisonView()) {
+                this.state.dataLoader.loadCompareDataForVendor(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.multiTargetsModeTargetLengthLimit);
+            } else {
+                this.state.dataLoader.loadCompareDataForVendor(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback);
+            }
         },
         
         _showGridSkeletonDataErrorMsg: function() {
@@ -2721,58 +2729,55 @@ var images = require('./images.json');
         },
         
         _createOverviewTargetGroupLabels: function () {
-            // No target group labels for IMPC
-            if (this.state.gridSkeletonDataVendor !== 'IMPC') {
-                if (this.state.owlSimFunction !== 'compare') {
-                    var self = this;
-                    // targetGroupList is an array that contains all the selected targetGroup names
-                    var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.groupName;}); 
+            if (this.state.owlSimFunction !== 'compare') {
+                var self = this;
+                // targetGroupList is an array that contains all the selected targetGroup names
+                var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.groupName;}); 
 
-                    // Inverted and multi targetGroup
-                    if (self.state.invertAxis) { 
-                        var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
+                // Inverted and multi targetGroup
+                if (self.state.invertAxis) { 
+                    var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
 
-                        this.state.svg.selectAll(".pg_targetGroup_name")
-                            .data(targetGroupList)
-                            .enter()
-                            .append("text")
-                            .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
-                            .attr("y", function(d, i) { 
-                                    return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-                                })
-                            .attr('transform', function(d, i) {
-                                var currX = self.state.gridRegion.x + self._gridWidth() + 25;
-                                var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
-                                return 'rotate(90 ' + currX + ' ' + currY + ')';
-                            }) // rotate by 90 degrees 
-                            .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                            .text(function (d, i){
-                                return targetGroupList[i];
+                    this.state.svg.selectAll(".pg_targetGroup_name")
+                        .data(targetGroupList)
+                        .enter()
+                        .append("text")
+                        .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
+                        .attr("y", function(d, i) { 
+                                return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
                             })
-                            .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
-                    } else {
-                        var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
+                        .attr('transform', function(d, i) {
+                            var currX = self.state.gridRegion.x + self._gridWidth() + 25;
+                            var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                            return 'rotate(90 ' + currX + ' ' + currY + ')';
+                        }) // rotate by 90 degrees 
+                        .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                        .text(function (d, i){
+                            return targetGroupList[i];
+                        })
+                        .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
+                } else {
+                    var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
 
-                        this.state.svg.selectAll(".pg_targetGroup_name")
-                            .data(targetGroupList)
-                            .enter()
-                            .append("text")
-                            .attr("x", function(d, i){ 
-                                    return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
-                                })
-                            .attr("y", self.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
-                            .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                            .text(function(d, i){return targetGroupList[i];})
-                            .attr("text-anchor", function() {
-                                if (self._isCrossComparisonView()) {
-                                    return 'start'; // Try to align with the rotated divider lines for cross-target comparison
-                                } else {
-                                    return 'middle'; // Position the label in middle for single species
-                                }
-                            }); 
-                    }
-                } 
-            }
+                    this.state.svg.selectAll(".pg_targetGroup_name")
+                        .data(targetGroupList)
+                        .enter()
+                        .append("text")
+                        .attr("x", function(d, i){ 
+                                return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
+                            })
+                        .attr("y", self.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
+                        .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
+                        .text(function(d, i){return targetGroupList[i];})
+                        .attr("text-anchor", function() {
+                            if (self._isCrossComparisonView()) {
+                                return 'start'; // Try to align with the rotated divider lines for cross-target comparison
+                            } else {
+                                return 'middle'; // Position the label in middle for single species
+                            }
+                        }); 
+                }
+            } 
         },
 
         // Create minimap and scrollbars based on needs
@@ -2817,7 +2822,7 @@ var images = require('./images.json');
                         // No need to create the mini map if both xCount and yCount are within the default limit
                     }
                 } else {
-                    // No need to check xCount since the max x limit per species is set to 10 in multi comparison mode
+                    // No need to check xCount since the max x limit per species is set to multiTargetsModeTargetLengthLimit
                     if (yCount > this.state.sourceLengthLimit) {  
                         // just use the default mini map width and height
                         this._createMinimap(width, height);
@@ -4629,6 +4634,7 @@ var images = require('./images.json');
                 } else {
                     self.state.yAxisRender.sort(self.state.selectedSort); 
                 }
+                
                 self._updateDisplay();
             });
 
@@ -4640,8 +4646,8 @@ var images = require('./images.json');
                 } else {
                     self.state.invertAxis = false;
                 }
-                //self._setAxisRenderers();
-                self._createAxisRenderingGroups();
+                
+                self._setAxisRenderers();
                 self._updateDisplay();
             });
 
