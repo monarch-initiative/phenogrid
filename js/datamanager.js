@@ -375,8 +375,7 @@ DataManager.prototype = {
                 if (typeof(forCompare) !== 'undefined') {
                     var targetGroup = forCompare;
                 } else {
-                    //var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
-                    var targetGroup = xvalues[x].targetGroup;
+                    var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
                 }
 
 				if ((typeof(yvalues[y]) !== 'undefined') && (typeof(xvalues[x]) !== 'undefined')) {

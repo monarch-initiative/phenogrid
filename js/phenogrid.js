@@ -700,7 +700,6 @@ var images = require('./images.json');
 
         _createSvgComponents: function() {
             this._createSvgContainer();
-            
             this._createOverviewTargetGroupLabels();
             this._createNavigation();
             this._createGrid();
@@ -2666,7 +2665,7 @@ var images = require('./images.json');
                 self._updateDisplay();
             });
 
-            $("#" + this.state.pgInstanceId + "_axisflip").click(function() {	
+            $("#" + this.state.pgInstanceId + "_invert_axis").click(function() {	
                 var $this = $(this);
                 // $this will contain a reference to the checkbox 
                 if ($this.is(':checked')) {
@@ -2674,7 +2673,8 @@ var images = require('./images.json');
                 } else {
                     self.state.invertAxis = false;
                 }
-                self._setAxisRenderers();
+                //self._setAxisRenderers();
+                self._createAxisRenderingGroups();
                 self._updateDisplay();
             });
 
@@ -2855,7 +2855,7 @@ var images = require('./images.json');
             if (this.state.invertAxis) {
                 checked = "checked";
             }
-            var optionhtml = '<div class="pg_select_item"><input type="checkbox" id="' + this.state.pgInstanceId + '_axisflip"' + checked + '>Invert Axis</div><div class="pg_hr"></div>'; 
+            var optionhtml = '<div class="pg_select_item"><input type="checkbox" id="' + this.state.pgInstanceId + '_invert_axis"' + checked + '>Invert Axis</div><div class="pg_hr"></div>'; 
             return $(optionhtml);
         },
 
