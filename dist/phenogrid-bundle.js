@@ -1977,31 +1977,8 @@ module.exports={
  * Phenogrid is implemented as a jQuery UI widget. The phenogrid widget uses semantic similarity calculations provided
  * by OWLSim (www.owlsim.org),  as provided through APIs from the Monarch Initiative (www.monarchinitiative.org).
  *
- * Phenogrid widget can be instantiated on a jquery-enabled web page with a call of the form
+ * https://github.com/monarch-initiative/phenogrid
  *
- * window.onload = function() {
- *     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
- *         serverURL : "http://monarchinitiative.org",
- *         phenotypeData: phenotypes,
- *         targetGroupList: [
- *           {"name": "Homo sapiens", "id": "9606","crossComparisonView": true, "active": true},
- *           {"name": "Mus musculus", "id": "10090", "crossComparisonView": true, "active": true},
- *           {"name": "Danio rerio", "id": "7955", "crossComparisonView": true, "active": true}
- *         ]
- *     });
- * }
- *
- * 'phenogrid_container' is the id of the div that will contain the phenogrid widget
- *	phenotypes is a Javascript array of objects listing the phenotypes to be rendered in the widget, it takes one of two forms:
- *
- *	1. A list of hashes
- *		[{"id": "HP:12345", "observed":"positive"}, {"id: "HP:23451", "observed": "negative"}, ...]
- *	2. A list of phenotype ids
- *		["HP:12345", "HP:23451"]
- *
- *	Given an input list of phenotypes and parameters indicating
- *	desired source of matching models (humans, model organisms, etc.),
- *	the Phenogrid will call the Monarch API to get OWLSim results. These results will then be rendered in the Phenogrid
  */
 
 
@@ -2091,7 +2068,7 @@ var images = require('./images.json');
                 noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
                 noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
             },
-            // For IMPC integration
+            // For Vendor data integration
             gridSkeletonDataVendor: '', // Use 'IMPC' in constructor
             // hooks to the monarch app's Analyze/phenotypes page - Joe
             owlSimFunction: '', // 'compare', 'search'
@@ -2268,7 +2245,7 @@ var images = require('./images.json');
                     self._asyncDataLoadingCB(self); 
                 };
                     
-                // IMPC integration, IMPC returns its own list of mouse phenotypes
+                // Vendor data integration
                 if (this.state.gridSkeletonDataVendor === 'IMPC') {
                     this._initGridSkeletonDataForVendor();
                 } else {
@@ -2374,7 +2351,7 @@ var images = require('./images.json');
             this.state.dataLoader.load(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.searchResultLimit);
         },
 
-        // IMPC use case or similar
+        // Vendor (E.g., IMPC) use case or similar
         _initGridSkeletonDataForVendor: function() {
             this.state.targetGroupList = [];
             
@@ -3983,7 +3960,7 @@ var images = require('./images.json');
                 htmlContent = this._phenotypeTooltip(id, data);	
             } else if (data.type === 'cell') {
                 htmlContent = this._cellTooltip(id, data);	
-            } else if (data.type === 'genotype' && this.state.gridSkeletonDataVendor === 'IMPC') {
+            } else if (this.state.gridSkeletonDataVendor === 'IMPC') {
                 htmlContent = this._vendorTooltip(id, data);	
             } else {
                 htmlContent = this._defaultTooltip(id, data);	
@@ -4528,7 +4505,7 @@ var images = require('./images.json');
 
                 $('#' + this.state.pgInstanceId + '_unmatched_list').hide(); // Hide by default
                 
-                // IMPC input data ships will all HP labels, no need to grab via ajax - Joe
+                // Vendor data ships will all HP labels, no need to grab via ajax - Joe
                 if (this.state.gridSkeletonDataVendor === 'IMPC') {
                     var vendorDataUnmatchedSources = [];
                     for (var i = 0; i< this.state.unmatchedSources.length; i++) {
