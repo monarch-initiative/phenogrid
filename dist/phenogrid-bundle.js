@@ -2042,16 +2042,6 @@ var images = require('./images.json');
             gridSkeletonData: {},
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
             selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
-            // There are two parameters which allow you to control whether a target group is displayed 
-            // as a default in the multi-target comparison view, crossComparisonView and whether it should be active, active = true, 
-            // and thus fully visible within phenogrid. If crossComparisonView = true, for example, 
-            // the target group will be visible as a default within the multi-target comparison view.
-            // The active parameter can override other parameters, but activating or deactivating a target group. 
-            // For example, if the active = false, then the target group is not active within phenogrid and is not shown in comparison 
-            // nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be 
-            // displayed within phenogrid and would like to retain the target group reference within the list. - MD
-            // taxon is used by dataLoader to specify 'target_species' in query URL - Joe
-            targetGroupList: [],
             messaging: {
                 misconfig: 'Please fix your config to enable at least one target group.',
                 gridSkeletonDataError: 'No phenotypes to compare.',
@@ -2192,6 +2182,17 @@ var images = require('./images.json');
             // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
             this.state = $.extend({}, this.internalOptions, this.config, this.configoptions, this.options);
 
+            // There are two parameters which allow you to control whether a target group is displayed 
+            // as a default in the multi-target comparison view, crossComparisonView and whether it should be active, active = true, 
+            // and thus fully visible within phenogrid. If crossComparisonView = true, for example, 
+            // the target group will be visible as a default within the multi-target comparison view.
+            // The active parameter can override other parameters, but activating or deactivating a target group. 
+            // For example, if the active = false, then the target group is not active within phenogrid and is not shown in comparison 
+            // nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be 
+            // displayed within phenogrid and would like to retain the target group reference within the list. - MD
+            // taxon is used by dataLoader to specify 'target_species' in query URL - Joe
+            this.state.targetGroupList = [];
+            
             // Create new arrays for later use
             // initialTargetGroupLoadList is used for loading the simsearch data for the first time
             this.state.initialTargetGroupLoadList = [];
