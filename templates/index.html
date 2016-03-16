@@ -14,15 +14,21 @@ var data = {
     "xAxis": [
         {
             "groupId": "9606",
-            "groupName": "Homo sapiens"
+            "groupName": "Homo sapiens",
+            "crossComparisonView": false, 
+            "active": false
         },
         {
             "groupId": "10090",
-            "groupName": "Mus musculus"
+            "groupName": "Mus musculus",
+            "crossComparisonView": true, 
+            "active": true
         },
         {
             "groupId": "7955",
-            "groupName": "Danio rerio"
+            "groupName": "Danio rerio",
+            "crossComparisonView": true, 
+            "active": true
         }
     ],
     "yAxis": [
@@ -239,13 +245,11 @@ var data = {
 };
 
 window.onload = function() {
-
     // There are three species that are loaded and each of them has simsearch matches.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
         serverURL : "http://monarchinitiative.org",
         gridSkeletonData: data
     });
-    
 }
 </script>
 
@@ -257,9 +261,7 @@ window.onload = function() {
 
 <link rel="stylesheet" property="stylesheet" href="node_modules/gfm.css/gfm.css">
 <div style="padding:1%;margin:1%;border:1px solid lightgray;">
-<p>
-In this example, there are three species that are loaded and each of them has simsearch matches.
-</p>
+
 <div id="phenogrid_container" class="clearfix"></div>
 <article class="markdown-body">
 @@include(marked('../README.md'))

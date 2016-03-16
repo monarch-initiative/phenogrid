@@ -72,8 +72,6 @@ var images = require('./images.json');
             gridSkeletonData: {},
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
             selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
-            // this default targetGroupList config will be used if it's not specified 
-            // in either the phenogrid_config.js or phenogrid constructor
             // There are two parameters which allow you to control whether a target group is displayed 
             // as a default in the multi-target comparison view, crossComparisonView and whether it should be active, active = true, 
             // and thus fully visible within phenogrid. If crossComparisonView = true, for example, 
@@ -83,14 +81,7 @@ var images = require('./images.json');
             // nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be 
             // displayed within phenogrid and would like to retain the target group reference within the list. - MD
             // taxon is used by dataLoader to specify 'target_species' in query URL - Joe
-            targetGroupList: [
-                {groupName: "Homo sapiens", groupId: "9606", crossComparisonView: true, active: true},
-                {groupName: "Mus musculus", groupId: "10090", crossComparisonView: true, active: true},
-                {groupName: "Danio rerio", groupId: "7955", crossComparisonView: true, active: true},
-                {groupName: "Drosophila melanogaster", groupId: "7227", crossComparisonView: false, active: false},
-                {groupName: "Caenorhabditis elegans", groupId: "6239", crossComparisonView: false, active: false},
-                {groupName: "UDPICS", groupId: "UDPICS", crossComparisonView: false, active: false} // Undiagnosed Diseases Program Integrated Collaboration System(UDPICS)
-            ],
+            targetGroupList: [],
             messaging: {
                 misconfig: 'Please fix your config to enable at least one target group.',
                 gridSkeletonDataError: 'No phenotypes to compare.',
@@ -309,13 +300,10 @@ var images = require('./images.json');
         
         // Monarch use case
         _initGridSkeletonData: function() {
-            this.state.targetGroupList = [];
-            
             // Compose the target group list based on gridSkeletonData.xAxis
             for (var j = 0; j < this.state.gridSkeletonData.xAxis.length; j++) {
                 // E.g., {groupName: "Homo sapiens", groupId: "9606", crossComparisonView: true, active: true}
-                var normalizedTargetGroup = $.extend({}, this.state.gridSkeletonData.xAxis[j], {crossComparisonView: true, active: true});
-                this.state.targetGroupList.push(normalizedTargetGroup);
+                this.state.targetGroupList.push(this.state.gridSkeletonData.xAxis[j]);
             }
 
             // load the target targetGroup list based on the active flag
@@ -383,13 +371,10 @@ var images = require('./images.json');
 
         // Vendor (E.g., IMPC) use case or similar
         _initGridSkeletonDataForVendor: function() {
-            this.state.targetGroupList = [];
-            
             // Compose the target group list based on gridSkeletonData.xAxis
             for (var j = 0; j < this.state.gridSkeletonData.xAxis.length; j++) {
                 // E.g., {groupName: "Homo sapiens", groupId: "9606", crossComparisonView: true, active: true}
-                var normalizedTargetGroup = $.extend({}, this.state.gridSkeletonData.xAxis[j], {crossComparisonView: true, active: true});
-                this.state.targetGroupList.push(normalizedTargetGroup);
+                this.state.targetGroupList.push(this.state.gridSkeletonData.xAxis[j]);
             }
 
             // load the target targetGroup list based on the active flag
