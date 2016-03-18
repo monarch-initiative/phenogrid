@@ -77,7 +77,7 @@ var images = require('./images.json');
                 gridSkeletonDataError: 'No phenotypes to compare.',
                 noAssociatedGenotype: 'This gene has no associated genotypes.',
                 noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
-                noSimSearchMatch: 'No simsearch matches found for {%speciesName%} based on the provided phenotypes.' // {%speciesName%} is placeholder
+                noSimSearchMatch: 'No simsearch matches found for {%groupName%} based on the provided phenotypes.' // {%groupName%} is placeholder
             },
             // For Vendor data integration
             gridSkeletonDataVendor: '', // Use 'IMPC' in constructor
@@ -451,8 +451,8 @@ var images = require('./images.json');
 
             // check owlsim data integrity - Joe
             if (self.state.owlSimFunction === 'compare') {
-                if (this.state.dataLoader.speciesNoMatch.length > 0) {
-                    self._showSpeciesNoMatch();
+                if (this.state.dataLoader.groupsNoMatch.length > 0) {
+                    self._showGroupsNoMatch();
                 } else {
                     // Create all UI components
                     // create the display as usual if there's 'b' and 'metadata' fields found - Joe
@@ -588,22 +588,22 @@ var images = require('./images.json');
         // Being called only for the first time the widget is being loaded
         _createDisplay: function() {
             if (this.state.initialTargetGroupLoadList.length === 1) {
-                // in this case, speciesNoMatch.length can only be 1 or 0
-                if (this.state.dataLoader.speciesNoMatch.length === 0) {
+                // in this case, groupsNoMatch.length can only be 1 or 0
+                if (this.state.dataLoader.groupsNoMatch.length === 0) {
                     // create UI components
                     this._createDisplayComponents();
                 } else {
                     // no need to show other SVG UI elements if no matched data
-                    this._showSpeciesNoMatch();
+                    this._showGroupsNoMatch();
                 }
             } else if (this.state.initialTargetGroupLoadList.length > 1) {
-                if (this.state.dataLoader.speciesNoMatch.length > 0) {
-                    if (this.state.dataLoader.speciesNoMatch.length === this.state.initialTargetGroupLoadList.length) {
+                if (this.state.dataLoader.groupsNoMatch.length > 0) {
+                    if (this.state.dataLoader.groupsNoMatch.length === this.state.initialTargetGroupLoadList.length) {
                         // in this case all species have no matches
-                        this._showSpeciesNoMatch();
+                        this._showGroupsNoMatch();
                     } else {
                         // show error message and display grid for the rest of the species
-                        this._showSpeciesNoMatch();
+                        this._showGroupsNoMatch();
                         this._createDisplayComponents();
                     }
                 } else {
@@ -692,11 +692,11 @@ var images = require('./images.json');
         },
         
         // if no owlsim data returned for that species
-        _showSpeciesNoMatch: function() {
+        _showGroupsNoMatch: function() {
             var output = '';
-            for (var i = 0; i < this.state.dataLoader.speciesNoMatch.length; i++) {
+            for (var i = 0; i < this.state.dataLoader.groupsNoMatch.length; i++) {
                 // replace the placeholder with species name
-                output +=  this.state.messaging.noSimSearchMatch.replace(/{%speciesName%}/, this.state.dataLoader.speciesNoMatch[i]) + '<br>';
+                output +=  this.state.messaging.noSimSearchMatch.replace(/{%groupName%}/, this.state.dataLoader.groupsNoMatch[i]) + '<br>';
             }
             this.state.pgContainer.append(output);
         },

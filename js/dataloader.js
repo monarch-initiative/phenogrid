@@ -23,7 +23,7 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.serverURL = serverURL;	
     this.simSearchQuery = simSearchQuery; // object
 	this.qryString = '';
-    this.speciesNoMatch = []; // contains species names that don't have simsearch matches
+    this.groupsNoMatch = []; // contains species names that don't have simsearch matches
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
@@ -106,8 +106,8 @@ DataLoader.prototype = {
             
             // sometimes the compare api doesn't find any matches, we need to stop here - Joe
             if (typeof (data.b) === 'undefined') {
-                // Add the 'compare' name to the speciesNoMatch array
-                self.speciesNoMatch.push(targetGroup);
+                // Add the 'compare' name to the groupsNoMatch array
+                self.groupsNoMatch.push(targetGroup);
             } else {
                 // use 'compare' as the key of the named array
                 self.transform(targetGroup, data);  
@@ -178,8 +178,8 @@ DataLoader.prototype = {
                 
                 // sometimes the compare api doesn't find any matches, we need to stop here - Joe
                 if (typeof (data.b) === 'undefined') {
-                    // Add the target.groupName to the speciesNoMatch array
-                    self.speciesNoMatch.push(target.groupName);
+                    // Add the target.groupName to the groupsNoMatch array
+                    self.groupsNoMatch.push(target.groupName);
                 } else {
                     // Will use target.groupName as the key of the named array
                     self.transformDataForVendor(target, data, multiTargetsModeTargetLengthLimit);  
@@ -266,8 +266,8 @@ DataLoader.prototype = {
 		if (data !== null || typeof(data) !== 'undefined') {
 		    // data.b contains all the matches, if not present, then no matches - Joe
             if (typeof(data.b) === 'undefined') {
-                // Add the species name to the speciesNoMatch array
-                self.speciesNoMatch.push(target.groupName);
+                // Add the species name to the groupsNoMatch array
+                self.groupsNoMatch.push(target.groupName);
             } else {
                 // save the original owlsim data
                 self.owlsimsData[target.groupName] = data;

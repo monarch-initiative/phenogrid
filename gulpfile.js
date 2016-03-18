@@ -31,10 +31,6 @@ var config = {
         source: ['./tests/mocha/*.test.js']
     },
     dist: './dist/', // output folder is a string, not an array
-    html: {
-        source: ['templates/index.html'],
-        target: './'
-    },
     js: {
         source: './js/phenogrid.js',
         target: 'phenogrid-bundle.js'
