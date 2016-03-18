@@ -19,7 +19,6 @@ var uglify = require('gulp-uglify');
 var cssnano = require('gulp-cssnano');
 var concat = require('gulp-concat');
 var replace = require('gulp-replace');
-var marked = require('marked');
 var jshint = require('gulp-jshint');
 var fileinclude = require('gulp-file-include');
 
@@ -67,7 +66,6 @@ var config = {
 gulp.task('bundle', [
     'js-bundle', 
     'css-bundle', 
-    'create-index', 
     'copy-font-awesome-fonts', 
     'copy-jquery-ui-images'
 ]);
@@ -77,7 +75,6 @@ gulp.task('dev-bundle', [
     'lint', 
     'js-dev-bundle', 
     'css-dev-bundle', 
-    'create-index',
     'copy-font-awesome-fonts', 
     'copy-jquery-ui-images'
 ]);
@@ -130,18 +127,6 @@ gulp.task('css-dev-bundle', function(cb) {
         .pipe(concat(config.css.target))
         .pipe(replace(config.css.replace.search, config.css.replace.replace)) // change fonts path in font-awesome.css
         .pipe(gulp.dest(config.dist));
-});
-
-
-// create index.html from template and README
-gulp.task('create-index', ['clean'], function(cb) {
-    gulp.src(config.html.source)
-        .pipe(fileinclude({
-            filters: {
-                marked: marked.parse
-            }
-        }))
-        .pipe(gulp.dest(config.html.target));
 });
 
 // Get rid of anything that is transient.
