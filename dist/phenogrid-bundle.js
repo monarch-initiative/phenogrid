@@ -336,7 +336,7 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.serverURL = serverURL;	
     this.simSearchQuery = simSearchQuery; // object
 	this.qryString = '';
-    this.groupsNoMatch = []; // contains species names that don't have simsearch matches
+    this.groupsNoMatch = []; // contains group names that don't have simsearch matches
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
@@ -346,7 +346,7 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.cellData = {};
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
-    this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
+    this.loadedGenotypes = {}; // named array, no need to specify group since each gene ID is unique
 	this.postDataLoadCallback = '';
 };
 
@@ -516,7 +516,7 @@ DataLoader.prototype = {
 			process routine being async query to load data from external source (i.e., owlsims)
 
 		Parameters:	
-			targetGrpList - list of target Group items (i.e., species)
+			targetGrpList - list of target Group items (i.e., group)
 			qryString - query list url parameters, which includes list of sources
 	*/
 	process: function(targetGrpList, qryString) {
@@ -579,7 +579,7 @@ DataLoader.prototype = {
 		if (data !== null || typeof(data) !== 'undefined') {
 		    // data.b contains all the matches, if not present, then no matches - Joe
             if (typeof(data.b) === 'undefined') {
-                // Add the species name to the groupsNoMatch array
+                // Add the group name to the groupsNoMatch array
                 self.groupsNoMatch.push(target.groupName);
             } else {
                 // save the original owlsim data
@@ -1056,7 +1056,7 @@ DataLoader.prototype = {
 			freshes the data 
 	
 	 	Parameters:
-			targetGroup - list of targetGroup (aka species) to fetch
+			targetGroup - list of targetGroup (aka group) to fetch
 	 		lazy - performs a lazy load of the data checking for existing data
 	*/
 	refresh: function(targetGroup, lazy) {
@@ -1324,7 +1324,7 @@ DataLoader.prototype = {
 	/*
 		Function: dataExists
 
-			convenient function to check the cell data for a given target group (i.e., species)
+			convenient function to check the cell data for a given target group (i.e., group)
 	
 	 	Parameters:
 	 		targetGroup - target Group label
@@ -2087,9 +2087,9 @@ var images = require('./images.json');
                                 // [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
             genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
             // Genotype expansion flags - named/associative array
-            // flag used for switching between single species and multi-species mode
-            // add new species names here once needed - Joe
-            // Add new species here when needed, human disease doesn't have genotype expansion - Joe
+            // flag used for switching between single group and multi-group mode
+            // add new group names here once needed - Joe
+            // Add new group here when needed, human disease doesn't have genotype expansion - Joe
             genotypeExpansionSpeciesFlag: {
                 "Mus musculus": false,
                 "Danio rerio": false,
@@ -2197,15 +2197,15 @@ var images = require('./images.json');
             // initialTargetGroupLoadList is used for loading the simsearch data for the first time
             this.state.initialTargetGroupLoadList = [];
             
-            // selectedCompareTargetGroup is used to control what species are loaded
-            // it's possible that a species is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
+            // selectedCompareTargetGroup is used to control what group are loaded
+            // it's possible that a group is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
             this.state.selectedCompareTargetGroup = [];
 
             // NOTE: without using jquery's extend(), all the new flags are referenced 
             // to the config object, not actual copy - Joe
             this.state.expandedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
             
-            // genotype flags to mark every genotype expansion on/off in each species
+            // genotype flags to mark every genotype expansion on/off in each group
             this.state.newGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
             
             this.state.removedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
@@ -2313,11 +2313,11 @@ var images = require('./images.json');
             if (this.state.targetSpecies === 'all') {
                 // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
                 this.state.targetGroupList = [
-                    // Because only the three species are supported in monarch analyze/phenotypes page at this point - Joe
+                    // Because only the three group are supported in monarch analyze/phenotypes page at this point - Joe
                     {groupName: "Homo sapiens", groupId: "9606", crossComparisonView: true, active: true},
                     {groupName: "Mus musculus", groupId: "10090", crossComparisonView: true, active: true},
                     {groupName: "Danio rerio", groupId: "7955", crossComparisonView: true, active: true},
-                    // Disabled species
+                    // Disabled group
                     {groupName: "Drosophila melanogaster", groupId: "7227", crossComparisonView: false, active: false},
                     {groupName: "Caenorhabditis elegans", groupId: "6239", crossComparisonView: false, active: false},
                     {groupName: "UDPICS", groupId: "UDPICS", crossComparisonView: false, active: false}
@@ -2326,7 +2326,7 @@ var images = require('./images.json');
                 // load the target targetGroup list based on the active flag
                 this._parseTargetGroupList(false);
             } else { 
-                // when single species is selected (taxon is passed in via this.state.targetSpecies)
+                // when single group is selected (taxon is passed in via this.state.targetSpecies)
                 // load just the one selected from the dropdown menu - Joe
                 if (this.state.targetGroupList[idx].groupId === this.state.targetSpecies) {
                     this._parseTargetGroupList(true);	
@@ -2367,7 +2367,7 @@ var images = require('./images.json');
         },
         
         // when not work with monarch's analyze/phenotypes page
-        // this can be single species mode or cross comparison mode depends on the config
+        // this can be single group mode or cross comparison mode depends on the config
         // load the default selected target targetGroup list based on the active flag in config, 
         // has nothing to do with the monarch's analyze phenotypes page - Joe
         _parseTargetGroupList: function(forSingleTargetGroup) {
@@ -2452,7 +2452,7 @@ var images = require('./images.json');
 
 
         // for genotype expansion, we need to update the target list 
-        // for each species if they have added genotypes - Joe
+        // for each group if they have added genotypes - Joe
         _updateTargetAxisRenderingGroup: function(species_name) {
             var targetList = [];
 
@@ -2509,7 +2509,7 @@ var images = require('./images.json');
                 // set default display limits based on displaying sourceLengthLimit
                 this.state.sourceDisplayLimit = this.state.dataManager.length("source", singleTargetGroupName);
         
-                // display all the expanded genotypes when we switch back from multi-species mode to single-species mode
+                // display all the expanded genotypes when we switch back from multi-group mode to single-group mode
                 // at this point, this.state.expandedGenotypes is true, and this.state.newGenotypes is false - Joe
                 if (this.state.expandedGenotypes[singleTargetGroupName]) {
                     //targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[singleTargetGroupName];
@@ -2569,10 +2569,10 @@ var images = require('./images.json');
             } else if (this.state.initialTargetGroupLoadList.length > 1) {
                 if (this.state.dataLoader.groupsNoMatch.length > 0) {
                     if (this.state.dataLoader.groupsNoMatch.length === this.state.initialTargetGroupLoadList.length) {
-                        // in this case all species have no matches
+                        // in this case all group have no matches
                         this._showGroupsNoMatch();
                     } else {
-                        // show error message and display grid for the rest of the species
+                        // show error message and display grid for the rest of the group
                         this._showGroupsNoMatch();
                         this._createDisplayComponents();
                     }
@@ -2580,7 +2580,7 @@ var images = require('./images.json');
                     this._createDisplayComponents();
                 }
             } else {
-                // no active species in config
+                // no active group in config
                 this._showConfigErrorMsg();
             }
         },
@@ -2661,11 +2661,11 @@ var images = require('./images.json');
                 .style("font-family", "Verdana, Geneva, sans-serif");
         },
         
-        // if no owlsim data returned for that species
+        // if no owlsim data returned for that group
         _showGroupsNoMatch: function() {
             var output = '';
             for (var i = 0; i < this.state.dataLoader.groupsNoMatch.length; i++) {
-                // replace the placeholder with species name
+                // replace the placeholder with group name
                 output +=  this.state.messaging.noSimSearchMatch.replace(/{%groupName%}/, this.state.dataLoader.groupsNoMatch[i]) + '<br>';
             }
             this.state.pgContainer.append(output);
@@ -2736,7 +2736,7 @@ var images = require('./images.json');
                             if (self._isCrossComparisonView()) {
                                 return 'start'; // Try to align with the rotated divider lines for cross-target comparison
                             } else {
-                                return 'middle'; // Position the label in middle for single species
+                                return 'middle'; // Position the label in middle for single group
                             }
                         }); 
                 }
@@ -2744,7 +2744,7 @@ var images = require('./images.json');
         },
 
         // Create minimap and scrollbars based on needs
-        // In single species mode, only show mini map 
+        // In single group mode, only show mini map 
         // when there are more sources than the default limit or more targets than default limit
         // In cross comparison mode, only show mini map 
         // when there are more sources than the default limit
@@ -2785,7 +2785,7 @@ var images = require('./images.json');
                         // No need to create the mini map if both xCount and yCount are within the default limit
                     }
                 } else {
-                    // No need to check xCount since the max x limit per species is set to multiTargetsModeTargetLengthLimit
+                    // No need to check xCount since the max x limit per group is set to multiTargetsModeTargetLengthLimit
                     if (yCount > this.state.sourceLengthLimit) {  
                         // just use the default mini map width and height
                         this._createMinimap(width, height);
@@ -2863,7 +2863,7 @@ var images = require('./images.json');
             //console.log(JSON.stringify(xvalues));
             var yvalues = this.state.yAxisRender.groupEntries();	
 
-            // in compare mode, the targetGroup will be 'compare' instead of actual species name - Joe
+            // in compare mode, the targetGroup will be 'compare' instead of actual group name - Joe
             // each element in data contains source_id, targetGroup, target_id, type ('cell'), xpos, and ypos
             if (this.state.owlSimFunction === 'compare') {
                 var data = this.state.dataManager.buildMatrix(xvalues, yvalues, true, this.state.owlSimFunction);
@@ -3913,16 +3913,16 @@ var images = require('./images.json');
             var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
             var rank = (typeof(data.rank) !== 'undefined' ? "<strong>Rank:</strong> " + data.rank+"<br>" : "");
             var score = (typeof(data.score) !== 'undefined' ? "<strong>Score:</strong> " + data.score+"<br>" : "");	
-            var species = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
+            var group = (typeof(data.targetGroup) !== 'undefined' ? "<strong>Species:</strong> " + data.targetGroup+"<br>" : "");
 
-            htmlContent = tooltipType + rank + score + species;
+            htmlContent = tooltipType + rank + score + group;
             
             // Add genotype expansion link to genes
             // genotype expansion won't work with owlSimFunction === 'compare' since we use
-            // 'compare' as the key of the named array, while the added genotypes are named based on their species - Joe
+            // 'compare' as the key of the named array, while the added genotypes are named based on their group - Joe
             if (data.type === 'gene') {
                 // ENABLED for now, just comment to DISABLE genotype expansion - Joe
-                // for gene and single species mode only, add genotype expansion link
+                // for gene and single group mode only, add genotype expansion link
                 if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].groupName !== 'compare') {
                     var expanded = this.state.dataManager.isExpanded(id); // gene id
 
@@ -4137,7 +4137,7 @@ var images = require('./images.json');
                 });
         
             // grey background for added genotype columns - Joe
-            // no need to add this grey background for multi species or owlSimFunction === 'compare' - Joe
+            // no need to add this grey background for multi group or owlSimFunction === 'compare' - Joe
             if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].groupName !== 'compare') {
                 column.append("rect")
                     .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
@@ -4613,7 +4613,7 @@ var images = require('./images.json');
 
                 self._updateDisplay();
                 
-                // Update unmatched sources due to changes of species
+                // Update unmatched sources due to changes of group
                 // No need to call this for other control actions - Joe
                 // Unmatched sources
                 // Remove the HTML if created from the former load
@@ -4733,7 +4733,7 @@ var images = require('./images.json');
             
             // The height of .pg_controls_options defined in phenogrid.css - Joe
             var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
-            // shrink the height when we don't show the species selection
+            // shrink the height when we don't show the group selection
             if (this.state.initialTargetGroupLoadList.length === 1) {
                 pg_ctrl_options.css('height', 280);
             }
@@ -4764,8 +4764,8 @@ var images = require('./images.json');
                     if (this._isTargetGroupSelected(this, this.state.targetGroupList[idx].groupName)) {
                         checked = "checked";
                     }
-                    // If there is no data for a given species, even if it's set as active in config, 
-                    // it should not be shown in the species selector - Joe
+                    // If there is no data for a given group, even if it's set as active in config, 
+                    // it should not be shown in the group selector - Joe
                     if (this.state.dataManager.length('target', this.state.targetGroupList[idx].groupName) === 0) {
                         disabled = "disabled";
                         linethrough = "pg_linethrough";
@@ -5003,14 +5003,14 @@ var images = require('./images.json');
             $('#' + parent.state.pgInstanceId + '_tooltip_inner').html(ontologyData);
         },
 
-        // Genotypes expansion for gene (single species mode) - Joe
+        // Genotypes expansion for gene (single group mode) - Joe
         _insertGenotypes: function(id) {
             // change the plus icon to spinner to indicate the loading
             $('.pg_expand_genotype_icon').removeClass('fa-plus-circle');
             $('.pg_expand_genotype_icon').addClass('fa-spinner fa-pulse');
             
-            // When we can expand a gene, we must be in the single species mode,
-            // and there must be only one species in this.state.selectedCompareTargetGroup - Joe
+            // When we can expand a gene, we must be in the single group mode,
+            // and there must be only one group in this.state.selectedCompareTargetGroup - Joe
             var species_name = this.state.selectedCompareTargetGroup[0].groupName;
 
             var loaded = this.state.dataManager.checkGenotypesLoaded(species_name, id);
@@ -5064,8 +5064,8 @@ var images = require('./images.json');
             if (typeof(errorMsg) === 'undefined') {
                 // add genotypes to data, and update target axis
                 if (results.b.length > 0) {
-                    // When we can expand a gene, we must be in the single species mode,
-                    // and there must be only one species in this.state.selectedCompareTargetGroup - Joe
+                    // When we can expand a gene, we must be in the single group mode,
+                    // and there must be only one group in this.state.selectedCompareTargetGroup - Joe
                     var species_name = parent.state.selectedCompareTargetGroup[0].groupName;
 
                     // transform raw owlsims into simplified format
@@ -5095,7 +5095,7 @@ var images = require('./images.json');
                             targetEntries: updatedTargetEntries, 
                             genotypes: results.b, 
                             parentGeneID: id,
-                            species: species_name
+                            group: species_name
                         };
                         
                     // this will give us a reordered target list in two formats.
@@ -5117,8 +5117,8 @@ var images = require('./images.json');
                     // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
                     parent.state.newGenotypes[species_name] = false;
                     
-                    // flag, indicates that we have expanded genotypes for this species, 
-                    // so they show up when we switch from multi-species mode back to single species mode
+                    // flag, indicates that we have expanded genotypes for this group, 
+                    // so they show up when we switch from multi-group mode back to single group mode
                     parent.state.expandedGenotypes[species_name] = true;
 
                     parent._updateDisplay();
@@ -5136,11 +5136,11 @@ var images = require('./images.json');
             }
         },
 
-        // Genotypes expansion for gene (single species mode)
+        // Genotypes expansion for gene (single group mode)
         // hide expanded genotypes
         _removeGenotypes: function(id) {
-            // When we can expand a gene, we must be in the single species mode,
-            // and there must be only one species in this.state.selectedCompareTargetGroup - Joe
+            // When we can expand a gene, we must be in the single group mode,
+            // and there must be only one group in this.state.selectedCompareTargetGroup - Joe
             var species_name = this.state.selectedCompareTargetGroup[0].groupName;
             
             // array of genotype id list

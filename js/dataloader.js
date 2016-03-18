@@ -23,7 +23,7 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.serverURL = serverURL;	
     this.simSearchQuery = simSearchQuery; // object
 	this.qryString = '';
-    this.groupsNoMatch = []; // contains species names that don't have simsearch matches
+    this.groupsNoMatch = []; // contains group names that don't have simsearch matches
 	this.limit = limit;
 	this.owlsimsData = [];
 	this.origSourceList = [];
@@ -33,7 +33,7 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.cellData = {};
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
-    this.loadedGenotypes = {}; // named array, no need to specify species since each gene ID is unique
+    this.loadedGenotypes = {}; // named array, no need to specify group since each gene ID is unique
 	this.postDataLoadCallback = '';
 };
 
@@ -203,7 +203,7 @@ DataLoader.prototype = {
 			process routine being async query to load data from external source (i.e., owlsims)
 
 		Parameters:	
-			targetGrpList - list of target Group items (i.e., species)
+			targetGrpList - list of target Group items (i.e., group)
 			qryString - query list url parameters, which includes list of sources
 	*/
 	process: function(targetGrpList, qryString) {
@@ -266,7 +266,7 @@ DataLoader.prototype = {
 		if (data !== null || typeof(data) !== 'undefined') {
 		    // data.b contains all the matches, if not present, then no matches - Joe
             if (typeof(data.b) === 'undefined') {
-                // Add the species name to the groupsNoMatch array
+                // Add the group name to the groupsNoMatch array
                 self.groupsNoMatch.push(target.groupName);
             } else {
                 // save the original owlsim data
@@ -743,7 +743,7 @@ DataLoader.prototype = {
 			freshes the data 
 	
 	 	Parameters:
-			targetGroup - list of targetGroup (aka species) to fetch
+			targetGroup - list of targetGroup (aka group) to fetch
 	 		lazy - performs a lazy load of the data checking for existing data
 	*/
 	refresh: function(targetGroup, lazy) {
@@ -1011,7 +1011,7 @@ DataLoader.prototype = {
 	/*
 		Function: dataExists
 
-			convenient function to check the cell data for a given target group (i.e., species)
+			convenient function to check the cell data for a given target group (i.e., group)
 	
 	 	Parameters:
 	 		targetGroup - target Group label
