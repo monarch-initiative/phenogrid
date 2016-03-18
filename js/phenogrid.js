@@ -291,8 +291,8 @@ var images = require('./images.json');
         _parseGridSourceList: function() {
             // gridSourceList is an array of phenotype ids
             var gridSourceList = [];
-            for (var i = 0; i < this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes.length; i++) {
-                gridSourceList.push(this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes[i].id);
+            for (var i = 0; i < this.state.gridSkeletonData.yAxis.length; i++) {
+                gridSourceList.push(this.state.gridSkeletonData.yAxis[i].id);
             }
 
             // Remove duplicated source IDs and add this gridSourceList to the global state variable - Joe
@@ -2552,10 +2552,10 @@ var images = require('./images.json');
                 if (this.state.gridSkeletonDataVendor === 'IMPC') {
                     var vendorDataUnmatchedSources = [];
                     for (var i = 0; i< this.state.unmatchedSources.length; i++) {
-                        for (var idx in this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes) {
-                            if (this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes[idx].id === this.state.unmatchedSources[i]) {
+                        for (var idx in this.state.gridSkeletonData.yAxis) {
+                            if (this.state.gridSkeletonData.yAxis[idx].id === this.state.unmatchedSources[i]) {
                                 // use "label" instead of "term" here
-                                var item = {id: this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes[idx].id, label: this.state.gridSkeletonData.yAxis[0].entities[0].phenotypes[idx].term};
+                                var item = {id: this.state.gridSkeletonData.yAxis[idx].id, label: this.state.gridSkeletonData.yAxis[idx].term};
                                 vendorDataUnmatchedSources.push(item);
                                 break;
                             }
