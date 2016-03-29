@@ -877,6 +877,8 @@ DataLoader.prototype = {
 				} 
 			} 
             
+            
+            /*
             // No paddings in single target group mode
             if (typeof(multiTargetsModeTargetLengthLimit) !== 'undefined') {
                  // Add dummy paddings when the number of colums per target group is less than the default length limit
@@ -924,6 +926,8 @@ DataLoader.prototype = {
                     }
                 }
             }
+            
+            */
 		} 
 	},  
     
@@ -2495,6 +2499,36 @@ var images = require('./images.json');
                 this.state.sourceDisplayLimit = Object.keys(sourceList).length;
 
                 // create a combined list of targets
+                // show as many columns as possible within the multiTargetsModeTargetLengthLimit
+                // only show multiTargetsModeTargetLengthLimit columns if there are more columns
+                
+                var targetLengthPerGroup = []; 
+                for (var i = 0; i < this.state.selectedCompareTargetGroup.length; i++) {
+                    // This targetDataPerGroup is an Object, not an array
+                    var targetDataPerGroup = this.state.dataManager.getData('target', this.state.selectedCompareTargetGroup[i].groupName);
+                    var targetLength = {};
+                    if (Object.keys(targetDataPerGroup).length <= this.state.multiTargetsModeTargetLengthLimit) {
+                        targetLength = {
+                            groupName: this.state.selectedCompareTargetGroup[i].groupName,
+                            length: Object.keys(targetDataPerGroup).length
+                        };
+                    } else {
+                        targetLength = {
+                            groupName: this.state.selectedCompareTargetGroup[i].groupName,
+                            length: this.state.multiTargetsModeTargetLengthLimit
+                        };
+                    }
+                    
+                    targetLengthPerGroup.push(targetLength);
+                }
+                
+                // Also make it available in the global scope
+                this.state.targetLengthPerGroup = targetLengthPerGroup;
+                
+                
+                
+                
+                
                 targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.multiTargetsModeTargetLengthLimit);	
 
                 // get the length of the targetlist, this sets that limit since we are in comparison mode
@@ -4018,13 +4052,16 @@ var images = require('./images.json');
         _createTargetGroupDividerLines: function() {
             var gridRegion = this.state.gridRegion;
 
+            // Only create divider lines in multi-group mode
             if (this._isCrossComparisonView()) {
                 var numOfTargetGroup = this.state.selectedCompareTargetGroup.length; 
 
+                
+                
                 for (var i = 1; i < numOfTargetGroup; i++) {
                     if (this.state.invertAxis) {
                         // gridRegion.colLabelOffset: offset the line to reach the labels
-                        var y = gridRegion.y + gridRegion.cellPad * i * this.state.multiTargetsModeTargetLengthLimit - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                        var y = gridRegion.y + gridRegion.cellPad * i * this.state.targetLengthPerGroup[i-1].length - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                         // render horizontal divider line
                         this.state.svg.append("line")				
@@ -4038,7 +4075,7 @@ var images = require('./images.json');
                             .style("shape-rendering", "crispEdges");
                     } else {
                         // Perfectly center the first divider line between the 10th and 11th cell, same rule for the second line ...
-                        var x = gridRegion.x + gridRegion.cellPad * i * this.state.multiTargetsModeTargetLengthLimit - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                        var x = gridRegion.x + gridRegion.cellPad * i * this.state.targetLengthPerGroup[i-1].length - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                         // render vertical divider line
                         this.state.svg.append("line")				

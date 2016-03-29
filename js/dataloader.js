@@ -564,6 +564,8 @@ DataLoader.prototype = {
 				} 
 			} 
             
+            
+            /*
             // No paddings in single target group mode
             if (typeof(multiTargetsModeTargetLengthLimit) !== 'undefined') {
                  // Add dummy paddings when the number of colums per target group is less than the default length limit
@@ -611,6 +613,8 @@ DataLoader.prototype = {
                     }
                 }
             }
+            
+            */
 		} 
 	},  
     
