@@ -2315,17 +2315,15 @@ var images = require('./images.json');
                     .attr("height", gridRegion.cellSize) 
                     .attr("data-tooltip", "tooltip")   					        
                     .style("fill", function(d) { 
-                        return self._getCellBgColor(self, d);
+                        var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
+                        return self._getCellColor(el.value[self.state.selectedCalculation]);
                     })
                     .on("mouseover", function(d) { 					
-                        // No need to add mouseover event to dummy cells
-                        if (d.target_id.indexOf('dummyTargetPadding') === -1) {
-                            // self is the global widget this
-                            // this passed to _mouseover refers to the current element
-                            // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
-                            // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-                            self._mouseover(this, d, self);	
-                        }
+                        // self is the global widget this
+                        // this passed to _mouseover refers to the current element
+                        // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+                        // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+                        self._mouseover(this, d, self);	
                     })
                     .on("mouseout", function() {
                         // _mouseout() removes the matching highlighting as well as the crosshairs - Joe
@@ -2334,50 +2332,7 @@ var images = require('./images.json');
             }
         },
 
-        // fill with light grey background for dummy cells
-        // fill with calculated color for regular cells
-        // Only show dummy paddings in multi targets mode
-        // hide the added dummy cells in single target mode, even though they are still in the data array - Joe
-        _getCellBgColor: function(self, d) {
-            var fillColor;
-            
-            if ( ! self.state.invertAxis) {
-                if (self._isCrossComparisonView()) {
-                    if (d.target_id.indexOf('dummyTargetPadding') > -1) {
-                        fillColor = '#ddd';
-                    } else {
-                        var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-                        fillColor = self._getCellColor(el.value[self.state.selectedCalculation]);
-                    }
-                } else {
-                    if (d.target_id.indexOf('dummyTargetPadding') > -1) {
-                        fillColor = 'none'; 
-                    } else {
-                        var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-                        fillColor = self._getCellColor(el.value[self.state.selectedCalculation]);
-                    }
-                }
-            } else {
-                if (self._isCrossComparisonView()) {
-                    if (d.source_id.indexOf('dummyTargetPadding') > -1) {
-                        fillColor = '#ddd';
-                    } else {
-                        var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-                        fillColor = self._getCellColor(el.value[self.state.selectedCalculation]);
-                    }
-                } else {
-                    if (d.source_id.indexOf('dummyTargetPadding') > -1) {
-                        fillColor = 'none'; 
-                    } else {
-                        var el = self.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);
-                        fillColor = self._getCellColor(el.value[self.state.selectedCalculation]);
-                    }
-                }
-            }
-            
-            return fillColor;
-        },
-        
+    
         /*
          * Change the list of phenotypes and filter the models accordingly.
          */
