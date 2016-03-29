@@ -527,33 +527,29 @@ var images = require('./images.json');
                 // create a combined list of targets
                 // show as many columns as possible within the multiTargetsModeTargetLengthLimit
                 // only show multiTargetsModeTargetLengthLimit columns if there are more columns
-                
                 var targetLengthPerGroup = []; 
                 for (var i = 0; i < this.state.selectedCompareTargetGroup.length; i++) {
                     // This targetDataPerGroup is an Object, not an array
                     var targetDataPerGroup = this.state.dataManager.getData('target', this.state.selectedCompareTargetGroup[i].groupName);
-                    var targetLength = {};
+                    var groupTargetLength = {};
                     if (Object.keys(targetDataPerGroup).length <= this.state.multiTargetsModeTargetLengthLimit) {
-                        targetLength = {
+                        groupTargetLength = {
                             groupName: this.state.selectedCompareTargetGroup[i].groupName,
                             length: Object.keys(targetDataPerGroup).length
                         };
                     } else {
-                        targetLength = {
+                        groupTargetLength = {
                             groupName: this.state.selectedCompareTargetGroup[i].groupName,
                             length: this.state.multiTargetsModeTargetLengthLimit
                         };
                     }
                     
-                    targetLengthPerGroup.push(targetLength);
+                    targetLengthPerGroup.push(groupTargetLength);
                 }
                 
                 // Also make it available in the global scope
+                // to be used when creating divider lines
                 this.state.targetLengthPerGroup = targetLengthPerGroup;
-                
-                
-                
-                
                 
                 targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.multiTargetsModeTargetLengthLimit);	
 
