@@ -2725,23 +2725,47 @@ var images = require('./images.json');
             if (this.state.owlSimFunction !== 'compare') {
                 var self = this;
                 // targetGroupList is an array that contains all the selected targetGroup names
-                var targetGroupList = self.state.selectedCompareTargetGroup.map(function(d){return d.groupName;}); 
+                var targetGroupList = this.state.selectedCompareTargetGroup.map(function(d){return d.groupName;}); 
 
+                var titleXPerGroup = [];
+                var titleYPerGroup = [];
+                
+                if (this._isCrossComparisonView()) {
+                    var totalColumns = 0;
+                    var columnsCounter = [];
+                    for (var i = 0; i < this.state.targetLengthPerGroup.length; i++) {
+                        // Get the target length (number of columns) per group
+                        // and add them up
+                        totalColumns += this.state.targetLengthPerGroup[i].length;
+                        columnsCounter.push(totalColumns);
+
+                        var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].length/2) - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize);
+                        var y = this.state.gridRegion.y + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].length/2) - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize);
+                        titleXPerGroup.push(x);
+                        titleYPerGroup.push(y);
+                    }
+                } else {
+                    var x = this.state.gridRegion.x + this._gridWidth()/2;
+                    var y = this.state.gridRegion.y + this._gridHeight()/2;
+                    titleXPerGroup.push(x);
+                    titleYPerGroup.push(y);
+                }
+                    
                 // Inverted and multi targetGroup
-                if (self.state.invertAxis) { 
-                    var heightPerTargetGroup = self._gridHeight()/targetGroupList.length;
+                if (this.state.invertAxis) { 
+                    var heightPerTargetGroup = this._gridHeight()/targetGroupList.length;
 
                     this.state.svg.selectAll(".pg_targetGroup_name")
                         .data(targetGroupList)
                         .enter()
                         .append("text")
-                        .attr("x", self.state.gridRegion.x + self._gridWidth() + 25) // 25 is margin - Joe
+                        .attr("x", this.state.gridRegion.x + this._gridWidth() + 25) // 25 is margin - Joe
                         .attr("y", function(d, i) { 
-                                return self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                                return titleYPerGroup[i];
                             })
                         .attr('transform', function(d, i) {
                             var currX = self.state.gridRegion.x + self._gridWidth() + 25;
-                            var currY = self.state.gridRegion.y + ((i + 1/2 ) * heightPerTargetGroup);
+                            var currY = titleYPerGroup[i];
                             return 'rotate(90 ' + currX + ' ' + currY + ')';
                         }) // rotate by 90 degrees 
                         .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
@@ -2750,18 +2774,19 @@ var images = require('./images.json');
                         })
                         .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
                 } else {
-                    var widthPerTargetGroup = self._gridWidth()/targetGroupList.length;
-
                     this.state.svg.selectAll(".pg_targetGroup_name")
                         .data(targetGroupList)
                         .enter()
                         .append("text")
                         .attr("x", function(d, i){ 
-                                return self.state.gridRegion.x + ((i + 1/2 ) * widthPerTargetGroup);
+                                // middle of each group
+                                return titleXPerGroup[i];
                             })
-                        .attr("y", self.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
-                        .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                        .text(function(d, i){return targetGroupList[i];})
+                        .attr("y", this.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
+                        .attr("class", "pg_targetGroup_name") 
+                        .text(function(d, i){
+                            return targetGroupList[i];
+                        })
                         .attr("text-anchor", function() {
                             if (self._isCrossComparisonView()) {
                                 return 'start'; // Try to align with the rotated divider lines for cross-target comparison
