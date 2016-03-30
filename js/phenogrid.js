@@ -694,7 +694,7 @@ var images = require('./images.json');
 
         _createSvgComponents: function() {
             this._createSvgContainer();
-            this._createOverviewTargetGroupLabels();
+            this._createTargetGroupLabels();
             this._createNavigation();
             this._createGrid();
             this._createScoresTipIcon();
@@ -747,7 +747,7 @@ var images = require('./images.json');
                 });
         },
         
-        _createOverviewTargetGroupLabels: function () {
+        _createTargetGroupLabels: function () {
             if (this.state.owlSimFunction !== 'compare') {
                 var self = this;
                 // targetGroupList is an array that contains all the selected targetGroup names
