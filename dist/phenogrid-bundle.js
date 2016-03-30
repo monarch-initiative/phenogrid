@@ -2132,7 +2132,7 @@ var images = require('./images.json');
             targetGroupDividerLine: {
                 color: "#EA763B",
                 thickness: 1,
-                rotatedDividerLength: 110 // the length of the divider line for the rotated labels
+                rotatedDividerLength: 140 // the length of the divider line for the rotated labels
             },
             gridRegion: {
                 x:240, 
@@ -4077,8 +4077,6 @@ var images = require('./images.json');
             if (this._isCrossComparisonView()) {
                 var numOfTargetGroup = this.state.selectedCompareTargetGroup.length; 
 
-                
-                
                 for (var i = 1; i < numOfTargetGroup; i++) {
                     if (this.state.invertAxis) {
                         // gridRegion.colLabelOffset: offset the line to reach the labels
