@@ -2132,7 +2132,7 @@ var images = require('./images.json');
             targetGroupDividerLine: {
                 color: "#EA763B",
                 thickness: 1,
-                rotatedDividerLength: 140 // the length of the divider line for the rotated labels
+                rotatedDividerLength: 150 // the length of the divider line for the rotated labels
             },
             gridRegion: {
                 x:240, 
@@ -2739,8 +2739,10 @@ var images = require('./images.json');
                         totalColumns += this.state.targetLengthPerGroup[i].length;
                         columnsCounter.push(totalColumns);
 
-                        var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].length/2) - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize);
-                        var y = this.state.gridRegion.y + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].length/2) - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize);
+                        // calculate the x coordinate of the point where the angled red diving will hit the horizontal line containing the labels. Start the label there.
+                        // add 30 to rotatedDividerLength
+                        var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].length) + (this.state.targetGroupDividerLine.rotatedDividerLength + 30)*Math.sin(Math.PI/4);
+                        var y = this.state.gridRegion.y + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].length/2);
                         titleXPerGroup.push(x);
                         titleYPerGroup.push(y);
                     }
