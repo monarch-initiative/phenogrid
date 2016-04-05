@@ -2042,7 +2042,7 @@ var images = require('./images.json');
 	$.widget("ui.phenogrid", {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {		
-            serverURL: "https://beta.monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
+            serverURL: "https://monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
             gridSkeletonData: {},
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
             selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
@@ -2457,21 +2457,21 @@ var images = require('./images.json');
 
         // for genotype expansion, we need to update the target list 
         // for each group if they have added genotypes - Joe
-        _updateTargetAxisRenderingGroup: function(species_name) {
+        _updateTargetAxisRenderingGroup: function(group_name) {
             var targetList = [];
 
             // get targetList based on the newGenotypes flag
-            if (this.state.newGenotypes[species_name]) {
+            if (this.state.newGenotypes[group_name]) {
                 // get the reordered target list in the format of a named array, has all added genotype data
-                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[species_name];
-            } else if (this.state.removedGenotypes[species_name]) {
+                targetList = this.state.dataManager.reorderedTargetEntriesNamedArray[group_name];
+            } else if (this.state.removedGenotypes[group_name]) {
                 // get the reordered target list in the format of a named array, has all added genotype data
-                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
-            } else if (this.state.reactivateGenotypes[species_name]) {
-                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(species_name); 
+                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(group_name); 
+            } else if (this.state.reactivateGenotypes[group_name]) {
+                targetList = this.state.dataManager.getReorderedTargetEntriesNamedArray(group_name); 
             } else {
                 // unordered target list in the format of a named array, has all added genotype data
-                targetList = this.state.dataManager.getData("target", species_name);
+                targetList = this.state.dataManager.getData("target", group_name);
             }	  
       
             // update target axis group
@@ -5024,9 +5024,9 @@ var images = require('./images.json');
             
             // When we can expand a gene, we must be in the single group mode,
             // and there must be only one group in this.state.selectedCompareTargetGroup - Joe
-            var species_name = this.state.selectedCompareTargetGroup[0].groupName;
+            var group_name = this.state.selectedCompareTargetGroup[0].groupName;
 
-            var loaded = this.state.dataManager.checkGenotypesLoaded(species_name, id);
+            var loaded = this.state.dataManager.checkGenotypesLoaded(group_name, id);
 
             // when we can see the insert genotypes link in tooltip, 
             // the genotypes are either haven't been loaded or have already been loaded but then removed(invisible)
@@ -5042,14 +5042,14 @@ var images = require('./images.json');
                     // update the underlying data (not ordered) in dataLoader
                     // In dataManager, reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray are also updated once we update the 
                     // underlying data in dataLoader, because variable reference in javascript, not actual copy/clone - Joe 
-                    this.state.dataLoader.targetData[species_name][genotype_id].visible = true; 
+                    this.state.dataLoader.targetData[group_name][genotype_id].visible = true; 
                 }
                 
-                this.state.reactivateGenotypes[species_name] = true;
+                this.state.reactivateGenotypes[group_name] = true;
                 
-                this._updateTargetAxisRenderingGroup(species_name);
+                this._updateTargetAxisRenderingGroup(group_name);
                 
-                this.state.reactivateGenotypes[species_name] = false;
+                this.state.reactivateGenotypes[group_name] = false;
                 
                 this._updateDisplay();
                 
@@ -5079,27 +5079,27 @@ var images = require('./images.json');
                 if (results.b.length > 0) {
                     // When we can expand a gene, we must be in the single group mode,
                     // and there must be only one group in this.state.selectedCompareTargetGroup - Joe
-                    var species_name = parent.state.selectedCompareTargetGroup[0].groupName;
+                    var group_name = parent.state.selectedCompareTargetGroup[0].groupName;
 
                     // transform raw owlsims into simplified format
                     // append the genotype matches data to targetData[targetGroup]/sourceData[targetGroup]/cellData[targetGroup]
-                    parent.state.dataLoader.genotypeTransform(species_name, results, id); 
+                    parent.state.dataLoader.genotypeTransform(group_name, results, id); 
      
                     // call this before reordering the target list
                     // to update this.state.targetAxis so it has the newly added genotype data in the format of named array
                     // when we call parent.state.targetAxis.groupEntries()
-                    parent._updateTargetAxisRenderingGroup(species_name);
+                    parent._updateTargetAxisRenderingGroup(group_name);
                     
-                    if (typeof(parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name]) === 'undefined') {
-                        parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name] = [];
+                    if (typeof(parent.state.dataManager.reorderedTargetEntriesIndexArray[group_name]) === 'undefined') {
+                        parent.state.dataManager.reorderedTargetEntriesIndexArray[group_name] = [];
                     }
                     
                     // for the first time, just get the unordered groupEntries()
                     // starting from second time, append the genotype data of following expansions to the already ordered target list
-                    if (parent.state.dataManager.reorderedTargetEntriesIndexArray[species_name].length === 0) {
+                    if (parent.state.dataManager.reorderedTargetEntriesIndexArray[group_name].length === 0) {
                         var updatedTargetEntries = parent.state.targetAxis.groupEntries(); // numeric index array
                     } else {
-                        var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(species_name, results.b);
+                        var updatedTargetEntries = parent.state.dataManager.appendNewGenotypesToOrderedTargetList(group_name, results.b);
                     }
                     
                     // Now we update the target list in dataManager
@@ -5108,7 +5108,7 @@ var images = require('./images.json');
                             targetEntries: updatedTargetEntries, 
                             genotypes: results.b, 
                             parentGeneID: id,
-                            group: species_name
+                            group: group_name
                         };
                         
                     // this will give us a reordered target list in two formats.
@@ -5117,22 +5117,22 @@ var images = require('./images.json');
 
                     // we set the genotype flag before calling _updateTargetAxisRenderingGroup() again
                     // _updateTargetAxisRenderingGroup() uses this flag for creating this.state.targetAxis
-                    parent.state.newGenotypes[species_name] = true;
+                    parent.state.newGenotypes[group_name] = true;
                     
                     // call this again after the target list gets updated
                     // so this.state.targetAxis gets updated with the reordered target list (reorderedTargetEntriesNamedArray)
                     // as well as the new start position and end position
-                    parent._updateTargetAxisRenderingGroup(species_name);
+                    parent._updateTargetAxisRenderingGroup(group_name);
                     
                     // then reset the flag to false so it can still grab the newly added genotypes of another gene
                     // and add them to the unordered target list.
                     // without resetting this flag, we'll just get reorderedTargetEntriesNamedArray from dataManager and 
                     // reorderedTargetEntriesNamedArray hasn't been updated with the genotypes of the new expansion            
-                    parent.state.newGenotypes[species_name] = false;
+                    parent.state.newGenotypes[group_name] = false;
                     
                     // flag, indicates that we have expanded genotypes for this group, 
                     // so they show up when we switch from multi-group mode back to single group mode
-                    parent.state.expandedGenotypes[species_name] = true;
+                    parent.state.expandedGenotypes[group_name] = true;
 
                     parent._updateDisplay();
                     
@@ -5154,7 +5154,7 @@ var images = require('./images.json');
         _removeGenotypes: function(id) {
             // When we can expand a gene, we must be in the single group mode,
             // and there must be only one group in this.state.selectedCompareTargetGroup - Joe
-            var species_name = this.state.selectedCompareTargetGroup[0].groupName;
+            var group_name = this.state.selectedCompareTargetGroup[0].groupName;
             
             // array of genotype id list
             var associated_genotype_ids = this.state.dataLoader.loadedGenotypes[id];
@@ -5165,20 +5165,20 @@ var images = require('./images.json');
                 // update the underlying data
                 // In dataManager, reorderedTargetEntriesNamedArray and reorderedTargetEntriesIndexArray are also updated once we update the 
                 // underlying data in dataLoader, because variable reference in javascript, not actual copy/clone - Joe 
-                this.state.dataLoader.targetData[species_name][genotype_id].visible = false; 
+                this.state.dataLoader.targetData[group_name][genotype_id].visible = false; 
             }
             
             // Tell dataManager that the loaded genotypes of this gene have been collapsed from display 
             delete this.state.dataManager.expandedGenotypeList[id];
             
             // set the flag
-            this.state.removedGenotypes[species_name] = true;
+            this.state.removedGenotypes[group_name] = true;
             
             // update the target list for axis render
-            this._updateTargetAxisRenderingGroup(species_name);
+            this._updateTargetAxisRenderingGroup(group_name);
 
             // reset flag
-            this.state.removedGenotypes[species_name] = false;
+            this.state.removedGenotypes[group_name] = false;
             
             // update display
             this._updateDisplay();
