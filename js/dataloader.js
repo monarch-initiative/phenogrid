@@ -866,8 +866,8 @@ DataLoader.prototype = {
                     }  
                 }
                 
-                // Now only get the first parent.state.genotypeExpandLimit genotypes in the list
-                var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
+                // Now only get the first parent.state.targetGroupItemExpandLimit genotypes in the list
+                var genotype_list = results.genotype_list.slice(0, parent.state.targetGroupItemExpandLimit);
                 var phenotype_id_list = self.origSourceList.join("+");
                 var genotype_id_list = ''; 
                 for (var i in genotype_list) {

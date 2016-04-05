@@ -1179,8 +1179,8 @@ DataLoader.prototype = {
                     }  
                 }
                 
-                // Now only get the first parent.state.genotypeExpandLimit genotypes in the list
-                var genotype_list = results.genotype_list.slice(0, parent.state.genotypeExpandLimit);
+                // Now only get the first parent.state.targetGroupItemExpandLimit genotypes in the list
+                var genotype_list = results.genotype_list.slice(0, parent.state.targetGroupItemExpandLimit);
                 var phenotype_id_list = self.origSourceList.join("+");
                 var genotype_id_list = ''; 
                 for (var i in genotype_list) {
@@ -2089,7 +2089,7 @@ var images = require('./images.json');
             ontologyQuery: "/neighborhood/", // Keep the slashes
             ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
                                 // [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
-            genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
+            targetGroupItemExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
             unstableGenotypePrefix: ['MONARCH:', '_:'], //https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
             colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
             colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
