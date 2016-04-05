@@ -116,16 +116,6 @@ var images = require('./images.json');
             ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
                                 // [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
             genotypeExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
-            // Genotype expansion flags - named/associative array
-            // flag used for switching between single group and multi-group mode
-            // add new group names here once needed - Joe
-            // Add new group here when needed, human disease doesn't have genotype expansion - Joe
-            genotypeExpansionSpeciesFlag: {
-                "Mus musculus": false,
-                "Danio rerio": false,
-                "Drosophila melanogaster": false,
-                "Caenorhabditis elegans": false
-            },
             unstableGenotypePrefix: ['MONARCH:', '_:'], //https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
             colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
             colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
@@ -413,25 +403,25 @@ var images = require('./images.json');
         _createTargetGroupItemExpansionFlag: function() {
             // Genotype expansion flags - named/associative array
             // flag used for switching between single group and multi-group mode
-            var genotypeExpansionSpeciesFlag = {};
+            var targetGroupItemExpansionFlag = {};
             // Add new group here, human disease doesn't have genotype expansion, 
             // but we still have that group in the flag obj - Joe
             for (var i = 0; i < this.state.initialTargetGroupLoadList.length; i++) {
                 // Add all group names as properties on this flag obj
-                genotypeExpansionSpeciesFlag[this.state.initialTargetGroupLoadList[i].groupName] = false;
+                targetGroupItemExpansionFlag[this.state.initialTargetGroupLoadList[i].groupName] = false;
             }
 
             // NOTE: without using jquery's extend(), all the new flags are referenced 
             // to the config object, not actual copy - Joe
-            this.state.expandedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
+            this.state.expandedGenotypes = $.extend({}, this.state.targetGroupItemExpansionFlag);
             
             // genotype flags to mark every genotype expansion on/off in each group
-            this.state.newGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
+            this.state.newGenotypes = $.extend({}, this.state.targetGroupItemExpansionFlag);
             
-            this.state.removedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
+            this.state.removedGenotypes = $.extend({}, this.state.targetGroupItemExpansionFlag);
             
             // flag to mark if hidden genotypes need to be reactivated
-            this.state.reactivateGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
+            this.state.reactivateGenotypes = $.extend({}, this.state.targetGroupItemExpansionFlag);
         },
         
         // Phenogrid container div
