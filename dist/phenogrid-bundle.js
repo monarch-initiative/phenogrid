@@ -2205,18 +2205,6 @@ var images = require('./images.json');
             // it's possible that a group is in initialTargetGroupLoadList but there's no simsearch data returned - Joe
             this.state.selectedCompareTargetGroup = [];
 
-            // NOTE: without using jquery's extend(), all the new flags are referenced 
-            // to the config object, not actual copy - Joe
-            this.state.expandedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
-            
-            // genotype flags to mark every genotype expansion on/off in each group
-            this.state.newGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
-            
-            this.state.removedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
-            
-            // flag to mark if hidden genotypes need to be reactivated
-            this.state.reactivateGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
-            
             // create the Phenogrid div
             this._createPhenogridContainer();
             
@@ -2391,8 +2379,35 @@ var images = require('./images.json');
                     }
                 }
             } 
+            
+            // Then we init the flag obj for group target item (genotype) expansion
+            this._createTargetGroupItemExpansionFlag();
         },
 
+        _createTargetGroupItemExpansionFlag: function() {
+            // Genotype expansion flags - named/associative array
+            // flag used for switching between single group and multi-group mode
+            var genotypeExpansionSpeciesFlag = {};
+            // Add new group here, human disease doesn't have genotype expansion, 
+            // but we still have that group in the flag obj - Joe
+            for (var i = 0; i < this.state.initialTargetGroupLoadList.length; i++) {
+                // Add all group names as properties on this flag obj
+                genotypeExpansionSpeciesFlag[this.state.initialTargetGroupLoadList[i].groupName] = false;
+            }
+
+            // NOTE: without using jquery's extend(), all the new flags are referenced 
+            // to the config object, not actual copy - Joe
+            this.state.expandedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
+            
+            // genotype flags to mark every genotype expansion on/off in each group
+            this.state.newGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
+            
+            this.state.removedGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
+            
+            // flag to mark if hidden genotypes need to be reactivated
+            this.state.reactivateGenotypes = $.extend({}, this.state.genotypeExpansionSpeciesFlag);
+        },
+        
         // Phenogrid container div
         _createPhenogridContainer: function() {
             // ID of base containing div of each instance
@@ -3657,10 +3672,6 @@ var images = require('./images.json');
                 this.state.colorScale[i] = cs;
             }
         },
-
-        
-
-        
 
         // add a tooltip div stub, this is used to dynamically set a tooltip info 
         _createTooltipStub: function() {
