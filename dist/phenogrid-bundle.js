@@ -1391,13 +1391,13 @@ var DataManager = function(dataLoader) {
 	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];
     
-    // genotype expansion, named arrays of each single species
+    // genotype expansion, named arrays of each single group
     // these two arrays are referenced to the underlying data in dataLoader, not actual clone
     // so changes made to the underlying data array will populate to these two - Joe
     this.reorderedTargetEntriesNamedArray = {};
     this.reorderedTargetEntriesIndexArray = {};
     
-    this.expandedGenotypeList = {}; // named array, no need to specify species since each gene ID is unique
+    this.expandedGenotypeList = {}; // named array, no need to specify group since each gene ID is unique
 };
 
 DataManager.prototype = {
@@ -1420,10 +1420,10 @@ DataManager.prototype = {
     
     /*
 		Function: appendNewGenotypesToOrderedTargetList
-			each single species (fish/mouse) has its own ordered target list
+			each single group (fish/mouse) has its own ordered target list
 
 		Parameters:
-			targetGroup - species name
+			targetGroup - group name
             data - newly added genotypes data
 
 		Returns:
@@ -1431,7 +1431,7 @@ DataManager.prototype = {
 	*/
     appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
         // can't slice the object this.target[targetGroup]
-        var newlyAdded = {}; // named array, species name is the key
+        var newlyAdded = {}; // named array, group name is the key
         for (var i = 0; i < data.length; i++) {
             var id = Utils.getConceptId(data[i].id);
             
@@ -1439,7 +1439,7 @@ DataManager.prototype = {
                 newlyAdded[targetGroup] = []; // index array
             }
             
-            // value of each species name is an index array
+            // value of each group name is an index array
             newlyAdded[targetGroup].push(this.target[targetGroup][id]);
         }
         
@@ -1453,16 +1453,16 @@ DataManager.prototype = {
     
     /*
 		Function: updateTargetList
-			each single species (fish/mouse) has its own ordered target list
+			each single group (fish/mouse) has its own ordered target list
 
 		Parameters:
 			genotypesData - defined in _fetchGenotypesCb() of phenogrid.js
 	*/
     updateTargetList: function(genotypesData) {
-		var targetEntries = genotypesData.targetEntries; // unordered target entries of current active single species 
+		var targetEntries = genotypesData.targetEntries; // unordered target entries of current active single group 
         var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
         var parentGeneID = genotypesData.parentGeneID;
-        var species = genotypesData.species;
+        var group = genotypesData.group;
 
         var gene_position;
         var first_genotype_position;
@@ -1493,8 +1493,8 @@ DataManager.prototype = {
         // no we have the new target entries in the desired order
         var reorderedTargetEntriesIndexArray = header.concat(footer, body);
         
-        // Format 1 - sorted index numeric array for each target species 
-        this.reorderedTargetEntriesIndexArray[species] = reorderedTargetEntriesIndexArray;
+        // Format 1 - sorted index numeric array for each target group 
+        this.reorderedTargetEntriesIndexArray[group] = reorderedTargetEntriesIndexArray;
         
         // Format into named associative array
         // same return format as getData()
@@ -1507,21 +1507,21 @@ DataManager.prototype = {
             reorderedTargetEntriesNamedArray[reorderedTargetEntriesIndexArray[k].id] = reorderedTargetEntriesIndexArray[k];
         }
         
-        // Format 2 - sorted associative/named array for each target species 
-        this.reorderedTargetEntriesNamedArray[species] = reorderedTargetEntriesNamedArray;
+        // Format 2 - sorted associative/named array for each target group 
+        this.reorderedTargetEntriesNamedArray[group] = reorderedTargetEntriesNamedArray;
 	},
     
-    getReorderedTargetEntriesNamedArray: function(species) {
-        //this.reorderedTargetEntriesIndexArray[species] and this.reorderedTargetEntriesNamedArray[species] 
+    getReorderedTargetEntriesNamedArray: function(group) {
+        //this.reorderedTargetEntriesIndexArray[group] and this.reorderedTargetEntriesNamedArray[group] 
         // have the same order and number of elements, just two different formats
         var t = []
-        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
+        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[group].length; i++) {
             // only added genotypes have that 'visible' property
-            if (typeof(this.reorderedTargetEntriesIndexArray[species][i].visible) === 'undefined') {
-                t.push(this.reorderedTargetEntriesIndexArray[species][i]);
+            if (typeof(this.reorderedTargetEntriesIndexArray[group][i].visible) === 'undefined') {
+                t.push(this.reorderedTargetEntriesIndexArray[group][i]);
             } else {
-                if (this.reorderedTargetEntriesIndexArray[species][i].visible === true) {
-                    t.push(this.reorderedTargetEntriesIndexArray[species][i]);
+                if (this.reorderedTargetEntriesIndexArray[group][i].visible === true) {
+                    t.push(this.reorderedTargetEntriesIndexArray[group][i]);
                 }
             }
         }
@@ -1934,18 +1934,18 @@ DataManager.prototype = {
 			check if the genotypes data of that specific gene id has been loaded
 	
 	 	Parameters:
-	 		species - species name
+	 		group - group name
             id - gene id to check
 	*/
-    checkGenotypesLoaded: function(species, id) {
-		if (typeof(this.reorderedTargetEntriesIndexArray[species]) === 'undefined') {
-            this.reorderedTargetEntriesIndexArray[species] = []; // index array
+    checkGenotypesLoaded: function(group, id) {
+		if (typeof(this.reorderedTargetEntriesIndexArray[group]) === 'undefined') {
+            this.reorderedTargetEntriesIndexArray[group] = []; // index array
         }
     
-        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
+        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[group].length; i++) {
             // only added genotypes have 'parentGeneID' property
-            if (typeof(this.reorderedTargetEntriesIndexArray[species][i].parentGeneID) !== 'undefined') {
-                if (this.reorderedTargetEntriesIndexArray[species][i].parentGeneID === id) {
+            if (typeof(this.reorderedTargetEntriesIndexArray[group][i].parentGeneID) !== 'undefined') {
+                if (this.reorderedTargetEntriesIndexArray[group][i].parentGeneID === id) {
                     return true;
                 }
             }  
