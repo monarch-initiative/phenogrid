@@ -34,7 +34,7 @@ var DataManager = function(dataLoader) {
     this.reorderedTargetEntriesNamedArray = {};
     this.reorderedTargetEntriesIndexArray = {};
     
-    this.expandedGenotypeList = {}; // named array, no need to specify group since each gene ID is unique
+    this.expandedItemList = {}; // named array, no need to specify group since each gene ID is unique
 };
 
 DataManager.prototype = {
@@ -56,7 +56,7 @@ DataManager.prototype = {
 	},
     
     /*
-		Function: appendNewGenotypesToOrderedTargetList
+		Function: appendNewItemsToOrderedTargetList
 			each single group (fish/mouse) has its own ordered target list
 
 		Parameters:
@@ -66,7 +66,7 @@ DataManager.prototype = {
 		Returns:
 			reordered index array
 	*/
-    appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
+    appendNewItemsToOrderedTargetList: function(targetGroup, data) {
         // can't slice the object this.target[targetGroup]
         var newlyAdded = {}; // named array, group name is the key
         for (var i = 0; i < data.length; i++) {
@@ -558,7 +558,7 @@ DataManager.prototype = {
 	 		id - gene id to check
 	*/
 	isExpanded: function(id) {
-        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
+        if (typeof(this.expandedItemList[id]) === 'undefined') {
             return false;
         } else {
             return true;
@@ -566,7 +566,7 @@ DataManager.prototype = {
 	},
     
     /*
-		Function: checkGenotypesLoaded
+		Function: checkExpandedItemsLoaded
 
 			check if the genotypes data of that specific gene id has been loaded
 	
@@ -574,7 +574,7 @@ DataManager.prototype = {
 	 		group - group name
             id - gene id to check
 	*/
-    checkGenotypesLoaded: function(group, id) {
+    checkExpandedItemsLoaded: function(group, id) {
 		if (typeof(this.reorderedTargetEntriesIndexArray[group]) === 'undefined') {
             this.reorderedTargetEntriesIndexArray[group] = []; // index array
         }

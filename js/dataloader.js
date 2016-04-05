@@ -33,7 +33,7 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.cellData = {};
 	this.ontologyCacheLabels = [];
 	this.ontologyCache = [];
-    this.loadedGenotypes = {}; // named array, no need to specify group since each gene ID is unique
+    this.loadedNewTargetGroupItems = {}; // named array, no need to specify group since each gene ID is unique
 	this.postDataLoadCallback = '';
 };
 
@@ -306,7 +306,7 @@ DataLoader.prototype = {
             
             // Here we don't reset the cellData, targetData, and sourceData every time,
             // because we want to append the genotype expansion data - Joe
-            // No need to redefine this in genotypeTransform() - Joe   
+            // No need to redefine this in transformNewTargetGroupItems() - Joe   
 			if (typeof(this.cellData[targetGroup]) === 'undefined') {
                 this.cellData[targetGroup] = {};
             }
@@ -396,7 +396,7 @@ DataLoader.prototype = {
                         };
 							 
                         // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error   
-                        // No need to redefine this in genotypeTransform() - Joe                     
+                        // No need to redefine this in transformNewTargetGroupItems() - Joe                     
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
@@ -439,7 +439,7 @@ DataLoader.prototype = {
             // just initialize the specific targetGroup
             // Here we don't reset the cellData, targetData, and sourceData every time,
             // because we want to append the genotype expansion data - Joe
-            // No need to redefine this in genotypeTransform() - Joe   
+            // No need to redefine this in transformNewTargetGroupItems() - Joe   
 			
             if (typeof(this.targetData[targetGroup]) === 'undefined') {
                 this.targetData[targetGroup] = {};
@@ -554,7 +554,7 @@ DataLoader.prototype = {
                         };
 							 
                         // we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error   
-                        // No need to redefine this in genotypeTransform() - Joe                     
+                        // No need to redefine this in transformNewTargetGroupItems() - Joe                     
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
 					    }
@@ -619,7 +619,7 @@ DataLoader.prototype = {
 	},  
     
     /*
-		Function: genotypeTransform
+		Function: transformNewTargetGroupItems
 
 			transforms data from raw owlsims into simplified format
 
@@ -632,7 +632,7 @@ DataLoader.prototype = {
 	 		data - owlsims structured data
             parentGeneID - the parent gene ID that these genotypes are associated with
 	*/
-    genotypeTransform: function(targetGroup, data, parentGeneID) {      		
+    transformNewTargetGroupItems: function(targetGroup, data, parentGeneID) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			
             console.log("transforming genotype data...");
@@ -818,7 +818,7 @@ DataLoader.prototype = {
 	},
 
     /*
-		Function: getGenotypes
+		Function: getNewTargetGroupItems
             get genotypes of a specific gene 
 	
 	 	Parameters:
@@ -826,17 +826,17 @@ DataLoader.prototype = {
 	 		finalCallback - final callback name
 	 		parent - phenogrid.js global this
 	*/
-    getGenotypes: function(id, finalCallback, parent) {
+    getNewTargetGroupItems: function(id, finalCallback, parent) {
         var self = this;
         // http://monarchinitiative.org/gene/MGI:98297/genotype_list.json
         var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
-        var cb = this.getGenotypesCb;
+        var cb = this.getNewTargetGroupItemsCb;
         // ajax get all the genotypes of this gene id
         this.getFetch(self, url, id, cb, finalCallback, parent);
     },
     
     /*
-		Function: getGenotypesCb
+		Function: getNewTargetGroupItemsCb
             send the compare request to get all the matches data
 	
 	 	Parameters:
@@ -846,7 +846,7 @@ DataLoader.prototype = {
 	 		finalCallback - final callback function
 	 		parent - top level parent
 	*/
-    getGenotypesCb: function(self, id, results, finalCallback, parent) {
+    getNewTargetGroupItemsCb: function(self, id, results, finalCallback, parent) {
 		// get the first 5 genotypes
         // it's an array of genotype objects - [{id: MGI:4838785, label: MGI:4838785}, {}, ...]
         // some genes may don't have associated genotypes
@@ -856,7 +856,7 @@ DataLoader.prototype = {
                 // First filter out genotype IDs with unstable prefix
                 // https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
                 // According to Kent, IDs starting with an underscore or prefixed with MONARCH: do not persist across different scigraph loads
-                var unstablePrefix = parent.state.unstableGenotypePrefix;
+                var unstablePrefix = parent.state.unstableTargetGroupItemPrefix;
                 for (var i in results.genotype_list) {
                     for (var k in unstablePrefix) {
                         if (results.genotype_list[i].id.indexOf(unstablePrefix[k]) === 0) {
@@ -880,7 +880,7 @@ DataLoader.prototype = {
                 // /compare/:id1+:id2/:id3+:id4+...idN (JSON only)
                 var compare_url = self.serverURL +  parent.state.compareQuery.URL + '/' + phenotype_id_list + "/" + genotype_id_list;
                 // Now we need to get all the matches data
-                var cb = self.getGenotypesCbCb;
+                var cb = self.getNewTargetGroupItemsCbCb;
                 self.getFetch(self, compare_url, id, cb, finalCallback, parent);
             } else {
                 var simsearchResults = {};
@@ -892,7 +892,7 @@ DataLoader.prototype = {
 	},
     
     /*
-		Function: getGenotypesCb
+		Function: getNewTargetGroupItemsCb
             return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
 	
 	 	Parameters:
@@ -902,7 +902,7 @@ DataLoader.prototype = {
 	 		finalCallback - final callback function
 	 		parent - top level parent
 	*/
-    getGenotypesCbCb: function(self, id, results, finalCallback, parent) {
+    getNewTargetGroupItemsCbCb: function(self, id, results, finalCallback, parent) {
         // don't encode labels into html entities here, otherwise the tooltip content is good, 
         // but genotype labels on x axis will have the encoded characters
         // we just need to encode the labels for tooltip use - Joe
@@ -917,7 +917,7 @@ DataLoader.prototype = {
             }
 
             // for reactivation
-            self.loadedGenotypes[id] = genotype_id_list;
+            self.loadedNewTargetGroupItems[id] = genotype_id_list;
             
             // this `results` is the simsearch resulting JSON
             finalCallback(results, id, parent);
