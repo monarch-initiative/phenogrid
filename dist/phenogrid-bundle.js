@@ -4754,20 +4754,19 @@ var images = require('./images.json');
                 var checked = "";
                 var disabled = "";
                 var linethrough = "";
-                if (this.state.targetGroupList[idx].active) { 
-                    if (this._isTargetGroupSelected(this, this.state.targetGroupList[idx].groupName)) {
-                        checked = "checked";
-                    }
-                    // If there is no data for a given group, even if it's set as active in config, 
-                    // it should not be shown in the group selector - Joe
-                    if (this.state.dataManager.length('target', this.state.targetGroupList[idx].groupName) === 0) {
-                        disabled = "disabled";
-                        linethrough = "pg_linethrough";
-                    }
 
-                    optionhtml += "<div class='pg_select_item " + linethrough + "'><input type='checkbox' value=\"" + this.state.targetGroupList[idx].groupName +
-                    "\" " + checked + disabled + ">" + this.state.targetGroupList[idx].groupName + '</div>';
+                if (this._isTargetGroupSelected(this, this.state.targetGroupList[idx].groupName)) {
+                    checked = "checked";
                 }
+                // If there is no data for a given group, even if it's set as active in config, 
+                // it should not be shown in the group selector - Joe
+                if (this.state.dataManager.length('target', this.state.targetGroupList[idx].groupName) === 0) {
+                    disabled = "disabled";
+                    linethrough = "pg_linethrough";
+                }
+
+                optionhtml += "<div class='pg_select_item " + linethrough + "'><input type='checkbox' value=\"" + this.state.targetGroupList[idx].groupName +
+                "\" " + checked + disabled + ">" + this.state.targetGroupList[idx].groupName + '</div>';
             }
             optionhtml += "</div><div class='pg_hr'></div>";
 
