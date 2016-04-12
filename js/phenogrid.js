@@ -690,6 +690,10 @@ var images = require('./images.json');
         
             this._createSvgComponents();
 
+            // Recalculate the button padding
+            // whitespace size between left boundry to unmatched button, same as the options button to right boundry
+            this.state.btnPadding = this.state.gridRegion.x - $('#' + this.state.pgInstanceId + '_unmatched_btn').width() - this.state.gridRegion.rowLabelOffset;
+            
             // Reposition HTML sections
             this._positionUnmatchedSources();
             this._positionPhenogridControls();
@@ -2651,14 +2655,14 @@ var images = require('./images.json');
 
                 self._createAxisRenderingGroups();
 
-                self._updateDisplay();
-                
                 // Update unmatched sources due to changes of group
                 // No need to call this for other control actions - Joe
                 // Unmatched sources
                 // Remove the HTML if created from the former load
                 $('#' + self.state.pgInstanceId + '_unmatched').remove();
                 self._createUnmatchedSources();
+                
+                self._updateDisplay();
             });
 
             $('#' + this.state.pgInstanceId + '_calculation').change(function(d) {
