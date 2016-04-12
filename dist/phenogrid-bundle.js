@@ -2047,7 +2047,7 @@ var images = require('./images.json');
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
             selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency" 
             messaging: {
-                misconfig: 'Please fix your config to enable at least one target group.',
+                misconfig: 'Please fix your config to have at least one target group.',
                 gridSkeletonDataError: 'No phenotypes to compare.',
                 noAssociatedGenotype: 'This gene has no associated genotypes.',
                 noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
@@ -2176,14 +2176,6 @@ var images = require('./images.json');
             // this.options overwrites this.configoptions overwrites this.config overwrites this.internalOptions
             this.state = $.extend({}, this.internalOptions, this.config, this.configoptions, this.options);
 
-            // There are two parameters which allow you to control whether a target group is displayed 
-            // as a default in the multi-target comparison view, crossComparisonView and whether it should be active, active = true, 
-            // and thus fully visible within phenogrid. If crossComparisonView = true, for example, 
-            // the target group will be visible as a default within the multi-target comparison view.
-            // The active parameter can override other parameters, but activating or deactivating a target group. 
-            // For example, if the active = false, then the target group is not active within phenogrid and is not shown in comparison 
-            // nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be 
-            // displayed within phenogrid and would like to retain the target group reference within the list. - MD
             // taxon is used by dataLoader to specify 'target_species' in query URL - Joe
             this.state.targetGroupList = [];
             
@@ -2224,7 +2216,6 @@ var images = require('./images.json');
                     this._initGridSkeletonDataForVendor();
                 } else {
                     // Load data from compare API for geneList
-                    // in compare mode, there's no crossComparisonView - Joe
                     if (this.state.owlSimFunction === 'compare' && this.state.geneList.length !== 0) {
                         this._initCompare();
                     } else if (this.state.owlSimFunction === 'search' && this.state.targetSpecies !== '') {
@@ -2255,12 +2246,12 @@ var images = require('./images.json');
         _initGridSkeletonData: function() {
             // Compose the target group list based on gridSkeletonData.xAxis
             for (var j = 0; j < this.state.gridSkeletonData.xAxis.length; j++) {
-                // E.g., {groupName: "Homo sapiens", groupId: "9606", crossComparisonView: true, active: true}
+                // E.g., {groupName: "Homo sapiens", groupId: "9606"}
                 this.state.targetGroupList.push(this.state.gridSkeletonData.xAxis[j]);
             }
 
-            // load the target targetGroup list based on the active flag
-            this._parseTargetGroupList(false);
+            // load the target targetGroup list
+            this._parseTargetGroupList();
      
             // initialize data processing class for simsearch query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
@@ -2275,11 +2266,11 @@ var images = require('./images.json');
             // overwrite the this.state.targetGroupList with only 'compare'
             // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
             this.state.targetGroupList = [
-                {groupName: "compare", groupId: "compare", crossComparisonView: true, active: true}
+                {groupName: "compare", groupId: "compare"}
             ];
             
-            // load the target targetGroup list based on the active flag
-            this._parseTargetGroupList(false);	
+            // load the target targetGroup list
+            this._parseTargetGroupList();	
 
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
@@ -2296,22 +2287,22 @@ var images = require('./images.json');
                 // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
                 this.state.targetGroupList = [
                     // Because only the three group are supported in monarch analyze/phenotypes page at this point - Joe
-                    {groupName: "Homo sapiens", groupId: "9606", crossComparisonView: true, active: true},
-                    {groupName: "Mus musculus", groupId: "10090", crossComparisonView: true, active: true},
-                    {groupName: "Danio rerio", groupId: "7955", crossComparisonView: true, active: true},
-                    // Disabled group
-                    {groupName: "Drosophila melanogaster", groupId: "7227", crossComparisonView: false, active: false},
-                    {groupName: "Caenorhabditis elegans", groupId: "6239", crossComparisonView: false, active: false},
-                    {groupName: "UDPICS", groupId: "UDPICS", crossComparisonView: false, active: false}
+                    {groupName: "Homo sapiens", groupId: "9606"},
+                    {groupName: "Mus musculus", groupId: "10090"},
+                    {groupName: "Danio rerio", groupId: "7955"}
+                    // Disabled groups
+                    //{groupName: "Drosophila melanogaster", groupId: "7227"},
+                    //{groupName: "Caenorhabditis elegans", groupId: "6239"},
+                    //{groupName: "UDPICS", groupId: "UDPICS"}
                 ];
                 
-                // load the target targetGroup list based on the active flag
-                this._parseTargetGroupList(false);
+                // load the target targetGroup list
+                this._parseTargetGroupList();
             } else { 
                 // when single group is selected (taxon is passed in via this.state.targetSpecies)
                 // load just the one selected from the dropdown menu - Joe
                 if (this.state.targetGroupList[idx].groupId === this.state.targetSpecies) {
-                    this._parseTargetGroupList(true);	
+                    this._parseTargetGroupList();	
                 }	
             }
             
@@ -2326,12 +2317,12 @@ var images = require('./images.json');
         _initGridSkeletonDataForVendor: function() {
             // Compose the target group list based on gridSkeletonData.xAxis
             for (var j = 0; j < this.state.gridSkeletonData.xAxis.length; j++) {
-                // E.g., {groupName: "Homo sapiens", groupId: "9606", crossComparisonView: true, active: true}
+                // E.g., {groupName: "Homo sapiens", groupId: "9606"}
                 this.state.targetGroupList.push(this.state.gridSkeletonData.xAxis[j]);
             }
 
-            // load the target targetGroup list based on the active flag
-            this._parseTargetGroupList(false);
+            // load the target targetGroup list
+            this._parseTargetGroupList();
 
             // initialize data processing class for compare query
             this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
@@ -2349,25 +2340,10 @@ var images = require('./images.json');
         },
         
         // when not work with monarch's analyze/phenotypes page
-        // this can be single group mode or cross comparison mode depends on the config
-        // load the default selected target targetGroup list based on the active flag in config, 
-        // has nothing to do with the monarch's analyze phenotypes page - Joe
-        _parseTargetGroupList: function(forSingleTargetGroup) {
+        _parseTargetGroupList: function() {
             for (var idx in this.state.targetGroupList) {
-                if (forSingleTargetGroup === true) {
-                    this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-                    this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-                } else {
-                    // for active targetGroup pre-load them
-                    if (this.state.targetGroupList[idx].active) {
-                        this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);	
-                    }	
-                    // should they be shown in the comparison view
-                    // crossComparisonView matters only when active = true - Joe
-                    if (this.state.targetGroupList[idx].active && this.state.targetGroupList[idx].crossComparisonView) {
-                        this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);	
-                    }
-                }
+                this.state.initialTargetGroupLoadList.push(this.state.targetGroupList[idx]);		
+                this.state.selectedCompareTargetGroup.push(this.state.targetGroupList[idx]);
             } 
             
             // Then we init the flag obj for group target item (genotype) expansion

@@ -79,21 +79,15 @@ var data = {
     "xAxis": [
         {
             "groupId": "9606",
-            "groupName": "Homo sapiens",
-            "crossComparisonView": false, 
-            "active": true
+            "groupName": "Homo sapiens"
         },
         {
             "groupId": "10090",
-            "groupName": "Mus musculus",
-            "crossComparisonView": true, 
-            "active": true
+            "groupName": "Mus musculus"
         },
         {
             "groupId": "7955",
-            "groupName": "Danio rerio",
-            "crossComparisonView": true, 
-            "active": true
+            "groupName": "Danio rerio"
         }
     ],
     "yAxis": [
@@ -316,10 +310,6 @@ This URL should be pointed to the OWLSim URL server associated with your install
 ### `gridSkeletonData`  object | required
 
 It is a Javascript object that contains all the target and source data to be rendered in the grid.
-
-This option allows you to specify the set of target groups (i.e., species) that will be visible throughout Phenogrid. There are two parameters which allow you to control whether a target group is displayed as a default in the multi-target comparison view, `crossComparisonView` and whether it should be active, `active = true`,  and thus fully visible within phenogrid. If `crossComparisonView = true`, for example, the target group will be visible as a default within the multi-target comparison view. For example, by default the following targets will be visible upon loading phenogrid (active must be set to true):
-
-The `active` parameter can override other parameters, but activating or deactivating a target group. For example, if the `active = false`, then the target group is not active within phenogrid and is not shown in comparison nor is it a selectable option from the menu. This is useful, if you not longer want that target group to be displayed within phenogrid and would like to retain the target group reference within the list. For example, the following are not active and will not be visible within phenogrid:
 
 ### `selectedSort`  string | optional
 
