@@ -2147,7 +2147,7 @@ var images = require('./images.json');
             var gridRegion = this.state.gridRegion; 
             var xScale = this.state.xAxisRender.getScale();
             var yScale = this.state.yAxisRender.getScale();
-
+console.log(xvalues);
             // use the x/y renders to generate the matrix
             if (this.state.owlSimFunction === 'compare') {
                 var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, this.state.owlSimFunction);
