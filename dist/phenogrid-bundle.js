@@ -716,11 +716,11 @@ DataLoader.prototype = {
 
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
-				}  //if
-			} // for
+				}
+			}
             
-            console.log(this.cellData);
-		} // if
+            console.log(this.targetData);
+		}
 	}, 
     
 
@@ -2350,7 +2350,7 @@ var images = require('./images.json');
                 // need to update the selectedCompareTargetGroup list depending on if we loaded all the data
                 self._updateSelectedCompareTargetGroup();
             }
-            
+console.log(this.state.selectedCompareTargetGroup);           
             // This removes the loading spinner, otherwise the spinner will be always there - Joe
             self.state.pgContainer.html('');
 
@@ -2372,15 +2372,14 @@ var images = require('./images.json');
         // If owlSimFunction === 'compare', we do not have comparison mode
         _updateSelectedCompareTargetGroup: function() {
             // loop through to make sure we have data to display
-            for (var idx in this.state.selectedCompareTargetGroup) {
-                var r = this.state.selectedCompareTargetGroup[idx];
-
-                var len = this.state.dataManager.length("target", r.groupName);
-                if (typeof(len) === 'undefined'  || len < 1) {
+            for (var i = 0; i < this.state.selectedCompareTargetGroup.length; i++) {
+                var len = this.state.dataManager.length("target", this.state.selectedCompareTargetGroup[i].groupName);
+                if (typeof(len) === 'undefined' || len < 1) {
                     // remove the target that has no data
                     // use splice() not slice() - Joe
                     // splice() modifies the array in place and returns a new array containing the elements that have been removed.
-                    this.state.selectedCompareTargetGroup.splice(idx, 1);
+                    this.state.selectedCompareTargetGroup.splice(i, 1);
+                    i--; // Need to go back to the first element of updated array
                 }
             }
         }, 
@@ -4071,7 +4070,7 @@ var images = require('./images.json');
             var gridRegion = this.state.gridRegion; 
             var xScale = this.state.xAxisRender.getScale();
             var yScale = this.state.yAxisRender.getScale();
-console.log(xvalues);
+
             // use the x/y renders to generate the matrix
             if (this.state.owlSimFunction === 'compare') {
                 var matrix = this.state.dataManager.buildMatrix(xvalues, yvalues, false, this.state.owlSimFunction);

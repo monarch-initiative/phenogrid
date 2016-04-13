@@ -403,11 +403,11 @@ DataLoader.prototype = {
 
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}
-				}  //if
-			} // for
+				}
+			}
             
-            console.log(this.cellData);
-		} // if
+            console.log(this.targetData);
+		}
 	}, 
     
 
