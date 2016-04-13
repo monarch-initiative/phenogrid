@@ -152,7 +152,7 @@ var images = require('./images.json');
             },
             gridRegion: {
                 x:240, 
-                y:200, // origin coordinates for grid region (matrix)
+                y:210, // origin coordinates for grid region (matrix)
                 cellPad:19, // distance from the first cell to the next cell, odd number(19 - 12 = 7) makes the divider line entered perfectly - Joe
                 cellSize:12, // grid cell width/height
                 rowLabelOffset:25, // offset of the row label (left side)
@@ -515,15 +515,14 @@ var images = require('./images.json');
                     if (Object.keys(targetDataPerGroup).length <= this.state.multiTargetsModeTargetLengthLimit) {
                         groupTargetLength = {
                             groupName: this.state.selectedCompareTargetGroup[i].groupName,
-                            length: Object.keys(targetDataPerGroup).length
+                            targetLength: Object.keys(targetDataPerGroup).length
                         };
                     } else {
                         groupTargetLength = {
                             groupName: this.state.selectedCompareTargetGroup[i].groupName,
-                            length: this.state.multiTargetsModeTargetLengthLimit
+                            targetLength: this.state.multiTargetsModeTargetLengthLimit
                         };
                     }
-                    
                     targetLengthPerGroup.push(groupTargetLength);
                 }
                 
@@ -746,13 +745,13 @@ var images = require('./images.json');
                     for (var i = 0; i < this.state.targetLengthPerGroup.length; i++) {
                         // Get the target length (number of columns) per group
                         // and add them up
-                        totalColumns += this.state.targetLengthPerGroup[i].length;
+                        totalColumns += this.state.targetLengthPerGroup[i].targetLength;
                         columnsCounter.push(totalColumns);
 
                         // calculate the x coordinate of the point where the angled red diving will hit the horizontal line containing the labels. Start the label there.
                         // add 30 to rotatedDividerLength
-                        var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].length) + (this.state.targetGroupDividerLine.rotatedDividerLength + 30)*Math.sin(Math.PI/4);
-                        var y = this.state.gridRegion.y + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].length/2);
+                        var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].targetLength) + (this.state.targetGroupDividerLine.rotatedDividerLength + 20)*Math.sin(Math.PI/4);
+                        var y = this.state.gridRegion.y + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].targetLength/2);
                         titleXPerGroup.push(x);
                         titleYPerGroup.push(y);
                     }
@@ -763,30 +762,8 @@ var images = require('./images.json');
                     titleYPerGroup.push(y);
                 }
                     
-                // Inverted and multi targetGroup
-                if (this.state.invertAxis) { 
-                    var heightPerTargetGroup = this._gridHeight()/targetGroupList.length;
-
-                    this.state.svg.selectAll(".pg_targetGroup_name")
-                        .data(targetGroupList)
-                        .enter()
-                        .append("text")
-                        .attr("x", this.state.gridRegion.x + this._gridWidth() + 25) // 25 is margin - Joe
-                        .attr("y", function(d, i) { 
-                                return titleYPerGroup[i];
-                            })
-                        .attr('transform', function(d, i) {
-                            var currX = self.state.gridRegion.x + self._gridWidth() + 25;
-                            var currY = titleYPerGroup[i];
-                            return 'rotate(90 ' + currX + ' ' + currY + ')';
-                        }) // rotate by 90 degrees 
-                        .attr("class", "pg_targetGroup_name") // Need to use id instead of class - Joe
-                        .text(function (d, i){
-                            return targetGroupList[i];
-                        })
-                        .style("font-size", '11px')    
-                        .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
-                } else {
+                // No group labels after inverting axis
+                if ( ! this.state.invertAxis) { 
                     this.state.svg.selectAll(".pg_targetGroup_name")
                         .data(targetGroupList)
                         .enter()
@@ -795,13 +772,16 @@ var images = require('./images.json');
                                 // middle of each group
                                 return titleXPerGroup[i];
                             })
-                        .attr("y", this.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
+                        //.attr("y", this.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
+                        .attr("y", function(d, i) {
+                            return self.state.gridRegion.y - 135 - i*12;
+                        })
                         .attr("class", "pg_targetGroup_name") 
                         .text(function(d, i){
                             return targetGroupList[i];
                         })
                         .style("font-size", '11px')    
-                        .attr("text-anchor", function() {
+                        .attr("text-anchor", function(d, i) {
                             if (self._isCrossComparisonView()) {
                                 return 'start'; // Try to align with the rotated divider lines for cross-target comparison
                             } else {
@@ -2085,12 +2065,21 @@ var images = require('./images.json');
 
             // Only create divider lines in multi-group mode
             if (this._isCrossComparisonView()) {
-                var numOfTargetGroup = this.state.selectedCompareTargetGroup.length; 
-
-                for (var i = 1; i < numOfTargetGroup; i++) {
+                
+                var totalColumns = 0;
+                var columnsCounter = [];
+                // No need to get the last group length
+                for (var i = 0; i < this.state.targetLengthPerGroup.length - 1; i++) {
+                    // Get the target length (number of columns) per group
+                    // and add them up
+                    totalColumns += this.state.targetLengthPerGroup[i].targetLength;
+                    columnsCounter.push(totalColumns);
+                }
+                
+                for (var i = 1; i < this.state.selectedCompareTargetGroup.length; i++) {
                     if (this.state.invertAxis) {
                         // gridRegion.colLabelOffset: offset the line to reach the labels
-                        var y = gridRegion.y + gridRegion.cellPad * i * this.state.targetLengthPerGroup[i-1].length - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                        var y = gridRegion.y + gridRegion.cellPad * columnsCounter[i-1] - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                         // render horizontal divider line
                         this.state.svg.append("line")				
@@ -2104,7 +2093,7 @@ var images = require('./images.json');
                             .style("shape-rendering", "crispEdges");
                     } else {
                         // Perfectly center the first divider line between the 10th and 11th cell, same rule for the second line ...
-                        var x = gridRegion.x + gridRegion.cellPad * i * this.state.targetLengthPerGroup[i-1].length - (gridRegion.cellPad - gridRegion.cellSize)/2;		
+                        var x = gridRegion.x + gridRegion.cellPad * columnsCounter[i-1] - (gridRegion.cellPad - gridRegion.cellSize)/2;		
 
                         // render vertical divider line
                         this.state.svg.append("line")				
@@ -2136,8 +2125,7 @@ var images = require('./images.json');
             }
         },
 
-
-            // create the grid
+        // create the grid
         _createGrid: function() {
             var self = this;
             // xvalues and yvalues are index arrays that contain the current x and y items, not all of them
