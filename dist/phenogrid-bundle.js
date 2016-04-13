@@ -718,8 +718,6 @@ DataLoader.prototype = {
 					}
 				}
 			}
-            
-            console.log(this.targetData);
 		}
 	}, 
     
@@ -2350,7 +2348,7 @@ var images = require('./images.json');
                 // need to update the selectedCompareTargetGroup list depending on if we loaded all the data
                 self._updateSelectedCompareTargetGroup();
             }
-console.log(this.state.selectedCompareTargetGroup);           
+          
             // This removes the loading spinner, otherwise the spinner will be always there - Joe
             self.state.pgContainer.html('');
 
@@ -2708,6 +2706,7 @@ console.log(this.state.selectedCompareTargetGroup);
                         .text(function (d, i){
                             return targetGroupList[i];
                         })
+                        .style("font-size", '11px')    
                         .attr("text-anchor", "middle"); // Keep labels aligned in middle vertically
                 } else {
                     this.state.svg.selectAll(".pg_targetGroup_name")
@@ -2723,13 +2722,14 @@ console.log(this.state.selectedCompareTargetGroup);
                         .text(function(d, i){
                             return targetGroupList[i];
                         })
+                        .style("font-size", '11px')    
                         .attr("text-anchor", function() {
                             if (self._isCrossComparisonView()) {
                                 return 'start'; // Try to align with the rotated divider lines for cross-target comparison
                             } else {
                                 return 'middle'; // Position the label in middle for single group
                             }
-                        }); 
+                        });
                 }
             } 
         },

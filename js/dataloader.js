@@ -405,8 +405,6 @@ DataLoader.prototype = {
 					}
 				}
 			}
-            
-            console.log(this.targetData);
 		}
 	}, 
     
