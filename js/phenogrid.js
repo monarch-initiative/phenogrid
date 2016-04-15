@@ -769,12 +769,16 @@ var images = require('./images.json');
                         .enter()
                         .append("text")
                         .attr("x", function(d, i){ 
-                                // middle of each group
                                 return titleXPerGroup[i];
                             })
                         //.attr("y", this.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
                         .attr("y", function(d, i) {
-                            return self.state.gridRegion.y - 135 - i*12;
+                            // Stagger up every other group label
+                            if (i%2 === 0) {
+                                return self.state.gridRegion.y - 135
+                            } else {
+                                return self.state.gridRegion.y - 135 - 12; // Move up 12px
+                            }
                         })
                         .attr("class", "pg_targetGroup_name") 
                         .text(function(d, i){
