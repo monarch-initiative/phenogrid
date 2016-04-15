@@ -152,7 +152,7 @@ var images = require('./images.json');
             },
             gridRegion: {
                 x:240, 
-                y:210, // origin coordinates for grid region (matrix)
+                y:200, // origin coordinates for grid region (matrix)
                 cellPad:19, // distance from the first cell to the next cell, odd number(19 - 12 = 7) makes the divider line entered perfectly - Joe
                 cellSize:12, // grid cell width/height
                 rowLabelOffset:25, // offset of the row label (left side)
