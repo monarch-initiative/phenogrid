@@ -2600,6 +2600,9 @@ var images = require('./images.json');
         _createSvgComponents: function() {
             this._createSvgContainer();
             this._createTargetGroupLabels();
+            
+            this._scalableCutoffGroupLabel();
+            
             this._createNavigation();
             this._createGrid();
             this._createScoresTipIcon();
@@ -2672,7 +2675,7 @@ var images = require('./images.json');
 
                         // calculate the x coordinate of the point where the angled red diving will hit the horizontal line containing the labels. Start the label there.
                         // add 30 to rotatedDividerLength
-                        var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].targetLength) + (this.state.targetGroupDividerLine.rotatedDividerLength + 20)*Math.sin(Math.PI/4);
+                        var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].targetLength) + (this.state.targetGroupDividerLine.rotatedDividerLength)*Math.sin(Math.PI/4) - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2;
                         var y = this.state.gridRegion.y + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].targetLength/2);
                         titleXPerGroup.push(x);
                         titleYPerGroup.push(y);
@@ -2692,8 +2695,7 @@ var images = require('./images.json');
                         .append("text")
                         .attr("x", function(d, i){ 
                                 return titleXPerGroup[i];
-                            })
-                        //.attr("y", this.state.gridRegion.y - 145) // based on the grid region y, margin-top -145 - Joe
+                        })
                         .attr("y", function(d, i) {
                             // Stagger up every other group label
                             if (i%2 === 0) {
@@ -2703,19 +2705,39 @@ var images = require('./images.json');
                             }
                         })
                         .attr("class", "pg_targetGroup_name") 
+                        .attr("id", function(d, i) {
+                            return self.state.pgInstanceId + "_groupName_" + (i + 1);
+                        }) 
                         .text(function(d, i){
                             return targetGroupList[i];
                         })
                         .style("font-size", '11px')    
                         .attr("text-anchor", function(d, i) {
                             if (self._isCrossComparisonView()) {
-                                return 'start'; // Try to align with the rotated divider lines for cross-target comparison
+                                return 'middle'; // Try to align with the rotated divider lines for cross-target comparison
                             } else {
                                 return 'middle'; // Position the label in middle for single group
                             }
                         });
                 }
             } 
+        },
+        
+        // Use a scalable cutoff for group label length based on the group size
+        // Adjust the group name length once it's rendered
+        // Only applied to the multi group mode
+        _scalableCutoffGroupLabel: function() {
+            if (this._isCrossComparisonView()) {
+                for (var i = 0; i < this.state.selectedCompareTargetGroup.length; i++) {
+                    var groupNameWidth = $('#' + this.state.pgInstanceId + ' .pg_targetGroup_name')[i].getBoundingClientRect().width;
+                    var groupGridWidth = this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2;
+                    // No change when group name is within the group grid width
+                    if (groupNameWidth > groupGridWidth) {
+                        var newCharCount = Math.floor(this.state.selectedCompareTargetGroup[i].groupName.length * (groupGridWidth/groupNameWidth));
+                        $('#' + this.state.pgInstanceId + '_groupName_' + (i + 1)).text(this.state.selectedCompareTargetGroup[i].groupName.substring(0, newCharCount));
+                    }
+                }
+            }
         },
 
         // Create minimap and scrollbars based on needs
