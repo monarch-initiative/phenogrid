@@ -751,9 +751,15 @@ var images = require('./images.json');
                         totalColumns += this.state.targetLengthPerGroup[i].targetLength;
                         columnsCounter.push(totalColumns);
 
-                        // calculate the x coordinate of the point where the angled red diving will hit the horizontal line containing the labels. Start the label there.
-                        // add 30 to rotatedDividerLength
-                        var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].targetLength) + (this.state.targetGroupDividerLine.rotatedDividerLength)*Math.sin(Math.PI/4) - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2;
+                        if (i === 0) {
+                            // Center the first label based on the corresponding grid width
+                            var x = this.state.gridRegion.x + (this.state.gridRegion.cellPad*columnsCounter[i] - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2)/2;
+                        } else {
+                            // calculate the x coordinate of the point where the angled red diving will hit the horizontal line containing the labels. Start the label there.
+                            // add 30 to rotatedDividerLength
+                            var x = this.state.gridRegion.x + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].targetLength) + (this.state.targetGroupDividerLine.rotatedDividerLength)*Math.sin(Math.PI/4) - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2;
+                        }
+                        
                         var y = this.state.gridRegion.y + this.state.gridRegion.cellPad*(columnsCounter[i] - this.state.targetLengthPerGroup[i].targetLength/2);
                         titleXPerGroup.push(x);
                         titleYPerGroup.push(y);
@@ -772,7 +778,7 @@ var images = require('./images.json');
                         .enter()
                         .append("text")
                         .attr("x", function(d, i){ 
-                                return titleXPerGroup[i];
+                            return titleXPerGroup[i];
                         })
                         .attr("y", function(d, i) {
                             // Stagger up every other group label
@@ -791,11 +797,7 @@ var images = require('./images.json');
                         })
                         .style("font-size", '11px')    
                         .attr("text-anchor", function(d, i) {
-                            if (self._isCrossComparisonView()) {
-                                return 'middle'; // Try to align with the rotated divider lines for cross-target comparison
-                            } else {
-                                return 'middle'; // Position the label in middle for single group
-                            }
+                            return 'middle';
                         });
                 }
             } 
