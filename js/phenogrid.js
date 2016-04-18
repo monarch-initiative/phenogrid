@@ -653,6 +653,11 @@ var images = require('./images.json');
             this._positionPhenogridControls();
             this._togglePhenogridControls();
             
+            // Must after calling this._createPhenogridControls()
+            // since it uses the control options width to 
+            // calculate the gridWidth of the final group grid width - Joe
+            this._scalableCutoffGroupLabel();
+            
             this._setSvgSize();
         },
         
@@ -678,9 +683,6 @@ var images = require('./images.json');
         _createSvgComponents: function() {
             this._createSvgContainer();
             this._createTargetGroupLabels();
-            
-            this._scalableCutoffGroupLabel();
-            
             this._createNavigation();
             this._createGrid();
             this._createScoresTipIcon();
@@ -797,7 +799,11 @@ var images = require('./images.json');
                         })
                         .style("font-size", '11px')    
                         .attr("text-anchor", function(d, i) {
-                            return 'middle';
+                            if (i === 0) {
+                                return 'middle';
+                            } else {
+                                return 'start';
+                            }
                         });
                 }
             } 
@@ -814,6 +820,8 @@ var images = require('./images.json');
                     // For the first group, scale the label based on the grid width and the divider line's projection on X coordinate.
                     if (i === 0) {
                         var groupGridWidth = this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2 + (this.state.targetGroupDividerLine.rotatedDividerLength)*Math.sin(Math.PI/4);
+                    } else if (i === this.state.selectedCompareTargetGroup.length -1) {
+                        var groupGridWidth = this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2 - (this.state.targetGroupDividerLine.rotatedDividerLength)*Math.sin(Math.PI/4) + $('#' + this.state.pgInstanceId + '_controls_options').outerWidth();
                     } else {
                         var groupGridWidth = this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2;
                     }
