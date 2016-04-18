@@ -291,7 +291,7 @@ window.onload = function() {
 
 <body>
 
-<div id="phenogrid_container1" class="clearfix"></div>
+<div id="phenogrid_container" class="clearfix"></div>
 
 </body>
 </html>
@@ -309,7 +309,47 @@ This URL should be pointed to the OWLSim URL server associated with your install
 
 ### `gridSkeletonData`  object | required
 
-It is a Javascript object that contains all the target and source data to be rendered in the grid.
+It is a Javascript object that contains all the target and source data to be rendered in the grid. Please refer to the above example. Basically, it consists of three parts: `title`, `xAxis`, and `yAxis`.
+
+- `title` - Short description of the data.
+- `xAxis` - An arry of target groups. Each group is a Javascript object that has `groupId` and `groupName`, both are strings.
+- `yAxis` - An array of phenotypes. Each phenotype is formatted as an object that has `id` and `term`, both are strings.
+
+Following is an simple example:
+
+````
+{
+    "title": "Diseases, Mouse and Fish models ",
+    "xAxis": [
+        {
+            "groupId": "9606",
+            "groupName": "Homo sapiens"
+        },
+        {
+            "groupId": "10090",
+            "groupName": "Mus musculus"
+        },
+        {
+            "groupId": "7955",
+            "groupName": "Danio rerio"
+        }
+    ],
+    "yAxis": [
+        {
+            "id": "HP:0000006",
+            "term": "Autosomal dominant inheritance"
+        },
+        {
+            "id": "HP:0000174",
+            "term": "Abnormality of the palate"
+        },
+        {
+            "id": "HP:0011304",
+            "term": "Broad thumb"
+        }
+    ]
+}
+````
 
 ### `selectedSort`  string | optional
 
@@ -324,7 +364,7 @@ For each pairwise comparison of phenotypes from the query (q) and target (t), we
 - 0 - Similarity
 - 1 - Ratio (q)
 - 2 - Uniqueness
-- 3- Ratio (t)
+- 3 - Ratio (t)
 
 ## Web Browser Support
 
