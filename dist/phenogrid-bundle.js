@@ -2050,9 +2050,9 @@ var images = require('./images.json');
             ], // stop colors for corresponding stop points - Joe
             minimap: {
                 x:112, 
-                y: 65, 
-                width:110, // the actual width will be calculated based on the number of x count - Joe
-                height:110, // the actual height will be calculated based on the number of y count - Joe
+                y: 75, 
+                width:100, // the actual width will be calculated based on the number of x count - Joe
+                height:100, // the actual height will be calculated based on the number of y count - Joe
                 bgColor: '#fff',
                 borderColor: '#666',
                 borderThickness:2, // 2 works best, any other number will cause imperfect display - Joe
