@@ -752,8 +752,8 @@ var images = require('./images.json');
                         columnsCounter.push(totalColumns);
 
                         if (i === 0) {
-                            // Center the first label based on the corresponding grid width
-                            var x = this.state.gridRegion.x + (this.state.gridRegion.cellPad*columnsCounter[i] - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2)/2;
+                            // Center the first label based on the corresponding grid width + the X projection of angled divider line
+                            var x = this.state.gridRegion.x + (this.state.gridRegion.cellPad*columnsCounter[i] + (this.state.targetGroupDividerLine.rotatedDividerLength)*Math.sin(Math.PI/4) - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2 )/2;
                         } else {
                             // calculate the x coordinate of the point where the angled red diving will hit the horizontal line containing the labels. Start the label there.
                             // add 30 to rotatedDividerLength
@@ -810,7 +810,13 @@ var images = require('./images.json');
             if (this._isCrossComparisonView()) {
                 for (var i = 0; i < this.state.selectedCompareTargetGroup.length; i++) {
                     var groupNameWidth = $('#' + this.state.pgInstanceId + ' .pg_targetGroup_name')[i].getBoundingClientRect().width;
-                    var groupGridWidth = this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2;
+                    
+                    if (i === 0) {
+                        var groupGridWidth = this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2 + (this.state.targetGroupDividerLine.rotatedDividerLength)*Math.sin(Math.PI/4);
+                    } else {
+                        var groupGridWidth = this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2;
+                    }
+
                     // No change when group name is within the group grid width
                     if (groupNameWidth > groupGridWidth) {
                         var newCharCount = Math.floor(this.state.selectedCompareTargetGroup[i].groupName.length * (groupGridWidth/groupNameWidth));
