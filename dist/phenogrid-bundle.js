@@ -2743,6 +2743,11 @@ var images = require('./images.json');
                     if (groupNameWidth > groupGridWidth) {
                         var newCharCount = Math.floor(this.state.selectedCompareTargetGroup[i].groupName.length * (groupGridWidth/groupNameWidth));
                         $('#' + this.state.pgInstanceId + '_groupName_' + (i + 1)).text(this.state.selectedCompareTargetGroup[i].groupName.substring(0, newCharCount));
+                    } else {
+                        if (i === 0) {
+                            // Just center the 1st group label based on the mid point of the grid width
+                            $('#' + this.state.pgInstanceId + '_groupName_' + (i + 1)).attr("x", this.state.gridRegion.x + (this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2)/2);
+                        }
                     }
                 }
             }
