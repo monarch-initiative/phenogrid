@@ -811,6 +811,7 @@ var images = require('./images.json');
                 for (var i = 0; i < this.state.selectedCompareTargetGroup.length; i++) {
                     var groupNameWidth = $('#' + this.state.pgInstanceId + ' .pg_targetGroup_name')[i].getBoundingClientRect().width;
                     
+                    // For the first group, scale the label based on the grid width and the divider line's projection on X coordinate.
                     if (i === 0) {
                         var groupGridWidth = this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2 + (this.state.targetGroupDividerLine.rotatedDividerLength)*Math.sin(Math.PI/4);
                     } else {
@@ -824,6 +825,7 @@ var images = require('./images.json');
                     } else {
                         if (i === 0) {
                             // Just center the 1st group label based on the mid point of the grid width
+                            // when it's not longer than the grid width
                             $('#' + this.state.pgInstanceId + '_groupName_' + (i + 1)).attr("x", this.state.gridRegion.x + (this.state.targetLengthPerGroup[i].targetLength * this.state.gridRegion.cellPad - (this.state.gridRegion.cellPad - this.state.gridRegion.cellSize)/2)/2);
                         }
                     }
