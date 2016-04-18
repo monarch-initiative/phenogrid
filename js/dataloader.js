@@ -269,7 +269,7 @@ DataLoader.prototype = {
                 // Add the group name to the groupsNoMatch array
                 self.groupsNoMatch.push(target.groupName);
             } else {
-                // save the original owlsim data
+                // save the original raw owlsim data
                 self.owlsimsData[target.groupName] = data;
                 // now transform data to there basic data structures
                 self.transform(target.groupName, data);  

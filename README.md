@@ -312,7 +312,7 @@ This URL should be pointed to the OWLSim URL server associated with your install
 It is a Javascript object that contains all the target and source data to be rendered in the grid. Please refer to the above example. Basically, it consists of three parts: `title`, `xAxis`, and `yAxis`.
 
 - `title` - Short description of the data.
-- `xAxis` - An arry of target groups. Each group is a Javascript object that has `groupId` and `groupName`, both are strings.
+- `xAxis` - An arry of target groups. Each group is a Javascript object that has `groupId` and `groupName` (must be unique), both are strings.
 - `yAxis` - An array of phenotypes. Each phenotype is formatted as an object that has `id` and `term`, both are strings.
 
 Following is an simple example:
