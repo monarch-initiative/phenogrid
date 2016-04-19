@@ -48,5 +48,5 @@ Feature: Generic features work when running Phenogrid as a standalone widget
     Scenario: Appearance of horizontal scrollbar slider after inverting axis
         Given I go to page "/index.html"
             And I click the "phenogrid_container1_slide_btn"
-            And I click the "phenogrid_container1_axisflip"
+            And I click the "phenogrid_container1_invert_axis"
             Then the document should contain id "phenogrid_container1_horizontal_scrollbar_slider"
