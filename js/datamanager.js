@@ -28,13 +28,13 @@ var DataManager = function(dataLoader) {
 	// this is rebuilt every time grid needs re-rendered, cached here for quick lookup
 	this.matrix = [];
     
-    // genotype expansion, named arrays of each single species
+    // genotype expansion, named arrays of each single group
     // these two arrays are referenced to the underlying data in dataLoader, not actual clone
     // so changes made to the underlying data array will populate to these two - Joe
     this.reorderedTargetEntriesNamedArray = {};
     this.reorderedTargetEntriesIndexArray = {};
     
-    this.expandedGenotypeList = {}; // named array, no need to specify species since each gene ID is unique
+    this.expandedItemList = {}; // named array, no need to specify group since each gene ID is unique
 };
 
 DataManager.prototype = {
@@ -56,19 +56,19 @@ DataManager.prototype = {
 	},
     
     /*
-		Function: appendNewGenotypesToOrderedTargetList
-			each single species (fish/mouse) has its own ordered target list
+		Function: appendNewItemsToOrderedTargetList
+			each single group (fish/mouse) has its own ordered target list
 
 		Parameters:
-			targetGroup - species name
+			targetGroup - group name
             data - newly added genotypes data
 
 		Returns:
 			reordered index array
 	*/
-    appendNewGenotypesToOrderedTargetList: function(targetGroup, data) {
+    appendNewItemsToOrderedTargetList: function(targetGroup, data) {
         // can't slice the object this.target[targetGroup]
-        var newlyAdded = {}; // named array, species name is the key
+        var newlyAdded = {}; // named array, group name is the key
         for (var i = 0; i < data.length; i++) {
             var id = Utils.getConceptId(data[i].id);
             
@@ -76,7 +76,7 @@ DataManager.prototype = {
                 newlyAdded[targetGroup] = []; // index array
             }
             
-            // value of each species name is an index array
+            // value of each group name is an index array
             newlyAdded[targetGroup].push(this.target[targetGroup][id]);
         }
         
@@ -90,16 +90,16 @@ DataManager.prototype = {
     
     /*
 		Function: updateTargetList
-			each single species (fish/mouse) has its own ordered target list
+			each single group (fish/mouse) has its own ordered target list
 
 		Parameters:
 			genotypesData - defined in _fetchGenotypesCb() of phenogrid.js
 	*/
     updateTargetList: function(genotypesData) {
-		var targetEntries = genotypesData.targetEntries; // unordered target entries of current active single species 
+		var targetEntries = genotypesData.targetEntries; // unordered target entries of current active single group 
         var genotypes = genotypesData.genotypes; // an array of genotype objects derived from genotypesData.parentGeneID
         var parentGeneID = genotypesData.parentGeneID;
-        var species = genotypesData.species;
+        var group = genotypesData.group;
 
         var gene_position;
         var first_genotype_position;
@@ -130,8 +130,8 @@ DataManager.prototype = {
         // no we have the new target entries in the desired order
         var reorderedTargetEntriesIndexArray = header.concat(footer, body);
         
-        // Format 1 - sorted index numeric array for each target species 
-        this.reorderedTargetEntriesIndexArray[species] = reorderedTargetEntriesIndexArray;
+        // Format 1 - sorted index numeric array for each target group 
+        this.reorderedTargetEntriesIndexArray[group] = reorderedTargetEntriesIndexArray;
         
         // Format into named associative array
         // same return format as getData()
@@ -144,21 +144,21 @@ DataManager.prototype = {
             reorderedTargetEntriesNamedArray[reorderedTargetEntriesIndexArray[k].id] = reorderedTargetEntriesIndexArray[k];
         }
         
-        // Format 2 - sorted associative/named array for each target species 
-        this.reorderedTargetEntriesNamedArray[species] = reorderedTargetEntriesNamedArray;
+        // Format 2 - sorted associative/named array for each target group 
+        this.reorderedTargetEntriesNamedArray[group] = reorderedTargetEntriesNamedArray;
 	},
     
-    getReorderedTargetEntriesNamedArray: function(species) {
-        //this.reorderedTargetEntriesIndexArray[species] and this.reorderedTargetEntriesNamedArray[species] 
+    getReorderedTargetEntriesNamedArray: function(group) {
+        //this.reorderedTargetEntriesIndexArray[group] and this.reorderedTargetEntriesNamedArray[group] 
         // have the same order and number of elements, just two different formats
         var t = []
-        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
+        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[group].length; i++) {
             // only added genotypes have that 'visible' property
-            if (typeof(this.reorderedTargetEntriesIndexArray[species][i].visible) === 'undefined') {
-                t.push(this.reorderedTargetEntriesIndexArray[species][i]);
+            if (typeof(this.reorderedTargetEntriesIndexArray[group][i].visible) === 'undefined') {
+                t.push(this.reorderedTargetEntriesIndexArray[group][i]);
             } else {
-                if (this.reorderedTargetEntriesIndexArray[species][i].visible === true) {
-                    t.push(this.reorderedTargetEntriesIndexArray[species][i]);
+                if (this.reorderedTargetEntriesIndexArray[group][i].visible === true) {
+                    t.push(this.reorderedTargetEntriesIndexArray[group][i]);
                 }
             }
         }
@@ -213,13 +213,13 @@ DataManager.prototype = {
 	     var rec;
 	     if (typeof(this.cellData[targetGroup]) !== 'undefined') {
              if (typeof(this.cellData[targetGroup][key1]) !== 'undefined') {
-                 if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
-                 rec = this.cellData[targetGroup][key1][key2];
-                 }
+                if (typeof (this.cellData[targetGroup][key1][key2]) !== 'undefined') {
+                    rec = this.cellData[targetGroup][key1][key2];
+                }
              } else if (typeof(this.cellData[targetGroup][key2]) !== 'undefined') {
-                 if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
-                 rec = this.cellData[targetGroup][key2][key1];
-                 }
+                if (typeof(this.cellData[targetGroup][key2][key1]) !== 'undefined') {
+                    rec = this.cellData[targetGroup][key2][key1];
+                }
              }
 	     }
 	     return rec;
@@ -238,7 +238,7 @@ DataManager.prototype = {
 		    						{return cd[targetGroup][key][k];});
 		}
 		else {
-		    /// it's a target. find the entry for each source.
+		    // it's a target. find the entry for each source.
 		    var srcs = Object.keys(cd[targetGroup]);
 		    for (var i in srcs) {
 				var src = srcs[i];
@@ -354,12 +354,12 @@ DataManager.prototype = {
 			xvals - target value list
 			yvals - source value list
 			flattened - flag to flatten the array into a single list of data points; true for usage with overview map
-            compare - flag to indicate if phenogrid is in owlSimFunction === 'compare' mode
+            forCompare - "compare" to indicate if phenogrid is in owlSimFunction === 'compare' mode
 
 		Returns:
 			array
 	*/
-	buildMatrix: function(xvals, yvals, flattened, compare) {
+	buildMatrix: function(xvals, yvals, flattened, forCompare) {
 	    var xvalues = xvals, yvalues = yvals;     
 	    var matrixFlatten = []; 
 
@@ -368,12 +368,12 @@ DataManager.prototype = {
 	    	this.matrix = []; 
 	    }
 
-	    for (var y=0; y < yvalues.length; y++ ) {
+	    for (var y = 0; y < yvalues.length; y++ ) {
     		var list = [];
-			for (var x=0; x < xvalues.length; x++ ) {
+			for (var x = 0; x < xvalues.length; x++ ) {
                 // when owlSimFunction === 'compare', we use 'compare' as the targetGroup name - Joe
-                if (compare === true) {
-                    var targetGroup = 'compare';
+                if (typeof(forCompare) !== 'undefined') {
+                    var targetGroup = forCompare;
                 } else {
                     var targetGroup = this._getTargetGroup(yvalues[y], xvalues[x]);
                 }
@@ -382,20 +382,19 @@ DataManager.prototype = {
 					// does a match exist in the cells
 					if (typeof(this.cellPointMatch(yvalues[y].id, xvalues[x].id, targetGroup)) !== 'undefined') {
 						var rec = {
-                                    source_id: yvalues[y].id, 
-                                    target_id: xvalues[x].id, 
-                                    xpos: x, 
-                                    ypos: y, 
-                                    targetGroup: targetGroup, 
-                                    type: 'cell'
-                                };
+                                source_id: yvalues[y].id, 
+                                target_id: xvalues[x].id, 
+                                xpos: x, 
+                                ypos: y, 
+                                targetGroup: targetGroup, 
+                                type: 'cell'
+                            };
 						// this will create a array as a 'flattened' list of data points, used by mini mapping
 						if (flattened) {
 							matrixFlatten.push(rec);
 						} else {  // else, just create an array of arrays, grid likes this format
 							list.push(rec);	
 						}
-						
 					}
 				}
 			}
@@ -415,7 +414,7 @@ DataManager.prototype = {
 
 		for (var i in this.matrix) {
 			var r = this.matrix[i];
-			for (var j=0; j < r.length; j++) {
+			for (var j = 0; j < r.length; j++) {
 				if (r[j].ypos == matchpos && !highlightSources) {
 					matchedPositions.push(r[j]);
 				} else if (r[j].xpos == matchpos && highlightSources) {
@@ -478,7 +477,7 @@ DataManager.prototype = {
 		// loop thru for the number of comparisons
 
 		for (var k in targetGroupList) {
-			var data = this.getData("target", targetGroupList[k].name);
+			var data = this.getData("target", targetGroupList[k].groupName);
 			if (typeof(data) !== 'undefined') {
 				var i=0;
 				for (var idx in data) {
@@ -507,7 +506,7 @@ DataManager.prototype = {
 		// loop thru for the number of comparisons and build a combined list
 		// also build the frequency and sum for the subset
 		for (var k in targetGroupList) {
-			var srcs = this.getData("source", targetGroupList[k].name);
+			var srcs = this.getData("source", targetGroupList[k].groupName);
 
 			if (typeof(srcs) !== 'undefined') {
 				for (var idx in srcs) {
@@ -530,7 +529,7 @@ DataManager.prototype = {
 
 			for (var t in targetGroupList) {
 				// get all the cell data
-				var cellData = this.getData("cellData", targetGroupList[t].name);
+				var cellData = this.getData("cellData", targetGroupList[t].groupName);
 				for (var cd in cellData) {
 
 				var cells = cellData[cd];
@@ -559,7 +558,7 @@ DataManager.prototype = {
 	 		id - gene id to check
 	*/
 	isExpanded: function(id) {
-        if (typeof(this.expandedGenotypeList[id]) === 'undefined') {
+        if (typeof(this.expandedItemList[id]) === 'undefined') {
             return false;
         } else {
             return true;
@@ -567,23 +566,23 @@ DataManager.prototype = {
 	},
     
     /*
-		Function: checkGenotypesLoaded
+		Function: checkExpandedItemsLoaded
 
 			check if the genotypes data of that specific gene id has been loaded
 	
 	 	Parameters:
-	 		species - species name
+	 		group - group name
             id - gene id to check
 	*/
-    checkGenotypesLoaded: function(species, id) {
-		if (typeof(this.reorderedTargetEntriesIndexArray[species]) === 'undefined') {
-            this.reorderedTargetEntriesIndexArray[species] = []; // index array
+    checkExpandedItemsLoaded: function(group, id) {
+		if (typeof(this.reorderedTargetEntriesIndexArray[group]) === 'undefined') {
+            this.reorderedTargetEntriesIndexArray[group] = []; // index array
         }
     
-        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[species].length; i++) {
+        for (var i = 0; i < this.reorderedTargetEntriesIndexArray[group].length; i++) {
             // only added genotypes have 'parentGeneID' property
-            if (typeof(this.reorderedTargetEntriesIndexArray[species][i].parentGeneID) !== 'undefined') {
-                if (this.reorderedTargetEntriesIndexArray[species][i].parentGeneID === id) {
+            if (typeof(this.reorderedTargetEntriesIndexArray[group][i].parentGeneID) !== 'undefined') {
+                if (this.reorderedTargetEntriesIndexArray[group][i].parentGeneID === id) {
                     return true;
                 }
             }  

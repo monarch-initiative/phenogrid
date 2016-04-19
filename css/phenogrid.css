@@ -3,7 +3,7 @@
 */
 /* #pg_container contains SVG (#pg_svg) and HTML (#pg_controls, #pg_unmatched) */
 .pg_container {
-margin:20px 10px;
+margin:0;
 position:relative;
 font-family:Verdana, Geneva, sans-serif;
 font-size:12px;
@@ -25,6 +25,7 @@ padding:20px;
 color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
+z-index:999; /* Only use z-index on .pg_controls_options, not not the button */
 }
 
 .pg_container  .pg_controls_options_arrow_border{
@@ -72,7 +73,7 @@ background:#EA763B;
 
 .pg_container  .pg_slide_btn{
 position:absolute;
-width:90px;
+width:75px;
 font-size:14px;
 color:#44A293;
 }
@@ -96,15 +97,13 @@ font-size:12px;
 margin-bottom:3px;
 }
 
-.pg_container  .pg_controls input[type="checkbox"] {
-display:inline-block;
-width:11px;
-height:11px;
-margin:-2px 4px 0 0;
-vertical-align:middle;
+.pg_container .pg_select_item  {
+height:13px;
+padding:0;
+margin:0;
 }
 
-.pg_container  .pg_controls input[type="radio"] {
+.pg_container  input {
 display:inline-block;
 width:11px;
 height:11px;
@@ -139,6 +138,7 @@ margin-bottom:20px;
 color:#111;
 border:1px solid #222;
 box-shadow: 4px 4px 2px #ddd;
+z-index:999; /* Only use z-index on .pg_unmatched_list, not not the button */
 }
 
 .pg_container .pg_unmatched_close{
@@ -187,8 +187,7 @@ width: 0;
 
 .pg_container  .pg_unmatched_btn{
 position:absolute;
-left:13px;
-width:216px;
+width:185px;
 text-align:right;
 font-size:14px;
 color:#44A293;
@@ -202,12 +201,6 @@ fill: #4CA092;
 fill-opacity: 0.1;
 }
 
-.pg_container  .pg_tip {
-width: 80px;
-height:10px;
-font-size:11px;
-}
-
 .pg_container  .pg_scores_tip_icon{
 cursor:pointer;
 }
@@ -215,7 +208,7 @@ cursor:pointer;
 .pg_container .pg_tooltip {
 position: absolute;
 padding:5px;
-z-index:99;
+z-index:1000; /* Make tooltip overlap everything */
 }
 
 .pg_container .pg_tooltip_inner {

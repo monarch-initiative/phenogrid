@@ -267,7 +267,7 @@ AxisGroup.prototype = {
 		} else if (by === 'Frequency and Rarity') {
 			//this.items.sort(function(a,b) {
 			temp.sort(function(a,b) {				
-				return b.sum-a.sum;
+				return b.sum - a.sum;
 			});
 		} else if (by === 'Alphabetic') {
 			//this.items.sort(function(a,b) {
@@ -300,7 +300,7 @@ AxisGroup.prototype = {
 		var values = this.keys();
 		var scale = d3.scale.ordinal()
 					.domain(values)
-					.rangeRoundBands([0,values.length]);
+					.rangeRoundBands([0, values.length]);
 		return scale;
     }
 };
