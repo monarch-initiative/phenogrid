@@ -11,7 +11,7 @@ Feature: Generic features work when running Phenogrid as a standalone widget
     	    Then the id "<id>" should contain "<text>"
             Examples: <id> - <text> list
             | id                                        | text                         |
-            | phenogrid_container1_slide_btn            | OPTIONS                      |
+            | phenogrid_container1_slide_btn            | Options                      |
 
 
     Scenario Outline: Visible items after open options panel
