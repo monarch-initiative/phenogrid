@@ -22,7 +22,6 @@
     "d3": "^3.5.5",
     "filesaver.js": "^0.2.0",
     "font-awesome": "^4.5.0",
-    "gfm.css": "^1.1.1",
     "jquery": "^2.1.4",
     "jquery-ui": "^1.10.5",
     "normalize.css": "^3.0.3"
@@ -44,7 +43,6 @@
     "jshint": "^2.9.1",
     "jshint-stylish": "^2.0.1",
     "lodash": "^4.4.0",
-    "marked": "^0.3.5",
     "vinyl-source-stream": "^1.1.0"
   },
   "main": "js/phenogrid.js"
