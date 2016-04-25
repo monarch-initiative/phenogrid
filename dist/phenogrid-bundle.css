@@ -3874,18 +3874,11 @@ font-size:12px;
 margin-bottom:3px;
 }
 
-.pg_container .pg_select_item  {
-height:13px;
-padding:0;
-margin:0;
-}
-
 .pg_container  input {
 display:inline-block;
 width:11px;
 height:11px;
-margin:-2px 4px 0 0;
-vertical-align:middle;
+margin:4px 4px 0 0;
 }
 
 .pg_container  .pg_hr{
@@ -3897,6 +3890,8 @@ border-bottom:1px solid #cbcbcb;
 .pg_container  .pg_select_item{
 margin:2px 0;
 padding:0;
+height:13px;
+font-size:12px;
 }
 
 /* HTML unmatched sources popup */
