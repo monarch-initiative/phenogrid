@@ -2213,8 +2213,9 @@ var images = require('./images.json');
         _initCompare: function() {
             // overwrite the this.state.targetGroupList with only 'compare'
             // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
+            var compare = "compare";
             this.state.targetGroupList = [
-                {groupName: "compare", groupId: "compare"}
+                {groupName: compare, groupId: compare}
             ];
             
             // load the target targetGroup list
