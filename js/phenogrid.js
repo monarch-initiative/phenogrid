@@ -2787,7 +2787,7 @@ var images = require('./images.json');
             var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
             // shrink the height when we don't show the group selection
             if (this.state.initialTargetGroupLoadList.length === 1) {
-                pg_ctrl_options.css('height', 280);
+                pg_ctrl_options.css('height', 310);
             }
             // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
             pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
