@@ -310,26 +310,20 @@ var images = require('./images.json');
         _initSearch: function() {
             // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
             if (this.state.targetSpecies === 'all') {
-                // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
-                this.state.targetGroupList = [
-                    // Because only the three group are supported in monarch analyze/phenotypes page at this point - Joe
-                    {groupName: "Homo sapiens", groupId: "9606"},
-                    {groupName: "Mus musculus", groupId: "10090"},
-                    {groupName: "Danio rerio", groupId: "7955"}
-                    // Disabled groups
-                    //{groupName: "Drosophila melanogaster", groupId: "7227"},
-                    //{groupName: "Caenorhabditis elegans", groupId: "6239"},
-                    //{groupName: "UDPICS", groupId: "UDPICS"}
-                ];
-                
+                this.state.targetGroupList = this.state.gridSkeletonData.xAxis;
+
                 // load the target targetGroup list
                 this._parseTargetGroupList();
             } else { 
                 // when single group is selected (taxon is passed in via this.state.targetSpecies)
                 // load just the one selected from the dropdown menu - Joe
-                if (this.state.targetGroupList[idx].groupId === this.state.targetSpecies) {
-                    this._parseTargetGroupList();	
-                }	
+                for (var i = 0; i < this.state.gridSkeletonData.xAxis.length; i++) {
+                    if (this.state.gridSkeletonData.xAxis[i].groupId === this.state.targetSpecies) {
+                        this.state.targetGroupList.push(this.state.gridSkeletonData.xAxis[i]);
+                        this._parseTargetGroupList();	
+                        break;
+                    }	
+                }
             }
             
             // initialize data processing class for simsearch query
