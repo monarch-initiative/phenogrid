@@ -108,7 +108,7 @@ var images = require('./images.json');
             singleTargetModeTargetLengthLimit: 30, //  defines the limit of the number of targets to display
             sourceLengthLimit: 30, //  defines the limit of the number of sources to display
             multiTargetsModeTargetLengthLimit: 10,    // the number of visible targets per group to be displayed in cross compare mode  
-            targetLabelCharLimit : 24,
+            targetLabelCharLimit : 23,
             ontologyDepth: 10,	// Numerical value that determines how far to go up the tree in relations.
             ontologyDirection: "OUTGOING",	// String that determines what direction to go in relations.  Default is "out".
             ontologyRelationship: "subClassOf",
@@ -291,8 +291,9 @@ var images = require('./images.json');
         _initCompare: function() {
             // overwrite the this.state.targetGroupList with only 'compare'
             // this 'compare' is used in dataLoader.loadCompareData() and dataManager.buildMatrix() too - Joe
+            var compare = "compare";
             this.state.targetGroupList = [
-                {groupName: "compare", groupId: "compare"}
+                {groupName: compare, groupId: compare}
             ];
             
             // load the target targetGroup list
@@ -310,26 +311,20 @@ var images = require('./images.json');
         _initSearch: function() {
             // targetSpecies is used by monarch-app's Analyze page, the dropdown menu under "Search" section - Joe
             if (this.state.targetSpecies === 'all') {
-                // overwrite the this.state.targetGroupList by enabling Homo sapiens, Mus musculus, and Danio rerio - Joe
-                this.state.targetGroupList = [
-                    // Because only the three group are supported in monarch analyze/phenotypes page at this point - Joe
-                    {groupName: "Homo sapiens", groupId: "9606"},
-                    {groupName: "Mus musculus", groupId: "10090"},
-                    {groupName: "Danio rerio", groupId: "7955"}
-                    // Disabled groups
-                    //{groupName: "Drosophila melanogaster", groupId: "7227"},
-                    //{groupName: "Caenorhabditis elegans", groupId: "6239"},
-                    //{groupName: "UDPICS", groupId: "UDPICS"}
-                ];
-                
+                this.state.targetGroupList = this.state.gridSkeletonData.xAxis;
+
                 // load the target targetGroup list
                 this._parseTargetGroupList();
             } else { 
                 // when single group is selected (taxon is passed in via this.state.targetSpecies)
                 // load just the one selected from the dropdown menu - Joe
-                if (this.state.targetGroupList[idx].groupId === this.state.targetSpecies) {
-                    this._parseTargetGroupList();	
-                }	
+                for (var i = 0; i < this.state.gridSkeletonData.xAxis.length; i++) {
+                    if (this.state.gridSkeletonData.xAxis[i].groupId === this.state.targetSpecies) {
+                        this.state.targetGroupList.push(this.state.gridSkeletonData.xAxis[i]);
+                        this._parseTargetGroupList();	
+                        break;
+                    }	
+                }
             }
             
             // initialize data processing class for simsearch query
@@ -2793,7 +2788,7 @@ var images = require('./images.json');
             var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
             // shrink the height when we don't show the group selection
             if (this.state.initialTargetGroupLoadList.length === 1) {
-                pg_ctrl_options.css('height', 280);
+                pg_ctrl_options.css('height', 310);
             }
             // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
             pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
