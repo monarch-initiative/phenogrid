@@ -162,8 +162,7 @@ padding:2px 5px;
 }
 
 .pg_container  .pg_unmatched_list_item  a{
-padding:5px;
-width:155px;
+padding:5px 10px;
 float:left;
 font-size:11px;
 }

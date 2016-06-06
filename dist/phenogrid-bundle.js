@@ -4867,7 +4867,7 @@ var images = require('./images.json');
             var label;
             // Show id if label is not found
             if (typeof(data.label) !== 'undefined') {
-                label = Utils.getShortLabel(data.label, self.state.targetLabelCharLimit);
+                label = data.label;
             } else {
                 label = data.id;
             }
