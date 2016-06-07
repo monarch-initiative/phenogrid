@@ -24,6 +24,6 @@ Feature: Specific features work when running Phenogrid as a standalone widget
         Given I go to page "/index.html"
             And I click the "phenogrid_container1_slide_btn"
             And I check the radio button labelled as "Frequency and Rarity"
-            Then the id "phenogrid_container1_grid_row_2" should contain "Coronal craniosynostosis"
+            Then the id "phenogrid_container1_grid_row_0" should contain "Coronal craniosynostosis"
        
 
