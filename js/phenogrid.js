@@ -76,8 +76,8 @@ var images = require('./images.json');
                 misconfig: 'Please fix your config to have at least one target group.',
                 gridSkeletonDataError: 'No phenotypes to compare.',
                 noAssociatedGenotype: 'This gene has no associated genotypes.',
-                noSimSearchMatchForExpandedGenotype: 'No matches found between the provided phenotypes and expanded genotypes.',
-                noSimSearchMatch: 'No simsearch matches found for {%groupName%} based on the provided phenotypes.' // {%groupName%} is placeholder
+                noSimSearchMatchForExpandedGenotype: 'No similarity matches found between the provided phenotypes and expanded genotypes.',
+                noSimSearchMatch: 'No similarity matches found for {%groupName%} based on the provided phenotypes.' // {%groupName%} is placeholder
             },
             // For Vendor data integration
             gridSkeletonDataVendor: '', // Use 'IMPC' in constructor
@@ -406,8 +406,8 @@ var images = require('./images.json');
 
         // Loading spinner image from font awesome - Joe
         _showLoadingSpinner: function() {
-            var element = $('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
-            element.appendTo(this.state.pgContainer);
+            var spinner = $('<div>Loading Phenogrid Widget...<i class="fa fa-spinner fa-pulse"></i></div>');
+            spinner.appendTo(this.state.pgContainer);
         },
         
         // callback to handle the loaded owlsim data
@@ -707,7 +707,9 @@ var images = require('./images.json');
                 // replace the placeholder with group name
                 output +=  this.state.messaging.noSimSearchMatch.replace(/{%groupName%}/, this.state.dataLoader.groupsNoMatch[i]) + '<br>';
             }
-            this.state.pgContainer.append(output);
+            // Insert the error messages before the container div, so it won't mess up the alignment of 
+            // unmatched and options that are aligned relatively to the container
+            $('<div class="pg_message">' + output + '</div>').insertBefore(this.state.pgContainer);
         },
         
         // Positioned next to the grid region bottom
@@ -2943,7 +2945,7 @@ var images = require('./images.json');
             var label;
             // Show id if label is not found
             if (typeof(data.label) !== 'undefined') {
-                label = Utils.getShortLabel(data.label, self.state.targetLabelCharLimit);
+                label = data.label;
             } else {
                 label = data.id;
             }
