@@ -396,4 +396,5 @@ This will also show you all the JSHint messages for debugging or improving the c
 
 ## License
 
-Phenogrid is released under [GPL-2.0 license](https://opensource.org/licenses/GPL-2.0).
+Phenogrid is released under the [GPL-2.0 license](https://opensource.org/licenses/GPL-2.0).
+
