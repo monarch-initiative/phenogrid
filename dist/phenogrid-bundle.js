@@ -2085,6 +2085,11 @@ var images = require('./images.json');
                 width: 240,
                 height: 5
             },
+            optionsControls: {
+                left: 30,
+                top: 35,
+                defaultButtonWidth: 75 // the width of the 'Options' button
+            },
             phenotypeSort: [
                 "Alphabetic", 
                 "Frequency and Rarity", 
@@ -2625,10 +2630,24 @@ var images = require('./images.json');
         // if no owlsim data returned for that group
         _showGroupsNoMatch: function() {
             var output = '';
+            var groups = '';
             for (var i = 0; i < this.state.dataLoader.groupsNoMatch.length; i++) {
                 // replace the placeholder with group name
-                output +=  this.state.messaging.noSimSearchMatch.replace(/{%groupName%}/, this.state.dataLoader.groupsNoMatch[i]) + '<br>';
+                groups +=  this.state.dataLoader.groupsNoMatch[i] + ', ';
             }
+            //remove the last comma
+            groups = groups.substring(0, groups.length - 2);
+            //if there is a list of two or more items, change the ', '
+            var conjunctionJunction = ' or ';
+            if (this.state.dataLoader.groupsNoMatch.length > 2) {
+               conjunctionJunction = ',' + conjunctionJunction;
+            }
+            // change the last ', ' to ', or '
+            if (this.state.dataLoader.groupsNoMatch.length > 1) {
+               var n = groups.lastIndexOf(', ');
+               groups = groups.slice(0, n) + groups.slice(n).replace(', ', conjunctionJunction);
+            }
+            output =  this.state.messaging.noSimSearchMatch.replace(/{%groupName%}/, groups) + '<br>';
             // Insert the error messages before the container div, so it won't mess up the alignment of 
             // unmatched and options that are aligned relatively to the container
             $('<div class="pg_message">' + output + '</div>').insertBefore(this.state.pgContainer);
@@ -3247,9 +3266,9 @@ var images = require('./images.json');
             var svgWidth;
             
             if (this._isCrossComparisonView()) {
-                svgWidth = this.state.gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*this.state.gridRegion.cellPad + this.state.gridRegion.rowLabelOffset + $('#' + this.state.pgInstanceId + '_slide_btn').width() + this.state.btnPadding;
+                svgWidth = this.state.gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*this.state.gridRegion.cellPad + this.state.gridRegion.rowLabelOffset +  this.state.btnPadding;
             } else {
-                svgWidth = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + this.state.gridRegion.rowLabelOffset + $('#' + this.state.pgInstanceId + '_slide_btn').width() + this.state.btnPadding;
+                svgWidth = this.state.gridRegion.x + this.state.singleTargetModeTargetLengthLimit*this.state.gridRegion.cellPad + this.state.gridRegion.rowLabelOffset  + this.state.btnPadding;
             }
             
             d3.select('#' + this.state.pgInstanceId + '_svg')
@@ -3738,11 +3757,13 @@ var images = require('./images.json');
                 // Add the top main title to pg_svg_group
                 this.state.svg.append("svg:text")
                     .attr("id", this.state.pgInstanceId + "_toptitle")
+                    //after moving the Options control to the left, the title needs to be moved left as well to center it
+                    //subtracting 75 appears to help -Chuck
                     .attr("x", function() {
                         if (self._isCrossComparisonView()) {
-                            return self.state.gridRegion.x + self.state.multiTargetsModeTargetLengthLimit*self.state.selectedCompareTargetGroup.length*self.state.gridRegion.cellPad/2
+                            return (self.state.gridRegion.x + self.state.multiTargetsModeTargetLengthLimit*self.state.selectedCompareTargetGroup.length*self.state.gridRegion.cellPad/2) -self.state.optionsControls.defaultButtonWidth;
                         } else {
-                            return self.state.gridRegion.x + self.state.singleTargetModeTargetLengthLimit*self.state.gridRegion.cellPad/2;
+                            return (self.state.gridRegion.x + self.state.singleTargetModeTargetLengthLimit*self.state.gridRegion.cellPad/2) -self.state.optionsControls.defaultButtonWidth;
                         }
                     }) // Calculated based on the singleTargetModeTargetLengthLimit - Joe
                     .attr("y", 25) // Fixed y position - Joe
@@ -4706,7 +4727,8 @@ var images = require('./images.json');
             // we won't have the _gridHeight() by that time - Joe
             var gridRegion = this.state.gridRegion; 
             var marginTop = 17; // Create some whitespace between the button and the y labels 
-            $('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+            //$('#' + this.state.pgInstanceId + '_slide_btn').css('top', gridRegion.y + this._gridHeight() + marginTop);
+            $('#' + this.state.pgInstanceId + '_slide_btn').css('top', this.state.optionsControls.top);
             
             // The height of .pg_controls_options defined in phenogrid.css - Joe
             var pg_ctrl_options = $('#' + this.state.pgInstanceId + '_controls_options');
@@ -4715,9 +4737,11 @@ var images = require('./images.json');
                 pg_ctrl_options.css('height', 310);
             }
             // options div has an down arrow, -10 to create some space between the down arrow and the button - Joe
-            pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
-            
-            // Place the options button to the right of the default limit of columns
+            //pg_ctrl_options.css('top', gridRegion.y + this._gridHeight() - pg_ctrl_options.outerHeight() - 10 + marginTop);
+            pg_ctrl_options.css('top', this.state.optionsControls.top + 30);
+            pg_ctrl_options.css('left', this.state.optionsControls.left); 
+            $('#' + this.state.pgInstanceId + '_slide_btn').css('left', this.state.optionsControls.left);
+/*            // Place the options button to the right of the default limit of columns
             if (this._isCrossComparisonView()) {
                 pg_ctrl_options.css('left', gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*gridRegion.cellPad + gridRegion.rowLabelOffset); 
                 $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.multiTargetsModeTargetLengthLimit*this.state.selectedCompareTargetGroup.length*gridRegion.cellPad + gridRegion.rowLabelOffset);
@@ -4725,6 +4749,7 @@ var images = require('./images.json');
                 pg_ctrl_options.css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset); 
                 $('#' + this.state.pgInstanceId + '_slide_btn').css('left', gridRegion.x + this.state.singleTargetModeTargetLengthLimit*gridRegion.cellPad + gridRegion.rowLabelOffset);
             }
+            */
         },	
         
         _createTargetGroupSelection: function() {
