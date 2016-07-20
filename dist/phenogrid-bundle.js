@@ -2733,7 +2733,11 @@ var images = require('./images.json');
                             return self.state.pgInstanceId + "_groupName_" + (i + 1);
                         }) 
                         .text(function(d, i){
-                            return targetGroupList[i];
+                            var expandItem = "+";
+							if (self.state.taxonExpanded) {
+							  expandItem = "-";
+							}
+                            return targetGroupList[i] + " (" + expandItem + ")";
                         })
                         .style("font-size", '11px')    
                         .attr("text-anchor", function(d, i) {
@@ -2742,7 +2746,30 @@ var images = require('./images.json');
                             } else {
                                 return 'start';
                             }
-                        });
+                        })
+                        .on('click', function(d, i) {
+                            //var event = new Event('change');
+                    		//$('.pg_select_item[text="Homo sapiens"]').property("checked", false);
+                    		var elem = $('#' + self.state.pgInstanceId + '_targetGroup');
+                    		var items = elem.children(); 
+							if (!self.state.taxonExpanded) {
+							  self.state.taxonExpanded = true;
+							  for (var idx = 0; idx < items.length; idx++) {
+								if (items[idx].childNodes[0].value === targetGroupList[i]) {
+								    items[idx].childNodes[0].checked = true;
+								} else {
+								    items[idx].childNodes[0].checked = false;
+								}
+							  }
+							} else {
+							  self.state.taxonExpanded = false;
+							  for (var idx = 0; idx < items.length; idx++) {
+								items[idx].childNodes[0].checked = true;								
+							  }
+							}
+							$('#' + self.state.pgInstanceId + '_targetGroup').trigger("change");
+
+                		});
                 }
             } 
         },
