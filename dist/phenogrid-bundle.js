@@ -2733,8 +2733,9 @@ var images = require('./images.json');
                             return self.state.pgInstanceId + "_groupName_" + (i + 1);
                         }) 
                         .text(function(d, i){
+                            //toggle the expand +/- sign based on whether or not the taxon is expanded
                             var expandItem = "+";
-							if (self.state.taxonExpanded) {
+							if (self.state.taxonExpanded || self.state.selectedCompareTargetGroup.length === 1) {
 							  expandItem = "-";
 							}
                             return targetGroupList[i] + " (" + expandItem + ")";
@@ -2748,13 +2749,17 @@ var images = require('./images.json');
                             }
                         })
                         .on('click', function(d, i) {
-                            //var event = new Event('change');
-                    		//$('.pg_select_item[text="Homo sapiens"]').property("checked", false);
+                            //the onclick event "expands" the selected taxon (identified as targetGroupList[i])
+                            //if no taxon is expanded (check self.state.taxonExpanded) then expand the current taxon
+                            //and hide the other taxa
+                            //otherwise, show all the available taxa
                     		var elem = $('#' + self.state.pgInstanceId + '_targetGroup');
-                    		var items = elem.children(); 
+                    		var items = elem.children();
+                    		//if no other taxon is expanded... 
 							if (!self.state.taxonExpanded) {
 							  self.state.taxonExpanded = true;
 							  for (var idx = 0; idx < items.length; idx++) {
+							    //only check the current taxon
 								if (items[idx].childNodes[0].value === targetGroupList[i]) {
 								    items[idx].childNodes[0].checked = true;
 								} else {
@@ -2762,11 +2767,17 @@ var images = require('./images.json');
 								}
 							  }
 							} else {
+							  //reset the screen to display all the taxa
 							  self.state.taxonExpanded = false;
 							  for (var idx = 0; idx < items.length; idx++) {
-								items[idx].childNodes[0].checked = true;								
+							    //check to make sure the checkbox is enabled before checking it
+							    if (!items[idx].childNodes[0].disabled) {
+								   items[idx].childNodes[0].checked = true;
+								}								
 							  }
 							}
+							//the above "click" event basically mimics a user selecting one organism
+							//after the checkboxes are resets, trigger the change event on the checkbox group
 							$('#' + self.state.pgInstanceId + '_targetGroup').trigger("change");
 
                 		});
