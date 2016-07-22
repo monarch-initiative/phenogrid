@@ -634,12 +634,16 @@ DataLoader.prototype = {
 				var item = data.b[idx];
 				var targetID = Utils.getConceptId(item.id);
 
+                var species = item.taxon.label;
+                if (!species || species === "Not Specified") {
+                   species = targetGroup;
+                }
 				// build the target list
 				var targetVal = {
                     "id":targetID, 
                     "label": item.label, 
-                    //"targetGroup": item.taxon.label, 
-                    "targetGroup": targetGroup, // sometimes item.taxon.label is missing from result, use targetGroup instead - Joe
+                    "targetGroup": species , 
+                    //"targetGroup": targetGroup, // sometimes item.taxon.label is missing from result, use targetGroup instead - Joe
                     "type": item.type, 
                     "rank": parseInt(idx)+1,  // start with 1 not zero
                     "score": item.score.score
