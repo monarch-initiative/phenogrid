@@ -508,10 +508,21 @@ var images = require('./images.json');
                 // show as many columns as possible within the multiTargetsModeTargetLengthLimit
                 // only show multiTargetsModeTargetLengthLimit columns if there are more columns
                 var targetLengthPerGroup = []; 
+				//this variable captures to total number of targets returned per group (groupTargetLength is limited
+				//to be less than or equal to the multiTargetsModeTargetLengthLimit
+				var targetReturnedLength = [];
                 for (var i = 0; i < this.state.selectedCompareTargetGroup.length; i++) {
                     // This targetDataPerGroup is an Object, not an array
                     var targetDataPerGroup = this.state.dataManager.getData('target', this.state.selectedCompareTargetGroup[i].groupName);
                     var groupTargetLength = {};
+                    var singleTargetReturnedLength = {};
+                    singleTargetReturnedLength = {
+                            groupName: this.state.selectedCompareTargetGroup[i].groupName,
+                            targetLength: Object.keys(targetDataPerGroup).length
+                    
+                    };
+                    targetReturnedLength.push(singleTargetReturnedLength);
+                    
                     if (Object.keys(targetDataPerGroup).length <= this.state.multiTargetsModeTargetLengthLimit) {
                         groupTargetLength = {
                             groupName: this.state.selectedCompareTargetGroup[i].groupName,
@@ -529,7 +540,9 @@ var images = require('./images.json');
                 // Also make it available in the global scope
                 // to be used when creating divider lines
                 this.state.targetLengthPerGroup = targetLengthPerGroup;
-                
+
+                this.state.targetTotalReturnedPerGroup = targetReturnedLength;
+
                 targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.multiTargetsModeTargetLengthLimit);	
 
                 // get the length of the targetlist, this sets that limit since we are in comparison mode
@@ -811,12 +824,18 @@ var images = require('./images.json');
                             return self.state.pgInstanceId + "_groupName_" + (i + 1);
                         }) 
                         .text(function(d, i){
-                            //toggle the expand +/- sign based on whether or not the taxon is expanded
-                            var expandItem = "+";
-							if (self.state.taxonExpanded || self.state.selectedCompareTargetGroup.length === 1) {
-							  expandItem = "-";
-							}
-                            return targetGroupList[i] + " (" + expandItem + ")";
+                            var totalTargetCount = 0;
+                            //display the total number of targets found per group
+                            for (var x = 0;x < self.state.targetTotalReturnedPerGroup.length; x++) {
+                               if (self.state.targetTotalReturnedPerGroup[x].groupName === d) { 
+                                  totalTargetCount = self.state.targetTotalReturnedPerGroup[x].targetLength;
+                                  if (totalTargetCount >= self.state.searchResultLimit) {
+                                    totalTargetCount = ">" + totalTargetCount;
+                                  }
+                                  continue;
+                               }
+                            }
+							return targetGroupList[i] + " (" + totalTargetCount + ")";
                         })
                         .style("font-size", '11px')    
                         .attr("text-anchor", function(d, i) {
@@ -858,7 +877,17 @@ var images = require('./images.json');
 							//after the checkboxes are resets, trigger the change event on the checkbox group
 							$('#' + self.state.pgInstanceId + '_targetGroup').trigger("change");
 
-                		});
+                		})
+						.on("mouseover", function(d) { 				
+							// self is the global widget this
+							// this passed to _mouseover refers to the current element
+							// _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
+							// _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
+							self._mouseover(this, d, self);})
+						.on("mouseout", function(d) {
+							// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
+							self._mouseout();
+						});
                 }
             } 
         },
@@ -1490,6 +1519,10 @@ var images = require('./images.json');
             
             if (d.type === 'cell') {  
                 data = this.state.dataManager.getCellDetail(d.source_id, d.target_id, d.targetGroup);			  
+            } else if (elem.classList.contains("pg_targetGroup_name")) {
+               data = new Array();
+               data["type"] = "targetgroup";
+               data["name"] = d;
             } else {
                 data = d;   
             }
@@ -1509,8 +1542,10 @@ var images = require('./images.json');
         // show effects(matching highlighting and crosshairs) on mouseover lebel/cell and tooltip
         // this is reused by x/y label mouseover as well as tooltip mouseover - Joe
         _showEffectsOnMouseover: function(elem, d) {
-            // d.xpos and d.ypos only appear for cell - Joe
-            if (d.type === 'cell') {  
+            if (elem.classList.contains("pg_targetGroup_name")) {
+              d3.select("#" + elem.id).classed("pg_active", true);
+            } else if (d.type === 'cell') {  
+                // d.xpos and d.ypos only appear for cell - Joe
                 // hightlight row/col labels
                 d3.select("#" + this.state.pgInstanceId + "_grid_row_" + d.ypos +" text")
                       .classed("pg_active", true);
@@ -1554,6 +1589,7 @@ var images = require('./images.json');
         _removeMatchingHighlight: function() {
             // remove highlighting for row/col
             d3.selectAll(".row text").classed("pg_active", false);
+            d3.selectAll(".pg_targetGroup_name").classed("pg_active", false);
             d3.selectAll(".column text").classed("pg_active", false);
             d3.selectAll(".row text").classed("pg_related_active", false);
             d3.selectAll(".column text").classed("pg_related_active", false);		
@@ -1819,6 +1855,9 @@ var images = require('./images.json');
                 // and we also want to show the crosshair highlighting - Joe
                 leftPos += elem.getBoundingClientRect().width; // Don't use elem[0] since elem is native DOM element - Joe
                 topPos += elem.getBoundingClientRect().height/2;
+            //adjust the tooltip for group headers
+            } else if (elem.classList.contains('pg_targetGroup_name')) {
+                topPos += elem.getBoundingClientRect().height;
             } else { 
                 // shift overlap for y label mouseover - Joe
                 leftPos += 10;
@@ -1854,7 +1893,7 @@ var images = require('./images.json');
             this._on(tooltip, {
                 "mouseleave": function() {
                     // hide tooltip
-                    this._hideTooltip(tooltip);
+                    //this._hideTooltip(tooltip);
                     // remove matching highlighting and crosshairs
                     this._mouseout();
                 }
@@ -1984,6 +2023,20 @@ var images = require('./images.json');
             return htmlContent;
         },
         
+        _targetTooltip: function(id, data) {
+            var htmlContent = '';
+            
+            var msg = "Show only <strong>" + data.name + "</strong> results";
+            if (this.state.taxonExpanded || this.state.selectedCompareTargetGroup.length === 1) {
+              msg = "Show results for <strong>all</strong> species";
+            }
+
+            htmlContent = msg;
+                          
+            // Finally return the rendered HTML result
+            return htmlContent;
+        },
+        
         _cellTooltip: function(id, data) {
             var htmlContent = '';
             
@@ -2098,8 +2151,10 @@ var images = require('./images.json');
                 htmlContent = this._cellTooltip(id, data);	
             } else if (this.state.gridSkeletonDataVendor === 'IMPC') {
                 htmlContent = this._vendorTooltip(id, data);	
+            } else if (data.type === 'targetgroup') {
+                htmlContent = this._targetTooltip(id, data);	
             } else {
-                htmlContent = this._defaultTooltip(id, data);	
+               htmlContent = this._defaultTooltip(id, data);	
             }
             
             // Finally return the rendered HTML result
