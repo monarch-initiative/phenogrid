@@ -6,7 +6,11 @@
 ##############################################################################
 
 from behave import *
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+    
 import time
 import datetime
 from selenium import webdriver
