@@ -890,7 +890,7 @@ var images = require('./images.json');
 							// this passed to _mouseover refers to the current element
 							// _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
 							// _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-						    if (self.state.selectedCompareTargetGroup.length !== 1) {
+						    if (self.state.owlSimFunction === 'search' && self.state.targetSpecies === 'all') {
 						        self._mouseover(this, d, self);
 						    }
 						})
