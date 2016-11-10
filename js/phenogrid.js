@@ -567,7 +567,14 @@ var images = require('./images.json');
                     targetList = this.state.dataManager.getData("target", singleTargetGroupName);
                 }
                 
-                this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);	
+                this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);
+                
+                // Determines the count shown in the column header
+                // ie mouse (>100)
+                this.state.targetTotalReturnedPerGroup = [{
+                    groupName: singleTargetGroupName,
+                    targetLength: Object.keys(targetList).length
+                }];
 
                 // In single target mode, use singleTargetModeTargetLengthLimit if more than that
                 if (this.state.targetDisplayLimit > this.state.singleTargetModeTargetLengthLimit) {
