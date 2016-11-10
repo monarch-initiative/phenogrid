@@ -890,7 +890,10 @@ var images = require('./images.json');
 							// this passed to _mouseover refers to the current element
 							// _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
 							// _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-							self._mouseover(this, d, self);})
+						    if (self.state.selectedCompareTargetGroup.length !== 1) {
+						        self._mouseover(this, d, self);
+						    }
+						})
 						.on("mouseout", function(d) {
 							// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
 							self._mouseout();
