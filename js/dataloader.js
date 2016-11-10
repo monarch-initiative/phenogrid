@@ -762,7 +762,7 @@ DataLoader.prototype = {
 
 		// http://monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
 
-		var url = this.serverURL + parent.state.ontologyQuery + id.replace('_', ':') + "/" + depth + "/" + direction + "/" + relationship + ".json";
+		var url = this.serverURL + parent.state.ontologyQuery + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
 
 		var cb = this.postOntologyCb;
 
@@ -782,7 +782,7 @@ DataLoader.prototype = {
     getNewTargetGroupItems: function(id, finalCallback, parent) {
         var self = this;
         // http://monarchinitiative.org/gene/MGI:98297/genotype_list.json
-        var url = this.serverURL + "/gene/" + id.replace('_', ':') + "/genotype_list.json";
+        var url = this.serverURL + "/gene/" + id + "/genotype_list.json";
         var cb = this.getNewTargetGroupItemsCb;
         // ajax get all the genotypes of this gene id
         this.getFetch(self, url, id, cb, finalCallback, parent);
@@ -866,7 +866,7 @@ DataLoader.prototype = {
         // there's no results.b is no matches found in the simsearch - Joe
         if (typeof(results.b) !== 'undefined') {
             for (var i = 0; i < results.b.length; i++) {
-                genotype_id_list.push(results.b[i].id.replace(':', '_'));
+                genotype_id_list.push(results.b[i].id);
             }
 
             // for reactivation

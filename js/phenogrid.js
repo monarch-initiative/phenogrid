@@ -567,7 +567,14 @@ var images = require('./images.json');
                     targetList = this.state.dataManager.getData("target", singleTargetGroupName);
                 }
                 
-                this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);	
+                this.state.targetDisplayLimit = this.state.dataManager.length("target", singleTargetGroupName);
+                
+                // Determines the count shown in the column header
+                // ie mouse (>100)
+                this.state.targetTotalReturnedPerGroup = [{
+                    groupName: singleTargetGroupName,
+                    targetLength: Object.keys(targetList).length
+                }];
 
                 // In single target mode, use singleTargetModeTargetLengthLimit if more than that
                 if (this.state.targetDisplayLimit > this.state.singleTargetModeTargetLengthLimit) {
@@ -883,7 +890,10 @@ var images = require('./images.json');
 							// this passed to _mouseover refers to the current element
 							// _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
 							// _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
-							self._mouseover(this, d, self);})
+						    if (self.state.owlSimFunction === 'search' && self.state.targetSpecies === 'all') {
+						        self._mouseover(this, d, self);
+						    }
+						})
 						.on("mouseout", function(d) {
 							// _mouseout() removes the matching highlighting as well as the crosshairs - Joe
 							self._mouseout();
@@ -1735,7 +1745,6 @@ var images = require('./images.json');
 
         // Returns axis data from a ID of models or phenotypes
         _getAxisData: function(key) {
-            key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
             if (this.state.yAxisRender.contains(key)) {
                 return this.state.yAxisRender.get(key);
             } else if (this.state.xAxisRender.contains(key)) {
@@ -2005,7 +2014,7 @@ var images = require('./images.json');
                 //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
                 this.state.ontologyTreesDone = 0;
                 this.state.ontologyTreeHeight = 0;
-                var tree = '<div id="' + this.state.pgInstanceId + '_hpoDiv">' + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + '</div>';
+                var tree = '<div id="' + this.state.pgInstanceId + '_hpoDiv">' + this._buildOntologyTree(id, cached.edges, 0) + '</div>';
                 if (tree === "<br>"){
                     ontologyData += "<em>No Classification hierarchy Found</em>";
                 } else {
@@ -3028,7 +3037,7 @@ var images = require('./images.json');
 
             // Normalize. E.g., HP_0000252 -> HP:0000252
             for (var j in matchedList){
-                normalizedMatchedList.push(matchedList[j].replace("_", ":"));
+                normalizedMatchedList.push(matchedList[j]);
             }
 
             // Now origSourceList should contain all elements that are in normalizedMatchedList
@@ -3164,7 +3173,7 @@ var images = require('./images.json');
             ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br>";
             ontologyData += "<strong>Frequency:</strong> " + info.count + "<br><br>";
 
-            var classTree = parent._buildOntologyTree(id.replace("_", ":"), d.edges, 0);
+            var classTree = parent._buildOntologyTree(id, d.edges, 0);
 
             if (classTree === "<br>"){
                 ontologyData += "<em>No classification hierarchy data found</em>";
