@@ -1742,7 +1742,6 @@ var images = require('./images.json');
 
         // Returns axis data from a ID of models or phenotypes
         _getAxisData: function(key) {
-            key = key.replace(":", "_");  // keys are stored with _ not : in AxisGroups
             if (this.state.yAxisRender.contains(key)) {
                 return this.state.yAxisRender.get(key);
             } else if (this.state.xAxisRender.contains(key)) {
@@ -2012,7 +2011,7 @@ var images = require('./images.json');
                 //HACKISH, BUT WORKS FOR NOW.  LIMITERS THAT ALLOW FOR TREE CONSTRUCTION BUT DONT NEED TO BE PASSED BETWEEN RECURSIONS
                 this.state.ontologyTreesDone = 0;
                 this.state.ontologyTreeHeight = 0;
-                var tree = '<div id="' + this.state.pgInstanceId + '_hpoDiv">' + this._buildOntologyTree(id.replace("_", ":"), cached.edges, 0) + '</div>';
+                var tree = '<div id="' + this.state.pgInstanceId + '_hpoDiv">' + this._buildOntologyTree(id, cached.edges, 0) + '</div>';
                 if (tree === "<br>"){
                     ontologyData += "<em>No Classification hierarchy Found</em>";
                 } else {
@@ -3035,7 +3034,7 @@ var images = require('./images.json');
 
             // Normalize. E.g., HP_0000252 -> HP:0000252
             for (var j in matchedList){
-                normalizedMatchedList.push(matchedList[j].replace("_", ":"));
+                normalizedMatchedList.push(matchedList[j]);
             }
 
             // Now origSourceList should contain all elements that are in normalizedMatchedList
@@ -3171,7 +3170,7 @@ var images = require('./images.json');
             ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br>";
             ontologyData += "<strong>Frequency:</strong> " + info.count + "<br><br>";
 
-            var classTree = parent._buildOntologyTree(id.replace("_", ":"), d.edges, 0);
+            var classTree = parent._buildOntologyTree(id, d.edges, 0);
 
             if (classTree === "<br>"){
                 ontologyData += "<em>No classification hierarchy data found</em>";

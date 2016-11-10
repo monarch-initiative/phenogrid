@@ -9,7 +9,6 @@ var Utils = {
 			var retString = uri;
 			try {
 				retString = retString.replace(" ", "_");
-				retString = retString.replace(":", "_");
 				return retString;
 			} catch (exception) {}
 	},
