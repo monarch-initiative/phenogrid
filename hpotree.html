@@ -1,0 +1,283 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Monarch Phenotype Grid Widget</title>
+
+<script src="config/phenogrid_config.js"></script>
+<script src="dist/phenogrid-bundle.js"></script>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" type="text/css" href="dist/phenogrid-bundle.css">
+
+<style>
+
+#phenogrid_container,
+.patientTree,
+.mappingTree, 
+.matchingTree{
+font: 10px sans-serif;
+border:1px solid #ccc;
+margin:10px 20px;
+padding:10px 20px;
+}
+
+.node-group {
+cursor: pointer;
+}
+
+.node-circle,
+.node-hybrid,
+.node-rect {
+stroke: steelblue;
+stroke-width: 1.5px;
+}
+
+.node-label {
+font: 10px sans-serif;
+fill: #666;
+}
+
+.link {
+fill: none;
+stroke: #ddd;
+stroke-width: 1.5px;
+}
+
+.link-highlight{
+stroke: rgb(255, 65, 54);
+}
+</style>
+
+
+<script>
+// Shared yAxis data
+var yAxis = [
+    {
+        "id": "HP:0000006",
+        "term": "Autosomal dominant inheritance"
+    },
+    {
+        "id": "HP:0000174",
+        "term": "Abnormality of the palate"
+    },
+    {
+        "id": "HP:0000194",
+        "term": "Open mouth"
+    },
+    {
+        "id": "HP:0000218",
+        "term": "High palate"
+    },
+    {
+        "id": "HP:0000238",
+        "term": "Hydrocephalus"
+    },
+    {
+        "id": "HP:0000244",
+        "term": "Brachyturricephaly"
+    },
+    {
+        "id": "HP:0000272",
+        "term": "Malar flattening"
+    },
+    {
+        "id": "HP:0000303",
+        "term": "Mandibular prognathia"
+    },
+    {
+        "id": "HP:0000316",
+        "term": "Hypertelorism"
+    },
+    {
+        "id": "HP:0000322",
+        "term": "Short philtrum"
+    },
+    {
+        "id": "HP:0000324",
+        "term": "Facial asymmetry"
+    },
+    {
+        "id": "HP:0000327",
+        "term": "Hypoplasia of the maxilla"
+    },
+    {
+        "id": "HP:0000348",
+        "term": "High forehead"
+    },
+    {
+        "id": "HP:0000431",
+        "term": "Wide nasal bridge"
+    },
+    {
+        "id": "HP:0000452",
+        "term": "Choanal stenosis"
+    },
+    {
+        "id": "HP:0000453",
+        "term": "Choanal atresia"
+    },
+    {
+        "id": "HP:0000470",
+        "term": "Short neck"
+    },
+    {
+        "id": "HP:0000486",
+        "term": "Strabismus"
+    },
+    {
+        "id": "HP:0000494",
+        "term": "Downslanted palpebral fissures"
+    },
+    {
+        "id": "HP:0000508",
+        "term": "Ptosis"
+    },
+    {
+        "id": "HP:0000586",
+        "term": "Shallow orbits"
+    },
+    {
+        "id": "HP:0000678",
+        "term": "Dental crowding"
+    },
+    {
+        "id": "HP:0001156",
+        "term": "Brachydactyly syndrome"
+    },
+    {
+        "id": "HP:0001249",
+        "term": "Intellectual disability"
+    },
+    {
+        "id": "HP:0002308",
+        "term": "Arnold-Chiari malformation"
+    },
+    {
+        "id": "HP:0002676",
+        "term": "Cloverleaf skull"
+    },
+    {
+        "id": "HP:0002780",
+        "term": "Bronchomalacia"
+    },
+    {
+        "id": "HP:0003041",
+        "term": "Humeroradial synostosis"
+    },
+    {
+        "id": "HP:0003070",
+        "term": "Elbow ankylosis"
+    },
+    {
+        "id": "HP:0003196",
+        "term": "Short nose"
+    },
+    {
+        "id": "HP:0003272",
+        "term": "Abnormality of the hip bone"
+    },
+    {
+        "id": "HP:0003307",
+        "term": "Hyperlordosis"
+    },
+    {
+        "id": "HP:0003795",
+        "term": "Short middle phalanx of toe"
+    },
+    {
+        "id": "HP:0004209",
+        "term": "Clinodactyly of the 5th finger"
+    },
+    {
+        "id": "HP:0004322",
+        "term": "Short stature"
+    },
+    {
+        "id": "HP:0004440",
+        "term": "Coronal craniosynostosis"
+    },
+    {
+        "id": "HP:0005048",
+        "term": "Synostosis of carpal bones"
+    },
+    {
+        "id": "HP:0005280",
+        "term": "Depressed nasal bridge"
+    },
+    {
+        "id": "HP:0005347",
+        "term": "Cartilaginous trachea"
+    },
+    {
+        "id": "HP:0006101",
+        "term": "Finger syndactyly"
+    },
+    {
+        "id": "HP:0006110",
+        "term": "Shortening of all middle phalanges of the fingers"
+    },
+    {
+        "id": "HP:0009602",
+        "term": "Abnormality of thumb phalanx"
+    },
+    {
+        "id": "HP:0009773",
+        "term": "Symphalangism affecting the phalanges of the hand"
+    },
+    {
+        "id": "HP:0010055",
+        "term": "Broad hallux"
+    },
+    {
+        "id": "HP:0010669",
+        "term": "Hypoplasia of the zygomatic bone"
+    },
+    {
+        "id": "HP:0011304",
+        "term": "Broad thumb"
+    }
+];
+    
+// Use the same server URL
+var serverURL = "https://beta.monarchinitiative.org";
+
+window.onload = function() {
+    // Example, there are three groups that are loaded and each of them has simsearch matches.
+    var data = {
+        "title": "Human, Mouse and Fish models compared to Pfeiffer Syndrome (OMIM:101600)",
+        "xAxis": [
+            {
+                "groupId": "9606",
+                "groupName": "Homo sapiens"
+            },
+            {
+                "groupId": "10090",
+                "groupName": "Mus musculus"
+            },
+            {
+                "groupId": "7955",
+                "groupName": "Danio rerio"
+            }
+        ],
+        "yAxis": yAxis
+    };
+    
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
+        serverURL: serverURL,
+        gridSkeletonData: data
+    });
+
+}
+</script>
+
+</head>
+
+<body>
+
+<h2>Phenogrid with HPO Tree</h2>
+<div id="phenogrid_container" class="clearfix"></div>
+
+</body>
+</html>

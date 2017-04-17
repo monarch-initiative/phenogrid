@@ -38,6 +38,8 @@ var htmlnotes = require('./htmlnotes.json');
 // images in data uri format, only monarch logo so far
 var images = require('./images.json');
 
+// HPO tree data
+var treeData = require('../hp/hp_treemap.json');
 
 (function(factory) {
 	// If there is a variable named module and it has an exports property,
@@ -679,6 +681,10 @@ var images = require('./images.json');
             this._scalableCutoffGroupLabel();
             
             this._setSvgSize();
+
+            // HPO tree
+			this._createHPTreeContainer();
+			this._renderHPTree();
         },
         
         // Recreates the SVG content and leave the HTML sections unchanged
@@ -1112,8 +1118,8 @@ var images = require('./images.json');
                 .attr("class", "pg_draggable")
                 .style("fill", this.state.minimap.shadedAreaBgColor)
                 .style("opacity", this.state.minimap.shadedAreaOpacity)
-                .call(d3.behavior.drag() // Constructs a new drag behavior
-                    .on("dragstart", self._dragstarted) // self._dragstarted() won't work - Joe
+                .call(d3.drag() // Constructs a new drag behavior
+                    .on("start", self._dragstarted) // self._dragstarted() won't work - Joe
                     .on("drag", function() {
                         // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
                         self._crossHairsOff();
@@ -1186,7 +1192,7 @@ var images = require('./images.json');
                         // grid region needs to be updated accordingly
                         self._updateGrid(newXPos, newYPos);
                     })
-                    .on("dragend", self._dragended) // self._dragended() won't work - Joe
+                    .on("end", self._dragended) // self._dragended() won't work - Joe
             );
         },
 
@@ -1258,7 +1264,7 @@ var images = require('./images.json');
                     .attr("width", sliderWidth)
                     .style("fill", sliderColor)
                     .attr("class", "pg_draggable")
-                    .call(d3.behavior.drag()
+                    .call(d3.drag()
                         .on("dragstart", self._dragstarted)
                         .on("drag", function() {
                             // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
@@ -1298,7 +1304,7 @@ var images = require('./images.json');
                             // Horizontal grid region needs to be updated accordingly
                             self._updateHorizontalGrid(newXPos);
                         })
-                        .on("dragend", self._dragended)
+                        .on("end", self._dragended)
                     );
             }
             
@@ -1326,8 +1332,8 @@ var images = require('./images.json');
                     .attr("width", sliderThickness)
                     .style("fill", sliderColor)
                     .attr("class", "pg_draggable")
-                    .call(d3.behavior.drag()
-                        .on("dragstart", self._dragstarted)
+                    .call(d3.drag()
+                        .on("start", self._dragstarted)
                         .on("drag", function() {
                             // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
                             // Adding this in _dragstarted() won't work since the crosshair lines are being created during dragging
@@ -1368,7 +1374,7 @@ var images = require('./images.json');
                             // Vertical grid region needs to be updated accordingly
                             self._updateVerticalGrid(newYPos);
                         })
-                        .on("dragend", self._dragended)
+                        .on("end", self._dragended)
                     );
             }
         },
@@ -1403,17 +1409,17 @@ var images = require('./images.json');
             var sourceList = this.state.yAxisRender.groupIDs();
             var targetList = this.state.xAxisRender.groupIDs();
 
-            this.state.verticalScrollbarScale = d3.scale.ordinal()
+            this.state.verticalScrollbarScale = d3.scaleOrdinal()
                 .domain(sourceList.map(function(d) {
                     return d; 
                 }))
-                .rangePoints([0, height]);
+                .range([0, height]);
 
-            this.state.horizontalScrollbarScale = d3.scale.ordinal()
+            this.state.horizontalScrollbarScale = d3.scaleOrdinal()
                 .domain(targetList.map(function(d) {
                     return d; 
                 }))
-                .rangePoints([0, width]);   	    
+                .range([0, width]);   	    
         },
         
         _setSvgSize: function() {
@@ -1720,23 +1726,23 @@ var images = require('./images.json');
             var sourceList = this.state.yAxisRender.groupIDs();
             var targetList = this.state.xAxisRender.groupIDs();
 
-            this.state.smallYScale = d3.scale.ordinal()
+            this.state.smallYScale = d3.scaleOrdinal()
                 .domain(sourceList.map(function (d) {
                     return d; 
                 }))
-                .rangePoints([0, height]);
+                .range([0, height]);
 
-            this.state.smallXScale = d3.scale.ordinal()
+            this.state.smallXScale = d3.scaleOrdinal()
                 .domain(targetList.map(function (d) {
                     return d; 
                 }))
-                .rangePoints([0, width]);   	    
+                .range([0, width]);   	    
         },
 
         // Used by minimap and scrollbars
         _invertDragPosition: function(scale, value) {
             var leftEdges = scale.range();
-            var size = scale.rangeBand();
+            var size = scale.range();
             var j;
             for (j = 0; value > (leftEdges[j] + size); j++) {} 
             // iterate until leftEdges[j]+size is past value
@@ -1779,7 +1785,7 @@ var images = require('./images.json');
                 }
                 
                 // Constructs a new linear scale with the default domain [0,1] and the default range [0,1]. 
-                var cs = d3.scale.linear(); 
+                var cs = d3.scaleLinear(); 
                 // Simply put: scales transform a number in a certain interval (called the domain) 
                 // into a number in another interval (called the range).
 
@@ -2333,7 +2339,7 @@ var images = require('./images.json');
             // create column labels
             column.append("text")
                 .attr("x", 0)
-                .attr("y", xScale.rangeBand()+2)  //2
+                .attr("y", xScale.range()+2)  //2
                 .attr("dy", ".32em")
                 .style('fill', function(d) { // add different color to genotype labels
                     // Only added genotypes have this `parentGeneID` property
@@ -2363,7 +2369,7 @@ var images = require('./images.json');
             // no need to add this grey background for multi group or owlSimFunction === 'compare' - Joe
             if (this.state.selectedCompareTargetGroup.length === 1 && this.state.selectedCompareTargetGroup[0].groupName !== 'compare') {
                 column.append("rect")
-                    .attr("y", xScale.rangeBand() - 1 + gridRegion.colLabelOffset)
+                    .attr("y", xScale.range() - 1 + gridRegion.colLabelOffset)
                     .attr('width', gridRegion.cellSize)
                     .attr('height', self._gridHeight())
                     .style('fill', function(d){
@@ -2402,7 +2408,7 @@ var images = require('./images.json');
             row.append("text")
                 .attr("x", -gridRegion.rowLabelOffset) // shift a bit to the left to create some white spaces for inverting	  		
                 .attr("y",  function(d, i) {
-                    var rb = yScale.rangeBand(i)/2;
+                    var rb = yScale.range(i)/2;
                     return rb;
                 })  
                 .attr("dy", ".80em")  // this makes small adjustment in position	      	
@@ -3369,13 +3375,503 @@ var images = require('./images.json');
             }
         },
 
-
         _isCrossComparisonView: function() {
             if (this.state.selectedCompareTargetGroup.length === 1) {
                 return false;
             }
             return true;
-        }
+        },
+
+        // HPO tree container div
+        _createHPTreeContainer: function() {
+            // ID of base containing div of each instance
+            this.state.pgInstanceId = this.element.attr('id');
+            this.state.pgContainerId = this.state.pgInstanceId + '_container';
+            this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_tree"></svg>');
+            this.element.append(this.state.treeContainer);
+        },
+
+        // Modify the provided root data by adding maching info
+		_calculateMatch: function(rootData, sourceArr) {
+		    // This is used for calculating the matches
+		    // the number of matches will be stored in d.value
+		    var sumByMatch = function(d) {
+		        return (sourceArr.indexOf(d.id) !== -1) ? 1 : 0;
+		    };
+		    
+		    // Constructs a root node from the specified hierarchical data
+		    // Using sumByMatch aggregate the values (number of matches)
+		    // so we can identify the nodes that contain matches(HP ids of the patient)
+		    // The returned node and each descendant has the following added properties: 
+		    // data, depth, height, parent, children, value
+		    var rootNode = d3.hierarchy(rootData)
+		        // https://github.com/d3/d3-hierarchy/blob/master/README.md#node_sum
+		        // Must use sum before passing the hierarchy data to the treemap()
+		        .sum(sumByMatch) 
+		        // https://github.com/d3/d3-hierarchy/blob/master/README.md#node_sort
+		        .sort(function(a, b) { 	
+		            // sort nodes by descending height (greatest distance from any descendant leaf) and then descending value
+		            return b.height - a.height || b.value - a.value; 
+		        });
+
+		    // Inject the calculated match into data for later highlighting
+		    // https://github.com/d3/d3-hierarchy/#node_each
+		    rootNode.each(function(d) { 
+		        // No need to set d.value = null since we'll be using a different sum method shortly
+		        // and the d.value will be changed by then
+		        d.data.matchCount = d.value;
+		        // Also mark the actual matching node
+		        d.data.isMatch = (sourceArr.indexOf(d.data.id) !== -1) ? true : false
+		    });
+
+		    console.log("Root data with matching count...");
+		    console.log(rootNode.data);
+
+		    // Return the modified rootNode.data instead of the D3 hierarchy rootNode
+		    // We'll use this rootNode.data as the new data to construct hierarchy 
+		    // with a different sum method later
+		    return rootNode.data;
+		},
+
+        // Render the HPO Tree
+        _renderHPTree: function() {
+		    var svgId = 'tree';
+		    var json = 'hp/hp_treemap.json';
+		    //var sourceArr = this.state.gridSourceList;
+
+		    // Set the dimensions and margins of the diagram
+			var margin = {top: 20, right: 90, bottom: 30, left: 200};
+			var width = 1060 - margin.left - margin.right;
+			var height = 400 - margin.top - margin.bottom;
+
+			// append the svg object to the body of the page
+			// appends a 'group' element to 'svg'
+			// moves the 'group' element to the top left margin
+			var svg = d3.select("#" + this.state.pgContainerId + '_tree')
+			    .attr("width", width + margin.right + margin.left)
+			    .attr("height", height + margin.top + margin.bottom)
+			    .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
+
+			// Make rootNode a global variable
+			var rootNode;
+			var i = 0;
+			var duration = 750;
+
+		    // Node radius
+		    var radius = 8;
+
+		    // The spacing between levels
+		    var levelSpacing = 70;
+
+			var rootBgColor = "rgb(140, 86, 75)";
+			var isMatchBgColor = "rgb(100, 163, 72)";
+			var hasMatchBgColor = "rgb(223, 134, 59)";
+			var hasNoMatchRegularBgColor = "rgb(176, 196, 222)";
+			var hasNoMatchLeafBgColor = "rgb(255, 255, 255)";
+
+			// Declares a tree layout and assigns the size
+			var tree = d3.tree()
+			    // Don't use .nodeSize(), it causes some nodes go out of the svg boundry
+			    // and it requres to adjust each node x and y since the root is positioned at <0, 0>
+				.size([height, width]);
+
+			
+
+
+
+            var idList = [];
+            // Convert HP:123456 to HP_123456
+            for ( var i = 0; i < this.state.gridSourceList.length; i++) {
+            	var hpId = this.state.gridSourceList[i].replace(':', '_');
+            	idList.push(hpId);
+            }
+
+
+			// Add calculated matches to the rootData
+		    var rootDataWithMatch = this._calculateMatch(treeData, idList);
+
+		    buildDOITree(rootDataWithMatch);
+
+		    // Copy _children to children so d3 tree can render it correctly
+		    renameChildrenProperty(rootDataWithMatch);
+
+		    // Assigns parent, children, height, data, depth, value
+		    rootNode = d3.hierarchy(rootDataWithMatch);
+
+			// Why?
+			rootNode.x0 = height / 2;
+			rootNode.y0 = 0;
+
+		    // Collapse nodes with children from the second level
+		    rootNode.children.forEach(collapse);
+
+		    update(rootNode);	
+
+
+
+
+
+
+
+
+
+			// Recurisively copy _children to children 
+			// so d3.hierarchy can handle it correctly
+			function renameChildrenProperty(nodeData) {
+				nodeData.children = nodeData._children;
+
+				for (var i = 0; i < nodeData._children.length; i++) {
+			        renameChildrenProperty(nodeData._children[i]);
+			    }
+
+			    // Remove this _children property
+				delete nodeData._children;
+			}
+
+			// Build DOI Tree recurisively
+			function buildDOITree(nodeData) {
+			    // Add new property _children to store grouping info
+			    nodeData._children = [];
+			    
+			    // Only add noMatch group when the node contains at least one match
+		        // and this node has more than 2 children
+		        // and this node is not the actual matching node containing other matching nodes
+			    if ((nodeData.matchCount > 0) && (nodeData.children.length > 2)) {
+			    	// It's possible that a matching node contains additional matching nodes
+			    	// that's why we need to check `(nodeData.matchCount === 1) && nodeData.isMatch`
+			    	// to ensure this is the actual matching node containing no other matching nodes
+			    	if ((nodeData.matchCount === 1) && nodeData.isMatch) {
+			            nodeData._children = nodeData.children;
+			            for (var j = 0; j < nodeData.children.length; j++) {
+					        buildDOITree(nodeData.children[j]);
+					    }
+			    	} else {
+			    		var noMatch = {};
+					    noMatch.id = "HP_";
+					    noMatch.name = "No Match Group";
+					    noMatch._children = [];
+
+				        nodeData._children.push(noMatch);
+
+				        for (var i = 0; i < nodeData.children.length; i++) {
+					        if (nodeData.children[i].matchCount > 0) {
+					            nodeData._children.push(nodeData.children[i]);
+					        } else {
+								// Add to noMatch group
+								nodeData._children[0]._children.push(nodeData.children[i]);
+					        }
+
+					        buildDOITree(nodeData.children[i]);
+					    }
+			    	}
+			    } else {
+			        nodeData._children = nodeData.children;
+			        for (var j = 0; j < nodeData.children.length; j++) {
+				        buildDOITree(nodeData.children[j]);
+				    }
+			    }
+
+			    delete nodeData.children;
+			}
+
+			// Collapse the node and all its children
+			function collapse(d) {
+				// Only collapse nodes with children
+				if (d.children) {
+					d._children = d.children;
+					d._children.forEach(collapse);
+					d.children = null;
+				} 
+			}
+
+			function update(source) {
+				// Assigns the x and y position for the nodes
+				// At this moment, rootNode is already the hierarchy
+				var treeData = tree(rootNode);
+
+				// Compute the new tree layout
+				// https://github.com/d3/d3-hierarchy/blob/master/README.md#node_descendants
+				// Returns the array of descendant nodes, starting with this node, then followed by each child in topological order.
+				var nodes = treeData.descendants();
+				// Remove the root node for links
+				var links = treeData.descendants().slice(1);
+
+				// Sets up the spacing between levels
+				// this multiplier factor is the width of each level
+				nodes.forEach(function(d) { 
+					d.y = d.depth * levelSpacing;
+				});
+
+				// ****************** Nodes section ***************************
+
+				// Update the nodes...
+				var node = svg.selectAll('.node-group')
+					.data(nodes, function(d) {
+						// I don't understand this key function
+						return d.id || (d.id = ++i); 
+					});
+
+				// Enter any new modes at the parent's previous position.
+				var nodeEnter = node.enter().append('g')
+					.attr('class', 'node-group')
+					.attr("id", function(d) {
+						return svgId + "_" + d.data.id;
+					})
+					.attr("transform", function(d) {
+						return "translate(" + source.y0 + "," + source.x0 + ")";
+					})
+					.on('click', click)
+					.on('mouseover', mouseover)
+					.on('mouseout', mouseout);
+					// .on("contextmenu", function (d, i) {
+			  //           d3.event.preventDefault();
+			  //           // react on right-clicking
+		   //              // show the corresponding match in MP tree for matching HP node
+					// 	if (d.data.isMatch) {
+					// 		relateMPTree(d.data.id, 'mappingSvg');
+					// 	}
+			  //       });
+
+				// Add circle for the real node
+				nodeEnter.filter((function(d) {
+			        	return (d.data.id !== "HP_");
+			        }))
+				    .append('circle')
+					.attr('class', 'node-circle');
+			    
+			    // Use a rect for the no match group node
+			    nodeEnter.filter((function(d) {
+			        	return (d.data.id === "HP_");
+			        }))
+					.append('rect')
+					.attr("class", "node-rect");
+
+			    // Filter out the root node and create its label on left
+			    nodeEnter.filter((function(d) {
+			        	// Find the root node
+			        	return (d.parent == null);
+			        }))
+					.append('text')
+					.attr("x", -12)
+					.attr("y", 3)
+					.attr("text-anchor", "end")
+					.text(function(d) { 
+						return d.data.name; 
+					});
+
+				// Merge the enter and update selections after a data-join
+				var nodeUpdate = nodeEnter.merge(node);
+
+				// Transition to the proper position for the node
+				nodeUpdate.transition()
+					.duration(duration)
+					.attr("transform", function(d) { 
+						return "translate(" + d.y + "," + d.x + ")";
+					});
+
+				// Update the node attributes and style
+				nodeUpdate.select('.node-circle')
+					.attr('r', radius)
+					.style("fill", function(d) {
+						if (d.parent === null) {
+			                // Give root its own bg color
+			                return rootBgColor;
+				    	} else {
+				    	    // Here we only have 3 colors: isMatchBgColor, hasMatchBgColor, hasNoMatchRegularBgColor, and hasNoMatchLeafBgColor
+					    	if (d.data.isMatch) {
+				                return isMatchBgColor;
+							} else {
+								if (d.data.matchCount > 0) {
+			                        return hasMatchBgColor;
+								} else {
+									return d._children ? hasNoMatchRegularBgColor : hasNoMatchLeafBgColor;
+								}
+							}
+				    	}
+					});
+
+		        // Update the no match group rect
+			    nodeUpdate.select('.node-rect')
+					.attr('x', -radius) // -width/2 to center
+					.attr('y', -radius) // -height/2 to center
+					.attr('width', radius * 2)
+					.attr('height', radius * 2)
+					.style("fill", function(d) {
+						if (d.parent === null) {
+			                // Give root its own bg color
+			                return rootBgColor;
+				    	} else {
+				    	    // Here we only have 3 colors: isMatchBgColor, hasMatchBgColor, hasNoMatchRegularBgColor, and hasNoMatchLeafBgColor
+					    	if (d.data.isMatch) {
+				                return isMatchBgColor;
+							} else {
+								if (d.data.matchCount > 0) {
+			                        return hasMatchBgColor;
+								} else {
+									return d._children ? hasNoMatchRegularBgColor : hasNoMatchLeafBgColor;
+								}
+							}
+				    	}
+					});
+
+				// Remove any exiting nodes
+				var nodeExit = node.exit().transition()
+					.duration(duration)
+					.attr("transform", function(d) {
+						return "translate(" + source.y + "," + source.x + ")";
+					})
+					.remove();
+
+				// On exit reduce the node circles size to 0
+				nodeExit.select('.node-circle')
+					.attr('r', 1e-6);
+
+			    nodeExit.select('.no-match-rect')
+					.attr('width', 1e-6)
+					.attr('height', 1e-6);
+
+				// On exit reduce the opacity of text labels
+				nodeExit.select('text')
+					.style('fill-opacity', 1e-6);
+
+				// ****************** links section ***************************
+
+				// Update the links...
+				var link = svg.selectAll('.link')
+					.data(links, function(d) { 
+						return d.id; 
+					});
+
+				// Enter any new links at the parent's previous position.
+				var linkEnter = link.enter().insert('path', "g")
+					.attr("class", "link")
+					.attr("id", function(d) {
+						// E.g., hpSvg_HP_0000118-HP_0000152
+						return svgId + "_" + d.parent.data.id + "-" + d.data.id;
+					})
+					.attr('d', function(d){
+						var o = {x: source.x0, y: source.y0};
+						return diagonal(o, o);
+					});
+
+				// Merge the enter and update selections after a data-join
+				var linkUpdate = linkEnter.merge(link);
+
+				// Transition back to the parent element position
+				linkUpdate.transition()
+					.duration(duration)
+					.attr('d', function(d){ 
+						return diagonal(d, d.parent);
+					});
+
+				// Remove any exiting links
+				var linkExit = link.exit().transition()
+					.duration(duration)
+					.attr('d', function(d) {
+						var o = {x: source.x, y: source.y};
+						return diagonal(o, o);
+					})
+					.remove();
+
+				// Store the old positions for transition.
+				nodes.forEach(function(d) {
+					d.x0 = d.x;
+					d.y0 = d.y;
+				});
+
+				// Creates a curved (diagonal) path from parent to the child nodes
+				function diagonal(s, d) {
+					var path = `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${d.x}, ${d.y} ${d.x}`;
+
+					return path;
+				}
+
+				// Toggle children on click
+				// Click event only applies to nodes with children
+				// Note: we apply click event on the root node
+				function click(d) {
+					// First to remove all labels before transition
+					// so labels won't stay at old positions
+					mouseout(d);
+
+					if (d.children) {
+						// When d.children is set, it means this node is expanded
+						// recurisively collapse its children
+						collapse(d);
+					} else {
+						// When d.children is not set, it could be 
+						// a collapsed node or a leaf node
+						if (d._children) {
+			                d.children = d._children;
+						    d._children = null;
+						} 
+					}
+
+					update(d);
+				}
+
+			    // Show labels, starting with this node, then followed by each parent up to the root
+			    // but no label gets created for root since it's already there
+				function mouseover(node) {
+					// https://github.com/d3/d3-hierarchy#node_ancestors
+					// Returns the array of ancestors nodes, starting with this node, then followed by each parent up to the root
+					var nodes = node.ancestors();
+					// Remove the root node
+					var targetNodes = nodes.slice(0, nodes.length - 1);
+
+			        svg.selectAll(".node-label")
+						.data(targetNodes)
+						.enter()
+						.append('text')
+						.attr("x", function(d) {
+							return (d.children || d._children) ? -12 : + 12;
+						})
+						.attr("y", 3)
+						.attr("transform", function(d) {
+							// In many times, rotating the label text makes the label cropped by SVG boundry
+							// it can still create overlappings
+							//return "translate(" + d.y0 + "," + d.x0 + ") rotate(45)";
+							return "translate(" + d.y0 + "," + d.x0 + ")";
+						})
+						.attr("class", "node-label")
+						.attr("text-anchor", function(d) {
+							// Place label on left if node has children,
+							// otherwise on right of the node
+							return (d.children || d._children) ? "end" : "start";
+						})
+						.text(function(d) { 
+							// Show the HP ID of real node
+							// Show the size of no match group node
+							return (d.data.id !== "HP_") ? d.data.name + " [" + d.data.id + "]" : d.data.name + " (" + d.data.children.length + ")"; 
+						});
+
+					// Highlight the path
+					highlightPathToRoot(node, true);
+				}
+
+			    // Remove all labels of ancestors nodes except the root node
+				function mouseout(node) {
+					// The root node label text has no class
+					// so no worries here just to remove all .node-label
+				    svg.selectAll(".node-label").remove();
+
+				    // Also dehighlight the path
+				    highlightPathToRoot(node, false);
+				}
+
+				function highlightPathToRoot(node, bool) {
+					var nodes = node.ancestors();
+					// Remove the root node
+					var targetNodes = nodes.slice(0, nodes.length - 1);
+
+					targetNodes.forEach(function(d) {
+			            d3.select("#" + svgId + "_" + d.parent.data.id + "-" + d.data.id).classed("link-highlight", bool);
+					});
+				}
+
+			}
+
+		}
 
 	}); // end of widget code
 });
