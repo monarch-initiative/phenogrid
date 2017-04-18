@@ -1265,7 +1265,7 @@ var treeData = require('../hp/hp_treemap.json');
                     .style("fill", sliderColor)
                     .attr("class", "pg_draggable")
                     .call(d3.drag()
-                        .on("dragstart", self._dragstarted)
+                        .on("start", self._dragstarted)
                         .on("drag", function() {
                             // Random movement while dragging triggers mouseover on labels and cells (luckily, only crosshairs show up in this case)
                             self._crossHairsOff();
@@ -1409,13 +1409,13 @@ var treeData = require('../hp/hp_treemap.json');
             var sourceList = this.state.yAxisRender.groupIDs();
             var targetList = this.state.xAxisRender.groupIDs();
 
-            this.state.verticalScrollbarScale = d3.scaleOrdinal()
+            this.state.verticalScrollbarScale = d3.scalePoint()
                 .domain(sourceList.map(function(d) {
                     return d; 
                 }))
                 .range([0, height]);
 
-            this.state.horizontalScrollbarScale = d3.scaleOrdinal()
+            this.state.horizontalScrollbarScale = d3.scalePoint()
                 .domain(targetList.map(function(d) {
                     return d; 
                 }))
@@ -1726,13 +1726,13 @@ var treeData = require('../hp/hp_treemap.json');
             var sourceList = this.state.yAxisRender.groupIDs();
             var targetList = this.state.xAxisRender.groupIDs();
 
-            this.state.smallYScale = d3.scaleOrdinal()
+            this.state.smallYScale = d3.scalePoint()
                 .domain(sourceList.map(function (d) {
                     return d; 
                 }))
                 .range([0, height]);
 
-            this.state.smallXScale = d3.scaleOrdinal()
+            this.state.smallXScale = d3.scalePoint()
                 .domain(targetList.map(function (d) {
                     return d; 
                 }))
@@ -2339,7 +2339,7 @@ var treeData = require('../hp/hp_treemap.json');
             // create column labels
             column.append("text")
                 .attr("x", 0)
-                .attr("y", xScale.range()+2)  //2
+                .attr("y", 2)
                 .attr("dy", ".32em")
                 .style('fill', function(d) { // add different color to genotype labels
                     // Only added genotypes have this `parentGeneID` property
@@ -2407,10 +2407,7 @@ var treeData = require('../hp/hp_treemap.json');
             // create row labels
             row.append("text")
                 .attr("x", -gridRegion.rowLabelOffset) // shift a bit to the left to create some white spaces for inverting	  		
-                .attr("y",  function(d, i) {
-                    var rb = yScale.range(i)/2;
-                    return rb;
-                })  
+                .attr("y",  0.5)  
                 .attr("dy", ".80em")  // this makes small adjustment in position	      	
                 .attr("text-anchor", "end")
                 .style("font-size", "11px")

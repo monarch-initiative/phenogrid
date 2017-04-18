@@ -298,9 +298,9 @@ AxisGroup.prototype = {
 	*/	
     getScale: function() {
 		var values = this.keys();
-		var scale = d3.scaleOrdinal()
+		var scale = d3.scaleBand()
 					.domain(values)
-					.range([0, values.length]);
+					.rangeRound([0, values.length]);
 		return scale;
     }
 };
