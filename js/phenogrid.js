@@ -3379,12 +3379,23 @@ var treeData = require('../hp/hp_treemap.json');
             return true;
         },
 
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
         // HPO tree container div
         _createHPTreeContainer: function() {
             // ID of base containing div of each instance
             this.state.pgInstanceId = this.element.attr('id');
             this.state.pgContainerId = this.state.pgInstanceId + '_container';
-            this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_tree"></svg>');
+            this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_hpo_tree" class="hybrid_tree"></svg>');
             this.element.append(this.state.treeContainer);
         },
 
@@ -3432,21 +3443,22 @@ var treeData = require('../hp/hp_treemap.json');
 
         // Render the HPO Tree
         _renderHPTree: function() {
-		    var svgId = 'tree';
+		    var svgId = 'hpo_tree';
 		    var json = 'hp/hp_treemap.json';
 		    //var sourceArr = this.state.gridSourceList;
 
 		    // Set the dimensions and margins of the diagram
-			var margin = {top: 20, right: 90, bottom: 30, left: 200};
-			var width = 1060 - margin.left - margin.right;
+			var margin = {top: 20, right: 90, bottom: 20, left: 140};
+			var width = 960 - margin.left - margin.right;
 			var height = 400 - margin.top - margin.bottom;
 
 			// append the svg object to the body of the page
 			// appends a 'group' element to 'svg'
 			// moves the 'group' element to the top left margin
-			var svg = d3.select("#" + this.state.pgContainerId + '_tree')
+			var svg = d3.select("#" + this.state.pgContainerId + '_hpo_tree')
 			    .attr("width", width + margin.right + margin.left)
 			    .attr("height", height + margin.top + margin.bottom)
+			    .append("g")
 			    .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
 
 			// Make rootNode a global variable
