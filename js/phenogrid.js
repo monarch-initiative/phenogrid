@@ -3452,13 +3452,26 @@ var treeData = require('../hp/hp_treemap.json');
 			var width = 960 - margin.left - margin.right;
 			var height = 400 - margin.top - margin.bottom;
 
+            // Zooming
+		    var zoomed = function() {
+		        treeGroup.attr("transform", d3.event.transform);
+		    };
+
+            // Must define this before the var svg
+            var zoom = d3.zoom()
+                .scaleExtent([.2, 10]) // // zoom scale x.2 to x10
+                .on("zoom", zoomed);
+
 			// append the svg object to the body of the page
 			// appends a 'group' element to 'svg'
 			// moves the 'group' element to the top left margin
 			var svg = d3.select("#" + this.state.pgContainerId + '_hpo_tree')
 			    .attr("width", width + margin.right + margin.left)
 			    .attr("height", height + margin.top + margin.bottom)
-			    .append("g")
+			    .call(zoom)
+                .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
+
+            var treeGroup = svg.append("g")
 			    .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
 
 			// Make rootNode a global variable
@@ -3614,7 +3627,7 @@ var treeData = require('../hp/hp_treemap.json');
 				// ****************** Nodes section ***************************
 
 				// Update the nodes...
-				var node = svg.selectAll('.node-group')
+				var node = treeGroup.selectAll('.node-group')
 					.data(nodes, function(d) {
 						// I don't understand this key function
 						return d.id || (d.id = ++i); 
@@ -3746,7 +3759,7 @@ var treeData = require('../hp/hp_treemap.json');
 				// ****************** links section ***************************
 
 				// Update the links...
-				var link = svg.selectAll('.link')
+				var link = treeGroup.selectAll('.link')
 					.data(links, function(d) { 
 						return d.id; 
 					});
@@ -3828,7 +3841,7 @@ var treeData = require('../hp/hp_treemap.json');
 					// Remove the root node
 					var targetNodes = nodes.slice(0, nodes.length - 1);
 
-			        svg.selectAll(".node-label")
+			        treeGroup.selectAll(".node-label")
 						.data(targetNodes)
 						.enter()
 						.append('text')
