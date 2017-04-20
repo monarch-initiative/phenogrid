@@ -3596,6 +3596,44 @@ var treeData = require('../hp/hp_treemap.json');
 			    delete nodeData.children;
 			}
 
+        
+
+
+
+            // https://bl.ocks.org/jjzieve/a743242f46321491a950
+            // basically a way to get the path to an object
+			function searchTree(obj, search, path){
+				if(obj.children || obj._children){ //if children are collapsed d3 object will have them instantiated as _children
+					var children = (obj.children) ? obj.children : obj._children;
+					for(var i = 0; i < children.length; i++) {
+						path.push(obj);// we assume this path is the right one
+						var found = searchTree(children[i], search, path);
+						if(found){// we were right, this should return the bubbled-up path from the first if statement
+							return found;
+						}
+						else{//we were wrong, remove this parent from the path and continue iterating
+							path.pop();
+						}
+					}
+				}
+			}
+
+            function openPaths(paths) {
+				for (var i = 0; i < paths.length; i++){
+					if (paths[i].id !== "1") {//i.e. not root
+						paths[i].class = 'found';
+						if (paths[i]._children){ //if children are hidden: open them, otherwise: don't do anything
+							paths[i].children = paths[i]._children;
+			    			paths[i]._children = null;
+						}
+						update(paths[i]);
+					}
+				}
+			}
+
+
+
+
 			// Collapse the node and all its children
 			function collapse(d) {
 				// Only collapse nodes with children
