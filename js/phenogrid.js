@@ -3597,32 +3597,46 @@ var treeData = require('../hp/hp_treemap.json');
 			}
 
         
-
-
+var paths = searchTree(rootNode, 'HP_0000322', []);
+console.log("search root...");
+console.log(rootNode);
+console.log("paths...");
+console.log(paths);
+if(typeof(paths) !== "undefined") {
+	openPaths(paths);
+} else{
+	alert(" not found!");
+}
 
             // https://bl.ocks.org/jjzieve/a743242f46321491a950
             // basically a way to get the path to an object
-			function searchTree(obj, search, path){
-				if(obj.children || obj._children){ //if children are collapsed d3 object will have them instantiated as _children
+			function searchTree(obj, search, path) {
+				if (obj.data.id === search) { //if search is found return, add the object to the path and return it
+					path.push(obj);
+					return path;
+				} else if(obj.children || obj._children){ //if children are collapsed d3 object will have them instantiated as _children
 					var children = (obj.children) ? obj.children : obj._children;
-					for(var i = 0; i < children.length; i++) {
+					
+					for (var i = 0; i < children.length; i++) {
 						path.push(obj);// we assume this path is the right one
 						var found = searchTree(children[i], search, path);
-						if(found){// we were right, this should return the bubbled-up path from the first if statement
+						if (found) {// we were right, this should return the bubbled-up path from the first if statement
 							return found;
-						}
-						else{//we were wrong, remove this parent from the path and continue iterating
+						} else {//we were wrong, remove this parent from the path and continue iterating
 							path.pop();
 						}
 					}
+				} else {//not the right object, return false so it will continue to iterate in the loop
+					return false;
 				}
 			}
 
             function openPaths(paths) {
 				for (var i = 0; i < paths.length; i++){
-					if (paths[i].id !== "1") {//i.e. not root
+					if (paths[i].id !== "HP_0000118") {//i.e. not root
 						paths[i].class = 'found';
-						if (paths[i]._children){ //if children are hidden: open them, otherwise: don't do anything
+
+						if (paths[i]._children) { //if children are hidden: open them, otherwise: don't do anything
 							paths[i].children = paths[i]._children;
 			    			paths[i]._children = null;
 						}
@@ -3822,6 +3836,12 @@ var treeData = require('../hp/hp_treemap.json');
 					.duration(duration)
 					.attr('d', function(d){ 
 						return diagonal(d, d.parent);
+					})
+					// Highlight the expanded path
+					.style("stroke", function(d) {
+						if (d.class === "found") {
+							return "#ff4136";
+						}
 					});
 
 				// Remove any exiting links
