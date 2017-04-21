@@ -180,7 +180,21 @@ var treeData = require('../hp/hp_treemap.json');
                 {label: "Ratio (q)", calc: 1, high: "More Similar", low: "Less Similar"}, 
                 {label: "Uniqueness", calc: 2, high: "Highest", low: "Lowest"},
                 {label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"}
-            ]
+            ],
+            HPTree: {
+                treeGroup: null,
+                rootNode: null,
+                treeLayout: null,
+				i: 0,
+				duration: 750,
+			    radius: 8, // Node radius
+				levelSpacing: 70, // The spacing between levels
+				rootBgColor: "rgb(140, 86, 75)",
+				isMatchBgColor: "rgb(100, 163, 72)",
+				hasMatchBgColor: "rgb(223, 134, 59)",
+				hasNoMatchRegularBgColor: "rgb(176, 196, 222)",
+				hasNoMatchLeafBgColor: "rgb(255, 255, 255)"
+            }
         },
 
         // The widget is responsible for removing everything that it introduced into the DOM
@@ -2406,6 +2420,10 @@ var treeData = require('../hp/hp_treemap.json');
 
             // create row labels
             row.append("text")
+                .attr("id", function(d, i) {
+                    var el = self.state.yAxisRender.itemAt(i);
+                    return el.id.replace(":", "_");
+                })
                 .attr("x", -gridRegion.rowLabelOffset) // shift a bit to the left to create some white spaces for inverting	  		
                 .attr("y",  0.5)  
                 .attr("dy", ".80em")  // this makes small adjustment in position	      	
@@ -2434,6 +2452,10 @@ var treeData = require('../hp/hp_treemap.json');
                     // _mouseover() highlights and matching x/y labels, and creates crosshairs on current grid cell
                     // _mouseover() also triggers the tooltip popup as well as the tooltip mouseover/mouseleave - Joe
                     self._mouseover(this, data, self);
+
+                    // Also search this ID and expand the path in HPO tree
+                    // Don't firget to convert HP: to HP_
+                    self._showHPTreePath(data.id.replace(":", "_"));
                 })
                 .on("mouseout", function() {
                     // _mouseout() removes the matching highlighting as well as the crosshairs - Joe
@@ -3441,8 +3463,437 @@ var treeData = require('../hp/hp_treemap.json');
 		    return rootNode.data;
 		},
 
+        // https://bl.ocks.org/jjzieve/a743242f46321491a950
+        // basically a way to get the path to an object
+		_searchTree: function(obj, search, path) {
+			if (obj.data.id === search) { //if search is found return, add the object to the path and return it
+				path.push(obj);
+				return path;
+			} else if(obj.children || obj._children){ //if children are collapsed d3 object will have them instantiated as _children
+				var children = (obj.children) ? obj.children : obj._children;
+				
+				for (var i = 0; i < children.length; i++) {
+					path.push(obj);// we assume this path is the right one
+					var found = this._searchTree(children[i], search, path);
+					if (found) {// we were right, this should return the bubbled-up path from the first if statement
+						return found;
+					} else {//we were wrong, remove this parent from the path and continue iterating
+						path.pop();
+					}
+				}
+			} else {//not the right object, return false so it will continue to iterate in the loop
+				return false;
+			}
+		},
+
+        _openPaths: function(paths) {
+			for (var i = 0; i < paths.length; i++){
+				if (paths[i].id !== "HP_0000118") {//i.e. not root
+					paths[i].class = 'found';
+
+					if (paths[i]._children) { //if children are hidden: open them, otherwise: don't do anything
+						paths[i].children = paths[i]._children;
+		    			paths[i]._children = null;
+					}
+					this._update(paths[i]);
+				}
+			}
+		},
+
+        _showHPTreePath: function(hpId) {
+            var paths = this._searchTree(this.state.HPTree.rootNode, hpId, []);
+			console.log("paths...");
+			console.log(paths);
+			if (typeof(paths) !== "undefined") {
+				this._openPaths(paths);
+			} else{
+				console.log("Path not found!");
+			}
+        },
+
+        // Collapse the node and all its children
+		_collapse: function(d) {
+			var self = this;
+
+			// Only collapse nodes with children
+			if (d.children) {
+				d._children = d.children;
+				d._children.forEach(function(currentValue, index, arr) {
+					self._collapse(currentValue);
+				});
+				d.children = null;
+			} 
+		},
+
+        _update: function(source) {
+			var self = this;
+
+			// Assigns the x and y position for the nodes
+			// At this moment, rootNode is already the hierarchy
+			var treeData = this.state.HPTree.treeLayout(this.state.HPTree.rootNode);
+
+			// Compute the new tree layout
+			// https://github.com/d3/d3-hierarchy/blob/master/README.md#node_descendants
+			// Returns the array of descendant nodes, starting with this node, then followed by each child in topological order.
+			var nodes = treeData.descendants();
+			// Remove the root node for links
+			var links = treeData.descendants().slice(1);
+
+			// Sets up the spacing between levels
+			// this multiplier factor is the width of each level
+			nodes.forEach(function(d) { 
+				d.y = d.depth * self.state.HPTree.levelSpacing;
+			});
+
+			// ****************** Nodes section ***************************
+
+			// Update the nodes...
+			var node = this.state.HPTree.treeGroup.selectAll('.node-group')
+				.data(nodes, function(d) {
+					// I don't understand this key function
+					return d.id || (d.id = ++self.state.HPTree.i); 
+				});
+
+			// Enter any new modes at the parent's previous position.
+			var nodeEnter = node.enter().append('g')
+				.attr('class', 'node-group')
+				.attr("id", function(d) {
+					return self.state.HPTree.svgId + "_" + d.data.id;
+				})
+				.attr("transform", function(d) {
+					return "translate(" + source.y0 + "," + source.x0 + ")";
+				})
+				.on('click', function(d) {
+					self._clickNode(d);
+				})
+				.on('mouseover', function(d) {
+					self._mouseoverNode(d);
+				})
+				.on('mouseout', function(d) {
+					self._mouseoutNode(d);
+				});
+				// .on("contextmenu", function (d, i) {
+		  //           d3.event.preventDefault();
+		  //           // react on right-clicking
+	   //              // show the corresponding match in MP tree for matching HP node
+				// 	if (d.data.isMatch) {
+				// 		relateMPTree(d.data.id, 'mappingSvg');
+				// 	}
+		  //       });
+
+			// Add circle for the real node
+			nodeEnter.filter((function(d) {
+		        	return (d.data.id !== "HP_");
+		        }))
+			    .append('circle')
+				.attr('class', 'node-circle');
+		    
+		    // Use a rect for the no match group node
+		    nodeEnter.filter((function(d) {
+		        	return (d.data.id === "HP_");
+		        }))
+				.append('rect')
+				.attr("class", "node-rect");
+
+		    // Filter out the root node and create its label on left
+		    nodeEnter.filter((function(d) {
+		        	// Find the root node
+		        	return (d.parent == null);
+		        }))
+				.append('text')
+				.attr("x", -12)
+				.attr("y", 3)
+				.attr("text-anchor", "end")
+				.text(function(d) { 
+					return d.data.name; 
+				});
+
+			// Merge the enter and update selections after a data-join
+			var nodeUpdate = nodeEnter.merge(node);
+
+			// Transition to the proper position for the node
+			nodeUpdate.transition()
+				.duration(this.state.HPTree.duration)
+				.attr("transform", function(d) { 
+					return "translate(" + d.y + "," + d.x + ")";
+				});
+
+			// Update the node attributes and style
+			nodeUpdate.select('.node-circle')
+				.attr('r', this.state.HPTree.radius)
+				.style("fill", function(d) {
+					if (d.parent === null) {
+		                // Give root its own bg color
+		                return self.state.HPTree.rootBgColor;
+			    	} else {
+			    	    // Here we only have 3 colors: isMatchBgColor, hasMatchBgColor, hasNoMatchRegularBgColor, and hasNoMatchLeafBgColor
+				    	if (d.data.isMatch) {
+			                return self.state.HPTree.isMatchBgColor;
+						} else {
+							if (d.data.matchCount > 0) {
+		                        return self.state.HPTree.hasMatchBgColor;
+							} else {
+								return d._children ? self.state.HPTree.hasNoMatchRegularBgColor : self.state.HPTree.hasNoMatchLeafBgColor;
+							}
+						}
+			    	}
+				});
+
+	        // Update the no match group rect
+		    nodeUpdate.select('.node-rect')
+				.attr('x', -this.state.HPTree.radius) // -width/2 to center
+				.attr('y', -this.state.HPTree.radius) // -height/2 to center
+				.attr('width', this.state.HPTree.radius * 2)
+				.attr('height', this.state.HPTree.radius * 2)
+				.style("fill", function(d) {
+					if (d.parent === null) {
+		                // Give root its own bg color
+		                return self.state.HPTree.rootBgColor;
+			    	} else {
+			    	    // Here we only have 3 colors: isMatchBgColor, hasMatchBgColor, hasNoMatchRegularBgColor, and hasNoMatchLeafBgColor
+				    	if (d.data.isMatch) {
+			                return self.state.HPTree.isMatchBgColor;
+						} else {
+							if (d.data.matchCount > 0) {
+		                        return self.state.HPTree.hasMatchBgColor;
+							} else {
+								return d._children ? self.state.HPTree.hasNoMatchRegularBgColor : self.state.HPTree.hasNoMatchLeafBgColor;
+							}
+						}
+			    	}
+				});
+
+			// Remove any exiting nodes
+			var nodeExit = node.exit().transition()
+				.duration(this.state.HPTree.duration)
+				.attr("transform", function(d) {
+					return "translate(" + source.y + "," + source.x + ")";
+				})
+				.remove();
+
+			// On exit reduce the node circles size to 0
+			nodeExit.select('.node-circle')
+				.attr('r', 1e-6);
+
+		    nodeExit.select('.no-match-rect')
+				.attr('width', 1e-6)
+				.attr('height', 1e-6);
+
+			// On exit reduce the opacity of text labels
+			nodeExit.select('text')
+				.style('fill-opacity', 1e-6);
+
+			// ****************** links section ***************************
+
+			// Update the links...
+			var link = this.state.HPTree.treeGroup.selectAll('.link')
+				.data(links, function(d) { 
+					return d.id; 
+				});
+
+			// Enter any new links at the parent's previous position.
+			var linkEnter = link.enter().insert('path', "g")
+				.attr("class", "link")
+				.attr("id", function(d) {
+					// E.g., hpSvg_HP_0000118-HP_0000152
+					return self.state.HPTree.svgId + "_" + d.parent.data.id + "-" + d.data.id;
+				})
+				.attr('d', function(d){
+					var o = {x: source.x0, y: source.y0};
+					return self._diagonal(o, o);
+				});
+
+			// Merge the enter and update selections after a data-join
+			var linkUpdate = linkEnter.merge(link);
+
+			// Transition back to the parent element position
+			linkUpdate.transition()
+				.duration(this.state.HPTree.duration)
+				.attr('d', function(d){ 
+					return self._diagonal(d, d.parent);
+				})
+				// Highlight the expanded path
+				.style("stroke", function(d) {
+					if (d.class === "found") {
+						return "#ff4136";
+					}
+				});
+
+			// Remove any exiting links
+			var linkExit = link.exit().transition()
+				.duration(this.state.HPTree.duration)
+				.attr('d', function(d) {
+					var o = {x: source.x, y: source.y};
+					return self._diagonal(o, o);
+				})
+				.remove();
+
+			// Store the old positions for transition.
+			nodes.forEach(function(d) {
+				d.x0 = d.x;
+				d.y0 = d.y;
+			});
+
+			
+
+		},
+
+       // Creates a curved (diagonal) path from parent to the child nodes
+		_diagonal: function(s, d) {
+			var path = `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${d.x}, ${d.y} ${d.x}`;
+
+			return path;
+		},
+
+		// Toggle children on click
+		// Click event only applies to nodes with children
+		// Note: we apply click event on the root node
+		_clickNode: function(d) {
+			// First to remove all labels before transition
+			// so labels won't stay at old positions
+			this._mouseoutNode(d);
+
+			if (d.children) {
+				// When d.children is set, it means this node is expanded
+				// recurisively collapse its children
+				this._collapse(d);
+			} else {
+				// When d.children is not set, it could be 
+				// a collapsed node or a leaf node
+				if (d._children) {
+	                d.children = d._children;
+				    d._children = null;
+				} 
+			}
+
+			this._update(d);
+		},
+
+	    // Show labels, starting with this node, then followed by each parent up to the root
+	    // but no label gets created for root since it's already there
+		_mouseoverNode: function(node) {
+			// https://github.com/d3/d3-hierarchy#node_ancestors
+			// Returns the array of ancestors nodes, starting with this node, then followed by each parent up to the root
+			var nodes = node.ancestors();
+			// Remove the root node
+			var targetNodes = nodes.slice(0, nodes.length - 1);
+
+	        this.state.HPTree.treeGroup.selectAll(".node-label")
+				.data(targetNodes)
+				.enter()
+				.append('text')
+				.attr("x", function(d) {
+					return (d.children || d._children) ? -12 : + 12;
+				})
+				.attr("y", 3)
+				.attr("transform", function(d) {
+					// In many times, rotating the label text makes the label cropped by SVG boundry
+					// it can still create overlappings
+					//return "translate(" + d.y0 + "," + d.x0 + ") rotate(45)";
+					return "translate(" + d.y0 + "," + d.x0 + ")";
+				})
+				.attr("class", "node-label")
+				.attr("text-anchor", function(d) {
+					// Place label on left if node has children,
+					// otherwise on right of the node
+					return (d.children || d._children) ? "end" : "start";
+				})
+				.text(function(d) { 
+					// Show the HP ID of real node
+					// Show the size of no match group node
+					return (d.data.id !== "HP_") ? d.data.name + " [" + d.data.id + "]" : d.data.name + " (" + d.data.children.length + ")"; 
+				});
+
+			// Highlight the path
+			this._highlightPathToRoot(node, true);
+		},
+
+	    // Remove all labels of ancestors nodes except the root node
+		_mouseoutNode: function(node) {
+			// The root node label text has no class
+			// so no worries here just to remove all .node-label
+		    this.state.HPTree.treeGroup.selectAll(".node-label").remove();
+
+		    // Also dehighlight the path
+		    this._highlightPathToRoot(node, false);
+		},
+
+		_highlightPathToRoot: function(node, bool) {
+			var self = this;
+
+			var nodes = node.ancestors();
+			// Remove the root node
+			var targetNodes = nodes.slice(0, nodes.length - 1);
+
+			targetNodes.forEach(function(d) {
+	            d3.select("#" + self.state.HPTree.svgId + "_" + d.parent.data.id + "-" + d.data.id).classed("link-highlight", bool);
+			});
+		},
+
+        // Recurisively copy _children to children 
+		// so d3.hierarchy can handle it correctly
+		_renameChildrenProperty: function(nodeData) {
+			nodeData.children = nodeData._children;
+
+			for (var i = 0; i < nodeData._children.length; i++) {
+		        this._renameChildrenProperty(nodeData._children[i]);
+		    }
+
+		    // Remove this _children property
+			delete nodeData._children;
+		},
+
+		// Build DOI Tree recurisively
+		_buildDOITree: function(nodeData) {
+		    // Add new property _children to store grouping info
+		    nodeData._children = [];
+		    
+		    // Only add noMatch group when the node contains at least one match
+	        // and this node has more than 2 children
+	        // and this node is not the actual matching node containing other matching nodes
+		    if ((nodeData.matchCount > 0) && (nodeData.children.length > 2)) {
+		    	// It's possible that a matching node contains additional matching nodes
+		    	// that's why we need to check `(nodeData.matchCount === 1) && nodeData.isMatch`
+		    	// to ensure this is the actual matching node containing no other matching nodes
+		    	if ((nodeData.matchCount === 1) && nodeData.isMatch) {
+		            nodeData._children = nodeData.children;
+		            for (var j = 0; j < nodeData.children.length; j++) {
+				        this._buildDOITree(nodeData.children[j]);
+				    }
+		    	} else {
+		    		var noMatch = {};
+				    noMatch.id = "HP_";
+				    noMatch.name = "No Match Group";
+				    noMatch._children = [];
+
+			        nodeData._children.push(noMatch);
+
+			        for (var i = 0; i < nodeData.children.length; i++) {
+				        if (nodeData.children[i].matchCount > 0) {
+				            nodeData._children.push(nodeData.children[i]);
+				        } else {
+							// Add to noMatch group
+							nodeData._children[0]._children.push(nodeData.children[i]);
+				        }
+
+				        this._buildDOITree(nodeData.children[i]);
+				    }
+		    	}
+		    } else {
+		        nodeData._children = nodeData.children;
+		        for (var j = 0; j < nodeData.children.length; j++) {
+			        this._buildDOITree(nodeData.children[j]);
+			    }
+		    }
+
+		    delete nodeData.children;
+		},
+
+
         // Render the HPO Tree
         _renderHPTree: function() {
+		    var self = this;
+
 		    var svgId = 'hpo_tree';
 		    var json = 'hp/hp_treemap.json';
 		    //var sourceArr = this.state.gridSourceList;
@@ -3454,7 +3905,7 @@ var treeData = require('../hp/hp_treemap.json');
 
             // Zooming
 		    var zoomed = function() {
-		        treeGroup.attr("transform", d3.event.transform);
+		        self.state.HPTree.treeGroup.attr("transform", d3.event.transform);
 		    };
 
             // Must define this before the var svg
@@ -3471,35 +3922,16 @@ var treeData = require('../hp/hp_treemap.json');
 			    .call(zoom)
                 .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
 
-            var treeGroup = svg.append("g")
+            this.state.HPTree.treeGroup = svg.append("g")
 			    .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
-
-			// Make rootNode a global variable
-			var rootNode;
-			var i = 0;
-			var duration = 750;
-
-		    // Node radius
-		    var radius = 8;
-
-		    // The spacing between levels
-		    var levelSpacing = 70;
-
-			var rootBgColor = "rgb(140, 86, 75)";
-			var isMatchBgColor = "rgb(100, 163, 72)";
-			var hasMatchBgColor = "rgb(223, 134, 59)";
-			var hasNoMatchRegularBgColor = "rgb(176, 196, 222)";
-			var hasNoMatchLeafBgColor = "rgb(255, 255, 255)";
-
-			// Declares a tree layout and assigns the size
-			var tree = d3.tree()
-			    // Don't use .nodeSize(), it causes some nodes go out of the svg boundry
-			    // and it requres to adjust each node x and y since the root is positioned at <0, 0>
-				.size([height, width]);
 
 			
 
-
+			// Declares a tree layout and assigns the size
+			this.state.HPTree.treeLayout = d3.tree()
+			    // Don't use .nodeSize(), it causes some nodes go out of the svg boundry
+			    // and it requres to adjust each node x and y since the root is positioned at <0, 0>
+				.size([height, width]);
 
             var idList = [];
             // Convert HP:123456 to HP_123456
@@ -3512,445 +3944,24 @@ var treeData = require('../hp/hp_treemap.json');
 			// Add calculated matches to the rootData
 		    var rootDataWithMatch = this._calculateMatch(treeData, idList);
 
-		    buildDOITree(rootDataWithMatch);
+		    this._buildDOITree(rootDataWithMatch);
 
 		    // Copy _children to children so d3 tree can render it correctly
-		    renameChildrenProperty(rootDataWithMatch);
+		    this._renameChildrenProperty(rootDataWithMatch);
 
 		    // Assigns parent, children, height, data, depth, value
-		    rootNode = d3.hierarchy(rootDataWithMatch);
+		    this.state.HPTree.rootNode = d3.hierarchy(rootDataWithMatch);
 
 			// Why?
-			rootNode.x0 = height / 2;
-			rootNode.y0 = 0;
+			this.state.HPTree.rootNode.x0 = height / 2;
+			this.state.HPTree.rootNode.y0 = 0;
 
 		    // Collapse nodes with children from the second level
-		    rootNode.children.forEach(collapse);
+		    this.state.HPTree.rootNode.children.forEach(function(currentValue, index, arr) {
+		    	self._collapse(currentValue);
+		    });
 
-		    update(rootNode);	
-
-
-
-
-
-
-
-
-
-			// Recurisively copy _children to children 
-			// so d3.hierarchy can handle it correctly
-			function renameChildrenProperty(nodeData) {
-				nodeData.children = nodeData._children;
-
-				for (var i = 0; i < nodeData._children.length; i++) {
-			        renameChildrenProperty(nodeData._children[i]);
-			    }
-
-			    // Remove this _children property
-				delete nodeData._children;
-			}
-
-			// Build DOI Tree recurisively
-			function buildDOITree(nodeData) {
-			    // Add new property _children to store grouping info
-			    nodeData._children = [];
-			    
-			    // Only add noMatch group when the node contains at least one match
-		        // and this node has more than 2 children
-		        // and this node is not the actual matching node containing other matching nodes
-			    if ((nodeData.matchCount > 0) && (nodeData.children.length > 2)) {
-			    	// It's possible that a matching node contains additional matching nodes
-			    	// that's why we need to check `(nodeData.matchCount === 1) && nodeData.isMatch`
-			    	// to ensure this is the actual matching node containing no other matching nodes
-			    	if ((nodeData.matchCount === 1) && nodeData.isMatch) {
-			            nodeData._children = nodeData.children;
-			            for (var j = 0; j < nodeData.children.length; j++) {
-					        buildDOITree(nodeData.children[j]);
-					    }
-			    	} else {
-			    		var noMatch = {};
-					    noMatch.id = "HP_";
-					    noMatch.name = "No Match Group";
-					    noMatch._children = [];
-
-				        nodeData._children.push(noMatch);
-
-				        for (var i = 0; i < nodeData.children.length; i++) {
-					        if (nodeData.children[i].matchCount > 0) {
-					            nodeData._children.push(nodeData.children[i]);
-					        } else {
-								// Add to noMatch group
-								nodeData._children[0]._children.push(nodeData.children[i]);
-					        }
-
-					        buildDOITree(nodeData.children[i]);
-					    }
-			    	}
-			    } else {
-			        nodeData._children = nodeData.children;
-			        for (var j = 0; j < nodeData.children.length; j++) {
-				        buildDOITree(nodeData.children[j]);
-				    }
-			    }
-
-			    delete nodeData.children;
-			}
-
-        
-var paths = searchTree(rootNode, 'HP_0000322', []);
-console.log("search root...");
-console.log(rootNode);
-console.log("paths...");
-console.log(paths);
-if(typeof(paths) !== "undefined") {
-	openPaths(paths);
-} else{
-	alert(" not found!");
-}
-
-            // https://bl.ocks.org/jjzieve/a743242f46321491a950
-            // basically a way to get the path to an object
-			function searchTree(obj, search, path) {
-				if (obj.data.id === search) { //if search is found return, add the object to the path and return it
-					path.push(obj);
-					return path;
-				} else if(obj.children || obj._children){ //if children are collapsed d3 object will have them instantiated as _children
-					var children = (obj.children) ? obj.children : obj._children;
-					
-					for (var i = 0; i < children.length; i++) {
-						path.push(obj);// we assume this path is the right one
-						var found = searchTree(children[i], search, path);
-						if (found) {// we were right, this should return the bubbled-up path from the first if statement
-							return found;
-						} else {//we were wrong, remove this parent from the path and continue iterating
-							path.pop();
-						}
-					}
-				} else {//not the right object, return false so it will continue to iterate in the loop
-					return false;
-				}
-			}
-
-            function openPaths(paths) {
-				for (var i = 0; i < paths.length; i++){
-					if (paths[i].id !== "HP_0000118") {//i.e. not root
-						paths[i].class = 'found';
-
-						if (paths[i]._children) { //if children are hidden: open them, otherwise: don't do anything
-							paths[i].children = paths[i]._children;
-			    			paths[i]._children = null;
-						}
-						update(paths[i]);
-					}
-				}
-			}
-
-
-
-
-			// Collapse the node and all its children
-			function collapse(d) {
-				// Only collapse nodes with children
-				if (d.children) {
-					d._children = d.children;
-					d._children.forEach(collapse);
-					d.children = null;
-				} 
-			}
-
-			function update(source) {
-				// Assigns the x and y position for the nodes
-				// At this moment, rootNode is already the hierarchy
-				var treeData = tree(rootNode);
-
-				// Compute the new tree layout
-				// https://github.com/d3/d3-hierarchy/blob/master/README.md#node_descendants
-				// Returns the array of descendant nodes, starting with this node, then followed by each child in topological order.
-				var nodes = treeData.descendants();
-				// Remove the root node for links
-				var links = treeData.descendants().slice(1);
-
-				// Sets up the spacing between levels
-				// this multiplier factor is the width of each level
-				nodes.forEach(function(d) { 
-					d.y = d.depth * levelSpacing;
-				});
-
-				// ****************** Nodes section ***************************
-
-				// Update the nodes...
-				var node = treeGroup.selectAll('.node-group')
-					.data(nodes, function(d) {
-						// I don't understand this key function
-						return d.id || (d.id = ++i); 
-					});
-
-				// Enter any new modes at the parent's previous position.
-				var nodeEnter = node.enter().append('g')
-					.attr('class', 'node-group')
-					.attr("id", function(d) {
-						return svgId + "_" + d.data.id;
-					})
-					.attr("transform", function(d) {
-						return "translate(" + source.y0 + "," + source.x0 + ")";
-					})
-					.on('click', click)
-					.on('mouseover', mouseover)
-					.on('mouseout', mouseout);
-					// .on("contextmenu", function (d, i) {
-			  //           d3.event.preventDefault();
-			  //           // react on right-clicking
-		   //              // show the corresponding match in MP tree for matching HP node
-					// 	if (d.data.isMatch) {
-					// 		relateMPTree(d.data.id, 'mappingSvg');
-					// 	}
-			  //       });
-
-				// Add circle for the real node
-				nodeEnter.filter((function(d) {
-			        	return (d.data.id !== "HP_");
-			        }))
-				    .append('circle')
-					.attr('class', 'node-circle');
-			    
-			    // Use a rect for the no match group node
-			    nodeEnter.filter((function(d) {
-			        	return (d.data.id === "HP_");
-			        }))
-					.append('rect')
-					.attr("class", "node-rect");
-
-			    // Filter out the root node and create its label on left
-			    nodeEnter.filter((function(d) {
-			        	// Find the root node
-			        	return (d.parent == null);
-			        }))
-					.append('text')
-					.attr("x", -12)
-					.attr("y", 3)
-					.attr("text-anchor", "end")
-					.text(function(d) { 
-						return d.data.name; 
-					});
-
-				// Merge the enter and update selections after a data-join
-				var nodeUpdate = nodeEnter.merge(node);
-
-				// Transition to the proper position for the node
-				nodeUpdate.transition()
-					.duration(duration)
-					.attr("transform", function(d) { 
-						return "translate(" + d.y + "," + d.x + ")";
-					});
-
-				// Update the node attributes and style
-				nodeUpdate.select('.node-circle')
-					.attr('r', radius)
-					.style("fill", function(d) {
-						if (d.parent === null) {
-			                // Give root its own bg color
-			                return rootBgColor;
-				    	} else {
-				    	    // Here we only have 3 colors: isMatchBgColor, hasMatchBgColor, hasNoMatchRegularBgColor, and hasNoMatchLeafBgColor
-					    	if (d.data.isMatch) {
-				                return isMatchBgColor;
-							} else {
-								if (d.data.matchCount > 0) {
-			                        return hasMatchBgColor;
-								} else {
-									return d._children ? hasNoMatchRegularBgColor : hasNoMatchLeafBgColor;
-								}
-							}
-				    	}
-					});
-
-		        // Update the no match group rect
-			    nodeUpdate.select('.node-rect')
-					.attr('x', -radius) // -width/2 to center
-					.attr('y', -radius) // -height/2 to center
-					.attr('width', radius * 2)
-					.attr('height', radius * 2)
-					.style("fill", function(d) {
-						if (d.parent === null) {
-			                // Give root its own bg color
-			                return rootBgColor;
-				    	} else {
-				    	    // Here we only have 3 colors: isMatchBgColor, hasMatchBgColor, hasNoMatchRegularBgColor, and hasNoMatchLeafBgColor
-					    	if (d.data.isMatch) {
-				                return isMatchBgColor;
-							} else {
-								if (d.data.matchCount > 0) {
-			                        return hasMatchBgColor;
-								} else {
-									return d._children ? hasNoMatchRegularBgColor : hasNoMatchLeafBgColor;
-								}
-							}
-				    	}
-					});
-
-				// Remove any exiting nodes
-				var nodeExit = node.exit().transition()
-					.duration(duration)
-					.attr("transform", function(d) {
-						return "translate(" + source.y + "," + source.x + ")";
-					})
-					.remove();
-
-				// On exit reduce the node circles size to 0
-				nodeExit.select('.node-circle')
-					.attr('r', 1e-6);
-
-			    nodeExit.select('.no-match-rect')
-					.attr('width', 1e-6)
-					.attr('height', 1e-6);
-
-				// On exit reduce the opacity of text labels
-				nodeExit.select('text')
-					.style('fill-opacity', 1e-6);
-
-				// ****************** links section ***************************
-
-				// Update the links...
-				var link = treeGroup.selectAll('.link')
-					.data(links, function(d) { 
-						return d.id; 
-					});
-
-				// Enter any new links at the parent's previous position.
-				var linkEnter = link.enter().insert('path', "g")
-					.attr("class", "link")
-					.attr("id", function(d) {
-						// E.g., hpSvg_HP_0000118-HP_0000152
-						return svgId + "_" + d.parent.data.id + "-" + d.data.id;
-					})
-					.attr('d', function(d){
-						var o = {x: source.x0, y: source.y0};
-						return diagonal(o, o);
-					});
-
-				// Merge the enter and update selections after a data-join
-				var linkUpdate = linkEnter.merge(link);
-
-				// Transition back to the parent element position
-				linkUpdate.transition()
-					.duration(duration)
-					.attr('d', function(d){ 
-						return diagonal(d, d.parent);
-					})
-					// Highlight the expanded path
-					.style("stroke", function(d) {
-						if (d.class === "found") {
-							return "#ff4136";
-						}
-					});
-
-				// Remove any exiting links
-				var linkExit = link.exit().transition()
-					.duration(duration)
-					.attr('d', function(d) {
-						var o = {x: source.x, y: source.y};
-						return diagonal(o, o);
-					})
-					.remove();
-
-				// Store the old positions for transition.
-				nodes.forEach(function(d) {
-					d.x0 = d.x;
-					d.y0 = d.y;
-				});
-
-				// Creates a curved (diagonal) path from parent to the child nodes
-				function diagonal(s, d) {
-					var path = `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${d.x}, ${d.y} ${d.x}`;
-
-					return path;
-				}
-
-				// Toggle children on click
-				// Click event only applies to nodes with children
-				// Note: we apply click event on the root node
-				function click(d) {
-					// First to remove all labels before transition
-					// so labels won't stay at old positions
-					mouseout(d);
-
-					if (d.children) {
-						// When d.children is set, it means this node is expanded
-						// recurisively collapse its children
-						collapse(d);
-					} else {
-						// When d.children is not set, it could be 
-						// a collapsed node or a leaf node
-						if (d._children) {
-			                d.children = d._children;
-						    d._children = null;
-						} 
-					}
-
-					update(d);
-				}
-
-			    // Show labels, starting with this node, then followed by each parent up to the root
-			    // but no label gets created for root since it's already there
-				function mouseover(node) {
-					// https://github.com/d3/d3-hierarchy#node_ancestors
-					// Returns the array of ancestors nodes, starting with this node, then followed by each parent up to the root
-					var nodes = node.ancestors();
-					// Remove the root node
-					var targetNodes = nodes.slice(0, nodes.length - 1);
-
-			        treeGroup.selectAll(".node-label")
-						.data(targetNodes)
-						.enter()
-						.append('text')
-						.attr("x", function(d) {
-							return (d.children || d._children) ? -12 : + 12;
-						})
-						.attr("y", 3)
-						.attr("transform", function(d) {
-							// In many times, rotating the label text makes the label cropped by SVG boundry
-							// it can still create overlappings
-							//return "translate(" + d.y0 + "," + d.x0 + ") rotate(45)";
-							return "translate(" + d.y0 + "," + d.x0 + ")";
-						})
-						.attr("class", "node-label")
-						.attr("text-anchor", function(d) {
-							// Place label on left if node has children,
-							// otherwise on right of the node
-							return (d.children || d._children) ? "end" : "start";
-						})
-						.text(function(d) { 
-							// Show the HP ID of real node
-							// Show the size of no match group node
-							return (d.data.id !== "HP_") ? d.data.name + " [" + d.data.id + "]" : d.data.name + " (" + d.data.children.length + ")"; 
-						});
-
-					// Highlight the path
-					highlightPathToRoot(node, true);
-				}
-
-			    // Remove all labels of ancestors nodes except the root node
-				function mouseout(node) {
-					// The root node label text has no class
-					// so no worries here just to remove all .node-label
-				    svg.selectAll(".node-label").remove();
-
-				    // Also dehighlight the path
-				    highlightPathToRoot(node, false);
-				}
-
-				function highlightPathToRoot(node, bool) {
-					var nodes = node.ancestors();
-					// Remove the root node
-					var targetNodes = nodes.slice(0, nodes.length - 1);
-
-					targetNodes.forEach(function(d) {
-			            d3.select("#" + svgId + "_" + d.parent.data.id + "-" + d.data.id).classed("link-highlight", bool);
-					});
-				}
-
-			}
-
+		    this._update(this.state.HPTree.rootNode);	
 		}
 
 	}); // end of widget code
