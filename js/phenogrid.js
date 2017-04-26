@@ -185,6 +185,7 @@ var treeData = require('../hp/hp_treemap.json');
                 treeGroup: null,
                 rootNode: null,
                 treeLayout: null,
+                sourceIdList: [],
 				i: 0,
 				duration: 750,
 			    radius: 8, // Node radius
@@ -3808,7 +3809,20 @@ var treeData = require('../hp/hp_treemap.json');
 
 			// Highlight the path
 			this._highlightPathToRoot(node, true);
+
+			// For actual matches, also highlight the source phenotype in the Phenogrid Y axis
+			if (this.state.HPTree.sourceIdList.indexOf(node.data.id) !== -1) {
+                this._highlightCorrespondingSource(node.data.id);
+			}
 		},
+
+        _highlightCorrespondingSource: function(id) {
+            d3.select("#" + id).classed('pg_active', true);
+        },
+        
+        _dehighlightCorrespondingSource: function(id) {
+            d3.select("#" + id).classed('pg_active', false);
+        },
 
 	    // Remove all labels of ancestors nodes except the root node
 		_mouseoutNode: function(node) {
@@ -3818,6 +3832,11 @@ var treeData = require('../hp/hp_treemap.json');
 
 		    // Also dehighlight the path
 		    this._highlightPathToRoot(node, false);
+
+		    // For actual matches, also dehighlight the source phenotype in the Phenogrid Y axis
+			if (this.state.HPTree.sourceIdList.indexOf(node.data.id) !== -1) {
+                this._dehighlightCorrespondingSource(node.data.id);
+			}
 		},
 
 		_highlightPathToRoot: function(node, bool) {
@@ -3935,16 +3954,15 @@ var treeData = require('../hp/hp_treemap.json');
 			    // and it requres to adjust each node x and y since the root is positioned at <0, 0>
 				.size([height, width]);
 
-            var idList = [];
             // Convert HP:123456 to HP_123456
             for ( var i = 0; i < this.state.gridSourceList.length; i++) {
             	var hpId = this.state.gridSourceList[i].replace(':', '_');
-            	idList.push(hpId);
+            	this.state.HPTree.sourceIdList.push(hpId);
             }
 
 
 			// Add calculated matches to the rootData
-		    var rootDataWithMatch = this._calculateMatch(treeData, idList);
+		    var rootDataWithMatch = this._calculateMatch(treeData, this.state.HPTree.sourceIdList);
 
 		    this._buildDOITree(rootDataWithMatch);
 
