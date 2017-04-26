@@ -189,6 +189,7 @@ var treeData = require('../hp/hp_treemap.json');
 				duration: 750,
 			    radius: 8, // Node radius
 				levelSpacing: 70, // The spacing between levels
+				foundLinkColor: "rgb(34, 94, 168)",
 				rootBgColor: "rgb(140, 86, 75)",
 				isMatchBgColor: "rgb(100, 163, 72)",
 				hasMatchBgColor: "rgb(223, 134, 59)",
@@ -3489,6 +3490,7 @@ var treeData = require('../hp/hp_treemap.json');
         _openPaths: function(paths) {
 			for (var i = 0; i < paths.length; i++){
 				if (paths[i].id !== "HP_0000118") {//i.e. not root
+					// Later we'll use this class to identify the search path 
 					paths[i].class = 'found';
 
 					if (paths[i]._children) { //if children are hidden: open them, otherwise: don't do anything
@@ -3715,7 +3717,7 @@ var treeData = require('../hp/hp_treemap.json');
 				// Highlight the expanded path
 				.style("stroke", function(d) {
 					if (d.class === "found") {
-						return "#ff4136";
+						return self.state.HPTree.foundLinkColor;
 					}
 				});
 
