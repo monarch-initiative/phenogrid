@@ -3775,6 +3775,8 @@ var treeData = require('../hp/hp_treemap.json');
 	    // Show labels, starting with this node, then followed by each parent up to the root
 	    // but no label gets created for root since it's already there
 		_mouseoverNode: function(node) {
+			var self = this;
+
 			// https://github.com/d3/d3-hierarchy#node_ancestors
 			// Returns the array of ancestors nodes, starting with this node, then followed by each parent up to the root
 			var nodes = node.ancestors();
@@ -3786,21 +3788,14 @@ var treeData = require('../hp/hp_treemap.json');
 				.enter()
 				.append('text')
 				.attr("x", function(d) {
-					return (d.children || d._children) ? -12 : + 12;
+					return d.depth * self.state.HPTree.levelSpacing;
 				})
-				.attr("y", 3)
+				.attr("y", 380)
 				.attr("transform", function(d) {
-					// In many times, rotating the label text makes the label cropped by SVG boundry
-					// it can still create overlappings
-					//return "translate(" + d.y0 + "," + d.x0 + ") rotate(45)";
-					return "translate(" + d.y0 + "," + d.x0 + ")";
+					return "rotate(-15 " + d.depth * self.state.HPTree.levelSpacing + " " + 380 + ")";
 				})
 				.attr("class", "node-label")
-				.attr("text-anchor", function(d) {
-					// Place label on left if node has children,
-					// otherwise on right of the node
-					return (d.children || d._children) ? "end" : "start";
-				})
+				.attr("text-anchor", "start")
 				.text(function(d) { 
 					// Show the HP ID of real node
 					// Show the size of no match group node
