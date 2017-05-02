@@ -196,6 +196,23 @@ var treeData = require('../hp/hp_treemap.json');
 				hasMatchBgColor: "rgb(223, 134, 59)",
 				hasNoMatchRegularBgColor: "rgb(176, 196, 222)",
 				hasNoMatchLeafBgColor: "rgb(255, 255, 255)"
+            },
+            MPTree: {
+                mappings: {}, // // Maps the input HP id with a list of matched MP ids
+                treeGroup: null,
+                rootNode: null,
+                treeLayout: null,
+                sourceIdList: [],
+                i: 0,
+                duration: 750,
+                radius: 8, // Node radius
+                levelSpacing: 70, // The spacing between levels
+                foundLinkColor: "rgb(34, 94, 168)",
+                rootBgColor: "rgb(140, 86, 75)",
+                isMatchBgColor: "rgb(100, 163, 72)",
+                hasMatchBgColor: "rgb(223, 134, 59)",
+                hasNoMatchRegularBgColor: "rgb(176, 196, 222)",
+                hasNoMatchLeafBgColor: "rgb(255, 255, 255)"
             }
         },
 
@@ -701,6 +718,11 @@ var treeData = require('../hp/hp_treemap.json');
             // HPO tree
 			this._createHPTreeContainer();
 			this._renderHPTree();
+
+            // MP tree
+            this._createMPTreeContainer();
+            this._createMouseModelMappings(this.state.dataLoader.getMPData());
+
         },
         
         // Recreates the SVG content and leave the HTML sections unchanged
@@ -3977,7 +3999,67 @@ var treeData = require('../hp/hp_treemap.json');
 		    });
 
 		    this._update(this.state.HPTree.rootNode);	
-		}
+		},
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  
+        // MPO tree container div
+        _createMPTreeContainer: function() {
+            // ID of base containing div of each instance
+            this.state.pgInstanceId = this.element.attr('id');
+            this.state.pgContainerId = this.state.pgInstanceId + '_container';
+            this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_mpo_tree" class="hybrid_tree"></svg>');
+            this.element.append(this.state.treeContainer);
+        },
+
+
+        _createMouseModelMappings: function(data) {
+            var topModels = [];
+
+            // Find the top `topModelNum` ranked models from simsearch result
+            // and render each model as a treemap with highlighted matches
+            for (var i = 0; i < this.state.multiTargetsModeTargetLengthLimit; i++) {
+                // Find the top ranked models from simsearch result
+                topModels.push(data.b[i]);
+            }
+
+            for (var j = 0; j < this.state.multiTargetsModeTargetLengthLimit; j++) {
+                var matches = [];
+                for (var k = 0; k < topModels[j].matches.length; k++) {
+                    // Convert MP:1234567 to MP_1234567
+                    var mpId = topModels[j].matches[k].b.id.replace(':', '_');
+                    matches.push(mpId);
+                    // Also create a mapping between the HP id and matching MP id
+                    // for coordinating highlighting
+                    var hpId = topModels[j].matches[k].a.id.replace(':', '_');
+                    // Use mappings[hpId] instead of mappings.hpId to add a new property
+                    if (typeof(this.state.MPTree.mappings[hpId]) === 'undefined') {
+                        // Use an object to store all the matched MP ids grouped by models
+                        this.state.MPTree.mappings[hpId] = {};
+                    }
+                    
+                    if (typeof(this.state.MPTree.mappings[hpId][topModels[j].label]) === 'undefined') {
+                        // Use an array to store all the matched MP ids of this model
+                        this.state.MPTree.mappings[hpId][topModels[j].label] = [];
+                    }
+                    // Add the matching MP id
+                    this.state.MPTree.mappings[hpId][topModels[j].label].push(mpId);
+                }
+            }
+
+            console.log("HP id to a list of matched MP ids...");
+            console.log(this.state.MPTree.mappings);
+        },
+
+
+
+
+
+
+
+
 
 	}); // end of widget code
 });

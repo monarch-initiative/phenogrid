@@ -35,6 +35,8 @@ var DataLoader = function(serverURL, simSearchQuery, limit) {
 	this.ontologyCache = [];
     this.loadedNewTargetGroupItems = {}; // named array, no need to specify group since each gene ID is unique
 	this.postDataLoadCallback = '';
+    // For MP only
+	this.MPData = {};
 };
 
 // Add methods to DataLoader.prototype
@@ -296,6 +298,12 @@ DataLoader.prototype = {
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			console.log("Transforming simsearch data of group: " + targetGroup);
 
+            // For MP only
+            if (targetGroup === 'Mus musculus') {
+                this.setMPData(data);
+            }
+            
+
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!
 			if (typeof (data.metadata) !== 'undefined') {
@@ -413,6 +421,15 @@ DataLoader.prototype = {
 		}
 	}, 
     
+    // For MP only
+    setMPData: function(data) {
+        this.MPData = data;
+    },
+
+    // For MP only
+    getMPData: function() {
+        return this.MPData;
+    },
 
     /*
 		Function: transformDataForVendor
