@@ -4021,6 +4021,9 @@ var MPTreeData = require('../mp/mp_treemap.json');
         _createMPTreeContainer: function() {
             var self = this;
 
+            // Initialize the color
+            this.state.MPTree.color = d3.scaleOrdinal(d3.schemeCategory10);
+
             // ID of base containing div of each instance
             this.state.pgInstanceId = this.element.attr('id');
             this.state.pgContainerId = this.state.pgInstanceId + '_container';
@@ -4069,26 +4072,30 @@ var MPTreeData = require('../mp/mp_treemap.json');
             }
 
             for (var j = 0; j < this.state.multiTargetsModeTargetLengthLimit; j++) {
-                var matches = [];
                 for (var k = 0; k < topModels[j].matches.length; k++) {
                     // Convert MP:1234567 to MP_1234567
                     var mpId = topModels[j].matches[k].b.id.replace(':', '_');
-                    matches.push(mpId);
+
                     // Also create a mapping between the HP id and matching MP id
                     // for coordinating highlighting
                     var hpId = topModels[j].matches[k].a.id.replace(':', '_');
-                    // Use mappings[hpId] instead of mappings.hpId to add a new property
-                    if (typeof(this.state.MPTree.mappings[hpId]) === 'undefined') {
-                        // Use an object to store all the matched MP ids grouped by models
-                        this.state.MPTree.mappings[hpId] = {};
+
+                    // Only add if the MP is a real MP id. Sometimes I see HP id parsed form Simsearch result
+                    if (mpId.startsWith("MP_")) {
+                        // Use mappings[hpId] instead of mappings.hpId to add a new property
+                        if (typeof(this.state.MPTree.mappings[hpId]) === 'undefined') {
+                            // Use an object to store all the matched MP ids grouped by models
+                            this.state.MPTree.mappings[hpId] = {};
+                        }
+                        
+                        if (typeof(this.state.MPTree.mappings[hpId][topModels[j].label]) === 'undefined') {
+                            // Use an array to store all the matched MP ids of this model
+                            this.state.MPTree.mappings[hpId][topModels[j].label] = [];
+                        }
+
+                        // Add the matching MP id
+                        this.state.MPTree.mappings[hpId][topModels[j].label].push(mpId);
                     }
-                    
-                    if (typeof(this.state.MPTree.mappings[hpId][topModels[j].label]) === 'undefined') {
-                        // Use an array to store all the matched MP ids of this model
-                        this.state.MPTree.mappings[hpId][topModels[j].label] = [];
-                    }
-                    // Add the matching MP id
-                    this.state.MPTree.mappings[hpId][topModels[j].label].push(mpId);
                 }
             }
 
@@ -4171,8 +4178,6 @@ var MPTreeData = require('../mp/mp_treemap.json');
         // Render the HPO Tree
         _renderMPTree: function(hpId) {
             var self = this;
-
-            this.state.MPTree.color = d3.scaleOrdinal(d3.schemeCategory10);
 
             // Get the list of matching MP ids of this HP id
             // It's very possible that the target HP id is not in the mapping list
