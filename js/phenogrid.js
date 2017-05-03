@@ -4058,6 +4058,12 @@ var MPTreeData = require('../mp/mp_treemap.json');
 
             this.state.MPTree.treeGroup = svg.append("g")
                 .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
+
+            // Declares a tree layout and assigns the size
+            this.state.MPTree.treeLayout = d3.tree()
+                // Don't use .nodeSize(), it causes some nodes go out of the svg boundry
+                // and it requres to adjust each node x and y since the root is positioned at <0, 0>
+                .size([this.state.MPTree.height, this.state.MPTree.width]);
         },
 
 
@@ -4183,18 +4189,16 @@ var MPTreeData = require('../mp/mp_treemap.json');
             // It's very possible that the target HP id is not in the mapping list
             // because our mapping is based on the top 3 models only
             if (typeof(this.state.MPTree.mappings[hpId]) !== 'undefined') {
+                // Get the matches for this ID
                 var hybridMatches = this.state.MPTree.mappings[hpId];
-
                 
-                // Declares a tree layout and assigns the size
-                this.state.MPTree.treeLayout = d3.tree()
-                    // Don't use .nodeSize(), it causes some nodes go out of the svg boundry
-                    // and it requres to adjust each node x and y since the root is positioned at <0, 0>
-                    .size([this.state.MPTree.height, this.state.MPTree.width]);
-
-
                 // Add calculated matches to the treeData
                 var rootDataWithHybridMatch = this._calculateHybridMatch(MPTreeData, hybridMatches);
+
+                this._buildHybridDOITree(rootDataWithHybridMatch);
+         
+                console.log("DOITree...");
+                console.log(rootDataWithHybridMatch);
 
                 // Create legend
                 // Use rootDataWithHybridMatch.matchCount instead of hybridMatches
@@ -4202,11 +4206,6 @@ var MPTreeData = require('../mp/mp_treemap.json');
                 // while hybridMatches may have HP ID mixed in the MP ID list due to 
                 // incorrect Simsearch results
                 this._createLegend(rootDataWithHybridMatch.matchCount);
-
-                this._buildHybridDOITree(rootDataWithHybridMatch);
-         
-                console.log("DOITree...");
-                console.log(rootDataWithHybridMatch);
 
                 // Copy _children to children so d3 tree can render it correctly
                 this._renameChildrenProperty(rootDataWithHybridMatch);
