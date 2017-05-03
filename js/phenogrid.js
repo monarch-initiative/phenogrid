@@ -182,6 +182,8 @@ var treeData = require('../hp/hp_treemap.json');
                 {label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"}
             ],
             HPTree: {
+                width: null,
+                height: null,
                 treeGroup: null,
                 rootNode: null,
                 treeLayout: null,
@@ -198,11 +200,13 @@ var treeData = require('../hp/hp_treemap.json');
 				hasNoMatchLeafBgColor: "rgb(255, 255, 255)"
             },
             MPTree: {
+                width: null,
+                height: null,
                 mappings: {}, // // Maps the input HP id with a list of matched MP ids
+                maxNumBarsPerHybridNode: 0,
                 treeGroup: null,
                 rootNode: null,
                 treeLayout: null,
-                sourceIdList: [],
                 i: 0,
                 duration: 750,
                 radius: 8, // Node radius
@@ -2480,6 +2484,9 @@ var treeData = require('../hp/hp_treemap.json');
                     // Also search this ID and expand the path in HPO tree
                     // Don't firget to convert HP: to HP_
                     self._showHPTreePath(data.id.replace(":", "_"));
+
+                    // Show the corresponding MP tree
+                    self._renderMPTree(data.id.replace(":", "_"));
                 })
                 .on("mouseout", function() {
                     // _mouseout() removes the matching highlighting as well as the crosshairs - Joe
@@ -3443,6 +3450,34 @@ var treeData = require('../hp/hp_treemap.json');
             this.state.pgContainerId = this.state.pgInstanceId + '_container';
             this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_hpo_tree" class="hybrid_tree"></svg>');
             this.element.append(this.state.treeContainer);
+
+            // Set the dimensions and margins of the diagram
+            var margin = {top: 20, right: 90, bottom: 20, left: 140};
+            this.state.HPTree.width = 960 - margin.left - margin.right;
+            this.state.HPTree.height = 400 - margin.top - margin.bottom;
+
+            // Zooming
+            var zoomed = function() {
+                self.state.HPTree.treeGroup.attr("transform", d3.event.transform);
+            };
+
+            // Must define this before the var svg
+            var zoom = d3.zoom()
+                .scaleExtent([.2, 10]) // // zoom scale x.2 to x10
+                .on("zoom", zoomed);
+
+            // append the svg object to the body of the page
+            // appends a 'group' element to 'svg'
+            // moves the 'group' element to the top left margin
+            var svg = d3.select("#" + this.state.pgContainerId + '_hpo_tree')
+                .attr("width", this.state.HPTree.width + margin.right + margin.left)
+                .attr("height", this.state.HPTree.height + margin.top + margin.bottom)
+                .call(zoom)
+                .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
+
+            this.state.HPTree.treeGroup = svg.append("g")
+                .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
+
         },
 
         // Modify the provided root data by adding maching info
@@ -3934,42 +3969,12 @@ var treeData = require('../hp/hp_treemap.json');
 
 		    var svgId = 'hpo_tree';
 		    var json = 'hp/hp_treemap.json';
-		    //var sourceArr = this.state.gridSourceList;
-
-		    // Set the dimensions and margins of the diagram
-			var margin = {top: 20, right: 90, bottom: 20, left: 140};
-			var width = 960 - margin.left - margin.right;
-			var height = 400 - margin.top - margin.bottom;
-
-            // Zooming
-		    var zoomed = function() {
-		        self.state.HPTree.treeGroup.attr("transform", d3.event.transform);
-		    };
-
-            // Must define this before the var svg
-            var zoom = d3.zoom()
-                .scaleExtent([.2, 10]) // // zoom scale x.2 to x10
-                .on("zoom", zoomed);
-
-			// append the svg object to the body of the page
-			// appends a 'group' element to 'svg'
-			// moves the 'group' element to the top left margin
-			var svg = d3.select("#" + this.state.pgContainerId + '_hpo_tree')
-			    .attr("width", width + margin.right + margin.left)
-			    .attr("height", height + margin.top + margin.bottom)
-			    .call(zoom)
-                .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
-
-            this.state.HPTree.treeGroup = svg.append("g")
-			    .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
-
-			
 
 			// Declares a tree layout and assigns the size
 			this.state.HPTree.treeLayout = d3.tree()
 			    // Don't use .nodeSize(), it causes some nodes go out of the svg boundry
 			    // and it requres to adjust each node x and y since the root is positioned at <0, 0>
-				.size([height, width]);
+				.size([this.state.HPTree.height, this.state.HPTree.width]);
 
             // Convert HP:123456 to HP_123456
             for ( var i = 0; i < this.state.gridSourceList.length; i++) {
@@ -3990,7 +3995,7 @@ var treeData = require('../hp/hp_treemap.json');
 		    this.state.HPTree.rootNode = d3.hierarchy(rootDataWithMatch);
 
 			// Why?
-			this.state.HPTree.rootNode.x0 = height / 2;
+			this.state.HPTree.rootNode.x0 = this.state.MPTree.height / 2;
 			this.state.HPTree.rootNode.y0 = 0;
 
 		    // Collapse nodes with children from the second level
@@ -4012,6 +4017,33 @@ var treeData = require('../hp/hp_treemap.json');
             this.state.pgContainerId = this.state.pgInstanceId + '_container';
             this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_mpo_tree" class="hybrid_tree"></svg>');
             this.element.append(this.state.treeContainer);
+
+            // Set the dimensions and margins of the diagram
+            var margin = {top: 20, right: 90, bottom: 20, left: 140};
+            this.state.MPTree.width = 960 - margin.left - margin.right;
+            this.state.MPTree.height = 400 - margin.top - margin.bottom;
+
+            // Zooming
+            var zoomed = function() {
+                self.state.MPTree.treeGroup.attr("transform", d3.event.transform);
+            };
+
+            // Must define this before the var svg
+            var zoom = d3.zoom()
+                .scaleExtent([.2, 10]) // // zoom scale x.2 to x10
+                .on("zoom", zoomed);
+
+            // append the svg object to the body of the page
+            // appends a 'group' element to 'svg'
+            // moves the 'group' element to the top left margin
+            var svg = d3.select("#" + this.state.pgContainerId + '_mpo_tree')
+                .attr("width", this.state.MPTree.width + margin.right + margin.left)
+                .attr("height", this.state.MPTree.height + margin.top + margin.bottom)
+                .call(zoom)
+                .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
+
+            this.state.MPTree.treeGroup = svg.append("g")
+                    .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
         },
 
 
@@ -4053,10 +4085,293 @@ var treeData = require('../hp/hp_treemap.json');
             console.log(this.state.MPTree.mappings);
         },
 
+        // Modify the provided root data by adding maching info
+        _calculateHybridMatch: function(rootData, hybridMatches) {
+            for (var key in hybridMatches) {
+                var sourceArr = hybridMatches[key];
+
+                // This is used for calculating the matches
+                // the number of matches will be stored in d.value
+                var sumByMatch = function(d) {
+                    return (sourceArr.indexOf(d.id) !== -1) ? 1 : 0;
+                };
+                
+                // Constructs a root node from the specified hierarchical data
+                // Using sumByMatch aggregate the values (number of matches)
+                // so we can identify the nodes that contain matches
+                // The returned node and each descendant has the following added properties: 
+                // data, depth, height, parent, children, value
+                var rootNode = d3.hierarchy(rootData)
+                    // https://github.com/d3/d3-hierarchy/blob/master/README.md#node_sum
+                    // Must use sum before passing the hierarchy data to the treemap()
+                    .sum(sumByMatch) 
+                    // https://github.com/d3/d3-hierarchy/blob/master/README.md#node_sort
+                    .sort(function(a, b) {  
+                        // sort nodes by descending height (greatest distance from any descendant leaf) and then descending value
+                        return b.height - a.height || b.value - a.value; 
+                    });
+
+                // Inject the calculated match into data for later highlighting
+                // https://github.com/d3/d3-hierarchy/#node_each
+                rootNode.each(function(d) { 
+                    if (typeof(d.data.matchCount) === 'undefined') {
+                        d.data.matchCount = {};
+                    }
+
+                    if (typeof(d.data.matchCount[key]) === 'undefined') {
+                        d.data.matchCount[key] = null;
+                    }
+
+                    // No need to set d.value = null since we'll be using a different sum method shortly
+                    // and the d.value will be changed by then
+                    d.data.matchCount[key] = d.value;
+
+                    // Add totalMatchCount
+                    if (typeof(d.data.totalMatchCount) === 'undefined') {
+                        d.data.totalMatchCount = 0;
+                    }
+
+                    d.data.totalMatchCount += d.data.matchCount[key];
+
+                    if (typeof(d.data.isMatch) === 'undefined') {
+                        d.data.isMatch = {};
+                    }
+
+                    if (typeof(d.data.isMatch[key]) === 'undefined') {
+                        d.data.isMatch[key] = null;
+                    }
+
+                    // Also mark the actual matching node
+                    d.data.isMatch[key] = (sourceArr.indexOf(d.data.id) !== -1) ? true : false
+                });
+
+                rootData = rootNode.data;
+            }
+
+            console.log("rootData with all models match info:");
+            console.log(rootNode.data);
+
+            // Return the modified rootNode.data instead of the D3 hierarchy rootNode
+            // We'll use this rootNode.data as the new data to construct hierarchy 
+            // with a different sum method later
+            return rootNode.data;
+        },
+
+        // Render the HPO Tree
+        _renderMPTree: function(hpId) {
+            var self = this;
+
+            var svgId = 'mpo_tree';
+            var json = 'mp/mp_treemap.json';
+
+            // Get the list of matching MP ids of this HP id
+            // It's very possible that the target HP id is not in the mapping list
+            // because our mapping is based on the top 3 models only
+            if (typeof(this.state.MPTree.mappings[hpId]) !== 'undefined') {
+                var hybridMatches = this.state.MPTree.mappings[hpId];
+
+                
+                // Declares a tree layout and assigns the size
+                this.state.MPTree.treeLayout = d3.tree()
+                    // Don't use .nodeSize(), it causes some nodes go out of the svg boundry
+                    // and it requres to adjust each node x and y since the root is positioned at <0, 0>
+                    .size([this.state.MPTree.height, this.state.MPTree.width]);
 
 
+                // Add calculated matches to the treeData
+                var rootDataWithHybridMatch = this._calculateHybridMatch(treeData, hybridMatches);
+
+                // Create legend
+                // Use rootDataWithHybridMatch.matchCount instead of hybridMatches
+                // because matchCount only contains all the matches found in the MP tree,
+                // while hybridMatches may have HP ID mixed in the MP ID list due to 
+                // incorrect Simsearch results
+                this._createLegend(rootDataWithHybridMatch.matchCount);
+
+                this._buildHybridDOITree(rootDataWithHybridMatch);
+         
+                console.log("DOITree...");
+                console.log(rootDataWithHybridMatch);
+
+                // Copy _children to children so d3 tree can render it correctly
+                this._renameChildrenProperty(rootDataWithHybridMatch);
+
+                // GDetermine the max size (how many mini bars to show) of hybrid node
+                this.state.MPTree.maxNumBarsPerHybridNode = this._getMaxNumBarsPerHybridNode(rootDataWithHybridMatch.children);
+
+                // Assigns parent, children, height, data, depth, value
+                rootNode = d3.hierarchy(rootDataWithHybridMatch);
+
+                // Why?
+                this.state.MPTree.rootNode.x0 = this.state.MPTree.height / 2;
+                this.state.MPTree.rootNode.y0 = 0;
+
+                // Collapse nodes with children from the second level
+                this.state.MPTree.rootNode.children.forEach(collapse);
+
+                this._update(this.state.MPTree.rootNode);    
+            } else {
+                var message = hpId + " is not in the mapping list...";
+                console.log(message);
+                // Also show this message to users
+                this.state.MPTree.treeGroup.append("text")
+                    .attr("x", 100)
+                    .attr("y", 30)
+                    .text(message);
+            }
+        },
 
 
+        // Get the max number of matchCount size amoung children
+        // So we can determine the size of hybrid node (how many mini bars can fit)
+        _getMaxNumBarsPerHybridNode: function(childrenArr) {
+            var maxNumBarsPerHybridNode = 0;
+            childrenArr.forEach(function(item) {
+                if (item.id !== 'HP_') {
+                    // Convert obj to array
+                    var matchCountArr = d3.entries(item.matchCount);
+
+                    // This filtered array only contains key-value pairs that are the actual matches
+                    var filteredMatchCountArr = matchCountArr.filter(function(item) {
+                        return item.value > 0;
+                    });
+
+                    if (filteredMatchCountArr.length > maxNumBarsPerHybridNode) {
+                        maxNumBarsPerHybridNode = filteredMatchCountArr.length;
+                    }
+                }
+            });
+
+            return maxNumBarsPerHybridNode;
+        },
+        
+        // Create legend from mpdel labels/keys
+        _createLegend: function(matchCountObj) {
+            // First construct legend data from keys
+            var legendData = {};
+
+            for (var key in matchCountObj) {
+                var legend = {};
+                legend.color = color(key);
+                legend.matchCount = matchCountObj[key];
+
+                legendData[key] = legend;
+            }
+            
+            // First convert the object to array
+            var legendDataArr = d3.entries(legendData);
+
+            // Sort the legend data based on matchCount
+            legendDataArr.sort(function(a, b) {
+                return d3.descending(a.value.matchCount, b.value.matchCount);
+            });
+
+
+            console.log("Sorted legend data ...");
+            console.log(d3.entries(legendData));
+
+            var legendRectSize = 14;
+            var legendSpacing = 2;
+
+            // Legend group
+            var legend = this.state.MPTree.treeGroup.selectAll('.legend')
+                .data(legendDataArr)
+                .enter()
+                .append('g')
+                .attr('class', 'legend')
+                .attr("transform", function(d) {
+                    return "translate(" + -100 + "," + 20 + ")";
+                });
+
+            // Legend rect
+            legend.append('rect')
+                .attr('x', 10)
+                .attr('y', function(d, i) {
+                    return i * (legendRectSize + legendSpacing);
+                })
+                .attr('width', legendRectSize)
+                .attr('height', legendRectSize)
+                .style('fill', function(d) {
+                    return d.value.color;
+                });
+
+            // Legend label text
+            legend.append('text')
+                .attr('x', 10 + legendRectSize + 2)
+                .attr('y', function(d, i) {
+                    return i * (legendRectSize + legendSpacing) + 10;
+                })
+                .text(function(d) { 
+                    return d.key + " (" + d.value.matchCount + ")"; 
+                });
+        },
+
+
+        // Recurisively copy _children to children 
+        // so d3.hierarchy can handle it correctly
+        _renameChildrenProperty: function(nodeData) {
+            nodeData.children = nodeData._children;
+
+            for (var i = 0; i < nodeData._children.length; i++) {
+                this._renameChildrenProperty(nodeData._children[i]);
+            }
+
+            // Remove this _children property
+            delete nodeData._children;
+        },
+
+        // Build DOI Tree recurisively
+        _buildHybridDOITree: function(nodeData) {
+            // Add new property _children to store grouping info
+            nodeData._children = [];
+
+            // Only add noMatch group when the node contains at least one match
+            // and this node has more than 2 children
+            // and this node is not the actual matching node containing other matching nodes
+            if ((nodeData.totalMatchCount > 0) && (nodeData.children.length > 2)) {
+                // Get an array containing the property keys and values
+                var isMatchArr = d3.entries(nodeData.isMatch);
+
+                // This filtered array only contains key-value pairs that are the actual matches
+                var filteredIsMatchArr = isMatchArr.filter(function(item) {
+                    return item.value;
+                });
+
+                // No need to add noMatch group if this node is the actual matching node
+                // and this node contains no additional matching nodes
+                if (nodeData.totalMatchCount === filteredIsMatchArr.length) {
+                    nodeData._children = nodeData.children;
+                    for (var j = 0; j < nodeData.children.length; j++) {
+                        this._buildHybridDOITree(nodeData.children[j]);
+                    }
+                } else {
+                    var noMatch = {};
+                    noMatch.id = "HP_";
+                    noMatch.name = "No Match Group";
+                    noMatch._children = [];
+
+                    nodeData._children.push(noMatch);
+
+                    for (var i = 0; i < nodeData.children.length; i++) {
+                        if (nodeData.children[i].totalMatchCount > 0) {
+                            nodeData._children.push(nodeData.children[i]);
+                        } else {
+                            // Add to noMatch group
+                            nodeData._children[0]._children.push(nodeData.children[i]);
+                        }
+
+                        this._buildHybridDOITree(nodeData.children[i]);
+                    }
+                }
+            } else {
+                nodeData._children = nodeData.children;
+                for (var j = 0; j < nodeData.children.length; j++) {
+                    this._buildHybridDOITree(nodeData.children[j]);
+                }
+            }
+
+            delete nodeData.children;
+        },
 
 
 
