@@ -4528,10 +4528,10 @@ var MPTreeData = require('../mp/mp_treemap.json');
                 .enter()
                 .append("rect")
                 .attr("y", function(d, i) {
-                    return 6 * i - 10;
+                    return 6 * i - 4;
                 })
                 .attr("x", -5)
-                .attr("height", 5)
+                .attr("height", 4)
                 .attr("width", function(d) { 
                     // Input! Domain!
                     // Output! Range!
@@ -4587,7 +4587,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
             // Update the node attributes and style
             nodeUpdate.select('.node-hybrid')
                 .attr('x', -8)
-                .attr('y', -13)
+                .attr('y', -6)
                 .attr('width', this.state.MPTree.radius * 2)
                 .attr('height', this.state.MPTree.radius * this.state.MPTree.maxNumBarsPerHybridNode)
                 .style("fill", "#fff")
