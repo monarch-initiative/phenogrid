@@ -3456,10 +3456,10 @@ var MPTreeData = require('../mp/mp_treemap.json');
             // ID of base containing div of each instance
             this.state.pgInstanceId = this.element.attr('id');
             this.state.pgContainerId = this.state.pgInstanceId + '_container';
-            this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_hpo_tree" class="hybrid_tree"></svg>');
+            this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_hp_tree" class="hybrid_tree"></svg>');
             this.element.append(this.state.treeContainer);
 
-            this.state.HPTree.svgId = this.state.pgContainerId + '_hpo_tree';
+            this.state.HPTree.svgId = this.state.pgContainerId + '_hp_tree';
 
             // Set the dimensions and margins of the diagram
             var margin = {top: 20, right: 90, bottom: 20, left: 140};
@@ -3473,7 +3473,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
 
             // Must define this before the var svg
             var zoom = d3.zoom()
-                .scaleExtent([.2, 10]) // // zoom scale x.2 to x10
+                .scaleExtent([0.2, 10]) // // zoom scale x 0.2 to x 10
                 .on("zoom", zoomed);
 
             // append the svg object to the body of the page
@@ -3803,9 +3803,6 @@ var MPTreeData = require('../mp/mp_treemap.json');
 				d.x0 = d.x;
 				d.y0 = d.y;
 			});
-
-			
-
 		},
 
        // Creates a curved (diagonal) path from parent to the child nodes
@@ -4027,10 +4024,10 @@ var MPTreeData = require('../mp/mp_treemap.json');
             // ID of base containing div of each instance
             this.state.pgInstanceId = this.element.attr('id');
             this.state.pgContainerId = this.state.pgInstanceId + '_container';
-            this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_mpo_tree" class="hybrid_tree"></svg>');
+            this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_mp_tree" class="hybrid_tree"></svg>');
             this.element.append(this.state.treeContainer);
 
-            this.state.MPTree.svgId = this.state.pgContainerId + '_mpo_tree';
+            this.state.MPTree.svgId = this.state.pgContainerId + '_mp_tree';
 
             // Set the dimensions and margins of the diagram
             var margin = {top: 20, right: 90, bottom: 20, left: 140};
@@ -4044,7 +4041,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
 
             // Must define this before the var svg
             var zoom = d3.zoom()
-                .scaleExtent([.2, 10]) // // zoom scale x.2 to x10
+                .scaleExtent([0.2, 10]) // // zoom scale x 0.2 to x 10
                 .on("zoom", zoomed);
 
             // append the svg object to the body of the page
@@ -4185,6 +4182,9 @@ var MPTreeData = require('../mp/mp_treemap.json');
         _renderMPTree: function(hpId) {
             var self = this;
 
+            // First to erase the svg every time creating a new rendering
+            this.state.MPTree.treeGroup.selectAll("*").remove();
+
             // Get the list of matching MP ids of this HP id
             // It's very possible that the target HP id is not in the mapping list
             // because our mapping is based on the top 3 models only
@@ -4192,8 +4192,12 @@ var MPTreeData = require('../mp/mp_treemap.json');
                 // Get the matches for this ID
                 var hybridMatches = this.state.MPTree.mappings[hpId];
                 
+                // Deep copy, otherwise the MPTreeData will be modified
+                // every time we render the MP tree
+                var MPTreeDataCopy = $.extend(true, {}, MPTreeData);
+
                 // Add calculated matches to the treeData
-                var rootDataWithHybridMatch = this._calculateHybridMatch(MPTreeData, hybridMatches);
+                var rootDataWithHybridMatch = this._calculateHybridMatch(MPTreeDataCopy, hybridMatches);
 
                 this._buildHybridDOITree(rootDataWithHybridMatch);
          
@@ -4225,7 +4229,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
                     self._collapse(currentValue);
                 });
 
-                this._updateMPTree(this.state.MPTree.rootNode);    
+                this._updateMPTree(this.state.MPTree.rootNode);   
             } else {
                 var message = hpId + " is not in the mapping list...";
                 console.log(message);
@@ -4290,7 +4294,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
             var legendSpacing = 2;
 
             // Legend group
-            var legend = this.state.MPTree.treeGroup.selectAll('.legend')
+            var legendGrp = this.state.MPTree.treeGroup.selectAll('.legend')
                 .data(legendDataArr)
                 .enter()
                 .append('g')
@@ -4300,7 +4304,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
                 });
 
             // Legend rect
-            legend.append('rect')
+            legendGrp.append('rect')
                 .attr('x', 10)
                 .attr('y', function(d, i) {
                     return i * (legendRectSize + legendSpacing);
@@ -4312,7 +4316,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
                 });
 
             // Legend label text
-            legend.append('text')
+            legendGrp.append('text')
                 .attr('x', 10 + legendRectSize + 2)
                 .attr('y', function(d, i) {
                     return i * (legendRectSize + legendSpacing) + 10;
@@ -4447,7 +4451,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
             // Create root node label on left
             nodeEnter.filter((function(d) {
                     // Find the root node
-                    return (d.parent == null);
+                    return (d.parent === null);
                 }))
                 .append('text')
                 .attr("x", -12)
