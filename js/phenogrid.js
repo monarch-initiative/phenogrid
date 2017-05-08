@@ -185,6 +185,9 @@ var MPTreeData = require('../mp/mp_treemap.json');
                 {label: "Ratio (t)", calc: 3, high: "More Similar", low: "Less Similar"}
             ],
             HPTree: {
+                margin: {top: 20, right: 90, bottom: 20, left: 140},
+                containerWidth: 760,
+                containerHeight: 360,
                 svgId: null,
                 width: null,
                 height: null,
@@ -204,6 +207,9 @@ var MPTreeData = require('../mp/mp_treemap.json');
 				hasNoMatchLeafBgColor: "rgb(255, 255, 255)"
             },
             MPTree: {
+                margin: {top: 20, right: 90, bottom: 20, left: 140},
+                containerWidth: 760,
+                containerHeight: 360,
                 svgId: null,
                 width: null,
                 height: null,
@@ -3462,9 +3468,8 @@ var MPTreeData = require('../mp/mp_treemap.json');
             this.state.HPTree.svgId = this.state.pgContainerId + '_hp_tree';
 
             // Set the dimensions and margins of the diagram
-            var margin = {top: 20, right: 90, bottom: 20, left: 140};
-            this.state.HPTree.width = 960 - margin.left - margin.right;
-            this.state.HPTree.height = 400 - margin.top - margin.bottom;
+            this.state.HPTree.width = this.state.HPTree.containerWidth - this.state.HPTree.margin.left - this.state.HPTree.margin.right;
+            this.state.HPTree.height = this.state.HPTree.containerHeight - this.state.HPTree.margin.top - this.state.HPTree.margin.bottom;
 
             // Zooming
             var zoomed = function() {
@@ -3480,13 +3485,13 @@ var MPTreeData = require('../mp/mp_treemap.json');
             // appends a 'group' element to 'svg'
             // moves the 'group' element to the top left margin
             var svg = d3.select("#" + this.state.HPTree.svgId)
-                .attr("width", this.state.HPTree.width + margin.right + margin.left)
-                .attr("height", this.state.HPTree.height + margin.top + margin.bottom)
+                .attr("width", this.state.HPTree.width + this.state.HPTree.margin.right + this.state.HPTree.margin.left)
+                .attr("height", this.state.HPTree.height + this.state.HPTree.margin.top + this.state.HPTree.margin.bottom)
                 .call(zoom)
                 .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
 
             this.state.HPTree.treeGroup = svg.append("g")
-                .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
+                .attr("transform", "translate("+ this.state.HPTree.margin.left + "," + this.state.HPTree.margin.top + ")");
 
         },
 
@@ -4030,9 +4035,8 @@ var MPTreeData = require('../mp/mp_treemap.json');
             this.state.MPTree.svgId = this.state.pgContainerId + '_mp_tree';
 
             // Set the dimensions and margins of the diagram
-            var margin = {top: 20, right: 90, bottom: 20, left: 140};
-            this.state.MPTree.width = 960 - margin.left - margin.right;
-            this.state.MPTree.height = 400 - margin.top - margin.bottom;
+            this.state.MPTree.width = this.state.MPTree.containerWidth - this.state.MPTree.margin.left - this.state.MPTree.margin.right;
+            this.state.MPTree.height = this.state.MPTree.containerHeight - this.state.MPTree.margin.top - this.state.MPTree.margin.bottom;
 
             // Zooming
             var zoomed = function() {
@@ -4048,13 +4052,13 @@ var MPTreeData = require('../mp/mp_treemap.json');
             // appends a 'group' element to 'svg'
             // moves the 'group' element to the top left margin
             var svg = d3.select("#" + this.state.MPTree.svgId)
-                .attr("width", this.state.MPTree.width + margin.right + margin.left)
-                .attr("height", this.state.MPTree.height + margin.top + margin.bottom)
+                .attr("width", this.state.MPTree.width + this.state.MPTree.margin.right + this.state.MPTree.margin.left)
+                .attr("height", this.state.MPTree.height + this.state.MPTree.margin.top + this.state.MPTree.margin.bottom)
                 .call(zoom)
                 .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
 
             this.state.MPTree.treeGroup = svg.append("g")
-                .attr("transform", "translate("+ margin.left + "," + margin.top + ")");
+                .attr("transform", "translate("+ this.state.MPTree.margin.left + "," + this.state.MPTree.margin.top + ")");
 
             // Declares a tree layout and assigns the size
             this.state.MPTree.treeLayout = d3.tree()
