@@ -2046,7 +2046,7 @@ var MPTreeData = require('../mp/mp_tree.json');
                     }
                 });
                 
-                var remove = $('#' + this.state.pgInstanceId + '_remove_genotypes_' + id);
+                var remove = $('.pg_expand_genotype');
                 this._on(remove, {
                     "click": function(event) {
                         this._removeExpandedItems(id);
