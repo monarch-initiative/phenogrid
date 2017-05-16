@@ -186,7 +186,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
             ],
             HPTree: {
                 margin: {top: 20, right: 90, bottom: 20, left: 140},
-                containerWidth: 760,
+                containerWidth: 460,
                 containerHeight: 360,
                 svgId: null,
                 width: null,
@@ -208,7 +208,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
             },
             MPTree: {
                 margin: {top: 20, right: 90, bottom: 20, left: 140},
-                containerWidth: 760,
+                containerWidth: 460,
                 containerHeight: 360,
                 svgId: null,
                 width: null,
@@ -2026,8 +2026,13 @@ var MPTreeData = require('../mp/mp_treemap.json');
                 // Binds click event to the ontology tree expand icon - Joe
                 // _renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_expandOntology_HP_0001300" - Joe
                 var expandOntol_icon = $('#' + this.state.pgInstanceId + '_expandOntology_' + id);
+console.log(expandOntol_icon);
+console.log(id + "-------1111");
+
+
                 this._on(expandOntol_icon, {
                     "click": function(event) {
+                        console.log(id + "-------2222");
                         this._expandOntology(id);
                     }
                 });
@@ -2054,7 +2059,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
 
         _phenotypeTooltip: function(id, data) {
             var htmlContent = '';
-            
+
             // phenotype tooltip shows type, id, sum, frequency, and ontology expansion
             var tooltipType = (typeof(data.type) !== 'undefined' ? "<strong>" + Utils.capitalizeString(data.type) + ": </strong> " + this._encodeTooltipHref(data.type, id, data.label) + "<br>" : "");
             var ic = (typeof(data.IC) !== 'undefined' ? "<strong>IC:</strong> " + data.IC.toFixed(2)+"<br>" : "");
@@ -2081,7 +2086,7 @@ var MPTreeData = require('../mp/mp_treemap.json');
                     ontologyData += "<strong>Classification hierarchy:</strong>" + tree;
                 }
             }
-            
+
             if (expanded){
                 htmlContent += ontologyData;
             } else {
@@ -3220,7 +3225,6 @@ var MPTreeData = require('../mp/mp_treemap.json');
         _expandOntology: function(id) {
             // check to see if id has been cached
             var cache = this.state.dataLoader.checkOntologyCache(id);
-
             if (typeof(cache) === 'undefined') {
                 var cb = this._postExpandOntologyCB;
                 this.state.dataLoader.getOntology(id, this.state.ontologyDirection, this.state.ontologyDepth, cb, this);						
