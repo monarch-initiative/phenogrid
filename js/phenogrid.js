@@ -39,10 +39,10 @@ var htmlnotes = require('./htmlnotes.json');
 var images = require('./images.json');
 
 // HPO tree data
-var HPTreeData = require('../hp/hp_treemap.json');
+var HPTreeData = require('../hp/hp_tree.json');
 
 // MPO tree data
-var MPTreeData = require('../mp/mp_treemap.json');
+var MPTreeData = require('../mp/mp_tree.json');
 
 (function(factory) {
 	// If there is a variable named module and it has an exports property,
