@@ -297,6 +297,64 @@ window.onload = function() {
 </html>
 ```
 
+## Rendered HP Tree and Dynamic MP Tree
+
+We have two folders, `hp/` and `mp/`. Take a look at `hp/` for example.
+
+The `hp.owl` is downloaded from Ontobee. Then we used the jar from `/owl2vowl` to convert the corresponding owl file into a JSON file. For example:
+
+````
+java -jar owl2vowl/owl2vowl.jar -file hp/hp.owl
+````
+
+Then we parse the `hp.json` into a graph json file called `hp_graph.json` with the following command:
+
+````
+node hp_graph.js
+````
+
+And the graph json follows this structure:
+
+````
+{
+    "nodes": [
+        {
+            "id": "A"
+        },
+        {
+            "id": "B"
+        }
+    ],
+    "edges": [
+        {
+            "source": "A",
+            "target": "B"
+        }
+    ],
+    "tree": [
+        {
+            "id": "A",
+            "name": "Name of A",
+            "superClasses": [],
+            "subClasses": ["B"]
+        }
+    ]
+}
+````
+
+Then we created a tree hierarchy based on the `tree` structure of `hp_graph.json` using the following command:
+
+````
+node hp_tree.js
+````
+
+And this generated us a structure similar to the `flare.json`, but it's called `hp_tree.json` in this case.
+
+This process applies to the `mp/` folder as well.
+
+In the root directory of this project, you can see an HTML file called `hpotree.html`, and this file renders the HP tree and MP tree along with the Phenogrid grid rendering to show some interesting relationships.
+
+
 ## Configuration Parameters
 
 ### `serverURL`  string | required
