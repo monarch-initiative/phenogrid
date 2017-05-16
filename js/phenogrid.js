@@ -116,7 +116,7 @@ var images = require('./images.json');
             ontologyTreeAmounts: 1,	// Allows you to decide how many HPO Trees to render.  Once a tree hits the high-level parent, it will count it as a complete tree.  Additional branchs or seperate trees count as seperate items
                                 // [vaa12] DO NOT CHANGE UNTIL THE DISPLAY HPOTREE FUNCTIONS HAVE BEEN CHANGED. WILL WORK ON SEPERATE TREES, BUT BRANCHES MAY BE INACCURATE
             targetGroupItemExpandLimit: 5, // sets the limit for the number of genotype expanded on grid 
-            unstableTargetGroupItemPrefix: ['MONARCH:', '_:'], //https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
+            unstableTargetGroupItemPrefix: ['MONARCH:', '_:', ':.well-known'], //https://github.com/monarch-initiative/monarch-app/issues/1024#issuecomment-163733837
             colorDomains: [0, 0.2, 0.4, 0.6, 0.8, 1],
             colorRanges: [ // each color sets the stop color based on the stop points in colorDomains - Joe
                 'rgb(237,248,177)',
@@ -1961,12 +1961,15 @@ var images = require('./images.json');
             $("#" + this.state.pgInstanceId + "_tooltip_inner").html(retData);
 
             // For phenotype ontology tree 
+            // For phenotype ontology tree 
             if (data.type === 'phenotype') {
                 // https://api.jqueryui.com/jquery.widget/#method-_on
                 // Binds click event to the ontology tree expand icon - Joe
-                // _renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_expandOntology_HP_0001300" - Joe
+                // _renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_expandOntology_HP:0001300"
+
                 var expandOntol_icon = $('#' + this.state.pgInstanceId + '_expandOntology_' + id);
-                this._on(expandOntol_icon, {
+                // so we need to use $('.pg_expand_ontology') instead of the id selector (because : will be treated specially) - Joe
+                this._on($(".pg_expand_ontology"), {
                     "click": function(event) {
                         this._expandOntology(id);
                     }
@@ -1975,15 +1978,16 @@ var images = require('./images.json');
             
             // For genotype expansion
             if (data.type === 'gene') {
-                // In renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_insert_genotypes_MGI_98297" - Joe
-                var insert = $('#' + this.state.pgInstanceId + '_insert_genotypes_' + id);
+                // In renderTooltip(), the font awesome icon <i> element follows the form of id="this.state.pgInstanceId_insert_genotypes_MGI:98297"
+                // so we need to use $('.pg_expand_genotype') instead of the id selector (because : will be treated specially) - Joe
+                var insert = $('.pg_expand_genotype');
                 this._on(insert, {
                     "click": function(event) {
                         this._insertExpandedItems(id);
                     }
                 });
                 
-                var remove = $('#' + this.state.pgInstanceId + '_remove_genotypes_' + id);
+                var remove = $('.pg_expand_genotype');
                 this._on(remove, {
                     "click": function(event) {
                         this._removeExpandedItems(id);
