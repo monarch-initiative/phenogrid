@@ -3492,6 +3492,12 @@ var MPTreeData = require('../mp/mp_tree.json');
                 .call(zoom)
                 .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
 
+            // Adding title
+            svg.append("text")
+                .attr("x", 10)
+                .attr("y", 10)
+                .text("HP Tree");
+
             this.state.HPTree.treeGroup = svg.append("g")
                 .attr("transform", "translate("+ this.state.HPTree.margin.left + "," + this.state.HPTree.margin.top + ")");
 
@@ -4032,6 +4038,7 @@ var MPTreeData = require('../mp/mp_tree.json');
             this.state.pgInstanceId = this.element.attr('id');
             this.state.pgContainerId = this.state.pgInstanceId + '_container';
             this.state.treeContainer = $('<svg id="' + this.state.pgContainerId + '_mp_tree" class="hybrid_tree"></svg>');
+
             this.element.append(this.state.treeContainer);
 
             this.state.MPTree.svgId = this.state.pgContainerId + '_mp_tree';
@@ -4058,6 +4065,12 @@ var MPTreeData = require('../mp/mp_tree.json');
                 .attr("height", this.state.MPTree.height + this.state.MPTree.margin.top + this.state.MPTree.margin.bottom)
                 .call(zoom)
                 .on("dblclick.zoom", null); // This disables zoom in behavior caused by double click
+
+            // Adding title
+            svg.append("text")
+                .attr("x", 10)
+                .attr("y", 10)
+                .text("Dynamicly Generated MP Tree");
 
             this.state.MPTree.treeGroup = svg.append("g")
                 .attr("transform", "translate("+ this.state.MPTree.margin.left + "," + this.state.MPTree.margin.top + ")");
