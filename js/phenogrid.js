@@ -4070,7 +4070,7 @@ var MPTreeData = require('../mp/mp_tree.json');
             svg.append("text")
                 .attr("x", 10)
                 .attr("y", 10)
-                .text("Dynamicly Generated MP Tree");
+                .text("Dynamically Generated MP Tree");
 
             this.state.MPTree.treeGroup = svg.append("g")
                 .attr("transform", "translate("+ this.state.MPTree.margin.left + "," + this.state.MPTree.margin.top + ")");

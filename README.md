@@ -301,10 +301,10 @@ window.onload = function() {
 
 We have two folders, `hp/` and `mp/`. Take a look at `hp/` for example.
 
-The `hp.owl` is downloaded from Ontobee. Then we used the jar from `/owl2vowl` to convert the corresponding owl file into a JSON file. For example:
+The `hp.owl` is downloaded from Ontobee. Then we used (OWL2VOWL converter)[https://github.com/VisualDataWeb/OWL2VOWL] to convert the corresponding owl file into a JSON file. For example:
 
 ````
-java -jar owl2vowl/owl2vowl.jar -file hp/hp.owl
+java -jar owl2vowl.jar -file hp/hp.owl
 ````
 
 Then we parse the `hp.json` into a graph json file called `hp_graph.json` with the following command:
@@ -354,6 +354,7 @@ This process applies to the `mp/` folder as well.
 
 In the root directory of this project, you can see an HTML file called `hpotree.html`, and this file renders the HP tree and MP tree along with the Phenogrid grid rendering to show some interesting relationships.
 
+The generated HP tree shows the corresponding positions of the source phenotypes in the HPO tree hierarchy. This is more useful to identify the source phenotypes compared with just a plain list of phenotypes. And the MP tree next to the HP tree is dynamically generated based on the matching HP id. In the Phenogrid rendering, a given HP id has a matching list of mouse models, and these models along with the actual MP ids are rendered in this MP tree. This gives you another perspective to inspect the relationship.
 
 ## Configuration Parameters
 
