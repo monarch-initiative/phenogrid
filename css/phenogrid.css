@@ -332,7 +332,40 @@ color:#EA763B;
 }
 
 
+/* HPO tree */
+.hybrid_tree{
+font: 10px sans-serif;
+border:1px solid #ccc;
+margin:10px 20px;
+padding:10px 20px;
+float:left;
+}
 
+.node-group {
+cursor: pointer;
+}
+
+.node-circle,
+.node-hybrid,
+.node-rect {
+stroke: steelblue;
+stroke-width: 1.5px;
+}
+
+.node-label {
+font: 10px sans-serif;
+fill: #666;
+}
+
+.link {
+fill: none;
+stroke: #ddd;
+stroke-width: 1.5px;
+}
+
+.link-highlight{
+stroke: #ff4136;
+}
 
 
 
