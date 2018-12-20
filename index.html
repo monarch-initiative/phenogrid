@@ -196,9 +196,9 @@ var yAxis = [
         "term": "Broad thumb"
     }
 ];
-    
+
 // Use the same server URL
-var serverURL = "https://beta.monarchinitiative.org";
+var serverURL = "https://monarchinitiative.org";
 
 window.onload = function() {
     // Example 1, there are three groups that are loaded and each of them has simsearch matches.
@@ -220,7 +220,7 @@ window.onload = function() {
         ],
         "yAxis": yAxis
     };
-    
+
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL: serverURL,
         gridSkeletonData: data1
@@ -251,7 +251,7 @@ window.onload = function() {
         ],
         "yAxis": yAxis
     };
-    
+
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
         serverURL: serverURL,
         gridSkeletonData: data3
@@ -282,7 +282,7 @@ window.onload = function() {
             {id:"WBPhenotype:0000050"}
         ]
     };
-    
+
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
         serverURL: serverURL,
         gridSkeletonData: data4
@@ -311,12 +311,12 @@ window.onload = function() {
         ],
         "yAxis": yAxis
     };
-    
+
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container5'), {
         serverURL: serverURL,
         gridSkeletonData: data5
     });
-    
+
 }
 </script>
 
