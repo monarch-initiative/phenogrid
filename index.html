@@ -3,12 +3,27 @@
 <meta charset="UTF-8">
 <title>Monarch Phenotype Grid Widget</title>
 
+<!--
+The config file seems to be unused for this example.
+So I'm commenting it out unless things get weird.
+
 <script src="config/phenogrid_config.js"></script>
-<script src="dist/phenogrid-bundle.js"></script>
+ -->
+
+ <script src="dist/phenogrid-bundle.js"></script>
 
 <link rel="stylesheet" type="text/css" href="dist/phenogrid-bundle.css">
 
 <script>
+var params = new URLSearchParams(document.location.search.substring(1));
+var legacy = params.get('legacy');
+
+// Use the same server URL
+// var serverURL = "https://monarchinitiative.org";
+var serverURL = "https://api.monarchinitiative.org";
+if (legacy === '1') {
+    serverURL = "https://monarchinitiative.org";
+}
 // Shared yAxis data
 var yAxis = [
     {
@@ -196,11 +211,30 @@ var yAxis = [
         "term": "Broad thumb"
     }
 ];
-    
-// Use the same server URL
-var serverURL = "https://beta.monarchinitiative.org";
 
 window.onload = function() {
+/*
+    // Example DEBUG, we show that the BioLink /sim endpoint fails when
+    // a bunch of phenotypes are applied to the drosophila taxon.
+
+    var dataDebug = {
+        "title": "Fly model compared to Pfeiffer Syndrome (OMIM:101600)",
+        "xAxis": [
+            {
+                "groupId": "7227",
+                "groupName": "Drosophila melanogaster"
+            }
+        ],
+        "yAxis": yAxis
+    };
+
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
+        serverURL: serverURL,
+        gridSkeletonData: dataDebug
+    });
+    return;
+*/
+
     // Example 1, there are three groups that are loaded and each of them has simsearch matches.
     var data1 = {
         "title": "Human, Mouse and Fish models compared to Pfeiffer Syndrome (OMIM:101600)",
@@ -220,7 +254,7 @@ window.onload = function() {
         ],
         "yAxis": yAxis
     };
-    
+
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
         serverURL: serverURL,
         gridSkeletonData: data1
@@ -234,7 +268,7 @@ window.onload = function() {
 
     // Example 3, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
     var data3 = {
-        "title": "Human and Mouse models compared to Pfeiffer Syndrome (OMIM:101600)",
+        "title": "Human, Mouse, Fish models compared to Pfeiffer Syndrome (OMIM:101600)",
         "xAxis": [
             {
                 "groupId": "9606",
@@ -251,7 +285,7 @@ window.onload = function() {
         ],
         "yAxis": yAxis
     };
-    
+
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container3'), {
         serverURL: serverURL,
         gridSkeletonData: data3
@@ -282,7 +316,7 @@ window.onload = function() {
             {id:"WBPhenotype:0000050"}
         ]
     };
-    
+
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container4'), {
         serverURL: serverURL,
         gridSkeletonData: data4
@@ -290,7 +324,7 @@ window.onload = function() {
 
     // Example 5, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
     var data5 = {
-        "title": "Human, Mouse and Fish models compared to Pfeiffer Syndrome (OMIM:101600)",
+        "title": "Human, Mouse, Fish and Fly models compared to Pfeiffer Syndrome (OMIM:101600)",
         "xAxis": [
             {
                 "groupId": "9606",
@@ -311,14 +345,26 @@ window.onload = function() {
         ],
         "yAxis": yAxis
     };
-    
+
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container5'), {
         serverURL: serverURL,
         gridSkeletonData: data5
     });
-    
+
 }
 </script>
+
+<style>
+body {
+    padding: 10px;
+}
+
+.pg_container {
+    margin: 0;
+    padding: 0;
+}
+
+</style>
 
 </head>
 

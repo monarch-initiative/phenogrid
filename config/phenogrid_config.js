@@ -1,6 +1,5 @@
 var configoptions = {
-    serverURL: "https://beta.monarchinitiative.org",
+    serverURL: "https://monarchinitiative.org",
     selectedCalculation: 0,
     selectedSort: "Frequency"
 };
-         
