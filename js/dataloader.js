@@ -236,7 +236,7 @@ DataLoader.prototype = {
 	postFetch: function (url, target, targets, callback, postData) {
 		var self = this;
 
-        console.log('POST:' + url);
+        // console.log('POST:' + url);
 
         // Separate the ajax request with callbacks
         var jqxhr = $.ajax({
@@ -294,7 +294,7 @@ DataLoader.prototype = {
 	*/
 	transform: function(targetGroup, data) {      		
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
-			console.log("Transforming simsearch data of group: " + targetGroup);
+			// console.log("Transforming simsearch data of group: " + targetGroup);
 
             // sometimes the 'metadata' field might be missing from the JSON - Joe
 			// extract the maxIC score; ugh!

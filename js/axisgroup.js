@@ -299,7 +299,7 @@ AxisGroup.prototype = {
     getScale: function() {
 		var values = this.keys();
 		var scale = d3.scaleBand()
-					// .domain(values)
+					.domain(values)
 					.rangeRound([0, values.length]);
 		return scale;
     }

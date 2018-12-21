@@ -20,15 +20,62 @@
 
 // jquery  is commonsJS compliant as of 2.1.0 - Joe
 
-window.jQuery = window.$ = require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
-global.jQuery = global.$ = window.jQuery;
+var jQuery = require('jquery'); //  Browserify encapsulates every module into its own scope - Joe
+global.jQuery = global.$ = jQuery;
+global.jQueryUI = require('jquery-ui');
 
-window.jQueryUI = require('jquery-ui');
-console.log('jq/jqui', window.jQuery, window.jQueryUI);
+// require('jquery-ui/ui/core');
+// require('jquery-ui/ui/widget');
+require('jquery-ui/ui/widgets/button');
+require('jquery-ui/ui/widgets/menu');
+require('jquery-ui/ui/widgets/selectmenu');
+require('jquery-ui/ui/widgets/tabs');
+require('jquery-ui/ui/widgets/dialog');
+require('jquery-ui/ui/data');
+require('jquery-ui/ui/position');
+require('jquery-ui/ui/focusable');
+require('jquery-ui/ui/keycode');
+require('jquery-ui/ui/tabbable');
+require('jquery-ui/ui/safe-blur');
+require('jquery-ui/ui/unique-id');
+require('jquery-ui/ui/safe-active-element');
+require('jquery-ui/ui/widgets/tooltip');
 
-window.jQueryUIDialog = require('jquery-ui/ui/widgets/dialog');
+/*
 
-var d3 = window.d3 = require('d3');
+// require('jquery-ui/ui/core');
+// require('jquery-ui/ui/data');
+// require('jquery-ui/ui/disable-selection');
+// require('jquery-ui/ui/effect');
+// require('jquery-ui/ui/escape-selector');
+// require('jquery-ui/ui/focusable');
+// require('jquery-ui/ui/form-reset-mixin');
+// require('jquery-ui/ui/form');
+// require('jquery-ui/ui/keycode');
+// require('jquery-ui/ui/labels');
+// require('jquery-ui/ui/plugin');
+// require('jquery-ui/ui/position');
+// require('jquery-ui/ui/safe-active-element');
+// require('jquery-ui/ui/safe-blur');
+// require('jquery-ui/ui/scroll-parent');
+// require('jquery-ui/ui/tabbable');
+// require('jquery-ui/ui/unique-id');
+// require('jquery-ui/ui/widget');
+
+require('jquery-ui/ui/widgets/accordion');
+require('jquery-ui/ui/widgets/draggable');
+require('jquery-ui/ui/widgets/tooltip');
+require('jquery-ui/ui/widgets/button');
+require('jquery-ui/ui/widgets/menu');
+require('jquery-ui/ui/widgets/selectmenu');
+require('jquery-ui/ui/widgets/tabs');
+require('jquery-ui/ui/widgets/dialog');
+
+*/
+
+var d3 = require('d3');
+global.d3 = d3;
+
 var filesaver = require('file-saver');
 
 // load other non-npm dependencies - Joe
@@ -1488,7 +1535,6 @@ var images = require('./images.json');
             var xScale = this.state.xAxisRender.getScale();
 
             var xs = xScale(id);
-
             var gridRegion = this.state.gridRegion;
             var x = gridRegion.x + (xs * gridRegion.cellPad) + 5;  // magic number to make sure it goes through the middle of the cell
             var y = gridRegion.y + (ypos * gridRegion.cellPad) + 5;
@@ -2588,7 +2634,7 @@ var images = require('./images.json');
                 });
 
             $dialog.html(text);
-            // $dialog.dialog('open');
+            $dialog.dialog('open');
         },
 
         /*

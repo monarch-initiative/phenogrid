@@ -39,7 +39,27 @@ var config = {
         source: [
             './node_modules/normalize.css/normalize.css', 
             './node_modules/font-awesome/css/font-awesome.css', 
-            './node_modules/jquery-ui/themes/base/jquery-ui.css', // 'base' theme
+
+            './node_modules/jquery-ui/themes/base/core.css',
+            './node_modules/jquery-ui/themes/base/accordion.css',
+            './node_modules/jquery-ui/themes/base/autocomplete.css',
+            './node_modules/jquery-ui/themes/base/button.css',
+            './node_modules/jquery-ui/themes/base/checkboxradio.css',
+            './node_modules/jquery-ui/themes/base/controlgroup.css',
+            './node_modules/jquery-ui/themes/base/datepicker.css',
+            './node_modules/jquery-ui/themes/base/dialog.css',
+            './node_modules/jquery-ui/themes/base/draggable.css',
+            './node_modules/jquery-ui/themes/base/menu.css',
+            './node_modules/jquery-ui/themes/base/progressbar.css',
+            './node_modules/jquery-ui/themes/base/resizable.css',
+            './node_modules/jquery-ui/themes/base/selectable.css',
+            './node_modules/jquery-ui/themes/base/selectmenu.css',
+            './node_modules/jquery-ui/themes/base/sortable.css',
+            './node_modules/jquery-ui/themes/base/slider.css',
+            './node_modules/jquery-ui/themes/base/spinner.css',
+            './node_modules/jquery-ui/themes/base/tabs.css',
+            './node_modules/jquery-ui/themes/base/tooltip.css',
+            './node_modules/jquery-ui/themes/base/theme.css',
             './css/phenogrid.css'
         ],
         replace: {
