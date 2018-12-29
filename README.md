@@ -6,7 +6,7 @@
 
 ## About Phenogrid
 
-Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by [OWLSim](https://github.com/owlcollab/owltools), as provided through APIs from the [Monarch Initiative](http://monarchinitiative.org/).
+Phenogrid is a Javascript component that visualizes semantic similarity calculations provided by [OWLSim](https://github.com/owlcollab/owltools), as provided through APIs from the [Monarch Initiative](https://monarchinitiative.org/).
 
 Given an input list of phenotypes (you will see the sample input below) and parameters specified in config/phenogrid_config.js indicating desired source of matching models (humans, model organisms, etc.), the phenogrid will call the Monarch API to get OWLSim results and render them in your web browser in data visualization. And you may use the visualized data for your research.
 
@@ -281,7 +281,7 @@ var data = {
 window.onload = function() {
     // There are three species that are loaded and each of them has simsearch matches.
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container'), {
-        serverURL : "http://monarchinitiative.org",
+        serverURL : "https://monarchinitiative.org",
         gridSkeletonData: data
     });
 }
@@ -303,7 +303,7 @@ window.onload = function() {
 
 This URL should be pointed to the OWLSim URL server associated with your installation containing the Monarch web services. You have three options:
 - Use http://beta.monarchinitiative.org to connect to the development/test web services. This server is less stable than the production server.
-- Use http://monarchinitiative.org to connect to the stable, production version of the web services (better uptime)
+- Use https://monarchinitiative.org to connect to the stable, production version of the web services (better uptime)
 - If you are running the complete monarch-app, you can point it to http://localhost:8080, or whichever server/port you are using in your local installation.
 
 

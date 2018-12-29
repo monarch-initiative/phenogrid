@@ -3,12 +3,27 @@
 <meta charset="UTF-8">
 <title>Monarch Phenotype Grid Widget</title>
 
+<!--
+The config file seems to be unused for this example.
+So I'm commenting it out unless things get weird.
+
 <script src="config/phenogrid_config.js"></script>
-<script src="dist/phenogrid-bundle.js"></script>
+ -->
+
+ <script src="dist/phenogrid-bundle.js"></script>
 
 <link rel="stylesheet" type="text/css" href="dist/phenogrid-bundle.css">
 
 <script>
+let params = new URLSearchParams(document.location.search.substring(1));
+let legacy = params.get('legacy'); // is the string "Jonathan"
+
+// Use the same server URL
+// var serverURL = "https://monarchinitiative.org";
+var serverURL = "https://api.monarchinitiative.org";
+if (legacy === '1') {
+    serverURL = "https://monarchinitiative.org";
+}
 // Shared yAxis data
 var yAxis = [
     {
@@ -197,9 +212,6 @@ var yAxis = [
     }
 ];
 
-// Use the same server URL
-var serverURL = "https://monarchinitiative.org";
-
 window.onload = function() {
     // Example 1, there are three groups that are loaded and each of them has simsearch matches.
     var data1 = {
@@ -225,6 +237,7 @@ window.onload = function() {
         serverURL: serverURL,
         gridSkeletonData: data1
     });
+    return;
 
     // Example 2, Same as Example 1
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {

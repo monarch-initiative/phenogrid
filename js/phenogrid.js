@@ -145,15 +145,6 @@ var images = require('./images.json');
         // can not be overwritten from constructor
         internalOptions: {
             invertAxis: false,
-            simSearchQuery: { // HTTP POST
-                URL: '/simsearch/phenotype',
-                inputItemsString: 'input_items=', // HTTP POST, body parameter
-                targetSpeciesString: '&target_species=', // HTTP POST, body parameter
-                limitString: '&limit'
-            },
-            compareQuery: { // compare API takes HTTP GET, so no body parameters
-                URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
-            },
             monarchInitiativeText: 'Powered by The Monarch Initiative',
             unmatchedButtonLabel: 'Unmatched Phenotypes',
             optionsBtnText: 'Options',
@@ -338,7 +329,7 @@ var images = require('./images.json');
             this._parseTargetGroupList();
 
             // initialize data processing class for simsearch query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+            this.state.dataLoader = new DataLoader(this.state.serverURL, true);
 
             // starting loading the data from simsearch
             //optional parm: this.limit
@@ -358,7 +349,7 @@ var images = require('./images.json');
             this._parseTargetGroupList();
 
             // initialize data processing class for compare query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+            this.state.dataLoader = new DataLoader(this.state.serverURL, false);
 
             // starting loading the data from compare api
             // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
@@ -386,7 +377,7 @@ var images = require('./images.json');
             }
 
             // initialize data processing class for simsearch query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.simSearchQuery);
+            this.state.dataLoader = new DataLoader(this.state.serverURL, true);
 
             // starting loading the data from simsearch
             this.state.dataLoader.load(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.searchResultLimit);
@@ -404,7 +395,7 @@ var images = require('./images.json');
             this._parseTargetGroupList();
 
             // initialize data processing class for compare query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, this.state.compareQuery);
+            this.state.dataLoader = new DataLoader(this.state.serverURL, false);
 
             // starting loading the owlsim data from compare api for this vendor
             if (this._isCrossComparisonView()) {
@@ -3147,7 +3138,7 @@ var images = require('./images.json');
 
             // Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
             // so we need to fetch each label from the monarch-app server
-            // Sample output: http://monarchinitiative.org/phenotype/HP:0000746.json
+            // Sample output: https://monarchinitiative.org/phenotype/HP:0000746.json
             // Separate the ajax request with callbacks
             var jqxhr = $.ajax({
                 url: this.state.serverURL + "/phenotype/" + target + ".json",
@@ -3293,7 +3284,7 @@ var images = require('./images.json');
         },
 
         // this cb has all the matches info returned from the compare
-        // e.g., http://monarchinitiative.org/compare/:id1+:id2/:id3,:id4,...idN
+        // e.g., https://monarchinitiative.org/compare/:id1+:id2/:id3,:id4,...idN
         // parent refers to the global `this` and we have to pass it
         _insertExpandedItemsCb: function(results, id, parent, errorMsg) {
             console.log(results);

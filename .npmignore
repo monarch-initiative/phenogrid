@@ -1,11 +1,12 @@
 .travis.yml
 
 .jshintrc
+.eslintrc.js
 
 .gitignore
 
 tests/behave/lib
 tests/behave/bin
 tests/behave/lib64
-tests/behave/include 
+tests/behave/include
 tests/behave/ghostdriver.log
