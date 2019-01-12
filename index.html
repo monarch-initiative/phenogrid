@@ -212,45 +212,18 @@ var yAxis = [
     }
 ];
 
-// yAxis = yAxis.slice(0, 2);
-// console.log('yAxis', yAxis.length, yAxis);
-
-// yAxis = [
-//     {
-//         "id": "HP:0000618",
-//         "term": "aaa"
-//     },
-//     {
-//         "id": "HP:0002378",
-//         "term": "bbb"
-//     },
-//     {
-//         "id": "HP:0100742",
-//         "term": "ccc"
-//     }
-// ];
-
 window.onload = function() {
-    // Example DEBUG, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
+/*
+    // Example DEBUG, we show that the BioLink /sim endpoint fails when
+    // a bunch of phenotypes are applied to the drosophila taxon.
+
     var dataDebug = {
-        "title": "Human, Mouse, Fish and Fly models compared to Pfeiffer Syndrome (OMIM:101600)",
+        "title": "Fly model compared to Pfeiffer Syndrome (OMIM:101600)",
         "xAxis": [
-            // {
-            //     "groupId": "9606",
-            //     "groupName": "Homo sapiens"
-            // },
-            // {
-            //     "groupId": "10090",
-            //     "groupName": "Mus musculus"
-            // },
             {
-                "groupId": "7955",
-                "groupName": "Danio rerio"
-            },
-            // {
-            //     "groupId": "7227",
-            //     "groupName": "Drosophila melanogaster"
-            // }
+                "groupId": "7227",
+                "groupName": "Drosophila melanogaster"
+            }
         ],
         "yAxis": yAxis
     };
@@ -260,7 +233,7 @@ window.onload = function() {
         gridSkeletonData: dataDebug
     });
     return;
-
+*/
 
     // Example 1, there are three groups that are loaded and each of them has simsearch matches.
     var data1 = {
