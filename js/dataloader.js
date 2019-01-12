@@ -23,9 +23,10 @@ function isBioLinkServer(serverURL) {
 }
 
 function buildSearchQuery(useBioLink, inputItemsString, qrySourceList) {
-	console.log('buildSearchQuery', useBioLink, inputItemsString, qrySourceList);
+	// console.log('buildSearchQuery', useBioLink, inputItemsString, qrySourceList);
 	if (useBioLink) {
 	    var result = inputItemsString + qrySourceList.join("&id=");
+	    // console.log('bsq', inputItemsString, qrySourceList, result);
 	}
 	else {
 	    var result = inputItemsString + qrySourceList.join("+");
@@ -316,7 +317,7 @@ DataLoader.prototype = {
 		var self = this;
 
 	   	if (url.indexOf('https://api.monarchinitiative.org') === 0) {
-        	console.log('POST:', url, queryURL, target, targets, qryString);
+        	// console.log('POST:', url, queryURL, target, targets, qryString);
 		   	var getData = qryString + targetSpeciesString + targetGroupId;
 	        // Separate the ajax request with callbacks
 	        var jqxhr = $.ajax({
@@ -328,12 +329,12 @@ DataLoader.prototype = {
 	            dataType : 'json'
 	        });
 	        jqxhr.done(function(data) {
-	        	console.log('doneget', target, targets, data);
+	        	// console.log('doneget', target, targets, data);
 	            callback(self, target, targets, data);
 	        });
 
-	        jqxhr.fail(function () {
-	            console.log('Ajax error - postFetch()')
+	        jqxhr.fail(function(jqXHR, textStatus, errorThrown) {
+	            console.log('Ajax error - postFetch()', jqXHR, textStatus, errorThrown);
 	        });
 	   	}
 	   	else {
@@ -348,12 +349,12 @@ DataLoader.prototype = {
 	            dataType : 'json'
 	        });
 	        jqxhr.done(function(data) {
-	        	console.log('donepost', target, targets, data);
+	        	// console.log('donepost', target, targets, data);
 	            callback(self, target, targets, data);
 	        });
 
-	        jqxhr.fail(function () {
-	            console.log('Ajax error - postFetch()')
+	        jqxhr.fail(function(jqXHR, textStatus, errorThrown) {
+	            console.log('Ajax error - postFetch()', jqXHR, textStatus, errorThrown);
 	        });
 	   	}
 
@@ -365,18 +366,20 @@ DataLoader.prototype = {
 		Callback function for the post async ajax call
 	*/
 	postSimsFetchBioLinkCb: function(self, target, targetGrpList, data) {
-		console.log('postSimsFetchBioLinkCb', target, targetGrpList, data);
+		// console.log('postSimsFetchBioLinkCb', target, targetGrpList, data);
 
 		function legacyMatches(bioLinkMatches) {
 			return bioLinkMatches.map(function(e) {
 				var legacy = Object.assign({}, e);
-				legacy.matches = legacy.pairwise_match.map(function(m) {
-					return {
-						a: m.match,
-						b: m.reference,
+				legacy.matches = [];
+				legacy.pairwise_match.forEach(function(m) {
+					legacy.matches.push({
+						a: m.reference,
+						b: m.match,
 						lcs: m.lcs
-					};
+					});
 				});
+				delete legacy.pairwise_match;
 				return legacy;
 			});
 		}
@@ -413,7 +416,8 @@ DataLoader.prototype = {
 			b: legacyMatches(data.matches),
 			metadata: legacyMetadata
 		}
-		console.log('legacyData', legacyData);
+
+		// console.log('postSimsFetchBioLinkCb', target, targetGrpList, data, legacyData);
 
 		if (legacyData !== null || typeof(legacyData) !== 'undefined') {
 		    // legacyData.b contains all the matches, if not present, then no matches - Joe
@@ -432,6 +436,7 @@ DataLoader.prototype = {
 	},
 
 	postSimsFetchCb: function(self, target, targetGrpList, data) {
+		// console.log('postSimsFetchCb', target, targetGrpList, data);
 		if (data !== null || typeof(data) !== 'undefined') {
 		    // data.b contains all the matches, if not present, then no matches - Joe
             if (typeof(data.b) === 'undefined') {
@@ -462,6 +467,7 @@ DataLoader.prototype = {
 	 		data - owlsims structured data
 	*/
 	transform: function(targetGroup, data) {
+		// console.log('transform', targetGroup, data.a.length, data.b.length, this.sourceData);
 		if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 			// console.log("Transforming simsearch data of group: " + targetGroup);
 
@@ -486,7 +492,7 @@ DataLoader.prototype = {
                 this.sourceData[targetGroup] = {};
             }
 
-			var logged = false;
+			var logged = true;
 
 			for (var idx in data.b) {
 				var item = data.b[idx];
@@ -553,7 +559,6 @@ DataLoader.prototype = {
 							this.sourceData[targetGroup][sourceID_a].count += 1;
 							this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);
 						}
-
 						// building cell data points
 						dataVals = {
                             "source_id": sourceID_a,

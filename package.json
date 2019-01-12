@@ -24,12 +24,13 @@
     "lint": "eslint js/",
     "build": "gulp bundle",
     "devbuild": "gulp dev-bundle",
-    "buildandserve": "npm run devbuild && http-server -c-1"
+    "buildandserve": "npm run devbuild && http-server -c-1",
+    "pack": "npm run rmdsstore && npm run build && npm pack"
   },
   "dependencies": {
     "d3": "5.7.0",
     "font-awesome": "4.7.0",
-    "jquery": "3.3.1",
+    "jquery": "^3.3.1",
     "jquery-ui": "1.12.1",
     "normalize.css": "8.0.1"
   },

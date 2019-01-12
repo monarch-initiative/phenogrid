@@ -52,6 +52,7 @@ DataManager.prototype = {
 			array of objects
 	*/	
 	getData: function(dataset, targetGroup) {
+		// console.log('getData', dataset, targetGroup, this[dataset][targetGroup]);
         return this[dataset][targetGroup];
 	},
     

@@ -15,8 +15,8 @@ So I'm commenting it out unless things get weird.
 <link rel="stylesheet" type="text/css" href="dist/phenogrid-bundle.css">
 
 <script>
-let params = new URLSearchParams(document.location.search.substring(1));
-let legacy = params.get('legacy'); // is the string "Jonathan"
+var params = new URLSearchParams(document.location.search.substring(1));
+var legacy = params.get('legacy');
 
 // Use the same server URL
 // var serverURL = "https://monarchinitiative.org";
@@ -212,7 +212,56 @@ var yAxis = [
     }
 ];
 
+// yAxis = yAxis.slice(0, 2);
+// console.log('yAxis', yAxis.length, yAxis);
+
+// yAxis = [
+//     {
+//         "id": "HP:0000618",
+//         "term": "aaa"
+//     },
+//     {
+//         "id": "HP:0002378",
+//         "term": "bbb"
+//     },
+//     {
+//         "id": "HP:0100742",
+//         "term": "ccc"
+//     }
+// ];
+
 window.onload = function() {
+    // Example DEBUG, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
+    var dataDebug = {
+        "title": "Human, Mouse, Fish and Fly models compared to Pfeiffer Syndrome (OMIM:101600)",
+        "xAxis": [
+            // {
+            //     "groupId": "9606",
+            //     "groupName": "Homo sapiens"
+            // },
+            // {
+            //     "groupId": "10090",
+            //     "groupName": "Mus musculus"
+            // },
+            {
+                "groupId": "7955",
+                "groupName": "Danio rerio"
+            },
+            // {
+            //     "groupId": "7227",
+            //     "groupName": "Drosophila melanogaster"
+            // }
+        ],
+        "yAxis": yAxis
+    };
+
+    Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container1'), {
+        serverURL: serverURL,
+        gridSkeletonData: dataDebug
+    });
+    return;
+
+
     // Example 1, there are three groups that are loaded and each of them has simsearch matches.
     var data1 = {
         "title": "Human, Mouse and Fish models compared to Pfeiffer Syndrome (OMIM:101600)",
@@ -237,7 +286,6 @@ window.onload = function() {
         serverURL: serverURL,
         gridSkeletonData: data1
     });
-    return;
 
     // Example 2, Same as Example 1
     Phenogrid.createPhenogridForElement(document.getElementById('phenogrid_container2'), {
@@ -247,7 +295,7 @@ window.onload = function() {
 
     // Example 3, there are two species that are loaded and each of them has simsearch matches, but we only show one by default.
     var data3 = {
-        "title": "Human and Mouse models compared to Pfeiffer Syndrome (OMIM:101600)",
+        "title": "Human, Mouse, Fish models compared to Pfeiffer Syndrome (OMIM:101600)",
         "xAxis": [
             {
                 "groupId": "9606",
@@ -303,7 +351,7 @@ window.onload = function() {
 
     // Example 5, we have four species that we want to show their matches. But we only show two by default and one doesn't have any matches.
     var data5 = {
-        "title": "Human, Mouse and Fish models compared to Pfeiffer Syndrome (OMIM:101600)",
+        "title": "Human, Mouse, Fish and Fly models compared to Pfeiffer Syndrome (OMIM:101600)",
         "xAxis": [
             {
                 "groupId": "9606",
@@ -332,6 +380,18 @@ window.onload = function() {
 
 }
 </script>
+
+<style>
+body {
+    padding: 10px;
+}
+
+.pg_container {
+    margin: 0;
+    padding: 0;
+}
+
+</style>
 
 </head>
 

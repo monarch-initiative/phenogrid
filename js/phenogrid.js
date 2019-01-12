@@ -91,6 +91,21 @@ var htmlnotes = require('./htmlnotes.json');
 // images in data uri format, only monarch logo so far
 var images = require('./images.json');
 
+// From https://stackoverflow.com/a/47768164
+function getOffset(element)
+{
+    var bound = element.getBoundingClientRect();
+    var html = document.documentElement;
+
+    return {
+        top: bound.top + window.pageYOffset - html.clientTop,
+        left: bound.left + window.pageXOffset - html.clientLeft
+    };
+}
+
+function isBioLinkServer(serverURL) {
+    return serverURL.indexOf('https://api.monarchinitiative.org') === 0;
+}
 
 (function(factory) {
 	// If there is a variable named module and it has an exports property,
@@ -527,6 +542,8 @@ var images = require('./images.json');
             // update target axis group
             var targetAxisRenderStartPos = this.state.targetAxis.getRenderStartPos();
             var targetAxisRenderEndPos = this.state.targetAxis.getRenderEndPos();
+
+            console.log('targetaxis2', targetAxisRenderStartPos, targetAxisRenderEndPos, targetList);
             this.state.targetAxis = new AxisGroup(targetAxisRenderStartPos, targetAxisRenderEndPos, targetList);
 
             this._setAxisRenderers();
@@ -543,7 +560,6 @@ var images = require('./images.json');
             if (this._isCrossComparisonView()) {
                 // create a combined list of targets
                 sourceList = this.state.dataManager.createCombinedSourceList(this.state.selectedCompareTargetGroup);
-
                 // get the length of the sourceList, this sets that limit since we are in comparison mode
                 // only the multiTargetsModeTargetLengthLimit is set, which provides the overall display limit
                 this.state.sourceDisplayLimit = Object.keys(sourceList).length;
@@ -588,7 +604,6 @@ var images = require('./images.json');
                 this.state.targetTotalReturnedPerGroup = targetReturnedLength;
 
                 targetList = this.state.dataManager.createCombinedTargetList(this.state.selectedCompareTargetGroup, this.state.multiTargetsModeTargetLengthLimit);
-
                 // get the length of the targetlist, this sets that limit since we are in comparison mode
                 this.state.targetDisplayLimit = Object.keys(targetList).length;
             } else if (this.state.selectedCompareTargetGroup.length === 1) {
@@ -707,7 +722,8 @@ var images = require('./images.json');
 
             // calculate the button padding
             // whitespace size between left boundry to unmatched button, same as the options button to right boundry
-            this.state.btnPadding = this.state.gridRegion.x - $('#' + this.state.pgInstanceId + '_unmatched_btn').width() - this.state.gridRegion.rowLabelOffset;
+            var unmatchedButton = $('#' + this.state.pgInstanceId + '_unmatched_btn');
+            this.state.btnPadding = this.state.gridRegion.x - unmatchedButton.width() - this.state.gridRegion.rowLabelOffset;
 
             // Must after the this.state.btnPadding calculation since we use the padding to position the unmatched button - Joe
             this._positionUnmatchedSources();
@@ -1893,13 +1909,24 @@ var images = require('./images.json');
             // The .offset() method allows us to retrieve the current position of an element relative to the document.
             // get the position of the x/y label or cell where the mouse event happened
             // .offset() is a jquery method, so we need to use $(elem) - Joe
-            var pos = $(elem).offset();
+            // var jqElem = $(elem);
+            // var pos = jqElem.offset();
+            // pos = elem.getBoundingClientRect();
+            var pos = getOffset(elem);
+
             // position of the pg_container
             var pgContainerPos = this.state.pgContainer.offset();
             // Calculate the absolute x and y position of the tooltip,
             // otherwise, the tooltip will be incorrectly position when run phenogrid inside monarch-app - Joe
             var leftPos = pos.left - pgContainerPos.left;
             var topPos = pos.top - pgContainerPos.top;
+
+            // console.log('ttbug elem/jq', pos, elem, jqElem);
+            // console.log(jqElem.offset);
+            // console.log('ttbug',
+            //     elem.parentNode.id.indexOf('grid_row'),
+            //     elem.getBoundingClientRect(),
+            //     leftPos, topPos, pos.left, pos.top, pgContainerPos.left, pgContainerPos.top);
 
             // When we hover over a grid row (label text or grid cell), place the tooltip on the far right of the element
             if (elem.parentNode.id.indexOf('grid_row') > -1) {
@@ -3136,24 +3163,129 @@ var images = require('./images.json');
         _fetchUnmatchedLabel: function(target, targets, callback) {
             var self = this;
 
-            // Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
-            // so we need to fetch each label from the monarch-app server
-            // Sample output: https://monarchinitiative.org/phenotype/HP:0000746.json
-            // Separate the ajax request with callbacks
-            var jqxhr = $.ajax({
-                url: this.state.serverURL + "/phenotype/" + target + ".json",
-                async: true,
-                method: 'GET',
-                dataType: 'json'
-            });
+            if (isBioLinkServer(this.state.serverURL)) {
+                var fakeData =
+                {
+                  "iri": "http://purl.obolibrary.org/obo/HP_0000746",
+                  "labels": [
+                    "Delusions"
+                  ],
+                  "curie": "HP:0000746",
+                  "categories": [
+                    "Phenotype"
+                  ],
+                  "synonyms": [
+                    "Delusions"
+                  ],
+                  "acronyms": [],
+                  "abbreviations": [],
+                  "deprecated": false,
+                  "definitions": [
+                    "A belief that is pathological and is held despite evidence to the contrary."
+                  ],
+                  "id": "HP:0000746",
+                  "label": "Delusions",
+                  "database_cross_reference": [
+                    "SNOMEDCT_US:2073000",
+                    "UMLS:C0011253",
+                    "MSH:D003702"
+                  ],
+                  "isLeafNode": false,
+                  "relationships": [
+                    {
+                      "subject": {
+                        "id": "HP:0011999",
+                        "label": "Paranoia"
+                      },
+                      "property": {
+                        "id": "subClassOf",
+                        "label": "subClassOf"
+                      },
+                      "object": {
+                        "id": "HP:0000746",
+                        "label": "Delusions"
+                      },
+                      "source": "SciGraph"
+                    },
+                    {
+                      "subject": {
+                        "id": "HP:0000746",
+                        "label": "Delusions"
+                      },
+                      "property": {
+                        "id": "subClassOf",
+                        "label": "subClassOf"
+                      },
+                      "object": {
+                        "id": "HP:0000708",
+                        "label": "Behavioral abnormality"
+                      },
+                      "source": "SciGraph"
+                    },
+                    {
+                      "subject": {
+                        "id": "HP:0000746",
+                        "label": "Delusions"
+                      },
+                      "property": {
+                        "id": "subClassOf",
+                        "label": "subClassOf"
+                      },
+                      "object": {
+                        "id": "HP:0000708",
+                        "label": "Behavioral abnormality"
+                      },
+                      "source": "SciGraph"
+                    },
+                    {
+                      "subject": {
+                        "id": "HP:0000746",
+                        "label": "Delusions"
+                      },
+                      "property": {
+                        "id": "subClassOf",
+                        "label": "subClassOf"
+                      },
+                      "object": {
+                        "id": "NBO:0000603PHENOTYPE",
+                        "label": "delusion phenotype"
+                      },
+                      "source": "SciGraph"
+                    }
+                  ],
+                  "equivalentNodes": [],
+                  "equivalentClasses": [],
+                  "useWebpack": false,
+                  "bundleJS": [
+                    "/dist/app.bundle.js"
+                  ],
+                  "bundleCSS": [
+                    "/dist/app.bundle.css"
+                  ],
+                  "monarch_launchable": []
+                };
+                callback(this, target, targets, fakeData);
+            }
+            else {
+                // Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
+                // so we need to fetch each label from the monarch-app server
+                // Sample output: https://monarchinitiative.org/phenotype/HP:0000746.json
+                // Separate the ajax request with callbacks
+                var jqxhr = $.ajax({
+                    url: this.state.serverURL + "/phenotype/" + target + ".json",
+                    async: true,
+                    method: 'GET',
+                    dataType: 'json'
+                });
 
-            jqxhr.done(function(data) {
-                callback(self, target, targets, data); // callback needs self for reference to global this - Joe
-            });
+                jqxhr.done(function(data) {
+                    callback(self, target, targets, data); // callback needs self for reference to global this - Joe
+                });
 
-            jqxhr.fail(function () {
-                console.log('Ajax error - _fetchUnmatchedLabel()')
-            });
+                jqxhr.fail(function () {
+                    console.log('Ajax error - _fetchUnmatchedLabel()')
+                });
+            }
         },
 
         _formatUnmatchedSources: function(targetGrpList) {
