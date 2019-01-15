@@ -30,8 +30,7 @@ script:
   - "PGDIR=`pwd`"
   - "cd tests/behave"
   - "source env/bin/activate"
-  - "behave"
-  # - "TARGET=file://$PGDIR BROWSER=phantomjs behave"
+  - "TARGET=file://$PGDIR behave"
 
 # whitelist
 branches:
