@@ -81,5 +81,5 @@ def after_all(context):
 
 def before_scenario(context, scenario):
     context.browser.set_window_size(window_width, window_height)
-    time.sleep(1)
+    time.sleep(5)
     pass

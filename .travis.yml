@@ -34,7 +34,7 @@ script:
   - "PGDIR=`pwd`"
   - "cd tests/behave"
   - "source env/bin/activate"
-  - "TARGET=file://$PGDIR DRAFT=2 behave"
+  - "TARGET=file://$PGDIR DRAFT=3 behave"
 
 # whitelist
 branches:
