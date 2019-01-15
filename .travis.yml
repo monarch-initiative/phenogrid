@@ -8,7 +8,7 @@ node_js:
 before_install:
   - "sudo pip install --upgrade pip"
   - "sudo pip install selenium"
-  - "sudo pip install behave"
+  - "sudo pip install --ignore-installed behave"
 
 install:
   - "npm install"
