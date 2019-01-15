@@ -36,7 +36,7 @@ def before_all(context):
         context.browser = webdriver.PhantomJS()
         print("# Using PhantomJS")
     else:
-        pass # FF is default
+        context.browser = webdriver.Firefox()
 
         # print("# Using Firefox")
         # d = DesiredCapabilities.FIREFOX
