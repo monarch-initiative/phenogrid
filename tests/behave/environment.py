@@ -36,34 +36,36 @@ def before_all(context):
         context.browser = webdriver.PhantomJS()
         print("# Using PhantomJS")
     else:
-        print("# Using Firefox")
-        d = DesiredCapabilities.FIREFOX
-        d['marionette'] = True
-        # d['binary'] = '/Applications/Firefox.app/Contents/MacOS/firefox-bin'
-        d['loggingPrefs'] = {'browser': 'ALL', 'client': 'ALL', 'driver': 'ALL', 'performance': 'ALL', 'server': 'ALL'}
-        fp = webdriver.FirefoxProfile()
-        fp.set_preference('devtools.jsonview.enabled', False)
-        fp.set_preference('javascript.options.showInConsole', True)
-        fp.set_preference('browser.dom.window.dump.enabled', True)
-        fp.set_preference('devtools.chrome.enabled', True)
-        fp.set_preference("devtools.webconsole.persistlog", True)
+        pass # FF is default
 
-        fp.set_preference("devtools.browserconsole.filter.jslog", True)
-        fp.set_preference("devtools.browserconsole.filter.jswarn", True)
-        fp.set_preference("devtools.browserconsole.filter.error", True)
-        fp.set_preference("devtools.browserconsole.filter.warn", True)
-        fp.set_preference("devtools.browserconsole.filter.info", True)
-        fp.set_preference("devtools.browserconsole.filter.log", True)
+        # print("# Using Firefox")
+        # d = DesiredCapabilities.FIREFOX
+        # d['marionette'] = True
+        # # d['binary'] = '/Applications/Firefox.app/Contents/MacOS/firefox-bin'
+        # d['loggingPrefs'] = {'browser': 'ALL', 'client': 'ALL', 'driver': 'ALL', 'performance': 'ALL', 'server': 'ALL'}
+        # fp = webdriver.FirefoxProfile()
+        # fp.set_preference('devtools.jsonview.enabled', False)
+        # fp.set_preference('javascript.options.showInConsole', True)
+        # fp.set_preference('browser.dom.window.dump.enabled', True)
+        # fp.set_preference('devtools.chrome.enabled', True)
+        # fp.set_preference("devtools.webconsole.persistlog", True)
 
-        fp.set_preference("devtools.webconsole.filter.jslog", True)
-        fp.set_preference("devtools.webconsole.filter.jswarn", True)
-        fp.set_preference("devtools.webconsole.filter.error", True)
-        fp.set_preference("devtools.webconsole.filter.warn", True)
-        fp.set_preference("devtools.webconsole.filter.info", True)
-        fp.set_preference("devtools.webconsole.filter.log", True)
+        # fp.set_preference("devtools.browserconsole.filter.jslog", True)
+        # fp.set_preference("devtools.browserconsole.filter.jswarn", True)
+        # fp.set_preference("devtools.browserconsole.filter.error", True)
+        # fp.set_preference("devtools.browserconsole.filter.warn", True)
+        # fp.set_preference("devtools.browserconsole.filter.info", True)
+        # fp.set_preference("devtools.browserconsole.filter.log", True)
 
-        context.browser = webdriver.Firefox(capabilities=d, firefox_profile=fp, executable_path='/usr/local/bin/geckodriver')
-        context.browser._is_remote = False
+        # fp.set_preference("devtools.webconsole.filter.jslog", True)
+        # fp.set_preference("devtools.webconsole.filter.jswarn", True)
+        # fp.set_preference("devtools.webconsole.filter.error", True)
+        # fp.set_preference("devtools.webconsole.filter.warn", True)
+        # fp.set_preference("devtools.webconsole.filter.info", True)
+        # fp.set_preference("devtools.webconsole.filter.log", True)
+
+        # context.browser = webdriver.Firefox(capabilities=d, firefox_profile=fp, executable_path='/usr/local/bin/geckodriver')
+        # context.browser._is_remote = False
 
     # Set a 30 second implicit wait - http://selenium-python.readthedocs.org/en/latest/waits.html#implicit-waits
     # Once set, the implicit wait is set for the life of the WebDriver object instance.
