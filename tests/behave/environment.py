@@ -17,9 +17,12 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver import Firefox
 from selenium.webdriver.firefox.options import Options
 
-options = Options()
-options.add_argument('-headless')
-firefox = Firefox(firefox_options=options)
+window_width = 1200
+window_height = 825
+
+# options = Options()
+# options.add_argument('-headless')
+# firefox = Firefox(firefox_options=options)
 
 # Run this before anything else.
 def before_all(context):
@@ -75,3 +78,8 @@ def before_all(context):
 # Do this after completing everything.
 def after_all(context):
     context.browser.quit()
+
+def before_scenario(context, scenario):
+    context.browser.set_window_size(window_width, window_height)
+    time.sleep(1)
+    pass
