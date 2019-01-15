@@ -3,17 +3,17 @@ sudo: required
 language: node_js
 
 node_js:
-  - "0.12"
+  - "v8.12.0"
 
 before_install:
   - "sudo pip install --upgrade pip"
   - "sudo pip install selenium"
   - "sudo pip install behave"
-  
+
 install:
   - "npm install"
 
-script: 
+script:
   - "gulp bundle"
   - "gulp test"
   - "PGDIR=`pwd`"
