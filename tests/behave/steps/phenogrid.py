@@ -32,8 +32,8 @@ def step_impl(context, page):
 @given('I go to slow page "{page}" and wait for id "{id}"')
 def step_impl(context, page, id):
     context.browser.get(context.target + page)
-    time.sleep(10)
-    element = WebDriverWait(context.browser, 60).until(EC.presence_of_element_located((By.ID, id)))
+    # time.sleep(10)
+    element = WebDriverWait(context.browser, 30).until(EC.presence_of_element_located((By.ID, id)))
     # try:
     #     print(id)
     #     element = WebDriverWait(context.browser, 30).until(EC.presence_of_element_located((By.ID, id)))

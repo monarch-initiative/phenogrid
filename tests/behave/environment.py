@@ -79,7 +79,7 @@ def before_all(context):
 def after_all(context):
     context.browser.quit()
 
-def before_scenario(context, scenario):
-    context.browser.set_window_size(window_width, window_height)
-    time.sleep(5)
-    pass
+# def before_scenario(context, scenario):
+#     context.browser.set_window_size(window_width, window_height)
+#     time.sleep(5)
+#     pass
