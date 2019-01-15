@@ -20,10 +20,6 @@ from selenium.webdriver.firefox.options import Options
 window_width = 1200
 window_height = 825
 
-options = Options()
-options.add_argument('-headless')
-firefox = Firefox(firefox_options=options)
-
 # Run this before anything else.
 def before_all(context):
     print("context", context)
@@ -39,7 +35,9 @@ def before_all(context):
         context.browser = webdriver.PhantomJS()
         print("# Using PhantomJS")
     else:
-        context.browser = webdriver.Firefox()
+        options = Options()
+        options.add_argument('-headless')
+        context.browser = Firefox(firefox_options=options)
 
         # print("# Using Firefox")
         # d = DesiredCapabilities.FIREFOX
