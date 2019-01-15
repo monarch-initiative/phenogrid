@@ -12,8 +12,14 @@ import os
 import sys
 import time
 from selenium import webdriver
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+# from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+from selenium.webdriver import Firefox
+from selenium.webdriver.firefox.options import Options
+
+options = Options()
+options.add_argument('-headless')
+firefox = Firefox(firefox_options=options)
 
 # Run this before anything else.
 def before_all(context):
