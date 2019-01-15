@@ -24,10 +24,11 @@ install:
   - "npm install"
 
 script:
-  - "gulp bundle"
-  - "gulp test"
+  - "npx gulp bundle"
+  - "npx gulp test"
   - "PGDIR=`pwd`"
   - "cd tests/behave"
+  - "source env/bin/activate"
   - "behave"
   # - "TARGET=file://$PGDIR BROWSER=phantomjs behave"
 
