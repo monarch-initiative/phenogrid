@@ -2,13 +2,23 @@ sudo: required
 
 language: node_js
 
+env:
+  - MOZ_HEADLESS=1
+addons:
+  firefox: latest
+
 node_js:
   - "v8.12.0"
 
 before_install:
-  - "sudo pip install --upgrade pip"
-  - "sudo pip install selenium"
-  - "sudo pip install --ignore-installed behave"
+  - "cd tests/behave"
+  - "virtualenv env"
+  - "source env/bin/activate"
+  - "pip install selenium"
+  - "pip install --ignore-installed behave"
+  # - "sudo pip install --upgrade pip"
+  # - "sudo pip install selenium"
+  # - "sudo pip install --ignore-installed behave"
 
 install:
   - "npm install"
@@ -18,7 +28,8 @@ script:
   - "gulp test"
   - "PGDIR=`pwd`"
   - "cd tests/behave"
-  - "TARGET=file://$PGDIR BROWSER=phantomjs behave"
+  - "behave"
+  # - "TARGET=file://$PGDIR BROWSER=phantomjs behave"
 
 # whitelist
 branches:

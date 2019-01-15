@@ -2,7 +2,7 @@
 #
 # A set of basic steps.
 # https://selenium-python.readthedocs.org/
-# 
+#
 ##############################################################################
 
 from behave import *
@@ -10,7 +10,7 @@ try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
-    
+
 import time
 import datetime
 from selenium import webdriver
@@ -32,7 +32,7 @@ def step_impl(context, page):
 @given('I go to slow page "{page}" and wait for id "{id}"')
 def step_impl(context, page, id):
     context.browser.get(context.target + page)
-    #time.sleep(30)
+    time.sleep(10)
     element = WebDriverWait(context.browser, 60).until(EC.presence_of_element_located((By.ID, id)))
     # try:
     #     print(id)
@@ -41,7 +41,7 @@ def step_impl(context, page, id):
     #     print("FINALLY")
     #     #context.browser.quit()
 
-# Click 
+# Click
 @given('I click the "{id}"')
 def step_impl(context, id):
     webelt = context.browser.find_element_by_id(id)
@@ -63,7 +63,7 @@ def step_impl(context, text):
     radio_btn = context.browser.find_element_by_css_selector(target)
     radio_btn.click()
     context.browser.implicitly_wait(30)
-    
+
 # The document body should contain a certain piece of text.
 @then('the document should contain "{text}"')
 def step_impl(context, text):
@@ -82,7 +82,7 @@ def step_impl(context, id):
     webelt = context.browser.find_element_by_id(id)
     assert webelt.get_attribute('id') == id
 
-    
+
 # The document body should contain a hyperlink with text.
 @then('the document should contain link with "{text}"')
 def step_impl(context, text):
@@ -94,7 +94,7 @@ def step_impl(context, text):
         isFound = False
     assert isFound
 
-# A given id should contain a given piece of text/content. 
+# A given id should contain a given piece of text/content.
 # Not generably usable by non-dev test writers.
 @then('the id "{id}" should contain "{text}"')
 def step_impl(context, id, text):
