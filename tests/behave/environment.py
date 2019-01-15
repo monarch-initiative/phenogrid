@@ -20,9 +20,9 @@ from selenium.webdriver.firefox.options import Options
 window_width = 1200
 window_height = 825
 
-# options = Options()
-# options.add_argument('-headless')
-# firefox = Firefox(firefox_options=options)
+options = Options()
+options.add_argument('-headless')
+firefox = Firefox(firefox_options=options)
 
 # Run this before anything else.
 def before_all(context):
