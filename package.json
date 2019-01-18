@@ -17,6 +17,11 @@
   "bugs": {
     "url": "https://github.com/monarch-initiative/phenogrid/issues"
   },
+  "files": [
+    "dist/",
+    "js/",
+    "README.md"
+  ],
   "homepage": "https://github.com/monarch-initiative/phenogrid",
   "scripts": {
     "clean": "rm -rf dist/",

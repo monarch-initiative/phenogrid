@@ -71,8 +71,12 @@ var DataLoader = function(serverURL, useSimSearchQuery, limit) {
 	}
 	else {
 		if (useBioLink) {
-			this.simQuery = { // compare API takes HTTP GET, so no body parameters
-                URL: '/compare' // used for owlSimFunction === 'compare' and genotype expansion compare simsearch - Joe
+			//
+			// Not Yet Implemented
+			// Should use https://api.monarchinitiative.org/api/sim/compare
+			//
+			this.simQuery = { 
+                URL: '/BioLinkCompareEndpointNotUsedYet'
             };
 		}
 		else {
@@ -316,7 +320,7 @@ DataLoader.prototype = {
 	postFetch: function (url, queryURL, target, targets, callback, qryString, targetSpeciesString, targetGroupId) {
 		var self = this;
 
-	   	if (url.indexOf('https://api.monarchinitiative.org') === 0) {
+	   	if (isBioLinkServer('https://api.monarchinitiative.org')) {
         	// console.log('POST:', url, queryURL, target, targets, qryString);
 		   	var getData = qryString + targetSpeciesString + targetGroupId;
 	        // Separate the ajax request with callbacks
@@ -380,48 +384,28 @@ DataLoader.prototype = {
 					});
 				});
 				delete legacy.pairwise_match;
+				legacy.score = {
+					score: legacy.score
+				};
 				return legacy;
 			});
 		}
 
-		//
-		// Apparently, monarch-app has been returning
-		// the following hardcoded data from its endpoint, as
-		// provided by Analyze.js:
-		//  https://github.com/monarch-initiative/monarch-app/blob/master/js/Analyze.js#L440
-		//
-		// For now, we'll just add in the exact same (and likely bogus) data.
-		//
 		var legacyMetadata = {
-		    'maxSumIC': '6070.04276',
-		    'meanMaxIC': '10.42642',
-		    'meanMeanIC': '7.84354',
-		    'meanSumIC': '112.10397',
-		    'maxMaxIC': '14.87790',
-		    'meanN': '14.43013',
-		    'individuals': '26357',
-		    'metric_stats':
-		    {
-		        'metric': 'combinedScore',
-		        'maxscore': '100',
-		        'avgscore': '60',
-		        'stdevscore': '4.32',
-		        'comment': 'These stats are approximations for this release'
-		    }
+		    'maxMaxIC': data.metadata.max_max_ic	// '14.87790',
 		};
 		var legacyData = {
 			a: data.query.ids.map(function(i) {
 				return i.id;
 			}),
 			b: legacyMatches(data.matches),
-			metadata: legacyMetadata
-		}
-
-		// console.log('postSimsFetchBioLinkCb', target, targetGrpList, data, legacyData);
+			metadata: legacyMetadata,
+			ids: data.query.ids
+		};
 
 		if (legacyData !== null || typeof(legacyData) !== 'undefined') {
 		    // legacyData.b contains all the matches, if not present, then no matches - Joe
-            if (typeof(legacyData.b) === 'undefined') {
+            if (typeof(legacyData.b) === 'undefined' || legacyData.b.length === 0) {
                 // Add the group name to the groupsNoMatch array
                 self.groupsNoMatch.push(target.groupName);
             } else {
@@ -476,6 +460,9 @@ DataLoader.prototype = {
 			if (typeof (data.metadata) !== 'undefined') {
 				this.maxMaxIC = data.metadata.maxMaxIC;
 			}
+			if (typeof (data.ids) !== 'undefined') {
+				this.ids = data.ids;
+			}
 
             // just initialize the specific targetGroup
 
@@ -491,8 +478,6 @@ DataLoader.prototype = {
             if (typeof(this.sourceData[targetGroup]) === 'undefined') {
                 this.sourceData[targetGroup] = {};
             }
-
-			var logged = true;
 
 			for (var idx in data.b) {
 				var item = data.b[idx];
@@ -580,10 +565,6 @@ DataLoader.prototype = {
                         // No need to redefine this in transformNewTargetGroupItems() - Joe
 					    if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 							this.cellData[targetGroup][sourceID_a] = {};
-					    }
-					    if (!logged) {
-							console.log('cellData', targetGroup, sourceID_a, targetID, dataVals);
-							logged = true;
 					    }
 					 	this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 					}

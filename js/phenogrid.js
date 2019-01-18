@@ -2099,7 +2099,8 @@ function isBioLinkServer(serverURL) {
 
             if (expanded){
                 htmlContent += ontologyData;
-            } else {
+            }
+            else if (!isBioLinkServer(this.state.serverURL)) {
                 htmlContent += '<br><div class="pg_expand_ontology" id="' + this.state.pgInstanceId + '_expandOntology_' + id + '">Expand classification hierarchy<i class="pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer"></i></div>';
             }
 
@@ -3164,107 +3165,29 @@ function isBioLinkServer(serverURL) {
             var self = this;
 
             if (isBioLinkServer(this.state.serverURL)) {
-                var fakeData =
+                var ids = this.state.dataLoader.ids;
+                var targetEntry = ids.find(function(i) {
+                    return i.id === target;
+                });
+                var targetLabel = targetEntry ? targetEntry.label : target;
+
+                var labelData =
                 {
-                  "iri": "http://purl.obolibrary.org/obo/HP_0000746",
                   "labels": [
-                    "Delusions"
+                    targetLabel
                   ],
-                  "curie": "HP:0000746",
+                  "curie": target,
                   "categories": [
                     "Phenotype"
                   ],
                   "synonyms": [
-                    "Delusions"
+                    target
                   ],
-                  "acronyms": [],
-                  "abbreviations": [],
-                  "deprecated": false,
-                  "definitions": [
-                    "A belief that is pathological and is held despite evidence to the contrary."
-                  ],
-                  "id": "HP:0000746",
-                  "label": "Delusions",
-                  "database_cross_reference": [
-                    "SNOMEDCT_US:2073000",
-                    "UMLS:C0011253",
-                    "MSH:D003702"
-                  ],
-                  "isLeafNode": false,
-                  "relationships": [
-                    {
-                      "subject": {
-                        "id": "HP:0011999",
-                        "label": "Paranoia"
-                      },
-                      "property": {
-                        "id": "subClassOf",
-                        "label": "subClassOf"
-                      },
-                      "object": {
-                        "id": "HP:0000746",
-                        "label": "Delusions"
-                      },
-                      "source": "SciGraph"
-                    },
-                    {
-                      "subject": {
-                        "id": "HP:0000746",
-                        "label": "Delusions"
-                      },
-                      "property": {
-                        "id": "subClassOf",
-                        "label": "subClassOf"
-                      },
-                      "object": {
-                        "id": "HP:0000708",
-                        "label": "Behavioral abnormality"
-                      },
-                      "source": "SciGraph"
-                    },
-                    {
-                      "subject": {
-                        "id": "HP:0000746",
-                        "label": "Delusions"
-                      },
-                      "property": {
-                        "id": "subClassOf",
-                        "label": "subClassOf"
-                      },
-                      "object": {
-                        "id": "HP:0000708",
-                        "label": "Behavioral abnormality"
-                      },
-                      "source": "SciGraph"
-                    },
-                    {
-                      "subject": {
-                        "id": "HP:0000746",
-                        "label": "Delusions"
-                      },
-                      "property": {
-                        "id": "subClassOf",
-                        "label": "subClassOf"
-                      },
-                      "object": {
-                        "id": "NBO:0000603PHENOTYPE",
-                        "label": "delusion phenotype"
-                      },
-                      "source": "SciGraph"
-                    }
-                  ],
-                  "equivalentNodes": [],
-                  "equivalentClasses": [],
-                  "useWebpack": false,
-                  "bundleJS": [
-                    "/dist/app.bundle.js"
-                  ],
-                  "bundleCSS": [
-                    "/dist/app.bundle.css"
-                  ],
-                  "monarch_launchable": []
+                  "id": target,
+                  "label": targetLabel,
                 };
-                callback(this, target, targets, fakeData);
+
+                callback(this, target, targets, labelData);
             }
             else {
                 // Note: phenotype label is not in the unmatched array when this widget runs as a standalone app,
