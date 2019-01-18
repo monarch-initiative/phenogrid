@@ -8,18 +8,18 @@ var d3 = require('d3');
 
 	Namespace: phenogrid.axisgroup
 
- 	Constructor: AxisGroup 
+ 	Constructor: AxisGroup
 		an object routine that will wrap data required for axis rendering
 
  	Parameters:
 		renderStartPos - render starting position
 		renderEndPos - render end position
-		items - item list to use for the axis display 	
+		items - item list to use for the axis display
 */
 var AxisGroup = function(renderStartPos, renderEndPos, items)  {
 	this.renderStartPos = renderStartPos;
     this.renderEndPos = renderEndPos;
-    
+
     // remove all invisible genotypes
     for (var index in items) {
         if (items[index].type === 'genotype' && items[index].visible === false) {
@@ -30,7 +30,7 @@ var AxisGroup = function(renderStartPos, renderEndPos, items)  {
 };
 
 /*
- 	Class: AxisGroup 
+ 	Class: AxisGroup
 		an object routine that will wrap data required for axis rendering
 */
 AxisGroup.prototype = {
@@ -60,7 +60,7 @@ AxisGroup.prototype = {
 
 	 	Return:
 	 		position index
-	*/	
+	*/
 	getRenderEndPos: function() {
 		return this.renderEndPos;
 	},
@@ -68,12 +68,12 @@ AxisGroup.prototype = {
 		// don't let the postion go pass the max group size
 		if (position > this.groupLength()) {
 			position = this.groupLength();
-		}		
+		}
 		this.renderEndPos = position;
-	},	
+	},
 	/*
 		Function: itemAt
-			gets a single item at a specified index position within the rendered axisgroup 
+			gets a single item at a specified index position within the rendered axisgroup
 
 		Parameters:
 			index
@@ -89,13 +89,13 @@ AxisGroup.prototype = {
 
 	/*
 		Function: get
-			gets a single item element using a key from the axis 
-	
+			gets a single item element using a key from the axis
+
 		Parameters:
 			key
 		Returns:
 			item element
-	*/	
+	*/
 	get: function(key) {
 		return this.items[key];
 	},
@@ -106,7 +106,7 @@ AxisGroup.prototype = {
 
 		Return:
 			array of objects of items
-	*/	
+	*/
 	entries: function() {
 		var keys = Object.keys(this.items);
 		var a = [];
@@ -125,16 +125,16 @@ AxisGroup.prototype = {
 
 		Return:
 			array of objects of items
-	*/	
+	*/
 	getItems: function() {
 /*		if (typeof(this.items) !== 'undefined' && this.items != null) {
-			
-			
+
+
 			var a = this.items.map(function(d) { return d;} );
-			
+
 		 	return a.slice(this.renderStartPos, this.renderEndPos);
-		} 
-*/		
+		}
+*/
 		var keys = Object.keys(this.items);
 		var a = [];
 		// loop through only those that are rendered
@@ -143,19 +143,19 @@ AxisGroup.prototype = {
 			var el = this.items[key];
 			a[key] = el;
 		}
-		return a;		
+		return a;
 	},
-	
+
 	/*
 		Function: keys
 			returns a list of key (id) values
-	
+
 		Returns:
 			array of key ids
 	*/
 	keys: function () {
 		var renderedList = this.getItems();
-		return Object.keys(renderedList);	
+		return Object.keys(renderedList);
 	},
 
 	/*
@@ -164,7 +164,7 @@ AxisGroup.prototype = {
 
 		Return:
 			length
-	*/	    
+	*/
     displayLength: function() {
 		return (this.renderEndPos - this.renderStartPos);
     },
@@ -175,7 +175,7 @@ AxisGroup.prototype = {
 
 		Return:
 			length
-	*/	
+	*/
 	groupLength: function() {
     	return Object.keys(this.items).length;
 	},
@@ -183,7 +183,7 @@ AxisGroup.prototype = {
 	/*
 		Function: position
 			gets the relative position a key within the rendered or viewable range
-	
+
 		Parameters:
 			key - a key value to locate
 
@@ -191,7 +191,7 @@ AxisGroup.prototype = {
 			index value, -1 if item not found within rendered range
 	*/
 	position: function(key) {
-		var renderedList = this.keys(); 
+		var renderedList = this.keys();
 		return renderedList.indexOf(key);
 	},
 
@@ -201,7 +201,7 @@ AxisGroup.prototype = {
 
 		Return:
 			array
-	*/	
+	*/
 	groupIDs: function() {
 		return Object.keys(this.items);
 	},
@@ -211,7 +211,7 @@ AxisGroup.prototype = {
 
 		Return:
 			array of objects of items
-	*/	
+	*/
 	groupEntries: function() {
 		var keys = Object.keys(this.items);
 		var a = [];
@@ -226,14 +226,14 @@ AxisGroup.prototype = {
 
 	/*
 		Function: contains
-			determines if a item element is contained within the axis 
-	
+			determines if a item element is contained within the axis
+
 		Parameters:
 			key - key id to locate
 
 		Returns:
 			boolean
-	*/	
+	*/
 
 	contains: function(key) {
 		if (typeof(this.get(key)) != 'undefined') {
@@ -245,19 +245,19 @@ AxisGroup.prototype = {
 	},
     /*
 		Function: sort
-			sorts the data on the axis 
-	
+			sorts the data on the axis
+
 		Parameters:
 			by - specifies the the sort type
 
-	*/	
+	*/
     sort: function(by) {
     	var temp = this.groupEntries();
 
  		if (by === 'Frequency') {
 			//sortFunc = self._sortByFrequency;
 			//this.items.sort(function(a,b) {
-			temp.sort(function(a,b) {				
+			temp.sort(function(a,b) {
 				var diff = b.count - a.count;
 				if (diff === 0) {
 					diff = a.id.localeCompare(b.id);
@@ -266,13 +266,13 @@ AxisGroup.prototype = {
 			});
 		} else if (by === 'Frequency and Rarity') {
 			//this.items.sort(function(a,b) {
-			temp.sort(function(a,b) {				
+			temp.sort(function(a,b) {
 				return b.sum - a.sum;
 			});
 		} else if (by === 'Alphabetic') {
 			//this.items.sort(function(a,b) {
-			  temp.sort(function(a,b) {				
-				var labelA = a.label, 
+			  temp.sort(function(a,b) {
+				var labelA = a.label,
 				labelB = b.label;
 				if (labelA < labelB) {return -1;}
 				if (labelA > labelB) {return 1;}
@@ -290,17 +290,17 @@ AxisGroup.prototype = {
 
  	/*
 		Function: getScale
-			creates a d3 scale from the data on the axis 
-	
+			creates a d3 scale from the data on the axis
+
 		Parameters:
 			d3 scale
 
-	*/	
+	*/
     getScale: function() {
 		var values = this.keys();
-		var scale = d3.scale.ordinal()
+		var scale = d3.scaleBand()
 					.domain(values)
-					.rangeRoundBands([0, values.length]);
+					.rangeRound([0, values.length]);
 		return scale;
     }
 };
