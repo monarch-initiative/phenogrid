@@ -14,8 +14,8 @@
 		},
 	
 		normalizeIC: function(datarow, maxICScore){
-				var aIC = datarow.reference.IC;
-				var bIC = datarow.match.IC;
+				var aIC = datarow.a.IC;
+				var bIC = datarow.b.IC;
 				var lIC = datarow.lcs.IC;
 				var nic;
 	

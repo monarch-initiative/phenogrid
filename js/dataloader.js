@@ -187,6 +187,10 @@
 					self.groupsNoMatch.push(targetGroup);
 				} else {
 					// use 'compare' as the key of the named array
+					var legacyMetadata = {
+						'maxMaxIC': data.metadata.max_max_ic	// '14.87790',
+					};
+					data = self.mapBioLinkToLegacySchema(data, legacyMetadata);
 					self.transform(targetGroup, data);
 				}
 	
@@ -251,7 +255,7 @@
 				   var getData = qryString + targetSpeciesString + targetGroupId;
 				// Separate the ajax request with callbacks
 				var jqxhr = $.ajax({
-					url: url + queryURL,
+					url: "https://monarch-graph-sandbox.cgrb.oregonstate.edu"  + queryURL,
 					method: 'GET',
 					data: getData,
 					async : true,
@@ -290,6 +294,35 @@
 	
 		},
 	
+		mapBioLinkToLegacySchema(data, legacyMetadata){
+			return {
+				a: data.query.ids.map(function(i) {
+					return i.id;
+				}),
+				b: this.legacyMatches(data.matches),
+				metadata: legacyMetadata,
+				ids: data.query.ids
+			};
+		},
+	
+		legacyMatches(bioLinkMatches) {
+			return bioLinkMatches.map(function(e) {
+				var legacy = Object.assign({}, e);
+				legacy.matches = [];
+				legacy.pairwise_match.forEach(function(m) {
+					legacy.matches.push({
+						a: m.reference,
+						b: m.match,
+						lcs: m.lcs
+					});
+				});
+				delete legacy.pairwise_match;
+				legacy.score = {
+					score: legacy.score
+				};
+				return legacy;
+			});
+		},
 	
 		/*
 			Function: postSimsFetchBioLinkCb
@@ -298,36 +331,10 @@
 		postSimsFetchBioLinkCb: function(self, target, targetGrpList, data) {
 			// console.log('postSimsFetchBioLinkCb', target, targetGrpList, data);
 	
-			function legacyMatches(bioLinkMatches) {
-				return bioLinkMatches.map(function(e) {
-					var legacy = Object.assign({}, e);
-					legacy.matches = [];
-					legacy.pairwise_match.forEach(function(m) {
-						legacy.matches.push({
-							a: m.reference,
-							b: m.match,
-							lcs: m.lcs
-						});
-					});
-					delete legacy.pairwise_match;
-					legacy.score = {
-						score: legacy.score
-					};
-					return legacy;
-				});
-			}
-	
 			var legacyMetadata = {
 				'maxMaxIC': data.metadata.max_max_ic	// '14.87790',
 			};
-			var legacyData = {
-				a: data.query.ids.map(function(i) {
-					return i.id;
-				}),
-				b: legacyMatches(data.matches),
-				metadata: legacyMetadata,
-				ids: data.query.ids
-			};
+			var legacyData = self.mapBioLinkToLegacySchema(data, legacyMetadata);
 	
 			if (legacyData !== null || typeof(legacyData) !== 'undefined') {
 				// legacyData.b contains all the matches, if not present, then no matches - Joe
@@ -378,16 +385,16 @@
 		*/
 		transform: function(targetGroup, data) {
 			// console.log('transform', targetGroup, data.a.length, data.b.length, this.sourceData);
-			if (typeof(data) !== 'undefined' && typeof (data.matches) !== 'undefined') {
+			if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 				// console.log("Transforming simsearch data of group: " + targetGroup);
 	
 				// sometimes the 'metadata' field might be missing from the JSON - Joe
 				// extract the maxIC score; ugh!
 				if (typeof (data.metadata) !== 'undefined') {
-					this.maxMaxIC = data.metadata.max_max_ic;
+					this.maxMaxIC = data.metadata.maxMaxIC;
 				}
-				if (typeof (data.query.ids) !== 'undefined') {
-					this.ids = data.query.ids;
+				if (typeof (data.ids) !== 'undefined') {
+					this.ids = data.ids;
 				}
 	
 				// just initialize the specific targetGroup
@@ -405,8 +412,8 @@
 					this.sourceData[targetGroup] = {};
 				}
 	
-				for (var idx in data.matches) {
-					var item = data.matches[idx];
+				for (var idx in data.b) {
+					var item = data.b[idx];
 					var targetID = Utils.getConceptId(item.id);
 	
 					// this change addresses issue #253
@@ -432,7 +439,7 @@
 	
 					this.targetData[targetGroup][targetID] = targetVal;
 	
-					var matches = data.matches[idx].pairwise_match;
+					var matches = data.b[idx].matches;
 					var curr_row, lcs, dataVals;
 					var sourceID_a, currID_b, currID_lcs;
 					if (typeof(matches) !== 'undefined' && matches.length > 0) {
@@ -441,8 +448,8 @@
 							// via the least common subumser (lcs) match[i].lcs. - Joe
 							var sum = 0, count = 0;
 							curr_row = matches[matchIdx];
-							sourceID_a = Utils.getConceptId(curr_row.reference.id);
-							currID_b = Utils.getConceptId(curr_row.match.id);
+							sourceID_a = Utils.getConceptId(curr_row.a.id);
+							currID_b = Utils.getConceptId(curr_row.b.id);
 							currID_lcs = Utils.getConceptId(curr_row.lcs.id);
 	
 							// get the normalized IC
@@ -458,8 +465,8 @@
 								// create a new source object
 								dataVals = {
 									"id":sourceID_a,
-									"label": curr_row.reference.label,
-									"IC": parseFloat(curr_row.reference.IC),
+									"label": curr_row.a.label,
+									"IC": parseFloat(curr_row.a.IC),
 									"count": count,
 									"sum": sum,
 									"type": "phenotype"
@@ -476,14 +483,14 @@
 								"target_id": targetID,
 								"targetGroup": targetGroup,
 								"value": lcs,
-								"a_IC" : curr_row.reference.IC,
-								"a_label" : curr_row.reference.label,
+								"a_IC" : curr_row.a.IC,
+								"a_label" : curr_row.a.label,
 								"subsumer_id": currID_lcs,
 								"subsumer_label": curr_row.lcs.label,
 								"subsumer_IC": parseFloat(curr_row.lcs.IC),
 								"b_id": currID_b,
-								"b_label": curr_row.match.label,
-								"b_IC": parseFloat(curr_row.match.IC),
+								"b_label": curr_row.b.label,
+								"b_IC": parseFloat(curr_row.b.IC),
 								"type": 'cell'
 							};
 	
