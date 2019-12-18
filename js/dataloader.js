@@ -172,7 +172,7 @@
 			var self = this;
 	
 			var jqxhr = $.ajax({
-				url: "https://monarch-graph-sandbox.cgrb.oregonstate.edu" + "/api" + self.simQuery.URL,
+				url: this.serverURL + self.simQuery.URL,
 				method: 'POST',
 				data: JSON.stringify(postBody),
 				async : true,
@@ -255,7 +255,7 @@
 				   var getData = qryString + targetSpeciesString + targetGroupId;
 				// Separate the ajax request with callbacks
 				var jqxhr = $.ajax({
-					url: "https://monarch-graph-sandbox.cgrb.oregonstate.edu"  + queryURL,
+					url: url + queryURL,
 					method: 'GET',
 					data: getData,
 					async : true,
