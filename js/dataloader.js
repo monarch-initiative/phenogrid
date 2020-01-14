@@ -80,7 +80,7 @@
 		else {
 			if (useBioLink) {
 				this.simQuery = { 
-					URL: '/sim/compare'
+					URL: '/api/sim/compare'
 				};
 			}
 			else {
