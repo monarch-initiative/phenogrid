@@ -104,7 +104,8 @@ function getOffset(element)
 }
 
 function isBioLinkServer(serverURL) {
-    return serverURL.indexOf('https://api.monarchinitiative.org') === 0;
+    return serverURL.indexOf('https://api.monarchinitiative.org') === 0
+      || serverURL.indexOf('https://api-dev.monarchinitiative.org') === 0;
 }
 
 (function(factory) {
@@ -137,6 +138,7 @@ function isBioLinkServer(serverURL) {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {
             serverURL: "https://monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
+            appURL: "https://monarchinitiative.org", // For linking to term pages
             gridSkeletonData: {},
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
             selectedSort: "Frequency", // sort method of sources: "Alphabetic", "Frequency and Rarity", "Frequency"
@@ -2248,7 +2250,7 @@ function isBioLinkServer(serverURL) {
 
         // also encode the labels into html entities, otherwise they will mess up the tooltip content format
         _encodeTooltipHref: function(type, id, label) {
-            return '<a href="' + this.state.serverURL + '/' +  type + '/' + id + '" target="_blank">' + Utils.encodeHtmlEntity(label) + '</a>';
+            return '<a href="' + this.state.appURL + '/' +  type + '/' + id + '" target="_blank">' + Utils.encodeHtmlEntity(label) + '</a>';
         },
 
         // This builds the string to show the relations of the ontology nodes.  It recursively cycles through the edges and in the end returns the full visual structure displayed in the phenotype hover
@@ -2302,7 +2304,7 @@ function isBioLinkServer(serverURL) {
 
         // Based on the ID, it pulls the label from CacheLabels and creates a hyperlink that allows the user to go to the respective phenotype page
         _buildOntologyHyperLink: function(id){
-            return '<a href="' + this.state.serverURL + '/phenotype/' + id + '" target="_blank">' + this.state.dataManager.getOntologyLabel(id) + '</a>';
+            return '<a href="' + this.state.appURL + '/phenotype/' + id + '" target="_blank">' + this.state.dataManager.getOntologyLabel(id) + '</a>';
         },
 
         _createTargetGroupDividerLines: function() {
@@ -2787,7 +2789,7 @@ function isBioLinkServer(serverURL) {
                     }
                     // Now we have all the unmatched source labels to render
                     for (var j = 0; j< vendorDataUnmatchedSources.length; j++) {
-                        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + this.state.serverURL + '/phenotype/' + vendorDataUnmatchedSources[j].id + '" target="_blank">' + vendorDataUnmatchedSources[j].label + '</a></div>';
+                        var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + this.state.appURL + '/phenotype/' + vendorDataUnmatchedSources[j].id + '" target="_blank">' + vendorDataUnmatchedSources[j].label + '</a></div>';
                         $('#' + this.state.pgInstanceId + '_unmatched_list_data').append(pg_unmatched_list_item);
                     }
                 } else {
@@ -2969,7 +2971,7 @@ function isBioLinkServer(serverURL) {
                 .attr("width", 40)
                 .attr("height", 26)
                 .on('click', function() {
-                    window.open(self.state.serverURL, '_blank');
+                    window.open(self.state.appURL, '_blank');
                 });
 
             var recognitionGrpWidth = $("#" + this.state.pgInstanceId + "_recognition")[0].getBoundingClientRect().width;
@@ -3153,7 +3155,7 @@ function isBioLinkServer(serverURL) {
                 label = data.id;
             }
 
-            var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.serverURL + '/phenotype/' + data.id + '" target="_blank">' + label + '</a></div>';
+            var pg_unmatched_list_item = '<div class="pg_unmatched_list_item"><a href="' + self.state.appURL + '/phenotype/' + data.id + '" target="_blank">' + label + '</a></div>';
             $('#' + self.state.pgInstanceId + '_unmatched_list_data').append(pg_unmatched_list_item);
 
             // iterative back to process to make sure we processed all the targets
@@ -3195,7 +3197,7 @@ function isBioLinkServer(serverURL) {
                 // Sample output: https://monarchinitiative.org/phenotype/HP:0000746.json
                 // Separate the ajax request with callbacks
                 var jqxhr = $.ajax({
-                    url: this.state.serverURL + "/phenotype/" + target + ".json",
+                    url: this.state.appURL + "/phenotype/" + target + ".json",
                     async: true,
                     method: 'GET',
                     dataType: 'json'
@@ -3270,7 +3272,7 @@ function isBioLinkServer(serverURL) {
             parent.state.ontologyTreesDone = 0;
             parent.state.ontologyTreeHeight = 0;
             var info = parent._getAxisData(id);
-            var hrefLink = '<a href="' + parent.state.serverURL + '/phenotype/' + id + '" target="_blank">' + info.label + '</a>';
+            var hrefLink = '<a href="' + parent.state.appURL + '/phenotype/' + id + '" target="_blank">' + info.label + '</a>';
             var ontologyData = "<strong>Phenotype: </strong> " + hrefLink + "<br>";
             ontologyData += "<strong>IC:</strong> " + info.IC.toFixed(2) + "<br>";
             ontologyData += "<strong>Sum:</strong> " + info.sum.toFixed(2) + "<br>";
