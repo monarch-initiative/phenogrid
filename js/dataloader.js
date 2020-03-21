@@ -1,27 +1,28 @@
 (function () {
 	'use strict';
-	
+
 	var $ = require('jquery'); // Have to be 'jquery', can't use 'jQuery'
-	
+
 	var Utils = require('./utils.js');
-	
+
 	/*
 		 Package: dataloader.js
-	
+
 		 Class: DataLoader
 			  handles all loading of the data external
 			 servers, transformations.
-	
+
 		 Parameters:
 			 serverUrl - sim server url
 			 useSimSearchQuery - whether to perform compare (false) or search (true)
 			limit - cutoff number
 	 */
-	
+
 	function isBioLinkServer(serverURL) {
-		return serverURL.indexOf('https://api.monarchinitiative.org') === 0;
+		return serverURL.indexOf('https://api.monarchinitiative.org') === 0
+			|| serverURL.indexOf('https://api-dev.monarchinitiative.org') === 0;
 	}
-	
+
 	function buildSearchQuery(useBioLink, inputItemsString, qrySourceList) {
 		// console.log('buildSearchQuery', useBioLink, inputItemsString, qrySourceList);
 		if (useBioLink) {
@@ -32,7 +33,7 @@
 		}
 		return result;
 	}
-	
+
 	function buildCompareQuery(useBioLink, sourceList, compareList) {
 		if (useBioLink) {
 			//var result = "?is_feature_set=false&?ref_id=" + sourceList.join("&ref_id=") + "&query_id=" + compareList.join("&query_id=");
@@ -52,17 +53,17 @@
 		}
 		return result;
 	}
-	
+
 	// Define the DataLoader constructor using an object constructor function
 	var DataLoader = function(serverURL, useSimSearchQuery, limit) {
 		this.serverURL = serverURL;
 		var useBioLink = isBioLinkServer(serverURL);
-	
+
 		if (useSimSearchQuery) {
 			if (useBioLink) {
 				// https://api.monarchinitiative.org/api/sim/search?id=HP%3A0000006&id=HP%3A0000174&limit=100
 				this.simQuery = { // HTTP POST
-					URL: '/api/sim/search',
+					URL: 'sim/search',
 					inputItemsString: 'id=', // HTTP POST, body parameter
 					targetSpeciesString: '&taxon=', // HTTP POST, body parameter
 					limitString: '&limit'
@@ -79,8 +80,8 @@
 		}
 		else {
 			if (useBioLink) {
-				this.simQuery = { 
-					URL: '/api/sim/compare'
+				this.simQuery = {
+					URL: 'sim/compare'
 				};
 			}
 			else {
@@ -89,7 +90,7 @@
 				};
 			}
 		}
-	
+
 		this.qryString = '';
 		this.groupsNoMatch = []; // contains group names that don't have simsearch matches
 		this.limit = limit;
@@ -104,16 +105,16 @@
 		this.loadedNewTargetGroupItems = {}; // named array, no need to specify group since each gene ID is unique
 		this.postDataLoadCallback = '';
 	};
-	
+
 	// Add methods to DataLoader.prototype
 	DataLoader.prototype = {
 		constructor: DataLoader,
-	
+
 		/*
 			Function: load
-	
+
 				fetch and load data from external source (i.e., owlsims)
-	
+
 			Parameters:
 				sourceList - list of source items to query
 				targetGroupList - list of targetGroups, array
@@ -123,31 +124,31 @@
 			// save the original source listing
 			// The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 			this.origSourceList = sourceList;
-	
+
 			var useBioLink = isBioLinkServer(this.serverURL);
 			// this.qryString = this.simQuery.inputItemsString + qrySourceList.join("+");
 			this.qryString = buildSearchQuery(
 				useBioLink,
 				this.simQuery.inputItemsString,
 				sourceList);
-	
+
 			// limit is used in analyze/phenotypes search mode
 			// can also be used in general simsearch query - Joe
 			if (typeof(limit) !== 'undefined') {
 				this.qryString += this.simQuery.limitString + limit;
 			}
-	
+
 			this.postDataLoadCallback = asyncDataLoadingCallback;
-	
+
 			// begin processing
 			this.process(compareList, this.qryString);
 		},
-	
+
 		/*
 			Function: loadCompareData
-	
+
 				fetch and load data from the monarch compare api
-	
+
 			Parameters:
 				qrySourceList - list of source items to query
 				compareList - list of compare items to query
@@ -155,22 +156,22 @@
 		*/
 		loadCompareData: function(targetGroup, sourceList, compareList, asyncDataLoadingCallback) {
 			this.postDataLoadCallback = asyncDataLoadingCallback;
-	
+
 			// save the original source listing
 			// The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 			this.origSourceList = sourceList;
-	
+
 			// example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
 			// this.qryString = this.serverURL + this.simQuery.URL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
-			
+
 			var useBioLink = isBioLinkServer(this.serverURL);
 			var postBody = buildCompareQuery(
 				useBioLink,
 				sourceList,
 				compareList);
-	
+
 			var self = this;
-	
+
 			var jqxhr = $.ajax({
 				url: this.serverURL + self.simQuery.URL,
 				method: 'POST',
@@ -179,7 +180,7 @@
 				dataType : 'json',
 				contentType: "application/json",
 			});
-	
+
 			jqxhr.done(function(data) {
 				// sometimes the compare api doesn't find any matches, we need to stop here - Joe
 				if (typeof (data.matches) === 'undefined') {
@@ -193,20 +194,20 @@
 					data = self.mapBioLinkToLegacySchema(data, legacyMetadata);
 					self.transform(targetGroup, data);
 				}
-	
+
 				self.postDataLoadCallback();
 			});
-	
+
 			jqxhr.fail(function () {
 				console.log('Ajax error - loadCompareData()')
 			});
 		},
-	
+
 		/*
 			Function: process
-	
+
 				process routine being async query to load data from external source (i.e., owlsims)
-	
+
 			Parameters:
 				targetGrpList - list of target Group items (i.e., group)
 				qryString - query list url parameters, which includes list of sources
@@ -215,14 +216,14 @@
 			if (targetGrpList.length > 0) {
 				var target = targetGrpList[0];  // pull off the first to start processing
 				targetGrpList = targetGrpList.slice(1);
-	
+
 				// // need to add on target targetGroup groupId
 				// var postData = qryString + this.simQuery.targetSpeciesString + target.groupId;
 				var isBioLink = isBioLinkServer(this.serverURL);
 				var postFetchCallback = isBioLink ?
 					this.postSimsFetchBioLinkCb :
 					this.postSimsFetchCb;
-	
+
 				this.postFetch(
 					this.serverURL,
 					this.simQuery.URL,
@@ -236,11 +237,11 @@
 				this.postDataLoadCallback();  // make a call back to post data init function
 			}
 		},
-	
+
 		/*
 			Function: postFetch
 				 generic ajax call for all POST queries
-	
+
 			 Parameters:
 				 url - server url
 				 target - some target e.g., id
@@ -250,9 +251,10 @@
 		*/
 		postFetch: function (url, queryURL, target, targets, callback, qryString, targetSpeciesString, targetGroupId) {
 			var self = this;
-	
-			   if (isBioLinkServer('https://api.monarchinitiative.org')) {
-				   var getData = qryString + targetSpeciesString + targetGroupId;
+			var useBioLink = isBioLinkServer(url);
+
+			if (useBioLink) {
+				var getData = qryString + targetSpeciesString + targetGroupId;
 				// Separate the ajax request with callbacks
 				var jqxhr = $.ajax({
 					url: url + queryURL,
@@ -266,7 +268,7 @@
 					// console.log('doneget', target, targets, data);
 					callback(self, target, targets, data);
 				});
-	
+
 				jqxhr.fail(function(jqXHR, textStatus, errorThrown) {
 					console.log('Ajax error - postFetch()', jqXHR, textStatus, errorThrown);
 				});
@@ -286,14 +288,14 @@
 					// console.log('donepost', target, targets, data);
 					callback(self, target, targets, data);
 				});
-	
+
 				jqxhr.fail(function(jqXHR, textStatus, errorThrown) {
 					console.log('Ajax error - postFetch()', jqXHR, textStatus, errorThrown);
 				});
 			   }
-	
+
 		},
-	
+
 		mapBioLinkToLegacySchema(data, legacyMetadata){
 			return {
 				a: data.query.ids.map(function(i) {
@@ -304,7 +306,7 @@
 				ids: data.query.ids
 			};
 		},
-	
+
 		legacyMatches(bioLinkMatches) {
 			return bioLinkMatches.map(function(e) {
 				var legacy = Object.assign({}, e);
@@ -323,19 +325,19 @@
 				return legacy;
 			});
 		},
-	
+
 		/*
 			Function: postSimsFetchBioLinkCb
 			Callback function for the post async ajax call
 		*/
 		postSimsFetchBioLinkCb: function(self, target, targetGrpList, data) {
 			// console.log('postSimsFetchBioLinkCb', target, targetGrpList, data);
-	
+
 			var legacyMetadata = {
 				'maxMaxIC': data.metadata.max_max_ic	// '14.87790',
 			};
 			var legacyData = self.mapBioLinkToLegacySchema(data, legacyMetadata);
-	
+
 			if (legacyData !== null || typeof(legacyData) !== 'undefined') {
 				// legacyData.b contains all the matches, if not present, then no matches - Joe
 				if (typeof(legacyData.b) === 'undefined' || legacyData.b.length === 0) {
@@ -351,7 +353,7 @@
 			// iterative back to process to make sure we processed all the targetGrpList
 			self.process(targetGrpList, self.qryString);
 		},
-	
+
 		postSimsFetchCb: function(self, target, targetGrpList, data) {
 			// console.log('postSimsFetchCb', target, targetGrpList, data);
 			if (data !== null || typeof(data) !== 'undefined') {
@@ -369,17 +371,17 @@
 			// iterative back to process to make sure we processed all the targetGrpList
 			self.process(targetGrpList, self.qryString);
 		},
-	
+
 		/*
 			Function: transform
-	
+
 				transforms data from raw owlsims into simplified format
-	
+
 				 For a given model, extract the sim search data including IC scores and the triple:
 				The a column, b column, and lowest common subsumer for the triple's IC score, use the LCS score
-	
+
 			 Parameters:
-	
+
 				 targetGroup - targetGroup name
 				 data - owlsims structured data
 		*/
@@ -387,7 +389,7 @@
 			// console.log('transform', targetGroup, data.a.length, data.b.length, this.sourceData);
 			if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 				// console.log("Transforming simsearch data of group: " + targetGroup);
-	
+
 				// sometimes the 'metadata' field might be missing from the JSON - Joe
 				// extract the maxIC score; ugh!
 				if (typeof (data.metadata) !== 'undefined') {
@@ -396,9 +398,9 @@
 				if (typeof (data.ids) !== 'undefined') {
 					this.ids = data.ids;
 				}
-	
+
 				// just initialize the specific targetGroup
-	
+
 				// Here we don't reset the cellData, targetData, and sourceData every time,
 				// because we want to append the genotype expansion data - Joe
 				// No need to redefine this in transformNewTargetGroupItems() - Joe
@@ -411,11 +413,11 @@
 				if (typeof(this.sourceData[targetGroup]) === 'undefined') {
 					this.sourceData[targetGroup] = {};
 				}
-	
+
 				for (var idx in data.b) {
 					var item = data.b[idx];
 					var targetID = Utils.getConceptId(item.id);
-	
+
 					// this change addresses issue #253
 					var species = item.taxon.label;
 					if (!species || species === "Not Specified") {
@@ -431,14 +433,14 @@
 						"rank": parseInt(idx)+1,  // start with 1 not zero
 						"score": item.score.score
 					};
-	
+
 					// We need to define this here since the targetID is newly added here, doesn't exist before - Joe
 					if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
 						this.targetData[targetGroup][targetID] = {};
 					}
-	
+
 					this.targetData[targetGroup][targetID] = targetVal;
-	
+
 					var matches = data.b[idx].matches;
 					var curr_row, lcs, dataVals;
 					var sourceID_a, currID_b, currID_lcs;
@@ -451,17 +453,17 @@
 							sourceID_a = Utils.getConceptId(curr_row.a.id);
 							currID_b = Utils.getConceptId(curr_row.b.id);
 							currID_lcs = Utils.getConceptId(curr_row.lcs.id);
-	
+
 							// get the normalized IC
 							lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
-	
+
 							var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
-	
+
 							// build a unique list of sources
 							if (typeof(srcElement) === 'undefined') {
 								count++;
 								sum += parseFloat(curr_row.lcs.IC);
-	
+
 								// create a new source object
 								dataVals = {
 									"id":sourceID_a,
@@ -471,7 +473,7 @@
 									"sum": sum,
 									"type": "phenotype"
 								};
-	
+
 								this.sourceData[targetGroup][sourceID_a] = dataVals;
 							} else {
 								this.sourceData[targetGroup][sourceID_a].count += 1;
@@ -493,7 +495,7 @@
 								"b_IC": parseFloat(curr_row.b.IC),
 								"type": 'cell'
 							};
-	
+
 							// we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error
 							// No need to redefine this in transformNewTargetGroupItems() - Joe
 							if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
@@ -505,37 +507,37 @@
 				}
 			}
 		},
-	
+
 		/*
 			Function: transformNewTargetGroupItems
-	
+
 				transforms data from raw owlsims into simplified format
-	
+
 				 For a given model, extract the sim search data including IC scores and the triple:
 				The a column, b column, and lowest common subsumer for the triple's IC score, use the LCS score
-	
+
 			 Parameters:
-	
+
 				 targetGroup - targetGroup name
 				 data - owlsims structured data
 				parentGeneID - the parent gene ID that these genotypes are associated with
 		*/
 		transformNewTargetGroupItems: function(targetGroup, data, parentGeneID) {
 			if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
-	
+
 				console.log("transforming genotype data...");
-	
+
 				// extract the maxIC score; ugh!
 				if (typeof (data.metadata) !== 'undefined') {
 					this.maxMaxIC = data.metadata.max_max_ic;
 				}
-	
+
 				// no need to initialize the specific targetGroup
 				// since they should've been set
 				for (var idx in data.b) {
 					var item = data.b[idx];
 					var targetID = Utils.getConceptId(item.id);
-	
+
 					// build the target list
 					var targetVal = {
 						"id":targetID,
@@ -548,14 +550,14 @@
 						"score": item.score.score,
 						"visible": true // set all newly added genotypes as visible, and update this when removing them from axis - Joe
 					};
-	
+
 					// We need to define this again here since the targetID is newly added here, doesn't exist before - Joe
 					if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
 						this.targetData[targetGroup][targetID] = {};
 					}
-	
+
 					this.targetData[targetGroup][targetID] = targetVal;
-	
+
 					var matches = data.b[idx].matches;
 					var curr_row, lcs, dataVals;
 					var sourceID_a, currID_b, currID_lcs;
@@ -566,21 +568,21 @@
 							sourceID_a = Utils.getConceptId(curr_row.a.id);
 							currID_b = Utils.getConceptId(curr_row.b.id);
 							currID_lcs = Utils.getConceptId(curr_row.lcs.id);
-	
+
 							// get the normalized IC
 							lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
-	
+
 							if(typeof(this.sourceData[targetGroup]) === 'undefined') {
 								this.sourceData[targetGroup] = {};
 							}
-	
+
 							var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
-	
+
 							// build a unique list of sources
 							if (typeof(srcElement) === 'undefined') {
 								count++;
 								sum += parseFloat(curr_row.lcs.IC);
-	
+
 								// create a new source object
 								dataVals = {
 									"id":sourceID_a,
@@ -590,13 +592,13 @@
 									"sum": sum,
 									"type": "phenotype"
 								};
-	
+
 								this.sourceData[targetGroup][sourceID_a] = dataVals;
 							} else {
 								this.sourceData[targetGroup][sourceID_a].count += 1;
 								this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);
 							}
-	
+
 							// building cell data points
 							dataVals = {
 								"source_id": sourceID_a,
@@ -615,39 +617,39 @@
 								"b_IC": parseFloat(curr_row.b.IC),
 								"type": 'cell'
 							};
-	
+
 							// We need to define this here since we may have new matches for existing phenotypes which wasn't in the cellData before - Joe
 							if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 								this.cellData[targetGroup][sourceID_a] = {};
 							}
-	
+
 							 this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 						}
 					}  //if
 				} // for
 			} // if
 		},
-	
+
 		loadCompareDataForVendor: function(qrySourceList, targetGroupList, asyncDataLoadingCallback, multiTargetsModeTargetLengthLimit) {
 			// save the original source listing
 			// The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 			this.origSourceList = qrySourceList;
-	
+
 			// use the default comma to separate each list into each genotype profile
 			// example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP+MP+MP,MP+MP,MP+MP+MP+MP...
 			this.qryString = this.serverURL + this.simQuery.URL + '/' + qrySourceList.join("+") + '/';
 			this.postDataLoadCallback = asyncDataLoadingCallback;
-	
+
 			// begin processing
 			this.processDataForVendor(targetGroupList, this.qryString, multiTargetsModeTargetLengthLimit);
 		},
-	
+
 		processDataForVendor: function(targetGrpList, qryString, multiTargetsModeTargetLengthLimit) {
 			if (targetGrpList.length > 0) {
 				var target = targetGrpList[0];  // pull off the first to start processing
 				targetGrpList = targetGrpList.slice(1);
-	
-	
+
+
 				var listOfListsPerTargetGroup = [];
 				for (var j = 0; j < target.entities.length; j++) {
 					var eachList = [];
@@ -656,19 +658,19 @@
 					}
 					// add new property
 					target.entities[j].combinedList = eachList.join('+');
-	
+
 					// default separator of array.join(separator) is comma
 					// join all the MP inside each MP list with plus sign, and join each list with default comma
 					listOfListsPerTargetGroup.push(target.entities[j].combinedList);
 				}
-	
-	
+
+
 				// use the default comma to separate each list into each genotype profile
 				// example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/MP+MP+MP,MP+MP,MP+MP+MP+MP...
 				var qryStringPerTargetGroup = qryString + listOfListsPerTargetGroup.join();
-	
+
 				var self = this;
-	
+
 				// Separate the ajax request with callbacks
 				var jqxhr = $.ajax({
 					url: qryStringPerTargetGroup,
@@ -676,11 +678,11 @@
 					async : true,
 					dataType : 'json'
 				});
-	
+
 				jqxhr.done(function(data) {
 					//console.log('compare data loaded:');
 					//console.log(data);
-	
+
 					// sometimes the compare api doesn't find any matches, we need to stop here - Joe
 					if (typeof (data.b) === 'undefined') {
 						// Add the target.groupName to the groupsNoMatch array
@@ -689,11 +691,11 @@
 						// Will use target.groupName as the key of the named array
 						self.transformDataForVendor(target, data, multiTargetsModeTargetLengthLimit);
 					}
-	
+
 					// iterative back to process to make sure we processed all the targetGrpList
 					self.processDataForVendor(targetGrpList, self.qryString, multiTargetsModeTargetLengthLimit);
 				});
-	
+
 				jqxhr.fail(function () {
 					console.log('Ajax error - processDataForVendor()')
 				});
@@ -701,25 +703,25 @@
 				this.postDataLoadCallback();  // make a call back to post data init function
 			}
 		},
-	
+
 		transformDataForVendor: function(target, data, multiTargetsModeTargetLengthLimit) {
 			if (typeof(data) !== 'undefined' && typeof (data.b) !== 'undefined') {
 				console.log("Vendor Data transforming...");
-	
+
 				var targetGroupId = target.groupId;
 				var targetGroup = target.groupName;
-	
+
 				// sometimes the 'metadata' field might be missing from the JSON - Joe
 				// extract the maxIC score; ugh!
 				if (typeof (data.metadata) !== 'undefined') {
 					this.maxMaxIC = data.metadata.maxMaxIC;
 				}
-	
+
 				// just initialize the specific targetGroup
 				// Here we don't reset the cellData, targetData, and sourceData every time,
 				// because we want to append the genotype expansion data - Joe
 				// No need to redefine this in transformNewTargetGroupItems() - Joe
-	
+
 				if (typeof(this.targetData[targetGroup]) === 'undefined') {
 					this.targetData[targetGroup] = {};
 				}
@@ -729,7 +731,7 @@
 				if (typeof(this.cellData[targetGroup]) === 'undefined') {
 					this.cellData[targetGroup] = {};
 				}
-	
+
 				// Modify the resulting JSON
 				// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
 				// we'll need to use the genotype id (IMPC internal) from input data as the new ID
@@ -745,19 +747,19 @@
 							data.b[i].phenodigmScore = target.entities[j].score;
 							// add info for tooltip rendering
 							data.b[i].info = target.entities[j].info;
-	
+
 							break;
 						}
 					}
 				}
-	
+
 				for (var idx in data.b) {
 					var item = data.b[idx];
 					// In this case, the id is a list of MP ids, e.g., MP:0000074+MP:0000081+MP:0000097+MP:0000189
 					// we'll need to use the genotype id (IMPC internal) as the new ID
 					// Add prefix of groupId, otherwise may have javascript array ordering issues - Joe
 					var targetID = target.groupId + item.newid;
-	
+
 					// build the target list
 					var targetVal = {
 						"id": targetID,
@@ -768,14 +770,14 @@
 						"rank": parseInt(idx)+1,  // start with 1 not zero
 						"score": Math.round(item.phenodigmScore.score) // rounded to the nearest integer, used in _createTextScores() in phenogrid.js
 					};
-	
+
 					// We need to define this here since the targetID is newly added here, doesn't exist before - Joe
 					if (typeof(this.targetData[targetGroup][targetID]) === 'undefined') {
 						this.targetData[targetGroup][targetID] = {};
 					}
-	
+
 					this.targetData[targetGroup][targetID] = targetVal;
-	
+
 					var matches = data.b[idx].matches;
 					var curr_row, lcs, dataVals;
 					var sourceID_a, currID_b, currID_lcs;
@@ -788,17 +790,17 @@
 							sourceID_a = Utils.getConceptId(curr_row.a.id);
 							currID_b = Utils.getConceptId(curr_row.b.id);
 							currID_lcs = Utils.getConceptId(curr_row.lcs.id);
-	
+
 							// get the normalized IC
 							lcs = Utils.normalizeIC(curr_row, this.maxMaxIC);
-	
+
 							var srcElement = this.sourceData[targetGroup][sourceID_a]; // this checks to see if source already exists
-	
+
 							// build a unique list of sources
 							if (typeof(srcElement) === 'undefined') {
 								count++;
 								sum += parseFloat(curr_row.lcs.IC);
-	
+
 								// create a new source object
 								dataVals = {
 									"id":sourceID_a,
@@ -808,13 +810,13 @@
 									"sum": sum,
 									"type": "phenotype"
 								};
-	
+
 								this.sourceData[targetGroup][sourceID_a] = dataVals;
 							} else {
 								this.sourceData[targetGroup][sourceID_a].count += 1;
 								this.sourceData[targetGroup][sourceID_a].sum += parseFloat(curr_row.lcs.IC);
 							}
-	
+
 							// building cell data points
 							dataVals = {
 								"source_id": sourceID_a,
@@ -831,26 +833,26 @@
 								"b_IC": parseFloat(curr_row.b.IC),
 								"type": 'cell'
 							};
-	
+
 							// we need to define this before adding the data to named array, otherwise will get 'cannot set property of undefined' error
 							// No need to redefine this in transformNewTargetGroupItems() - Joe
 							if (typeof(this.cellData[targetGroup][sourceID_a]) === 'undefined') {
 								this.cellData[targetGroup][sourceID_a] = {};
 							}
-	
+
 							 this.cellData[targetGroup][sourceID_a][targetID] = dataVals;
 						}
 					}
 				}
 			}
 		},
-	
-	
+
+
 		/*
 			Function: refresh
-	
+
 				freshes the data
-	
+
 			 Parameters:
 				targetGroup - list of targetGroup (aka group) to fetch
 				 lazy - performs a lazy load of the data checking for existing data
@@ -873,11 +875,11 @@
 			}
 			return reloaded;
 		},
-	
-	
+
+
 		getFetch: function (self, url, target, callback, finalCallback, parent) {
 			console.log('GET:' + url);
-	
+
 			// Separate the ajax request with callbacks
 			var jqxhr = $.ajax({
 				url: url,
@@ -885,21 +887,21 @@
 				async : true,
 				dataType : 'json',
 			});
-	
+
 			jqxhr.done(function(data) {
 				callback(self, target, data, finalCallback, parent);
 			});
-	
+
 			jqxhr.fail(function () {
 				console.log('Ajax error - getFetch()')
 			});
 		},
-	
+
 		/*
 			Function: getOntology
-	
+
 				gets the ontology for a given id; wraps scigraph call
-	
+
 			 Parameters:
 				id - id
 				 ontologyDirection - which direction to search for relationships
@@ -911,21 +913,21 @@
 			var direction = ontologyDirection;
 			var relationship = parent.state.ontologyRelationship;
 			var depth = ontologyDepth;
-	
+
 			// https://monarchinitiative.org/neighborhood/HP_0003273/2/OUTGOING/subClassOf.json is the URL path - Joe
-	
+
 			var url = this.serverURL + parent.state.ontologyQuery + id + "/" + depth + "/" + direction + "/" + relationship + ".json";
-	
+
 			var cb = this.postOntologyCb;
-	
+
 			// no postData parm will cause the fetch to do a GET, a pOST is not handled yet for the ontology lookup yet
 			this.getFetch(self, url, id, cb, finalCallback, parent);
 		},
-	
+
 		/*
 			Function: getNewTargetGroupItems
 				get genotypes of a specific gene
-	
+
 			 Parameters:
 				id - id
 				 finalCallback - final callback name
@@ -939,11 +941,11 @@
 			// ajax get all the genotypes of this gene id
 			this.getFetch(self, url, id, cb, finalCallback, parent);
 		},
-	
+
 		/*
 			Function: getNewTargetGroupItemsCb
 				send the compare request to get all the matches data
-	
+
 			 Parameters:
 				self - immediate parent
 				 id - id which was searched
@@ -970,7 +972,7 @@
 							}
 						}
 					}
-	
+
 					// Now only get the first parent.state.targetGroupItemExpandLimit genotypes in the list
 					var genotype_list = results.genotype_list.slice(0, parent.state.targetGroupItemExpandLimit);
 					var phenotype_id_list = self.origSourceList.join("+");
@@ -995,11 +997,11 @@
 				}
 			}
 		},
-	
+
 		/*
 			Function: getNewTargetGroupItemsCb
 				return results(matches data) back to final callback (_fetchGenotypesCb() in phenogrid.js)
-	
+
 			 Parameters:
 				self - immediate parent
 				 id - id which was searched
@@ -1011,19 +1013,19 @@
 			// don't encode labels into html entities here, otherwise the tooltip content is good,
 			// but genotype labels on x axis will have the encoded characters
 			// we just need to encode the labels for tooltip use - Joe
-	
+
 			// save the expanded gene id for later
 			var genotype_id_list = [];
-	
+
 			// there's no results.b is no matches found in the simsearch - Joe
 			if (typeof(results.b) !== 'undefined') {
 				for (var i = 0; i < results.b.length; i++) {
 					genotype_id_list.push(results.b[i].id);
 				}
-	
+
 				// for reactivation
 				self.loadedNewTargetGroupItems[id] = genotype_id_list;
-	
+
 				// this `results` is the simsearch resulting JSON
 				finalCallback(results, id, parent);
 			} else {
@@ -1033,12 +1035,12 @@
 				finalCallback(simsearchResults, id, parent, errorMsg);
 			}
 		},
-	
+
 		/*
 			Function: postOntologyCb
-	
+
 				post callback from async call to gets the ontology for a given id
-	
+
 			 Parameters:
 				self - immediate parent
 				 id - id which was searched
@@ -1048,7 +1050,7 @@
 		postOntologyCb: function(self, id, results, finalCallback, parent) {
 			var ontologyInfo = [];
 			var nodes, edges;
-	
+
 			if (typeof (results) !== 'undefined') {
 					edges = results.edges;
 					nodes = results.nodes;
@@ -1067,7 +1069,7 @@
 							self.ontologyCacheLabels[nodes[i].id] = Utils.capitalizeString(nodes[i].lbl);
 						}
 					}
-	
+
 					// Used to prevent breaking objects
 					for (var j in edges) {
 						if ( ! edges.hasOwnProperty(j)) {
@@ -1082,46 +1084,46 @@
 						}
 					}
 				}
-	
+
 				// HACK:if we return a null just create a zero-length array for now to add it to hashtable
 				// this is for later so we don't have to lookup concept again
 				if (ontologyInfo === null) {
 					ontologyInfo = {};
 				}
-	
+
 				// save the ontology in cache for later
 				var ontoData = {"edges": ontologyInfo, "active": 1};
 				self.ontologyCache[id] = ontoData;
-	
+
 			// return results back to final callback
 			finalCallback(ontoData, id, parent);
 		},
-	
+
 		getOntologyLabel: function(id) {
 			return this.ontologyCacheLabels[id];
 		},
-	
+
 		getTargets: function() {
 			return this.targetData;
 		},
-	
+
 		getSources: function() {
 			return this.sourceData;
 		},
-	
+
 		getCellData: function() {
 			return this.cellData;
 		},
-	
+
 		getOntologyCacheLabels: function() {
 			return this.ontologyCacheLabels;
 		},
-	
+
 		/*
 			Function: dataExists
-	
+
 				convenient function to check the cell data for a given target group (i.e., group)
-	
+
 			 Parameters:
 				 targetGroup - target Group label
 		*/
@@ -1132,24 +1134,23 @@
 			}
 			return true;
 		},
-	
+
 		/*
 			Function: checkOntologyCache
-	
+
 				convenient function to check the ontology cache for a given id
-	
+
 			 Parameters:
 				 id - id to check
 		*/
 		checkOntologyCache: function(id) {
 			return this.ontologyCache[id];
 		}
-	
-	
+
+
 	};
-	
+
 	// CommonJS format
 	module.exports = DataLoader;
-	
+
 	}());
-	
