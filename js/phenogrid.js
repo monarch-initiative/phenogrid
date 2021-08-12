@@ -41,6 +41,7 @@ require('jquery-ui/ui/unique-id');
 require('jquery-ui/ui/safe-active-element');
 require('jquery-ui/ui/widgets/tooltip');
 
+
 /*
 
 // require('jquery-ui/ui/core');
@@ -3486,3 +3487,5 @@ function isBioLinkServer(serverURL) {
 });
 
 }());
+
+module.exports = window.Phenogrid;
