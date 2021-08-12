@@ -82,23 +82,6 @@ var config = {
     }
 };
 
-// The default task is to build the different distributions.
-gulp.task('bundle', [
-    'js-bundle',
-    'css-bundle',
-    'copy-font-awesome-fonts',
-    'copy-jquery-ui-images'
-]);
-
-// an alternate task that won't uglify. useful for debugging
-gulp.task('dev-bundle', [
-    'lint',
-    'js-dev-bundle',
-    'css-dev-bundle',
-    'copy-font-awesome-fonts',
-    'copy-jquery-ui-images'
-]);
-
 // // JSHint
 // gulp.task("lint", function() {
 //     return gulp.src(config.jshint.source)
@@ -186,5 +169,21 @@ gulp.task('default', function() {
     console.log("Please specify the task name!");
 });
 
+// The default task is to build the different distributions.
+gulp.task('bundle', gulp.series(
+    'js-bundle',
+    'css-bundle',
+    'copy-font-awesome-fonts',
+    'copy-jquery-ui-images'
+));
+
+// an alternate task that won't uglify. useful for debugging
+gulp.task('dev-bundle', gulp.series(
+    'lint',
+    'js-dev-bundle',
+    'css-dev-bundle',
+    'copy-font-awesome-fonts',
+    'copy-jquery-ui-images'
+));
 
 }());
