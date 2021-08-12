@@ -1,3 +1,6 @@
+// exposes Pheno_ref, so we can export it
+var Pheno_ref;
+
 (function () {
 'use strict';
 
@@ -40,6 +43,7 @@ require('jquery-ui/ui/safe-blur');
 require('jquery-ui/ui/unique-id');
 require('jquery-ui/ui/safe-active-element');
 require('jquery-ui/ui/widgets/tooltip');
+
 
 /*
 
@@ -126,9 +130,11 @@ function isBioLinkServer(serverURL) {
 		jqElement.phenogrid(options);
 	};
 
-	window.Phenogrid = {
+    Pheno_ref = {
 		createPhenogridForElement: createPhenogridForElement
 	};
+
+    window.Phenogrid = Pheno_ref;
 
 	// Use widget factory to define the UI plugin - Joe
 	// Can aslo be ns.phenogrid (ns can be anything else - namespace) - Joe
@@ -3486,3 +3492,5 @@ function isBioLinkServer(serverURL) {
 });
 
 }());
+
+module.exports = Pheno_ref;
