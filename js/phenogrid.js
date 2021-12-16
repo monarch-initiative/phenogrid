@@ -144,6 +144,7 @@ function isBioLinkServer(serverURL) {
 	    // Public API, can be overwritten in Phenogrid constructor
         config: {
             serverURL: "https://monarchinitiative.org", // will be overwritten by phenogrid_config.js, and Phenogrid constructor
+            forceBiolink: false, // if true, forces DataLoader to consider the backend a biolink server
             appURL: "https://monarchinitiative.org", // For linking to term pages
             gridSkeletonData: {},
             selectedCalculation: 0, // index 0 is Similarity by default. (0 - Similarity, 1 - Ratio (q), 2 - Uniqueness, 3- Ratio (t))
@@ -352,7 +353,7 @@ function isBioLinkServer(serverURL) {
             this._parseTargetGroupList();
 
             // initialize data processing class for simsearch query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, true);
+            this.state.dataLoader = new DataLoader(this.state.serverURL, true, undefined, this.state.forceBiolink);
 
             // starting loading the data from simsearch
             //optional parm: this.limit
@@ -372,7 +373,7 @@ function isBioLinkServer(serverURL) {
             this._parseTargetGroupList();
 
             // initialize data processing class for compare query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, false);
+            this.state.dataLoader = new DataLoader(this.state.serverURL, false, undefined, this.state.forceBiolink);
 
             // starting loading the data from compare api
             // NOTE: the owlsim data returned form the ajax GET may be empty (no matches), we'll handle this in the callback - Joe
@@ -400,7 +401,7 @@ function isBioLinkServer(serverURL) {
             }
 
             // initialize data processing class for simsearch query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, true);
+            this.state.dataLoader = new DataLoader(this.state.serverURL, true, undefined, this.state.forceBiolink);
 
             // starting loading the data from simsearch
             this.state.dataLoader.load(this.state.gridSourceList, this.state.initialTargetGroupLoadList, this.state.asyncDataLoadingCallback, this.state.searchResultLimit);
@@ -418,7 +419,7 @@ function isBioLinkServer(serverURL) {
             this._parseTargetGroupList();
 
             // initialize data processing class for compare query
-            this.state.dataLoader = new DataLoader(this.state.serverURL, false);
+            this.state.dataLoader = new DataLoader(this.state.serverURL, false, undefined, this.state.forceBiolink);
 
             // starting loading the owlsim data from compare api for this vendor
             if (this._isCrossComparisonView()) {
@@ -2108,7 +2109,7 @@ function isBioLinkServer(serverURL) {
             if (expanded){
                 htmlContent += ontologyData;
             }
-            else if (!isBioLinkServer(this.state.serverURL)) {
+            else if (!isBioLinkServer(this.state.serverURL) && !this.state.forceBiolink) {
                 htmlContent += '<br><div class="pg_expand_ontology" id="' + this.state.pgInstanceId + '_expandOntology_' + id + '">Expand classification hierarchy<i class="pg_expand_ontology_icon fa fa-plus-circle pg_cursor_pointer"></i></div>';
             }
 
@@ -3172,7 +3173,7 @@ function isBioLinkServer(serverURL) {
         _fetchUnmatchedLabel: function(target, targets, callback) {
             var self = this;
 
-            if (isBioLinkServer(this.state.serverURL)) {
+            if (isBioLinkServer(this.state.serverURL) || this.state.forceBiolink) {
                 var ids = this.state.dataLoader.ids;
                 var targetEntry = ids.find(function(i) {
                     return i.id === target;

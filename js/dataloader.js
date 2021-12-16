@@ -55,9 +55,10 @@
 	}
 
 	// Define the DataLoader constructor using an object constructor function
-	var DataLoader = function(serverURL, useSimSearchQuery, limit) {
+	var DataLoader = function(serverURL, useSimSearchQuery, limit, forceBiolink=false) {
 		this.serverURL = serverURL;
-		var useBioLink = isBioLinkServer(serverURL);
+		this.forceBiolink = forceBiolink;
+		var useBioLink = isBioLinkServer(serverURL) || forceBiolink;
 
 		if (useSimSearchQuery) {
 			if (useBioLink) {
@@ -125,7 +126,7 @@
 			// The qrySourceList has already had all duplicated IDs removed in _parseQuerySourceList() of phenogrid.js - Joe
 			this.origSourceList = sourceList;
 
-			var useBioLink = isBioLinkServer(this.serverURL);
+			var useBioLink = isBioLinkServer(this.serverURL) || this.forceBiolink;
 			// this.qryString = this.simQuery.inputItemsString + qrySourceList.join("+");
 			this.qryString = buildSearchQuery(
 				useBioLink,
@@ -164,7 +165,7 @@
 			// example: monarchinitiative.org/compare/HP:0000726+HP:0000746+HP:0001300/NCBIGene:388552,NCBIGene:12166
 			// this.qryString = this.serverURL + this.simQuery.URL + '/' + qrySourceList.join("+") + '/' + geneList.join(",");
 
-			var useBioLink = isBioLinkServer(this.serverURL);
+			var useBioLink = isBioLinkServer(this.serverURL) || this.forceBiolink;
 			var postBody = buildCompareQuery(
 				useBioLink,
 				sourceList,
@@ -219,7 +220,7 @@
 
 				// // need to add on target targetGroup groupId
 				// var postData = qryString + this.simQuery.targetSpeciesString + target.groupId;
-				var isBioLink = isBioLinkServer(this.serverURL);
+				var isBioLink = isBioLinkServer(this.serverURL) || this.forceBiolink;
 				var postFetchCallback = isBioLink ?
 					this.postSimsFetchBioLinkCb :
 					this.postSimsFetchCb;
@@ -251,7 +252,7 @@
 		*/
 		postFetch: function (url, queryURL, target, targets, callback, qryString, targetSpeciesString, targetGroupId) {
 			var self = this;
-			var useBioLink = isBioLinkServer(url);
+			var useBioLink = isBioLinkServer(url) || this.forceBiolink;
 
 			if (useBioLink) {
 				var getData = qryString + targetSpeciesString + targetGroupId;
