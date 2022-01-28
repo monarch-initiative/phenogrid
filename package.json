@@ -19,6 +19,8 @@
   },
   "files": [
     "dist/",
+    "config/",
+    "css/",
     "js/",
     "README.md"
   ],
